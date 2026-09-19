@@ -3,6 +3,15 @@
 # not a production one — re-running it without a wipe will just pile up more
 # random folders/documents/tasks/events on top of whatever's already there.
 
+# `db:prepare` (which the production container's entrypoint runs on every
+# boot) also runs db:seed the one time it creates a brand-new database —
+# including production's very first boot. Found the hard way: that first boot
+# created the known test@example.com / password123 login below, then crashed
+# on Faker (a dev/test-only gem, absent from the production bundle) — leaving
+# a default-credential account in the live database. This file must never do
+# anything in production.
+return if Rails.env.production?
+
 # Root folders are each their own "app" — folders are recursive
 # projects/components (see Folder#self_and_descendant_ids), so seed data
 # should demonstrate that instead of looking like generic personal folders.
