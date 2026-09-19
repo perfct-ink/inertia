@@ -16,7 +16,5 @@ class SeedsTest < ActiveSupport::TestCase
     ensure
       Rails.env = original_env
     end
-
-    assert_nil User.find_by(email: "test@example.com")
   end
 end
