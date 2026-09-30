@@ -193,7 +193,7 @@ export default function Sidebar() {
         const { activeId, closeTab } = useTabsStore.getState()
         if (!activeId) return
         const next = closeTab(activeId)
-        navigate(next ? next.path : '/')
+        navigate(next ? next.path : '/workspace')
       }
     }
     window.addEventListener('keydown', onKey)

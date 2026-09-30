@@ -6,6 +6,12 @@
          (notch/home-indicator) instead of 0 — needed for the Capacitor iOS
          shell and any other WKWebView; a no-op everywhere else. -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <!-- This app shell is never what should be indexed — the real
+         marketing/SEO pages are server-rendered by Rails (see
+         backend/app/controllers/marketing_controller.rb) and never load this
+         bundle. Belt-and-suspenders: robots.txt already disallows the app's
+         own routes. -->
+    <meta name="robots" content="noindex, nofollow" />
     <title>Inertia</title>
     <script>
       // A crash before React ever mounts (e.g. a ReferenceError thrown while

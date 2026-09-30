@@ -31,8 +31,14 @@ export default function App() {
       <Route path="/login" element={<LoginPage />} />
       <Route path="/signup" element={<SignupPage />} />
       <Route path="/shared/:token" element={<div>Shared view</div>} />
+      {/* Rails owns "/" in production for the marketing homepage (see
+          backend/app/controllers/marketing_controller.rb and the nginx vhost
+          under deploy/) — this route only matters for local dev (no Rails
+          marketing page competing there) and for in-app client-side nav,
+          which never leaves the already-loaded SPA. */}
+      <Route path="/" element={<Navigate to="/workspace" replace />} />
       <Route
-        path="/"
+        path="/workspace"
         element={
           <PrivateRoute>
             <WorkspacePage />
@@ -87,7 +93,7 @@ export default function App() {
           </PrivateRoute>
         }
       />
-      <Route path="*" element={<Navigate to="/" replace />} />
+      <Route path="*" element={<Navigate to="/workspace" replace />} />
     </Routes>
   )
 }

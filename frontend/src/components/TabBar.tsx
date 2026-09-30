@@ -12,7 +12,7 @@ export default function TabBar() {
     e.stopPropagation()
     const next = closeTab(id)
     if (next) navigate(next.path)
-    else navigate('/')
+    else navigate('/workspace')
   }
 
   return (

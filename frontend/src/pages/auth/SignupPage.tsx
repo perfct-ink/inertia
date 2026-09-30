@@ -17,7 +17,7 @@ export default function SignupPage() {
     onSuccess: (res) => {
       const token = res.headers['authorization']?.replace('Bearer ', '')
       setAuth(token, res.data.user)
-      navigate('/')
+      navigate('/workspace')
     },
     onError: (err: any) => setErrors(err.response?.data?.errors ?? ['Something went wrong']),
   })

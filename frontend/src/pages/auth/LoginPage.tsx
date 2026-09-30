@@ -17,7 +17,7 @@ export default function LoginPage() {
     onSuccess: (res) => {
       const token = res.headers['authorization']?.replace('Bearer ', '')
       setAuth(token, res.data.user)
-      navigate('/')
+      navigate('/workspace')
     },
     onError: () => setError('Invalid email or password'),
   })
