@@ -21,6 +21,16 @@ class MarketingController < ActionController::Base
       path: "/features",
       title: "Features — Inertia",
       description: "Real-time collaborative docs, a full file manager, task tracking with epics and a calendar, and shareable links — all in one workspace."
+    },
+    pricing: {
+      path: "/pricing",
+      title: "Pricing — Inertia",
+      description: "Pricing for Inertia — create a free account today; plans are still being finalized."
+    },
+    about: {
+      path: "/about",
+      title: "About — Inertia",
+      description: "Why Inertia exists: one real-time workspace for docs, tasks, and files instead of five apps synced by hand."
     }
   }.freeze
 
@@ -32,11 +42,18 @@ class MarketingController < ActionController::Base
     @page = PAGES[:features]
   end
 
+  def pricing
+    @page = PAGES[:pricing]
+  end
+
+  def about
+    @page = PAGES[:about]
+  end
+
   def robots
     render plain: <<~TXT, content_type: "text/plain"
       User-agent: *
-      Allow: /
-      Allow: /features
+      #{PAGES.values.map { |p| "Allow: #{p[:path]}" }.join("\n")}
       Disallow: /login
       Disallow: /signup
       Disallow: /workspace

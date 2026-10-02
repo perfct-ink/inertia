@@ -77,7 +77,13 @@
 
       .cta-section { padding: 0 0 96px; text-align: center; }
 
+      .prose { max-width: 720px; }
+      .prose p { margin: 0 0 16px; }
+      .prose p:last-child { margin-bottom: 0; }
+
       .site-footer { border-top: 1px solid var(--border); padding: 24px 0; color: var(--muted); font-size: 13px; }
+      .footer-row { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
+      .footer-row nav { display: flex; gap: 16px; }
 
       @media (max-width: 680px) {
         .hero h1 { font-size: 32px; }
@@ -92,6 +98,7 @@
         <a class="brand" href="/">Inertia</a>
         <nav>
           <a href="/features">Features</a>
+          <a href="/pricing">Pricing</a>
           <a href="/login">Sign in</a>
           <a class="btn" href="/signup">Sign up</a>
         </nav>
@@ -103,8 +110,13 @@
     </main>
 
     <footer class="site-footer">
-      <div class="wrap">
+      <div class="wrap footer-row">
         <span>&copy; <%= Time.current.year %> Inertia</span>
+        <nav>
+          <a href="/features">Features</a>
+          <a href="/pricing">Pricing</a>
+          <a href="/about">About</a>
+        </nav>
       </div>
     </footer>
   </body>

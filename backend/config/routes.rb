@@ -9,6 +9,8 @@ Rails.application.routes.draw do
   # network request for HTML — so these pages are web-only by construction.
   root "marketing#home"
   get "features", to: "marketing#features"
+  get "pricing", to: "marketing#pricing"
+  get "about", to: "marketing#about"
   get "robots.txt", to: "marketing#robots"
   get "sitemap.xml", to: "marketing#sitemap"
 
