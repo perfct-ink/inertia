@@ -90,3 +90,7 @@ Useful host-level one-offs from `~/Sites/server-config` (bootstrapping/inspectio
 ./site.sh logs inertia.it.com   # tail container logs
 ./site.sh pull-nginx            # mirror the server's /etc/nginx into that repo's nginx/, to check for drift
 ```
+
+### Native macOS preview (SwiftUI)
+
+Run `make dev-native-mac` to build and open the native app. This first migration stage provides native project dashboards, task management, and an event agenda, with the existing document/spreadsheet editors embedded in WKWebView. Electron remains available through the existing targets. See [macOS setup and current scope](macos/README.md); run `make test-native-mac` for its tests.

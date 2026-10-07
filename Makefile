@@ -204,3 +204,13 @@ hooks: ## Install the git pre-commit hook (runs `test-fast` before every commit)
 
 nuke: ## Remove everything including built images (full reset)
 	$(COMPOSE) down -v --remove-orphans --rmi all
+
+.PHONY: build-native-mac dev-native-mac test-native-mac
+build-native-mac: ## Build the gradual SwiftUI macOS app alongside Electron
+	bash scripts/build-native-mac.sh
+
+dev-native-mac: build-native-mac ## Open the native SwiftUI macOS app
+	open macos/dist/Inertia.app
+
+test-native-mac: ## Run native API/model regression tests
+	swift test --package-path macos

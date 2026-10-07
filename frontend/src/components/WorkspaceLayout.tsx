@@ -6,6 +6,11 @@ import { useSidebarStore } from '@/store/sidebar'
 export default function WorkspaceLayout({ children }: { children: React.ReactNode }) {
   const toggleSidebar = useSidebarStore((s) => s.toggle)
 
+  // The native macOS shell owns navigation around the embedded editor.
+  if (new URLSearchParams(window.location.search).get('native') === '1') {
+    return <div className="flex h-screen flex-col overflow-hidden">{children}</div>
+  }
+
   return (
     <div className="flex h-screen">
       <Sidebar />
