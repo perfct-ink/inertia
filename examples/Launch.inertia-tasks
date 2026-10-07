@@ -1,6 +1,6 @@
 {
   "format": "com.inertia.tasks",
-  "version": 1,
+  "version": 2,
   "id": "A1A0F3FF-ACA6-4127-B1AA-532C754EDD46",
   "title": "Launch Project",
   "columns": [
@@ -32,7 +32,9 @@
       "notes": "Describe the first release.",
       "columnID": "E38638FC-2159-4EED-8595-A69B298D0FA7",
       "sprintID": "9B53A16D-5848-4529-A723-48E97ECE1BFF",
-      "dueDate": "2026-10-09"
+      "dueDate": "2026-10-09",
+      "epicID": "29E191C3-F1BA-4099-8FF2-F6F053345B0A",
+      "milestoneID": "E5CB3D24-0BB8-4F69-A139-904A3C3D8880"
     },
     {
       "id": "15061714-2F5D-4F22-8D67-A8E1F1695AAC",
@@ -40,7 +42,9 @@
       "notes": "Show documents, tasks and upcoming events.",
       "columnID": "B989512B-B1AE-4C64-B6C3-35E2F5FABFF3",
       "sprintID": "9B53A16D-5848-4529-A723-48E97ECE1BFF",
-      "dueDate": "2026-10-16"
+      "dueDate": "2026-10-16",
+      "epicID": "29E191C3-F1BA-4099-8FF2-F6F053345B0A",
+      "milestoneID": "E5CB3D24-0BB8-4F69-A139-904A3C3D8880"
     },
     {
       "id": "5B6EF712-D857-4960-85E5-A17345B3235B",
@@ -56,6 +60,25 @@
       "goal": "Deliver the first usable release",
       "startDate": "2026-10-07",
       "endDate": "2026-10-21"
+    }
+  ],
+  "epics": [
+    {
+      "id": "29E191C3-F1BA-4099-8FF2-F6F053345B0A",
+      "title": "Launch Experience",
+      "notes": "Deliver the initial product workflow.",
+      "startDate": "2026-10-07",
+      "targetDate": "2026-10-21"
+    }
+  ],
+  "milestones": [
+    {
+      "id": "E5CB3D24-0BB8-4F69-A139-904A3C3D8880",
+      "title": "Release Review",
+      "notes": "Review the requirements and dashboard.",
+      "targetDate": "2026-10-20",
+      "epicID": "29E191C3-F1BA-4099-8FF2-F6F053345B0A",
+      "completed": false
     }
   ]
 }

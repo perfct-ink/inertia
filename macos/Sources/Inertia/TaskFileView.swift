@@ -6,6 +6,8 @@ struct TaskFileView: View {
     @Environment(\.openWindow) private var openWindow
     @State private var view = "Workboard"
     @State private var sprintFilter = "all"
+    @State private var epicFilter = "all"
+    @State private var milestoneFilter = "all"
     @State private var taskDraft: FileTask?
     @State private var sprintDraft: Sprint?
     @State private var editingColumns = false
@@ -13,7 +15,9 @@ struct TaskFileView: View {
 
     private var visibleTasks: [FileTask] {
         document.board.tasks.filter {
-            sprintFilter == "all" || (sprintFilter == "unassigned" ? $0.sprintID == nil : $0.sprintID?.uuidString == sprintFilter)
+            (sprintFilter == "all" || (sprintFilter == "unassigned" ? $0.sprintID == nil : $0.sprintID?.uuidString == sprintFilter)) &&
+            (epicFilter == "all" || (epicFilter == "unassigned" ? $0.epicID == nil : $0.epicID?.uuidString == epicFilter)) &&
+            (milestoneFilter == "all" || (milestoneFilter == "unassigned" ? $0.milestoneID == nil : $0.milestoneID?.uuidString == milestoneFilter))
         }
     }
     var body: some View {
@@ -24,15 +28,27 @@ struct TaskFileView: View {
                     Text("Workboard").tag("Workboard")
                     Text("List").tag("List")
                     Text("Sprints").tag("Sprints")
-                }.pickerStyle(.segmented).frame(width: 270)
+                    Text("Epics").tag("Epics")
+                    Text("Milestones").tag("Milestones")
+                }.pickerStyle(.segmented).frame(width: 430)
             }.padding()
-            if view != "Sprints" {
+            if view == "Workboard" || view == "List" {
                 HStack {
                     Picker("Sprint", selection: $sprintFilter) {
                         Text("All tasks").tag("all")
                         Text("Unassigned").tag("unassigned")
                         ForEach(document.board.sprints) { sprint in Text(sprint.title).tag(sprint.id.uuidString) }
-                    }.frame(maxWidth: 300)
+                    }.frame(maxWidth: 220)
+                    Picker("Epic", selection: $epicFilter) {
+                        Text("All epics").tag("all")
+                        Text("Unassigned").tag("unassigned")
+                        ForEach(document.board.epics) { Text($0.title).tag($0.id.uuidString) }
+                    }.frame(maxWidth: 220)
+                    Picker("Milestone", selection: $milestoneFilter) {
+                        Text("All milestones").tag("all")
+                        Text("Unassigned").tag("unassigned")
+                        ForEach(document.board.milestones) { Text($0.title).tag($0.id.uuidString) }
+                    }.frame(maxWidth: 220)
                     Spacer()
                     Text("\(visibleTasks.count) tasks").foregroundStyle(.secondary)
                 }.padding([.horizontal, .bottom])
@@ -40,7 +56,22 @@ struct TaskFileView: View {
             Divider()
             if view == "Workboard" { board }
             else if view == "List" { taskList }
-            else { sprints }
+            else if view == "Sprints" { sprints }
+            else if view == "Epics" {
+                EpicList(board: $document.board) { id in
+                    epicFilter = id.uuidString; sprintFilter = "all"; milestoneFilter = "all"; view = "Workboard"
+                }
+            } else {
+                MilestoneList(board: $document.board) { id in
+                    milestoneFilter = id.uuidString; sprintFilter = "all"; epicFilter = "all"; view = "Workboard"
+                }
+            }
+        }
+        .onChange(of: document.board.epics.map(\.id)) { _, ids in
+            if let selected = UUID(uuidString: epicFilter), !ids.contains(selected) { epicFilter = "all" }
+        }
+        .onChange(of: document.board.milestones.map(\.id)) { _, ids in
+            if let selected = UUID(uuidString: milestoneFilter), !ids.contains(selected) { milestoneFilter = "all" }
         }
         .frame(minWidth: 850, minHeight: 550)
         .toolbar {
@@ -88,6 +119,12 @@ struct TaskFileView: View {
                             Button { taskDraft = task } label: {
                                 VStack(alignment: .leading, spacing: 6) {
                                     Text(task.title).font(.body.weight(.medium)).foregroundStyle(.primary)
+                                    if let epic = document.board.epics.first(where: { $0.id == task.epicID }) {
+                                        Label(epic.title, systemImage: "square.stack.3d.up").font(.caption).foregroundStyle(.secondary)
+                                    }
+                                    if let milestone = document.board.milestones.first(where: { $0.id == task.milestoneID }) {
+                                        Label(milestone.title, systemImage: "flag").font(.caption).foregroundStyle(.secondary)
+                                    }
                                     if let date = task.dueDate { Label(date, systemImage: "calendar").font(.caption).foregroundStyle(.secondary) }
                                     if let sprint = document.board.sprints.first(where: { $0.id == task.sprintID }) {
                                         Text(sprint.title).font(.caption).foregroundStyle(.secondary)
@@ -134,7 +171,7 @@ struct TaskFileView: View {
                     HStack {
                         Button(sprint.title) { sprintDraft = sprint }.font(.headline).buttonStyle(.plain)
                         Spacer()
-                        Button("View Tasks") { sprintFilter = sprint.id.uuidString; view = "Workboard" }
+                        Button("View Tasks") { sprintFilter = sprint.id.uuidString; epicFilter = "all"; milestoneFilter = "all"; view = "Workboard" }
                     }
                     if !sprint.goal.isEmpty { Text(sprint.goal).foregroundStyle(.secondary) }
                     Text("\(sprint.startDate ?? "No start date") – \(sprint.endDate ?? "No end date")").font(.caption)
@@ -160,7 +197,10 @@ struct TaskFileView: View {
         Button("Delete Task", role: .destructive) { document.board.removeTask(task.id) }
     }
     private func newTask(column: UUID? = nil) {
-        taskDraft = FileTask(columnID: column ?? document.board.columns[0].id, sprintID: UUID(uuidString: sprintFilter))
+        var task = FileTask(columnID: column ?? document.board.columns[0].id, sprintID: UUID(uuidString: sprintFilter))
+        task.epicID = UUID(uuidString: epicFilter)
+        task.milestoneID = UUID(uuidString: milestoneFilter)
+        taskDraft = task
     }
 }
 
@@ -179,6 +219,14 @@ private struct TaskEditor: View {
                 Picker("Sprint", selection: $draft.sprintID) {
                     Text("Unassigned").tag(nil as UUID?)
                     ForEach(board.sprints) { Text($0.title).tag(Optional($0.id)) }
+                }
+                Picker("Epic", selection: $draft.epicID) {
+                    Text("Unassigned").tag(nil as UUID?)
+                    ForEach(board.epics) { Text($0.title).tag(Optional($0.id)) }
+                }
+                Picker("Milestone", selection: $draft.milestoneID) {
+                    Text("Unassigned").tag(nil as UUID?)
+                    ForEach(board.milestones) { Text($0.title).tag(Optional($0.id)) }
                 }
                 Picker("Parent task", selection: $draft.parentID) {
                     Text("None").tag(nil as UUID?)

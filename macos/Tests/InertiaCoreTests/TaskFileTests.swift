@@ -7,10 +7,18 @@ final class TaskFileTests: XCTestCase {
         var sprint = Sprint(title: "Sprint 1")
         sprint.startDate = "2026-10-01"; sprint.endDate = "2026-10-14"
         file.sprints = [sprint]
+        var epic = FileEpic(title: "Launch Experience")
+        epic.startDate = "2026-10-01"; epic.targetDate = "2026-10-20"; epic.notes = "Release requirements"
+        file.epics = [epic]
+        var milestone = FileMilestone(title: "Release review")
+        milestone.targetDate = "2026-10-14"; milestone.epicID = epic.id
+        file.milestones = [milestone]
         var parent = FileTask(title: "Ship launch", columnID: file.columns[0].id, sprintID: sprint.id)
         parent.notes = "Requirements\nUnicode: café ✅"; parent.dueDate = "2026-10-14"
         var child = FileTask(title: "Build UI", columnID: file.columns[1].id)
         child.parentID = parent.id
+        parent.epicID = epic.id; parent.milestoneID = milestone.id
+        child.epicID = epic.id
         file.tasks = [parent, child]
         return file
     }
@@ -59,9 +67,9 @@ final class TaskFileTests: XCTestCase {
     func testRejectsForeignFutureAndUnknownFields() throws {
         let file = fixture()
         var json = try XCTUnwrap(JSONSerialization.jsonObject(with: file.data()) as? [String: Any])
-        json["version"] = 2
+        json["version"] = 3
         XCTAssertThrowsError(try TaskFile.read(JSONSerialization.data(withJSONObject: json)))
-        json["version"] = 1; json["format"] = "some.other.tasks"
+        json["version"] = 2; json["format"] = "some.other.tasks"
         XCTAssertThrowsError(try TaskFile.read(JSONSerialization.data(withJSONObject: json)))
         json["format"] = TaskFile.formatIdentifier; json["futureField"] = true
         XCTAssertThrowsError(try TaskFile.read(JSONSerialization.data(withJSONObject: json)))
@@ -106,6 +114,66 @@ final class TaskFileTests: XCTestCase {
         let file = try TaskFile.read(Data(contentsOf: root.appendingPathComponent("examples/Launch.inertia-tasks")))
         XCTAssertEqual(file.tasks.count, 3)
         XCTAssertEqual(file.completedCount(in: file.sprints[0].id), 1)
+    }
+    func testV1MigrationPreservesTasksAndReferences() throws {
+        var original = fixture()
+        original.removeEpic(original.epics[0].id)
+        original.removeMilestone(original.milestones[0].id)
+        var json = try XCTUnwrap(JSONSerialization.jsonObject(with: original.data()) as? [String: Any])
+        json["version"] = 1
+        json.removeValue(forKey: "epics"); json.removeValue(forKey: "milestones")
+        let upgraded = try TaskFile.read(JSONSerialization.data(withJSONObject: json))
+        XCTAssertEqual(upgraded, original)
+        XCTAssertEqual(upgraded.version, 2)
+        XCTAssertEqual(try TaskFile.read(upgraded.data()), upgraded)
+        json["epics"] = [] // These fields were not part of v1: must not discard them.
+        XCTAssertThrowsError(try TaskFile.read(JSONSerialization.data(withJSONObject: json)))
+    }
+    func testEpicProgressAndMilestoneCompletionAreIndependent() throws {
+        var file = fixture()
+        let epic = file.epics[0].id
+        XCTAssertEqual(file.completedCount(epicID: epic), 0)
+        file.moveTask(file.tasks[0].id, to: file.columns.last!.id)
+        XCTAssertEqual(file.completedCount(epicID: epic), 1)
+        XCTAssertFalse(file.milestones[0].completed)
+        file.milestones[0].completed = true
+        XCTAssertTrue(try TaskFile.read(file.data()).milestones[0].completed)
+        XCTAssertEqual(file.completedCount(epicID: epic), 1)
+    }
+    func testRemovingEpicAndMilestoneRetainsOtherData() throws {
+        var file = fixture()
+        let tasks = file.tasks.map(\.id)
+        let milestone = file.milestones[0].id
+        file.removeEpic(file.epics[0].id)
+        XCTAssertEqual(file.tasks.map(\.id), tasks)
+        XCTAssertTrue(file.tasks.allSatisfy { $0.epicID == nil })
+        XCTAssertNil(file.milestones[0].epicID)
+        XCTAssertEqual(file.tasks[0].milestoneID, milestone)
+        file.removeMilestone(milestone)
+        XCTAssertNil(file.tasks[0].milestoneID)
+        XCTAssertEqual(file.tasks.map(\.id), tasks)
+        XCTAssertEqual(file.sprints.count, 1)
+        try file.validate()
+    }
+    func testRejectsMissingEpicMilestoneAndDuplicateIDs() throws {
+        var file = fixture(); file.tasks[0].epicID = UUID()
+        XCTAssertThrowsError(try file.data())
+        file = fixture(); file.tasks[0].milestoneID = UUID()
+        XCTAssertThrowsError(try file.data())
+        file = fixture(); file.milestones[0].epicID = UUID()
+        XCTAssertThrowsError(try file.data())
+        file = fixture(); file.epics.append(file.epics[0])
+        XCTAssertThrowsError(try file.data())
+        file = fixture(); file.milestones.append(file.milestones[0])
+        XCTAssertThrowsError(try file.data())
+    }
+    func testValidatesEpicAndMilestoneDates() throws {
+        var file = fixture(); file.epics[0].targetDate = "2026-09-30"
+        XCTAssertThrowsError(try file.data())
+        file = fixture(); file.epics[0].startDate = "2026-02-30"
+        XCTAssertThrowsError(try file.data())
+        file = fixture(); file.milestones[0].targetDate = "2026-13-01"
+        XCTAssertThrowsError(try file.data())
     }
     func testDiskSaveReopen() throws {
         let url = FileManager.default.temporaryDirectory.appendingPathComponent("\(UUID()).inertia-tasks")
