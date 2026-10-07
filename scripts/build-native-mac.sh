@@ -21,6 +21,20 @@ cat > "$APP/Contents/Info.plist" <<'PLIST'
 <key>CFBundleVersion</key><string>1</string>
 <key>LSMinimumSystemVersion</key><string>14.0</string>
 <key>NSHighResolutionCapable</key><true/>
+<key>CFBundleDocumentTypes</key><array><dict>
+<key>CFBundleTypeName</key><string>Inertia Tasks</string>
+<key>CFBundleTypeRole</key><string>Editor</string>
+<key>LSHandlerRank</key><string>Owner</string>
+<key>LSItemContentTypes</key><array><string>com.inertia.tasks</string></array>
+</dict></array>
+<key>UTExportedTypeDeclarations</key><array><dict>
+<key>UTTypeIdentifier</key><string>com.inertia.tasks</string>
+<key>UTTypeDescription</key><string>Inertia Tasks</string>
+<key>UTTypeConformsTo</key><array><string>public.json</string></array>
+<key>UTTypeTagSpecification</key><dict>
+<key>public.filename-extension</key><array><string>inertia-tasks</string></array>
+</dict>
+</dict></array>
 </dict></plist>
 PLIST
 codesign --force --sign - "$APP"

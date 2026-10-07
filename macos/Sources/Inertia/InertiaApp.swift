@@ -4,7 +4,10 @@ import InertiaCore
 @main struct InertiaApp: App {
     @StateObject private var session = Session()
     var body: some Scene {
-        WindowGroup {
+        DocumentGroup(newDocument: TasksDocument()) { file in
+            TaskFileView(document: file.$document)
+        }
+        Window("Online Workspace", id: "workspace") {
             RootView().environmentObject(session).frame(minWidth: 900, minHeight: 600)
                 .alert("Inertia", isPresented: Binding(get: { session.error != nil }, set: { if !$0 { session.error = nil } })) {
                     Button("OK") { session.error = nil }

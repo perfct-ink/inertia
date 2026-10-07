@@ -14,6 +14,18 @@ Production endpoints default to https://inertia.it.com. For development run:
 INERTIA_API_URL=http://localhost:3000 INERTIA_WEB_URL=http://localhost:5174 swift run --package-path macos
 ```
 
-Credentials are never saved to disk by the native app. Sessions are held in memory, with an ephemeral WebView data store; sign-in is required after relaunch. The bearer token is injected only into the configured web origin, never placed in a URL. External web links open in the default browser. The app needs a network connection; offline editing and conflict resolution are not implemented.
+Credentials are never saved to disk by the native app. Sessions are held in memory, with an ephemeral WebView data store; sign-in is required after relaunch. The bearer token is injected only into the configured web origin, never placed in a URL. External web links open in the default browser. The online workspace needs a network connection. Local task files work offline; automatic cloud synchronization and conflict resolution are not implemented.
 
-This is a first native slice, not full Electron parity: Workboard, Gantt, full task editing, file syncing, persistent Keychain login, and native rich text/spreadsheet editors are future stages. The calendar currently uses a native agenda list. Distribution signing/notarization is not configured; builds are ad-hoc signed for local use.
+This is a first native slice, not full Electron parity: Native online Workboard/Gantt views, file syncing, persistent Keychain login, and native rich text/spreadsheet editors are future stages. The calendar currently uses a native agenda list. Distribution signing/notarization is not configured; builds are ad-hoc signed for local use.
+
+## Local task files
+
+Choose **File → New** (Command-N) to create an `.inertia-tasks` document, and **File → Save** (Command-S) to name it. Open an existing file with **File → Open** (Command-O) or Finder's **Open With → Inertia**. The local file editor does not require sign-in. Use **Online Workspace** in its toolbar to access the server-backed app.
+
+- Switch between **Workboard**, **List**, and **Sprints**.
+- Create/edit tasks with notes, due dates, a column, optional sprint, and parent task.
+- Drag cards between columns, use a card's context menu, or change its column in List view.
+- Create sprints with goals and dates, filter the board to one sprint, and see completion progress.
+- Rename/add/reorder columns and mark which columns count as completed.
+
+See [the v1 format](../docs/task-file-format.md) and [the sample project](../examples/Launch.inertia-tasks). These files are independent of the Rails workspace; no automatic import/sync takes place. The extension is registered only by the built native `.app`, not `swift run` or Electron.

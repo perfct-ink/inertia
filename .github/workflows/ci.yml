@@ -156,3 +156,18 @@ jobs:
 
       - name: Unit tests
         run: npm test
+
+  native-macos:
+    name: Native macOS checks
+    runs-on: macos-15
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Native model and file-format tests
+        run: swift test --package-path macos
+      - name: Build native app and file association
+        run: bash scripts/build-native-mac.sh
+      - name: Verify app bundle
+        run: |
+          plutil -lint macos/dist/Inertia.app/Contents/Info.plist
+          codesign --verify --deep --strict macos/dist/Inertia.app

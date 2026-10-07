@@ -184,11 +184,12 @@ test-frontend: ## Run the frontend test suite
 	$(COMPOSE) exec -T frontend npm install
 	$(COMPOSE) exec -T frontend npm test -- --silent
 
-test-fast: ## Run the short suite used by the pre-commit hook (models/controllers + frontend unit tests only)
+test-fast: ## Run the short pre-commit suite (models/controllers, frontend, and native tests on macOS)
 	$(COMPOSE) up -d backend frontend
 	$(COMPOSE) exec -T backend bundle exec rails test test/models test/controllers
 	$(COMPOSE) exec -T frontend npm install
 	$(COMPOSE) exec -T frontend npm test -- --silent
+	@if [ "$$(uname -s)" = Darwin ]; then $(MAKE) test-native-mac; fi
 
 lint-backend: ## Lint Ruby code with RuboCop
 	$(COMPOSE) exec backend bundle exec rubocop --parallel || true
