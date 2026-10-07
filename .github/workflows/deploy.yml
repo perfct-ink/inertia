@@ -74,13 +74,13 @@ jobs:
           COLLAB_URL: wss://inertia.it.com/collab
         run: npm ci && npm run build
 
-      - uses: docker/build-push-action@v6
+      - uses: docker/build-push-action@v7
         with:
           context: ./backend
           load: true
           tags: inertia-backend:latest
 
-      - uses: docker/build-push-action@v6
+      - uses: docker/build-push-action@v7
         with:
           context: ./collab-server
           load: true
