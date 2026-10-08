@@ -20,7 +20,7 @@ gem "rack-cors"
 gem "kaminari"
 
 # File uploads
-gem "image_processing", "~> 1.2"
+gem "image_processing", "~> 2.2"
 
 # JSON serialization
 gem "blueprinter"
