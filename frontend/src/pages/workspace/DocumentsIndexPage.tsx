@@ -1,10 +1,12 @@
+import { Database } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { format, parseISO } from 'date-fns'
 import { FileText, Table as TableIcon, Loader2, ArrowUp, ArrowDown } from 'lucide-react'
 import { useWorkspace } from '@/api/workspace'
 import WorkspaceLayout from '@/components/WorkspaceLayout'
-import type { Document } from '@/types'
+import CreateItem from '@/components/CreateItem'
+import type { Document, Folder } from '@/types'
 
 type Row = Document & { folderId: number; folderName: string }
 type SortKey = 'name' | 'location' | 'modified'
@@ -21,10 +23,11 @@ export default function DocumentsIndexPage() {
   const [sortKey, setSortKey] = useState<SortKey>('name')
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc')
 
+  function flatten(folders: Folder[]): Folder[] { return folders.flatMap(f => [f, ...flatten(f.children ?? [])]) }
   const allDocs: Row[] =
-    workspace?.folders?.flatMap((f) =>
+    flatten(workspace?.folders ?? []).flatMap((f) =>
       (f.documents ?? []).map((d) => ({ ...d, folderId: f.id, folderName: f.name }))
-    ) ?? []
+    )
 
   const sortedDocs = useMemo(() => {
     const factor = sortDir === 'asc' ? 1 : -1
@@ -61,7 +64,8 @@ export default function DocumentsIndexPage() {
     <WorkspaceLayout>
       <div className="flex-1 overflow-y-auto">
         <div className="max-w-4xl mx-auto py-8 px-6">
-          <h1 className="text-2xl font-semibold mb-6">Documents</h1>
+          <h1 className="text-2xl font-semibold mb-4">Documents, Sheets & Tables</h1>
+          <div className="mb-6"><CreateItem /></div>
 
           {isLoading && (
             <div className="flex justify-center py-12">
@@ -84,7 +88,9 @@ export default function DocumentsIndexPage() {
               <div className="flex flex-col divide-y">
                 {sortedDocs.map((doc) => (
                   <div key={doc.id} className="flex items-center gap-3 py-2.5 hover:bg-accent rounded-md px-2 group">
-                    {doc.doc_type === 'spreadsheet'
+                    {doc.doc_type === 'table'
+                      ? <Database className="w-4 h-4 text-muted-foreground shrink-0" />
+                      : doc.doc_type === 'spreadsheet'
                       ? <TableIcon className="w-4 h-4 text-muted-foreground shrink-0" />
                       : <FileText className="w-4 h-4 text-muted-foreground shrink-0" />
                     }

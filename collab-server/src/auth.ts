@@ -14,7 +14,7 @@ const RAILS_INTERNAL_URL = process.env.RAILS_INTERNAL_URL ?? "http://backend:300
 interface RailsDocument {
   id: number;
   title: string;
-  doc_type: "document" | "spreadsheet";
+  doc_type: "document" | "spreadsheet" | "table";
   content: Record<string, unknown>;
 }
 

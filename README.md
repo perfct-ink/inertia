@@ -2,6 +2,8 @@
 
 Document editor, file manager, and task tracker. Rails API + React frontend.
 
+Create Documents, Sheets, or Tables from the file list, folder overview, or sidebar. Tables have named fields with text, integer, number, boolean, date, datetime, or relation datatypes. Relation fields link to one record in another workspace table using a database foreign key; multiple records can reference the same record. Table records are saved individually, and dates/times are entered in UTC. Clear a field's values before changing its datatype. Referenced records and tables must be unlinked before deletion.
+
 ## Running locally
 
 ```bash
@@ -45,6 +47,14 @@ POST   /api/v1/folders/:folder_id/documents
 GET    /api/v1/documents/:id
 PATCH  /api/v1/documents/:id
 DELETE /api/v1/documents/:id
+
+GET    /api/v1/tables/:id
+POST   /api/v1/tables/:id/fields
+PATCH  /api/v1/tables/:id/fields/:field_id
+DELETE /api/v1/tables/:id/fields/:field_id
+POST   /api/v1/tables/:id/records
+PATCH  /api/v1/tables/:id/records/:record_id
+DELETE /api/v1/tables/:id/records/:record_id
 
 GET    /api/v1/documents/:document_id/tasks
 POST   /api/v1/documents/:document_id/tasks

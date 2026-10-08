@@ -94,11 +94,14 @@ export function useDeleteFolder() {
 export function useCreateDocument() {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: ({ folderId, ...data }: { folderId: number; title: string; doc_type?: string }) =>
+    mutationFn: ({ folderId, ...data }: { folderId: number; title: string; doc_type?: Document['doc_type'] }) =>
       api
         .post(`/api/v1/folders/${folderId}/documents`, { document: data })
         .then((r) => r.data as Document),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['workspace'] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['workspace'] })
+      qc.invalidateQueries({ queryKey: ['folder-contents'] })
+    },
   })
 }
 

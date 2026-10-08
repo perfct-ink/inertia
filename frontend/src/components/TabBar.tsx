@@ -1,3 +1,4 @@
+import { Database } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { X, FileText, Table as TableIcon } from 'lucide-react'
 import { useTabsStore } from '@/store/tabs'
@@ -29,7 +30,9 @@ export default function TabBar() {
                 : 'text-muted-foreground hover:text-foreground hover:bg-accent/50'
             }`}
           >
-            {tab.docType === 'spreadsheet'
+            {tab.docType === 'table'
+              ? <Database className="w-3.5 h-3.5 shrink-0 opacity-60" />
+              : tab.docType === 'spreadsheet'
               ? <TableIcon className="w-3.5 h-3.5 shrink-0 opacity-60" />
               : <FileText className="w-3.5 h-3.5 shrink-0 opacity-60" />
             }

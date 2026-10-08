@@ -31,8 +31,11 @@ module Api
       end
 
       def destroy
-        @document.destroy
-        head :no_content
+        if @document.destroy
+          head :no_content
+        else
+          render json: { errors: @document.errors.full_messages }, status: :unprocessable_entity
+        end
       end
 
       private
@@ -48,7 +51,10 @@ module Api
       end
 
       def document_params
-        params.require(:document).permit(:title, :doc_type, :pinned, :folder_id, content: {})
+        permitted = params.require(:document).permit(:title, :doc_type, :pinned, :folder_id, content: {})
+        current_user.workspace.folders.find(permitted[:folder_id]) if permitted[:folder_id]
+        permitted.delete(:doc_type) if @document
+        permitted
       end
     end
   end

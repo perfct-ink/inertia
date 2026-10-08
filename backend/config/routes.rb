@@ -35,6 +35,14 @@ Rails.application.routes.draw do
         resources :tasks, only: [ :index, :create ], shallow: true
       end
 
+      get "tables/:id", to: "tables#show"
+      post "tables/:id/fields", to: "tables#create_field"
+      patch "tables/:id/fields/:field_id", to: "tables#update_field"
+      delete "tables/:id/fields/:field_id", to: "tables#destroy_field"
+      post "tables/:id/records", to: "tables#create_record"
+      patch "tables/:id/records/:record_id", to: "tables#update_record"
+      delete "tables/:id/records/:record_id", to: "tables#destroy_record"
+
       resources :tasks, only: [ :index, :create, :update, :destroy ]
 
       resources :epics, only: [ :index, :create, :update, :destroy ]

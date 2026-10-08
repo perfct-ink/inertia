@@ -1,3 +1,4 @@
+import { Database } from 'lucide-react'
 import { useState, useRef, useEffect } from 'react'
 import { useNavigate, useLocation, Link } from 'react-router-dom'
 import { ChevronRight, Folder, FileText, TableIcon, Pin, CheckSquare, CalendarDays, MoreVertical } from 'lucide-react'
@@ -6,6 +7,7 @@ import {
   usePinFolder, usePinDocument, useUpdateFolder,
 } from '@/api/workspace'
 import { useUpdateDocument } from '@/api/documents'
+import { errorMessage } from '@/api/tables'
 import type { Folder as FolderType, Document } from '@/types'
 
 // ── Context menu ─────────────────────────────────────────────────────────────
@@ -94,6 +96,7 @@ export function FolderItem({ folder, depth = 0 }: { folder: FolderType; depth?: 
   const [renamingDocId, setRenamingDocId] = useState<number | null>(null)
   const [folderCtx, setFolderCtx] = useState<{ x: number; y: number } | null>(null)
   const [docCtx, setDocCtx] = useState<{ x: number; y: number; doc: Document } | null>(null)
+  const [actionError, setActionError] = useState('')
 
   const createDocument = useCreateDocument()
   const createFolder = useCreateFolder()
@@ -106,18 +109,29 @@ export function FolderItem({ folder, depth = 0 }: { folder: FolderType; depth?: 
 
   const indent = depth * 12
 
+  async function createItem(type: Document['doc_type']) {
+    setOpen(true)
+    setActionError('')
+    try {
+      const doc = await createDocument.mutateAsync({ folderId: folder.id, title: `Untitled ${type === 'spreadsheet' ? 'Sheet' : type === 'table' ? 'Table' : 'Document'}`, doc_type: type })
+      navigate(`/documents/${doc.id}`)
+    } catch (error) { setActionError(errorMessage(error)) }
+  }
+
   const folderMenuItems: MenuItem[] = [
-    { label: 'New Document', action: async () => { setOpen(true); const d = await createDocument.mutateAsync({ folderId: folder.id, title: 'Untitled', doc_type: 'document' }); navigate(`/documents/${d.id}`) } },
-    { label: 'New Spreadsheet', action: async () => { setOpen(true); const d = await createDocument.mutateAsync({ folderId: folder.id, title: 'Untitled', doc_type: 'spreadsheet' }); navigate(`/documents/${d.id}`) } },
+    { label: 'New Document', action: () => createItem('document') },
+    { label: 'New Sheet', action: () => createItem('spreadsheet') },
+    { label: 'New Table', action: () => createItem('table') },
     { label: 'New Subfolder', action: () => { setOpen(true); setAddingFolder(true) } },
     { label: folder.pinned ? 'Unpin' : 'Pin', action: () => pinFolder.mutate({ id: folder.id, pinned: !folder.pinned }) },
     { label: 'Rename', action: () => setRenamingFolder(true) },
     { label: 'Archive', action: () => updateFolder.mutate({ id: folder.id, archived: true }) },
-    { label: 'Delete', action: () => deleteFolder.mutate(folder.id), danger: true },
+    { label: 'Delete', action: () => deleteFolder.mutate(folder.id, { onError: e => setActionError(errorMessage(e)) }), danger: true },
   ]
 
   return (
     <div>
+      {actionError && <div role="alert" className="px-3 py-2 text-xs text-red-500">{actionError}<button className="ml-2 underline" onClick={() => setActionError('')}>Dismiss</button></div>}
       {/* Folder row */}
       <div
         className={`group flex items-center gap-1 py-1 rounded-md hover:bg-accent text-sm select-none ${location.pathname === `/folders/${folder.id}` ? 'bg-accent' : ''}`}
@@ -185,7 +199,9 @@ export function FolderItem({ folder, depth = 0 }: { folder: FolderType; depth?: 
                 style={{ paddingLeft: `${36 + indent}px`, paddingRight: '8px' }}
                 onContextMenu={(e) => { e.preventDefault(); e.stopPropagation(); setDocCtx({ x: e.clientX, y: e.clientY, doc }) }}
               >
-                {doc.doc_type === 'spreadsheet'
+                {doc.doc_type === 'table'
+                  ? <Database className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
+                  : doc.doc_type === 'spreadsheet'
                   ? <TableIcon className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
                   : <FileText className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
                 }
@@ -213,7 +229,7 @@ export function FolderItem({ folder, depth = 0 }: { folder: FolderType; depth?: 
           items={[
             { label: 'Rename', action: () => setRenamingDocId(docCtx.doc.id) },
             { label: docCtx.doc.pinned ? 'Unpin' : 'Pin', action: () => pinDocument.mutate({ id: docCtx.doc.id, pinned: !docCtx.doc.pinned }) },
-            { label: 'Delete', action: () => deleteDocument.mutate(docCtx.doc.id), danger: true },
+            { label: 'Delete', action: () => deleteDocument.mutate(docCtx.doc.id, { onError: e => setActionError(errorMessage(e)) }), danger: true },
           ]}
           onClose={() => setDocCtx(null)}
         />

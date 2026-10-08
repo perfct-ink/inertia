@@ -1,3 +1,4 @@
+import { Database } from 'lucide-react'
 import { useState, useRef, useEffect, type CSSProperties, type ComponentType } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useSidebarStore } from '@/store/sidebar'
@@ -13,6 +14,7 @@ import {
 import { useCreateTask } from '@/api/tasks'
 import { useCreateEvent } from '@/api/events'
 import { useEpics } from '@/api/epics'
+import { errorMessage } from '@/api/tables'
 import { useStartQuipImport, useQuipImport } from '@/api/quipImports'
 import { useQueryClient } from '@tanstack/react-query'
 import { useAuthStore } from '@/store/auth'
@@ -81,6 +83,7 @@ export default function Sidebar() {
   const createTask = useCreateTask()
   const createEvent = useCreateEvent()
   const { data: epics = [] } = useEpics()
+  const [creationError, setCreationError] = useState('')
   const [addingFolder, setAddingFolder] = useState(false)
   const [showArchived, setShowArchived] = useState(false)
   const { data: archivedFolders = [] } = useArchivedFolders()
@@ -210,6 +213,7 @@ export default function Sidebar() {
   async function createNewDocument() {
     if (creatingRef.current) return
     creatingRef.current = true
+    setCreationError('')
     try {
       let folderId = workspace?.folders?.[0]?.id
       if (!folderId) {
@@ -218,22 +222,27 @@ export default function Sidebar() {
       }
       const doc = await createDocument.mutateAsync({ folderId, title: 'Untitled', doc_type: 'document' })
       navigate(`/documents/${doc.id}`)
+    } catch (error) {
+      setCreationError(errorMessage(error))
     } finally {
       creatingRef.current = false
     }
   }
 
-  async function createNewSpreadsheet() {
+  async function createNewSpreadsheet(type: 'spreadsheet' | 'table' = 'spreadsheet') {
     if (creatingRef.current) return
     creatingRef.current = true
+    setCreationError('')
     try {
       let folderId = workspace?.folders?.[0]?.id
       if (!folderId) {
         const folder = await createFolder.mutateAsync({ name: 'Documents' })
         folderId = folder.id
       }
-      const doc = await createDocument.mutateAsync({ folderId, title: 'Untitled', doc_type: 'spreadsheet' })
+      const doc = await createDocument.mutateAsync({ folderId, title: type === 'table' ? 'Untitled Table' : 'Untitled Sheet', doc_type: type })
       navigate(`/documents/${doc.id}`)
+    } catch (error) {
+      setCreationError(errorMessage(error))
     } finally {
       creatingRef.current = false
     }
@@ -341,7 +350,9 @@ export default function Sidebar() {
                     onClick={() => navigate(`/documents/${doc.id}`)}
                     className={`flex items-center gap-1.5 w-full px-3 py-1 rounded-md text-sm hover:bg-accent text-left group ${active ? 'bg-accent' : ''}`}
                   >
-                    {doc.doc_type === 'spreadsheet'
+                    {doc.doc_type === 'table'
+                      ? <Database className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
+                      : doc.doc_type === 'spreadsheet'
                       ? <TableIcon className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
                       : <FileText className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
                     }
@@ -359,6 +370,7 @@ export default function Sidebar() {
             </div>
           )}
 
+          {creationError && <p role="alert" className="px-3 py-2 text-xs text-red-500">{creationError}</p>}
           {/* Documents section (unified tree) */}
           <div>
             <div className="flex items-center justify-between px-3 mb-1">
@@ -384,11 +396,18 @@ export default function Sidebar() {
                   <FilePlus className="w-3.5 h-3.5" />
                 </button>
                 <button
-                  title="New spreadsheet"
+                  title="New Sheet"
                   onClick={() => createNewSpreadsheet()}
                   className="p-0.5 rounded hover:bg-accent text-muted-foreground hover:text-foreground"
                 >
                   <TableIcon className="w-3.5 h-3.5" />
+                </button>
+                <button
+                  title="New Table"
+                  onClick={() => createNewSpreadsheet('table')}
+                  className="p-0.5 rounded hover:bg-accent text-muted-foreground hover:text-foreground"
+                >
+                  <Database className="w-3.5 h-3.5" />
                 </button>
                 <button
                   title="New folder"

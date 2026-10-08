@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_09_12_052255) do
+ActiveRecord::Schema[7.2].define(version: 2026_10_04_000001) do
   create_table "documents", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.string "title", null: false
     t.json "content"
@@ -113,6 +113,38 @@ ActiveRecord::Schema[7.2].define(version: 2026_09_12_052255) do
     t.index ["token"], name: "index_shares_on_token", unique: true
   end
 
+  create_table "table_cells", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+    t.bigint "table_record_id", null: false
+    t.bigint "table_field_id", null: false
+    t.json "value"
+    t.bigint "related_record_id"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["related_record_id"], name: "index_table_cells_on_related_record_id"
+    t.index ["table_field_id"], name: "index_table_cells_on_table_field_id"
+    t.index ["table_record_id", "table_field_id"], name: "index_table_cells_on_table_record_id_and_table_field_id", unique: true
+    t.index ["table_record_id"], name: "index_table_cells_on_table_record_id"
+  end
+
+  create_table "table_fields", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+    t.bigint "document_id", null: false
+    t.string "name", null: false
+    t.string "data_type", null: false
+    t.bigint "relation_table_id"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["document_id", "name"], name: "index_table_fields_on_document_id_and_name", unique: true
+    t.index ["document_id"], name: "index_table_fields_on_document_id"
+    t.index ["relation_table_id"], name: "index_table_fields_on_relation_table_id"
+  end
+
+  create_table "table_records", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+    t.bigint "document_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["document_id"], name: "index_table_records_on_document_id"
+  end
+
   create_table "tasks", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.string "title", null: false
     t.text "description"
@@ -170,6 +202,12 @@ ActiveRecord::Schema[7.2].define(version: 2026_09_12_052255) do
   add_foreign_key "quip_imports", "folders", column: "destination_folder_id"
   add_foreign_key "quip_imports", "workspaces"
   add_foreign_key "shares", "users", column: "created_by_id"
+  add_foreign_key "table_cells", "table_fields"
+  add_foreign_key "table_cells", "table_records"
+  add_foreign_key "table_cells", "table_records", column: "related_record_id"
+  add_foreign_key "table_fields", "documents"
+  add_foreign_key "table_fields", "documents", column: "relation_table_id"
+  add_foreign_key "table_records", "documents"
   add_foreign_key "tasks", "documents"
   add_foreign_key "tasks", "epics"
   add_foreign_key "tasks", "folders"

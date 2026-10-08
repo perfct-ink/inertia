@@ -4,7 +4,7 @@ export interface Tab {
   id: string
   path: string
   title: string
-  docType?: 'document' | 'spreadsheet'
+  docType?: 'document' | 'spreadsheet' | 'table'
 }
 
 interface TabsStore {

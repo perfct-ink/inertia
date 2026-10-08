@@ -10,7 +10,11 @@ class Document < ApplicationRecord
   has_many :tasks, dependent: :destroy
   has_many :shares, as: :shareable, dependent: :destroy
 
-  enum :doc_type, { document: 0, spreadsheet: 1 }
+  has_many :table_fields, dependent: :destroy
+  has_many :table_records, dependent: :destroy
+  has_many :referencing_fields, class_name: "TableField", foreign_key: :relation_table_id, dependent: :restrict_with_error
+
+  enum :doc_type, { document: 0, spreadsheet: 1, table: 2 }, scopes: false
 
   validates :title, presence: true
   validates :doc_type, presence: true

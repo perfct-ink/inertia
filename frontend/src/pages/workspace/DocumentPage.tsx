@@ -60,6 +60,7 @@ import WorkspaceLayout from '@/components/WorkspaceLayout'
 import { useDocument, useUpdateDocument } from '@/api/documents'
 import { useCreateTask } from '@/api/tasks'
 import { useWorkspace } from '@/api/workspace'
+import TableEditor from './TableEditor'
 import SpreadsheetEditor from './SpreadsheetEditor'
 import Video from '@/extensions/Video'
 import { WorkspaceTaskList } from '@/extensions/WorkspaceTaskList'
@@ -262,7 +263,7 @@ export default function DocumentPage() {
 
   useEffect(() => {
     if (!editor || !doc) return
-    if (doc.doc_type === 'spreadsheet') return
+    if (doc.doc_type !== 'document') return
     // Collaborative content arrives via Yjs sync (seeded server-side from
     // this same Rails content by collab-server's onLoadDocument), not this
     // effect — calling setContent directly on a collaborative editor fights
@@ -405,6 +406,8 @@ export default function DocumentPage() {
       </WorkspaceLayout>
     )
   }
+
+  if (doc?.doc_type === 'table') return <TableEditor doc={doc} />
 
   if (doc?.doc_type === 'spreadsheet') {
     return <SpreadsheetEditor docId={docId} />
