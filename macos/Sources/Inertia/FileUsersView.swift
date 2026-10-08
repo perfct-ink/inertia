@@ -4,7 +4,7 @@ import InertiaCore
 struct FileUsersView: View {
     @Binding var board: TaskFile
     @Environment(\.dismiss) private var dismiss
-    @State private var draft: FileUser?
+    @State private var draft: UserRecord?
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
             Text("Users").font(.title2.bold())
@@ -26,7 +26,7 @@ struct FileUsersView: View {
                 }
             }
             HStack {
-                Button("Add User", systemImage: "person.badge.plus") { draft = FileUser() }
+                Button("Add User", systemImage: "person.badge.plus") { draft = UserRecord() }
                 Spacer()
                 Button("Done") { dismiss() }.keyboardShortcut(.defaultAction)
             }
@@ -41,8 +41,8 @@ struct FileUsersView: View {
     }
 }
 private struct FileUserEditor: View {
-    @State var draft: FileUser
-    let save: (FileUser) -> Void
+    @State var draft: UserRecord
+    let save: (UserRecord) -> Void
     @Environment(\.dismiss) private var dismiss
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
@@ -63,9 +63,9 @@ private struct FileUserEditor: View {
 
 struct TaskCommentsView: View {
     @Binding var comments: [TaskComment]
-    let users: [FileUser]
+    let users: [UserRecord]
     @State private var bodyText = ""
-    @State private var authorID: UUID?
+    @State private var authorID: Int?
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text("Comments (\(comments.count))").font(.headline)
@@ -84,7 +84,7 @@ struct TaskCommentsView: View {
             TextField("Write a comment…", text: $bodyText, axis: .vertical).lineLimit(3...6).textFieldStyle(.roundedBorder)
             HStack {
                 Picker("Author", selection: $authorID) {
-                    Text("No author").tag(nil as UUID?)
+                    Text("No author").tag(nil as Int?)
                     ForEach(users) { Text($0.name).tag(Optional($0.id)) }
                 }
                 Button("Add Comment") {

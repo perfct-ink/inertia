@@ -7,6 +7,6 @@ let package = Package(
     targets: [
         .target(name: "InertiaCore"),
         .executableTarget(name: "Inertia", dependencies: ["InertiaCore"]),
-        .testTarget(name: "InertiaCoreTests", dependencies: ["InertiaCore"])
+        .testTarget(name: "InertiaCoreTests", dependencies: ["InertiaCore"], resources: [.copy("Fixtures")])
     ]
 )

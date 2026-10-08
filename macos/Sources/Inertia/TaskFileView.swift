@@ -8,17 +8,17 @@ struct TaskFileView: View {
     @State private var sprintFilter = "all"
     @State private var epicFilter = "all"
     @State private var milestoneFilter = "all"
-    @State private var taskDraft: FileTask?
+    @State private var taskDraft: TaskRecord?
     @State private var sprintDraft: Sprint?
     @State private var editingColumns = false
     @State private var editingUsers = false
     @State private var error: String?
 
-    private var visibleTasks: [FileTask] {
+    private var visibleTasks: [TaskRecord] {
         document.board.tasks.filter {
-            (sprintFilter == "all" || (sprintFilter == "unassigned" ? $0.sprintID == nil : $0.sprintID?.uuidString == sprintFilter)) &&
-            (epicFilter == "all" || (epicFilter == "unassigned" ? $0.epicID == nil : $0.epicID?.uuidString == epicFilter)) &&
-            (milestoneFilter == "all" || (milestoneFilter == "unassigned" ? $0.milestoneID == nil : $0.milestoneID?.uuidString == milestoneFilter))
+            (sprintFilter == "all" || (sprintFilter == "unassigned" ? $0.sprintID == nil : $0.sprintID.map(String.init) == sprintFilter)) &&
+            (epicFilter == "all" || (epicFilter == "unassigned" ? $0.epicID == nil : $0.epicID.map(String.init) == epicFilter)) &&
+            (milestoneFilter == "all" || (milestoneFilter == "unassigned" ? document.board.eventIDs(for: $0.id).isEmpty : document.board.eventIDs(for: $0.id).contains(Int(milestoneFilter) ?? 0)))
         }
     }
     var body: some View {
@@ -30,7 +30,7 @@ struct TaskFileView: View {
                     Text("List").tag("List")
                     Text("Sprints").tag("Sprints")
                     Text("Epics").tag("Epics")
-                    Text("Milestones").tag("Milestones")
+                    Text("Events").tag("Events")
                 }.pickerStyle(.segmented).frame(width: 430)
             }.padding()
             if view == "Workboard" || view == "List" {
@@ -38,17 +38,17 @@ struct TaskFileView: View {
                     Picker("Sprint", selection: $sprintFilter) {
                         Text("All tasks").tag("all")
                         Text("Unassigned").tag("unassigned")
-                        ForEach(document.board.sprints) { sprint in Text(sprint.title).tag(sprint.id.uuidString) }
+                        ForEach(document.board.sprints) { sprint in Text(sprint.title).tag(String(sprint.id)) }
                     }.frame(maxWidth: 220)
                     Picker("Epic", selection: $epicFilter) {
                         Text("All epics").tag("all")
                         Text("Unassigned").tag("unassigned")
-                        ForEach(document.board.epics) { Text($0.title).tag($0.id.uuidString) }
+                        ForEach(document.board.epics) { Text($0.title).tag(String($0.id)) }
                     }.frame(maxWidth: 220)
-                    Picker("Milestone", selection: $milestoneFilter) {
-                        Text("All milestones").tag("all")
+                    Picker("Event", selection: $milestoneFilter) {
+                        Text("All events").tag("all")
                         Text("Unassigned").tag("unassigned")
-                        ForEach(document.board.milestones) { Text($0.title).tag($0.id.uuidString) }
+                        ForEach(document.board.events) { Text($0.title).tag(String($0.id)) }
                     }.frame(maxWidth: 220)
                     Spacer()
                     Text("\(visibleTasks.count) tasks").foregroundStyle(.secondary)
@@ -60,19 +60,19 @@ struct TaskFileView: View {
             else if view == "Sprints" { sprints }
             else if view == "Epics" {
                 EpicList(board: $document.board) { id in
-                    epicFilter = id.uuidString; sprintFilter = "all"; milestoneFilter = "all"; view = "Workboard"
+                    epicFilter = String(id); sprintFilter = "all"; milestoneFilter = "all"; view = "Workboard"
                 }
             } else {
                 MilestoneList(board: $document.board) { id in
-                    milestoneFilter = id.uuidString; sprintFilter = "all"; epicFilter = "all"; view = "Workboard"
+                    milestoneFilter = String(id); sprintFilter = "all"; epicFilter = "all"; view = "Workboard"
                 }
             }
         }
         .onChange(of: document.board.epics.map(\.id)) { _, ids in
-            if let selected = UUID(uuidString: epicFilter), !ids.contains(selected) { epicFilter = "all" }
+            if let selected = Int( epicFilter), !ids.contains(selected) { epicFilter = "all" }
         }
-        .onChange(of: document.board.milestones.map(\.id)) { _, ids in
-            if let selected = UUID(uuidString: milestoneFilter), !ids.contains(selected) { milestoneFilter = "all" }
+        .onChange(of: document.board.events.map(\.id)) { _, ids in
+            if let selected = Int( milestoneFilter), !ids.contains(selected) { milestoneFilter = "all" }
         }
         .frame(minWidth: 850, minHeight: 550)
         .toolbar {
@@ -83,10 +83,11 @@ struct TaskFileView: View {
             Button("Online Workspace", systemImage: "network") { openWindow(id: "workspace") }
         }
         .sheet(item: $taskDraft) { draft in
-            TaskEditor(draft: draft, board: document.board) { task in
+            TaskEditor(draft: draft, eventIDs: Set(document.board.eventIDs(for: draft.id) + (Int(milestoneFilter).map { [$0] } ?? [])), board: document.board) { task, eventIDs in
                 var next = document.board
                 if let index = next.tasks.firstIndex(where: { $0.id == task.id }) { next.tasks[index] = task }
                 else { next.tasks.append(task) }
+                next.setEvents(eventIDs, for: task.id)
                 do { try next.validate(); document.board = next; taskDraft = nil }
                 catch { self.error = error.localizedDescription }
             }
@@ -101,7 +102,7 @@ struct TaskFileView: View {
             }
         }
         .sheet(isPresented: $editingUsers) { FileUsersView(board: $document.board) }
-        .sheet(isPresented: $editingColumns) { ColumnEditor(columns: $document.board.columns) }
+        .sheet(isPresented: $editingColumns) { ColumnEditor(board: $document.board) }
         .alert("Could not save changes", isPresented: Binding(get: { error != nil }, set: { if !$0 { error = nil } })) {
             Button("OK") { error = nil }
         } message: { Text(error ?? "") }
@@ -112,7 +113,7 @@ struct TaskFileView: View {
                 ForEach(document.board.columns) { column in
                     VStack(alignment: .leading, spacing: 10) {
                         HStack {
-                            Image(systemName: column.isCompleted ? "checkmark.circle" : "rectangle.stack")
+                            Image(systemName: column.status == .done ? "checkmark.circle" : "rectangle.stack")
                             Text(column.title).font(.headline)
                             Spacer()
                             Text("\(visibleTasks.filter { $0.columnID == column.id }.count)").foregroundStyle(.secondary)
@@ -122,7 +123,7 @@ struct TaskFileView: View {
                             Button { taskDraft = task } label: {
                                 VStack(alignment: .leading, spacing: 6) {
                                     Text(task.title).font(.body.weight(.medium)).foregroundStyle(.primary)
-                                    if !task.description.isEmpty { Text(task.description).lineLimit(2).font(.caption).foregroundStyle(.secondary) }
+                                    if !task.descriptionText.isEmpty { Text(task.descriptionText).lineLimit(2).font(.caption).foregroundStyle(.secondary) }
                                     if let user = document.board.users.first(where: { $0.id == task.assigneeID }) {
                                         Label(user.name, systemImage: "person").font(.caption).foregroundStyle(.secondary)
                                     }
@@ -130,7 +131,7 @@ struct TaskFileView: View {
                                     if let epic = document.board.epics.first(where: { $0.id == task.epicID }) {
                                         Label(epic.title, systemImage: "square.stack.3d.up").font(.caption).foregroundStyle(.secondary)
                                     }
-                                    if let milestone = document.board.milestones.first(where: { $0.id == task.milestoneID }) {
+                                    ForEach(document.board.events.filter { document.board.eventIDs(for: task.id).contains($0.id) }) { milestone in
                                         Label(milestone.title, systemImage: "flag").font(.caption).foregroundStyle(.secondary)
                                     }
                                     if let date = task.dueDate { Label(date, systemImage: "calendar").font(.caption).foregroundStyle(.secondary) }
@@ -139,7 +140,7 @@ struct TaskFileView: View {
                                     }
                                 }.frame(maxWidth: .infinity, alignment: .leading).padding(12)
                                     .background(.background, in: RoundedRectangle(cornerRadius: 8))
-                            }.buttonStyle(.plain).draggable(task.id.uuidString)
+                            }.buttonStyle(.plain).draggable(String(task.id))
                                 .contextMenu { taskMenu(task) }
                         }
                         if !visibleTasks.contains(where: { $0.columnID == column.id }) {
@@ -147,7 +148,7 @@ struct TaskFileView: View {
                         }
                     }.padding(12).frame(width: 260).background(.quaternary.opacity(0.4), in: RoundedRectangle(cornerRadius: 12))
                         .dropDestination(for: String.self) { values, _ in
-                            guard let value = values.first, let id = UUID(uuidString: value), document.board.tasks.contains(where: { $0.id == id }) else { return false }
+                            guard let value = values.first, let id = Int( value), document.board.tasks.contains(where: { $0.id == id }) else { return false }
                             document.board.moveTask(id, to: column.id)
                             return true
                         }
@@ -183,7 +184,7 @@ struct TaskFileView: View {
                     HStack {
                         Button(sprint.title) { sprintDraft = sprint }.font(.headline).buttonStyle(.plain)
                         Spacer()
-                        Button("View Tasks") { sprintFilter = sprint.id.uuidString; epicFilter = "all"; milestoneFilter = "all"; view = "Workboard" }
+                        Button("View Tasks") { sprintFilter = String(sprint.id); epicFilter = "all"; milestoneFilter = "all"; view = "Workboard" }
                     }
                     if !sprint.goal.isEmpty { Text(sprint.goal).foregroundStyle(.secondary) }
                     Text("\(sprint.startDate ?? "No start date") – \(sprint.endDate ?? "No end date")").font(.caption)
@@ -195,31 +196,31 @@ struct TaskFileView: View {
                     Button("Edit Sprint") { sprintDraft = sprint }
                     Button("Remove Sprint (Keep Tasks)", role: .destructive) {
                         document.board.removeSprint(sprint.id)
-                        if sprintFilter == sprint.id.uuidString { sprintFilter = "all" }
+                        if sprintFilter == String(sprint.id) { sprintFilter = "all" }
                     }
                 }
             }
         }
     }
-    @ViewBuilder private func taskMenu(_ task: FileTask) -> some View {
+    @ViewBuilder private func taskMenu(_ task: TaskRecord) -> some View {
         Button("Edit Task") { taskDraft = task }
         Menu("Move to") {
             ForEach(document.board.columns) { column in Button(column.title) { document.board.moveTask(task.id, to: column.id) } }
         }
-        Button("Delete Task", role: .destructive) { document.board.removeTask(task.id) }
+        Button("Delete Task and Subtasks", role: .destructive) { document.board.removeTask(task.id) }
     }
-    private func newTask(column: UUID? = nil) {
-        var task = FileTask(columnID: column ?? document.board.columns[0].id, sprintID: UUID(uuidString: sprintFilter))
-        task.epicID = UUID(uuidString: epicFilter)
-        task.milestoneID = UUID(uuidString: milestoneFilter)
+    private func newTask(column: Int? = nil) {
+        var task = TaskRecord(columnID: column ?? document.board.columns[0].id, status: document.board.columns.first(where: { $0.id == column })?.status ?? document.board.columns[0].status, sprintID: Int( sprintFilter))
+        task.epicID = Int( epicFilter)
         taskDraft = task
     }
 }
 
 private struct TaskEditor: View {
-    @State var draft: FileTask
+    @State var draft: TaskRecord
+    @State var eventIDs: Set<Int>
     let board: TaskFile
-    let save: (FileTask) -> Void
+    let save: (TaskRecord, Set<Int>) -> Void
     @Environment(\.dismiss) private var dismiss
     @State private var error: String?
     var body: some View {
@@ -230,30 +231,33 @@ private struct TaskEditor: View {
                     Form {
                         TextField("Title", text: $draft.title)
                         Picker("Assignee", selection: $draft.assigneeID) {
-                            Text("Unassigned").tag(nil as UUID?)
+                            Text("Unassigned").tag(nil as Int?)
                             ForEach(board.users) { Text($0.name).tag(Optional($0.id)) }
                         }
                         Picker("Column", selection: $draft.columnID) { ForEach(board.columns) { Text($0.title).tag($0.id) } }
                         Picker("Sprint", selection: $draft.sprintID) {
-                            Text("Unassigned").tag(nil as UUID?)
+                            Text("Unassigned").tag(nil as Int?)
                             ForEach(board.sprints) { Text($0.title).tag(Optional($0.id)) }
                         }
                         Picker("Epic", selection: $draft.epicID) {
-                            Text("Unassigned").tag(nil as UUID?)
+                            Text("Unassigned").tag(nil as Int?)
                             ForEach(board.epics) { Text($0.title).tag(Optional($0.id)) }
                         }
-                        Picker("Milestone", selection: $draft.milestoneID) {
-                            Text("Unassigned").tag(nil as UUID?)
-                            ForEach(board.milestones) { Text($0.title).tag(Optional($0.id)) }
+                        GroupBox("Events and milestones") {
+                            ForEach(board.events) { event in
+                                Toggle(event.title, isOn: Binding(get: { eventIDs.contains(event.id) }, set: { selected in
+                                    if selected { eventIDs.insert(event.id) } else { eventIDs.remove(event.id) }
+                                }))
+                            }
                         }
                         Picker("Parent task", selection: $draft.parentID) {
-                            Text("None").tag(nil as UUID?)
+                            Text("None").tag(nil as Int?)
                             ForEach(board.tasks.filter { $0.id != draft.id }) { Text($0.title).tag(Optional($0.id)) }
                         }
                         TextField("Due date (YYYY-MM-DD)", text: Binding(get: { draft.dueDate ?? "" }, set: { draft.dueDate = $0.isEmpty ? nil : $0 }))
                     }
                     Text("Description").font(.headline)
-                    TextEditor(text: $draft.description).frame(height: 120).border(.quaternary)
+                    TextEditor(text: $draft.descriptionText).frame(height: 120).border(.quaternary)
                     TaskCommentsView(comments: $draft.comments, users: board.users)
                 }
             }.frame(maxHeight: 520)
@@ -262,10 +266,12 @@ private struct TaskEditor: View {
                 Button("Cancel") { dismiss() }.keyboardShortcut(.cancelAction)
                 Spacer()
                 Button("Save") {
+                    draft.status = board.columns.first(where: { $0.id == draft.columnID })?.status ?? draft.status
                     var candidate = board
                     candidate.tasks.removeAll { $0.id == draft.id }
                     candidate.tasks.append(draft)
-                    do { try candidate.validate(); save(draft) }
+                    candidate.setEvents(eventIDs, for: draft.id)
+                    do { try candidate.validate(); save(draft, eventIDs) }
                     catch { self.error = error.localizedDescription }
                 }.keyboardShortcut(.defaultAction).disabled(draft.title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
             }
@@ -300,25 +306,27 @@ private struct SprintEditor: View {
     }
 }
 private struct ColumnEditor: View {
-    @Binding var columns: [BoardColumn]
+    @Binding var board: TaskFile
     @Environment(\.dismiss) private var dismiss
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
             Text("Workboard Columns").font(.title2.bold())
-            Text("Tasks in completed columns count toward sprint progress.").foregroundStyle(.secondary)
+            Text("Columns map to Inertia task statuses. Done tasks count toward progress.").foregroundStyle(.secondary)
             List {
-                ForEach($columns) { $column in
+                ForEach($board.columns) { $column in
                     HStack {
                         TextField("Column name", text: $column.title)
-                        Toggle("Completed", isOn: $column.isCompleted)
+                        Picker("Status", selection: Binding(get: { column.status }, set: { board.setColumnStatus(column.id, status: $0) })) {
+                            ForEach(TaskStatus.allCases, id: \.self) { Text($0.label).tag($0) }
+                        }
                     }
-                }.onMove { columns.move(fromOffsets: $0, toOffset: $1) }
+                }.onMove { board.columns.move(fromOffsets: $0, toOffset: $1) }
             }
             HStack {
-                Button("Add Column") { columns.append(BoardColumn(title: "New Column")) }
+                Button("Add Column") { board.columns.append(BoardColumn(title: "New Column")) }
                 Spacer()
                 Button("Done") { dismiss() }.keyboardShortcut(.defaultAction)
             }
-        }.padding(24).frame(width: 500, height: 350)
+        }.padding(24).frame(width: 540, height: 350)
     }
 }

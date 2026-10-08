@@ -1,286 +1,195 @@
 import Foundation
 
-/// Portable, local task document. IDs are independent of Rails database IDs.
+public struct BoardColumn: Codable, Equatable, Identifiable {
+    public var id: Int
+    public var title: String
+    public var status: TaskStatus
+    public init(title: String, status: TaskStatus = .todo, id: Int = newLocalID()) {
+        self.id = id; self.title = title; self.status = status
+    }
+}
+public struct BoardConfiguration: Codable, Equatable { public var columns: [BoardColumn] }
+public struct DocumentExtras: Codable, Equatable { public var sprints: [Sprint]? }
+
 public struct TaskFile: Codable, Equatable {
     public static let formatIdentifier = "com.inertia.tasks"
     public var format = formatIdentifier
-    public var version = 3
+    public var version = 4
     public var id: UUID
     public var title: String
-    public var columns: [BoardColumn]
-    public var tasks: [FileTask]
-    public var sprints: [Sprint]
-    public var epics: [FileEpic]
-    public var milestones: [FileMilestone]
-    public var users: [FileUser]
-
-    public init(title: String = "Untitled Tasks") {
-        id = UUID()
-        self.title = title
-        columns = [BoardColumn(title: "Backlog"), BoardColumn(title: "To Do"),
-                   BoardColumn(title: "In Progress"), BoardColumn(title: "Done", isCompleted: true)]
-        tasks = []
-        sprints = []
-        epics = []
-        milestones = []
-        users = []
+    public var board: BoardConfiguration
+    public var tasks: [TaskRecord]
+    public var epics: [EpicRecord]
+    public var events: [EventRecord]
+    public var event_tasks: [EventTaskRecord]
+    public var users: [UserRecord]
+    public var extensions: DocumentExtras?
+    public var columns: [BoardColumn] { get { board.columns } set { board.columns = newValue } }
+    public var sprints: [Sprint] {
+        get { extensions?.sprints ?? [] }
+        set { extensions = DocumentExtras(sprints: newValue) }
     }
-
+    public init(title: String = "Untitled Tasks") {
+        id = UUID(); self.title = title
+        let statuses: [TaskStatus] = [.backlog, .todo, .in_progress, .in_review, .done]
+        board = BoardConfiguration(columns: statuses.enumerated().map { BoardColumn(title: $0.element.label, status: $0.element, id: $0.offset + 1) })
+        tasks = []; epics = []; events = []; event_tasks = []; users = []
+    }
     public static func read(_ data: Data) throws -> TaskFile {
-        // Reject unknown fields rather than silently discarding another writer's data.
-        guard var root = try JSONSerialization.jsonObject(with: data) as? [String: Any],
-              root["format"] as? String == formatIdentifier else {
-            throw TaskFileError.invalid("This is not an Inertia task file.")
-        }
-        struct Header: Decodable { let version: Int }
-        let version = try JSONDecoder().decode(Header.self, from: data).version
-        guard [1, 2, 3].contains(version) else {
-            throw TaskFileError.invalid("This task file version is not supported. Update Inertia to open it.")
-        }
-        if version == 1 {
-            // Validate the old shape before upgrading; never discard unknown v1 data.
-            try checkKeys(root, allowed: ["format", "version", "id", "title", "columns", "tasks", "sprints"])
-            for task in root["tasks"] as? [[String: Any]] ?? [] {
-                try checkKeys(task, allowed: ["id", "title", "notes", "columnID", "sprintID", "parentID", "dueDate"])
-            }
-            root["version"] = 2
-            root["epics"] = []
-            root["milestones"] = []
-        }
-        if version < 3 {
-            try checkKeys(root, allowed: ["format", "version", "id", "title", "columns", "tasks", "sprints", "epics", "milestones"])
-            guard var tasks = root["tasks"] as? [[String: Any]] else { throw TaskFileError.invalid("Expected a tasks array.") }
-            for index in tasks.indices {
-                try checkKeys(tasks[index], allowed: ["id", "title", "notes", "columnID", "sprintID", "parentID", "dueDate", "epicID", "milestoneID"])
-                guard let notes = tasks[index].removeValue(forKey: "notes") as? String else { throw TaskFileError.invalid("Expected task notes in the older file.") }
-                tasks[index]["description"] = notes
-            }
-            root["tasks"] = tasks
-            root["version"] = 3
-        }
-        try checkKeys(root, allowed: ["format", "version", "id", "title", "columns", "tasks", "sprints", "epics", "milestones", "users"])
+        struct Header: Decodable { let format: String; let version: Int }
+        let header = try JSONDecoder().decode(Header.self, from: data)
+        guard header.format == formatIdentifier else { throw TaskFileError.invalid("This is not an Inertia task file.") }
+        guard (1...4).contains(header.version) else { throw TaskFileError.invalid("Update Inertia to open this task file version.") }
+        guard var root = try JSONSerialization.jsonObject(with: data) as? [String: Any] else { throw TaskFileError.invalid("Expected a task document.") }
+        if header.version < 4 { root = try LegacyTaskFile.upgrade(root, version: header.version) }
+        try TaskFileSchema.check(root)
         if root["users"] == nil || root["users"] is NSNull { root["users"] = [] }
-        if var tasks = root["tasks"] as? [[String: Any]] {
-            for index in tasks.indices {
-                if tasks[index]["comments"] == nil || tasks[index]["comments"] is NSNull { tasks[index]["comments"] = [] }
-                for comment in tasks[index]["comments"] as? [[String: Any]] ?? [] {
-                    try checkKeys(comment, allowed: ["id", "body", "authorID", "authorName", "createdAt"])
-                }
-            }
-            root["tasks"] = tasks
-        }
-        for (key, allowed) in [
-            "columns": Set(["id", "title", "isCompleted"]),
-            "tasks": Set(["id", "title", "description", "columnID", "sprintID", "parentID", "dueDate", "epicID", "milestoneID", "assigneeID", "comments"]),
-            "sprints": Set(["id", "title", "goal", "startDate", "endDate"]),
-            "epics": Set(["id", "title", "notes", "startDate", "targetDate"]),
-            "milestones": Set(["id", "title", "notes", "targetDate", "epicID", "completed"]),
-            "users": Set(["id", "name", "email"])
-        ] {
-            for object in root[key] as? [[String: Any]] ?? [] { try checkKeys(object, allowed: allowed) }
-        }
-        let file = try JSONDecoder().decode(TaskFile.self, from: JSONSerialization.data(withJSONObject: root))
+        var file = try JSONDecoder().decode(TaskFile.self, from: JSONSerialization.data(withJSONObject: root))
+        try file.normalize()
         try file.validate()
         return file
     }
-
     public func data() throws -> Data {
-        try validate()
-        let encoder = JSONEncoder()
-        encoder.outputFormatting = [.prettyPrinted, .sortedKeys, .withoutEscapingSlashes]
-        var result = try encoder.encode(self)
-        result.append(0x0a)
-        return result
+        var file = self
+        try file.normalize(); try file.validate()
+        let encoder = JSONEncoder(); encoder.outputFormatting = [.prettyPrinted, .sortedKeys, .withoutEscapingSlashes]
+        var data = try encoder.encode(file); data.append(0x0a); return data
     }
-
+    private mutating func normalize() throws {
+        // The same EventRecord decodes the API's with_tasks blueprint and files.
+        // Flatten embedded API associations to the existing EventTask relation.
+        for index in events.indices {
+            for task in events[index].tasks ?? [] {
+                if let existing = tasks.first(where: { $0.id == task.id }) {
+                    guard existing == task else { throw TaskFileError.invalid("Conflicting copies of a task in event data.") }
+                } else { tasks.append(task) }
+                let link = EventTaskRecord(event_id: events[index].id, task_id: task.id)
+                if !event_tasks.contains(link) { event_tasks.append(link) }
+            }
+            events[index].tasks = nil
+        }
+        for index in tasks.indices where tasks[index].extensions?.column_id == nil {
+            guard let column = columns.first(where: { $0.status == tasks[index].status }) else {
+                throw TaskFileError.invalid("The board needs a column for every task status used in this file.")
+            }
+            tasks[index].columnID = column.id
+        }
+    }
     public func validate() throws {
-        guard format == Self.formatIdentifier, version == 3 else { throw TaskFileError.invalid("Unsupported task file format or version.") }
+        guard format == Self.formatIdentifier, version == 4 else { throw TaskFileError.invalid("Unsupported task file format or version.") }
         guard !columns.isEmpty else { throw TaskFileError.invalid("A Workboard needs at least one column.") }
-        try unique(columns.map(\.id)); try unique(tasks.map(\.id)); try unique(sprints.map(\.id))
-        try unique(epics.map(\.id)); try unique(milestones.map(\.id))
-        try unique(users.map(\.id))
+        try unique(columns.map(\.id)); try unique(tasks.map(\.id)); try unique(epics.map(\.id))
+        try unique(events.map(\.id)); try unique(users.map(\.id)); try unique(sprints.map(\.id))
         try unique(tasks.flatMap { $0.comments.map(\.id) })
-        let userIDs = Set(users.map(\.id))
-        for user in users {
-            guard !user.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { throw TaskFileError.invalid("Users must have a name.") }
-        }
-        let epicIDs = Set(epics.map(\.id)), milestoneIDs = Set(milestones.map(\.id))
-        let columnIDs = Set(columns.map(\.id)), sprintIDs = Set(sprints.map(\.id))
+        let userIDs = Set(users.map(\.id)), epicIDs = Set(epics.map(\.id)), sprintIDs = Set(sprints.map(\.id))
         let taskByID = Dictionary(uniqueKeysWithValues: tasks.map { ($0.id, $0) })
-        for sprint in sprints {
-            try validateDate(sprint.startDate); try validateDate(sprint.endDate)
-            if let start = sprint.startDate, let end = sprint.endDate, start > end {
-                throw TaskFileError.invalid("A sprint's end date must be on or after its start date.")
-            }
-        }
+        for user in users { try required(user.name, "Users must have a name.") }
         for epic in epics {
-            try validateDate(epic.startDate); try validateDate(epic.targetDate)
-            if let start = epic.startDate, let end = epic.targetDate, start > end {
-                throw TaskFileError.invalid("An epic's target date must be on or after its start date.")
-            }
+            try required(epic.title, "Epics must have a title.")
+            try dateRange(epic.startDate, epic.targetDate)
         }
-        for milestone in milestones {
-            try validateDate(milestone.targetDate)
-            if let epicID = milestone.epicID, !epicIDs.contains(epicID) { throw TaskFileError.invalid("A milestone refers to a missing epic.") }
+        for sprint in sprints { try dateRange(sprint.startDate, sprint.endDate) }
+        for event in events {
+            try required(event.title, "Events must have a title.")
+            try validateDate(event.date)
+            guard event.date != nil || event.extensions?.unscheduled == true else { throw TaskFileError.invalid("Events require a date.") }
+            if let epicID = event.epicID, !epicIDs.contains(epicID) { throw TaskFileError.invalid("An event extension refers to a missing epic.") }
+        }
+        var links: Set<String> = []
+        for link in event_tasks {
+            guard events.contains(where: { $0.id == link.event_id }), taskByID[link.task_id] != nil,
+                  links.insert("\(link.event_id):\(link.task_id)").inserted else { throw TaskFileError.invalid("Invalid or duplicate event-task relation.") }
         }
         for task in tasks {
-            guard !task.title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { throw TaskFileError.invalid("Tasks must have a title.") }
-            if let assigneeID = task.assigneeID, !userIDs.contains(assigneeID) { throw TaskFileError.invalid("A task refers to a missing assignee.") }
-            for comment in task.comments {
-                guard !comment.body.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { throw TaskFileError.invalid("Comments must contain text.") }
-                if let authorID = comment.authorID, !userIDs.contains(authorID) { throw TaskFileError.invalid("A comment refers to a missing user.") }
-                let timestamp = ISO8601DateFormatter()
-                timestamp.formatOptions = [.withInternetDateTime]
-                guard let parsed = timestamp.date(from: comment.createdAt), timestamp.string(from: parsed) == comment.createdAt else {
-                    throw TaskFileError.invalid("Comment timestamps must use UTC YYYY-MM-DDTHH:mm:ssZ format.")
-                }
+            try required(task.title, "Tasks must have a title.")
+            if let assignee = task.assigneeID, !userIDs.contains(assignee) { throw TaskFileError.invalid("A task refers to a missing assignee.") }
+            if let epic = task.epicID, !epicIDs.contains(epic) { throw TaskFileError.invalid("A task refers to a missing epic.") }
+            if let sprint = task.sprintID, !sprintIDs.contains(sprint) { throw TaskFileError.invalid("A task extension refers to a missing sprint.") }
+            guard let column = columns.first(where: { $0.id == task.columnID }), column.status == task.status else {
+                throw TaskFileError.invalid("Task status does not match its board column.")
             }
-            if let epicID = task.epicID, !epicIDs.contains(epicID) { throw TaskFileError.invalid("A task refers to a missing epic.") }
-            if let milestoneID = task.milestoneID, !milestoneIDs.contains(milestoneID) { throw TaskFileError.invalid("A task refers to a missing milestone.") }
-            guard columnIDs.contains(task.columnID) else { throw TaskFileError.invalid("A task refers to a missing column.") }
-            if let sprintID = task.sprintID, !sprintIDs.contains(sprintID) { throw TaskFileError.invalid("A task refers to a missing sprint.") }
             try validateDate(task.dueDate)
-            var seen: Set<UUID> = [task.id]
-            var parentID = task.parentID
-            while let current = parentID {
-                guard seen.insert(current).inserted, let parent = taskByID[current] else {
-                    throw TaskFileError.invalid("Task parents contain a cycle or a missing task.")
-                }
-                parentID = parent.parentID
+            for comment in task.comments {
+                try required(comment.body, "Comments must contain text.")
+                if let author = comment.authorID, !userIDs.contains(author) { throw TaskFileError.invalid("A comment refers to a missing user.") }
+                let formatter = ISO8601DateFormatter()
+                guard let date = formatter.date(from: comment.createdAt), formatter.string(from: date) == comment.createdAt else { throw TaskFileError.invalid("Comments need UTC YYYY-MM-DDTHH:mm:ssZ timestamps.") }
+            }
+            var seen: Set<Int> = [task.id]; var parentID = task.parentID
+            while let parent = parentID {
+                guard seen.insert(parent).inserted, let record = taskByID[parent] else { throw TaskFileError.invalid("Invalid task parent or cycle.") }
+                parentID = record.parentID
             }
         }
     }
-
-    public mutating func moveTask(_ id: UUID, to columnID: UUID) {
-        guard columns.contains(where: { $0.id == columnID }), let index = tasks.firstIndex(where: { $0.id == id }) else { return }
-        // Array order is card order; a move appends to the destination column.
-        var task = tasks.remove(at: index)
-        task.columnID = columnID
-        tasks.append(task)
+    public mutating func moveTask(_ id: Int, to columnID: Int) {
+        guard let column = columns.first(where: { $0.id == columnID }), let index = tasks.firstIndex(where: { $0.id == id }) else { return }
+        var task = tasks.remove(at: index); task.columnID = columnID; task.status = column.status; tasks.append(task)
+        for index in tasks.indices { tasks[index].position = index }
     }
-    public mutating func removeTask(_ id: UUID) {
-        tasks.removeAll { $0.id == id }
-        for index in tasks.indices where tasks[index].parentID == id { tasks[index].parentID = nil }
+    public mutating func setColumnStatus(_ id: Int, status: TaskStatus) {
+        guard let index = columns.firstIndex(where: { $0.id == id }) else { return }
+        columns[index].status = status
+        for index in tasks.indices where tasks[index].columnID == id { tasks[index].status = status }
     }
-    public mutating func removeSprint(_ id: UUID) {
+    public mutating func removeTask(_ id: Int) {
+        // Mirrors Task.has_many :subtasks, dependent: :destroy.
+        var removed: Set<Int> = [id]
+        var count = 0
+        while count != removed.count {
+            count = removed.count
+            for task in tasks where task.parentID.map({ removed.contains($0) }) == true { removed.insert(task.id) }
+        }
+        tasks.removeAll { removed.contains($0.id) }
+        event_tasks.removeAll { removed.contains($0.task_id) }
+    }
+    public mutating func removeSprint(_ id: Int) {
         sprints.removeAll { $0.id == id }
         for index in tasks.indices where tasks[index].sprintID == id { tasks[index].sprintID = nil }
     }
-    public mutating func removeEpic(_ id: UUID) {
+    public mutating func removeEpic(_ id: Int) {
         epics.removeAll { $0.id == id }
         for index in tasks.indices where tasks[index].epicID == id { tasks[index].epicID = nil }
-        for index in milestones.indices where milestones[index].epicID == id { milestones[index].epicID = nil }
+        for index in events.indices where events[index].epicID == id { events[index].epicID = nil }
     }
-    public mutating func removeMilestone(_ id: UUID) {
-        milestones.removeAll { $0.id == id }
-        for index in tasks.indices where tasks[index].milestoneID == id { tasks[index].milestoneID = nil }
+    public mutating func removeEvent(_ id: Int) {
+        events.removeAll { $0.id == id }; event_tasks.removeAll { $0.event_id == id }
     }
-    public mutating func removeUser(_ id: UUID) {
+    public func eventIDs(for taskID: Int) -> [Int] { event_tasks.filter { $0.task_id == taskID }.map(\.event_id) }
+    public func taskIDs(for eventID: Int) -> [Int] { event_tasks.filter { $0.event_id == eventID }.map(\.task_id) }
+    public mutating func setEvents(_ eventIDs: Set<Int>, for taskID: Int) {
+        event_tasks.removeAll { $0.task_id == taskID }
+        event_tasks += eventIDs.sorted().map { EventTaskRecord(event_id: $0, task_id: taskID) }
+    }
+    public mutating func removeUser(_ id: Int) {
         let name = users.first { $0.id == id }?.name
         users.removeAll { $0.id == id }
         for index in tasks.indices {
             if tasks[index].assigneeID == id { tasks[index].assigneeID = nil }
-            for commentIndex in tasks[index].comments.indices where tasks[index].comments[commentIndex].authorID == id {
-                if tasks[index].comments[commentIndex].authorName == nil { tasks[index].comments[commentIndex].authorName = name }
-                tasks[index].comments[commentIndex].authorID = nil
+            for j in tasks[index].comments.indices where tasks[index].comments[j].authorID == id {
+                if tasks[index].comments[j].authorName == nil { tasks[index].comments[j].authorName = name }
+                tasks[index].comments[j].authorID = nil
             }
         }
     }
-    public func completedCount(epicID: UUID) -> Int {
-        let completed = Set(columns.filter(\.isCompleted).map(\.id))
-        return tasks.filter { $0.epicID == epicID && completed.contains($0.columnID) }.count
+    public func completedCount(epicID: Int) -> Int { tasks.filter { $0.epicID == epicID && $0.status == .done }.count }
+    public func completedCount(in sprintID: Int) -> Int { tasks.filter { $0.sprintID == sprintID && $0.status == .done }.count }
+    private func unique(_ ids: [Int]) throws {
+        guard ids.allSatisfy({ $0 > 0 && $0 <= 9_007_199_254_740_991 }), Set(ids).count == ids.count else { throw TaskFileError.invalid("Invalid or duplicate entity IDs.") }
     }
-    public func completedCount(in sprintID: UUID) -> Int {
-        let completed = Set(columns.filter(\.isCompleted).map(\.id))
-        return tasks.filter { $0.sprintID == sprintID && completed.contains($0.columnID) }.count
+    private func required(_ text: String, _ message: String) throws {
+        guard !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { throw TaskFileError.invalid(message) }
     }
-    private static func checkKeys(_ object: [String: Any], allowed: Set<String>) throws {
-        guard Set(object.keys).isSubset(of: allowed) else {
-            throw TaskFileError.invalid("This file contains unrecognized fields. It was not opened, to avoid losing data.")
-        }
+    private func dateRange(_ start: String?, _ end: String?) throws {
+        try validateDate(start); try validateDate(end)
+        if let start, let end, start > end { throw TaskFileError.invalid("End date must be on or after start date.") }
     }
-    private func unique(_ ids: [UUID]) throws {
-        guard Set(ids).count == ids.count else { throw TaskFileError.invalid("Duplicate IDs in task file.") }
-    }
-    private func validateDate(_ date: String?) throws {
-        guard let date else { return }
-        let formatter = DateFormatter()
-        formatter.locale = Locale(identifier: "en_US_POSIX")
-        formatter.calendar = Calendar(identifier: .gregorian)
-        formatter.timeZone = TimeZone(secondsFromGMT: 0)
-        formatter.dateFormat = "yyyy-MM-dd"
-        formatter.isLenient = false
-        guard date.count == 10, let parsed = formatter.date(from: date), formatter.string(from: parsed) == date else {
-            throw TaskFileError.invalid("Dates must be valid calendar dates in YYYY-MM-DD format.")
-        }
-    }
-}
-public struct BoardColumn: Codable, Equatable, Identifiable {
-    public var id: UUID
-    public var title: String
-    public var isCompleted: Bool
-    public init(title: String, isCompleted: Bool = false) {
-        id = UUID(); self.title = title; self.isCompleted = isCompleted
-    }
-}
-public struct FileTask: Codable, Equatable, Identifiable {
-    public var id: UUID
-    public var title: String
-    public var description: String
-    public var assigneeID: UUID?
-    public var comments: [TaskComment]
-    public var columnID: UUID
-    public var sprintID: UUID?
-    public var epicID: UUID?
-    public var milestoneID: UUID?
-    public var parentID: UUID?
-    public var dueDate: String?
-    public init(title: String = "New Task", columnID: UUID, sprintID: UUID? = nil) {
-        id = UUID(); self.title = title; description = ""; comments = []; self.columnID = columnID; self.sprintID = sprintID
-    }
-}
-public struct Sprint: Codable, Equatable, Identifiable {
-    public var id: UUID
-    public var title: String
-    public var goal: String
-    public var startDate: String?
-    public var endDate: String?
-    public init(title: String = "New Sprint") { id = UUID(); self.title = title; goal = "" }
-}
-public struct FileEpic: Codable, Equatable, Identifiable {
-    public var id: UUID
-    public var title: String
-    public var notes: String
-    public var startDate: String?
-    public var targetDate: String?
-    public init(title: String = "New Epic") { id = UUID(); self.title = title; notes = "" }
-}
-public struct FileMilestone: Codable, Equatable, Identifiable {
-    public var id: UUID
-    public var title: String
-    public var notes: String
-    public var targetDate: String?
-    public var epicID: UUID?
-    public var completed: Bool
-    public init(title: String = "New Milestone") { id = UUID(); self.title = title; notes = ""; completed = false }
-}
-public struct FileUser: Codable, Equatable, Identifiable {
-    public var id: UUID
-    public var name: String
-    public var email: String?
-    public init(name: String = "", email: String? = nil) { id = UUID(); self.name = name; self.email = email }
-}
-public struct TaskComment: Codable, Equatable, Identifiable {
-    public var id: UUID
-    public var body: String
-    public var authorID: UUID?
-    public var authorName: String?
-    public var createdAt: String
-    public init(body: String, author: FileUser? = nil, date: Date = Date()) {
-        id = UUID(); self.body = body; authorID = author?.id; authorName = author?.name
-        let formatter = ISO8601DateFormatter()
-        formatter.formatOptions = [.withInternetDateTime]
-        createdAt = formatter.string(from: date)
+    private func validateDate(_ value: String?) throws {
+        guard let value else { return }
+        let formatter = DateFormatter(); formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.calendar = Calendar(identifier: .gregorian); formatter.timeZone = TimeZone(secondsFromGMT: 0)
+        formatter.dateFormat = "yyyy-MM-dd"; formatter.isLenient = false
+        guard value.count == 10, let parsed = formatter.date(from: value), formatter.string(from: parsed) == value else { throw TaskFileError.invalid("Use a valid YYYY-MM-DD calendar date.") }
     }
 }
 public enum TaskFileError: LocalizedError {

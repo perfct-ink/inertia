@@ -85,11 +85,11 @@ struct FolderDashboard: View {
                         }
                     }
                     Section("Open Tasks") {
-                        ForEach(contents.tasks.filter { $0.status != "done" }) { task in TaskRow(task: task, reload: load) }
+                        ForEach(contents.tasks.filter { $0.status != .done }) { task in TaskRow(task: task, reload: load) }
                     }
                     Section("Upcoming Events") {
-                        ForEach(contents.events.filter { $0.date >= Date.now.formatted(.iso8601.year().month().day().dateSeparator(.dash)) }) { event in
-                            LabeledContent(event.title, value: event.date)
+                        ForEach(contents.events.filter { ($0.date ?? "") >= Date.now.formatted(.iso8601.year().month().day().dateSeparator(.dash)) }) { event in
+                            LabeledContent(event.title, value: event.date ?? "Unscheduled")
                         }
                     }
                 }.navigationTitle("Project Overview")
@@ -111,15 +111,15 @@ struct TaskRow: View {
             Button {
                 Task {
                     do {
-                        let _: WorkTask = try await session.request("api/v1/tasks/\(task.id)", method: "PATCH", body: ["task": ["status": task.status == "done" ? "todo" : "done"]])
+                        let _: WorkTask = try await session.request("api/v1/tasks/\(task.id)", method: "PATCH", body: ["task": ["status": task.status == .done ? "todo" : "done"]])
                         await reload()
                     } catch { session.error = error.localizedDescription }
                 }
-            } label: { Image(systemName: task.status == "done" ? "checkmark.circle.fill" : "circle") }
-            .buttonStyle(.plain).accessibilityLabel(task.status == "done" ? "Reopen task" : "Complete task")
+            } label: { Image(systemName: task.status == .done ? "checkmark.circle.fill" : "circle") }
+            .buttonStyle(.plain).accessibilityLabel(task.status == .done ? "Reopen task" : "Complete task")
             Text(task.title)
             Spacer()
-            Text(task.due_date ?? task.status.replacingOccurrences(of: "_", with: " ")).foregroundStyle(.secondary)
+            Text(task.due_date ?? task.status.rawValue.replacingOccurrences(of: "_", with: " ")).foregroundStyle(.secondary)
         }
     }
 }
@@ -139,7 +139,7 @@ struct ActivityView: View {
             }.padding()
             List {
                 if showEvents {
-                    ForEach(events) { event in LabeledContent(event.title, value: event.date) }
+                    ForEach(events) { event in LabeledContent(event.title, value: event.date ?? "Unscheduled") }
                 } else {
                     ForEach(tasks) { task in TaskRow(task: task, reload: load) }
                 }

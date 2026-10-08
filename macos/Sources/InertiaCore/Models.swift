@@ -13,24 +13,15 @@ public struct Folder: Decodable, Identifiable {
     public var branches: [Folder]? { children.isEmpty ? nil : children }
 }
 public struct Workspace: Decodable { public let folders: [Folder] }
-public struct WorkTask: Decodable, Identifiable {
-    public let id: Int
-    public let title: String
-    public let status: String
-    public let due_date: String?
-}
-public struct Event: Decodable, Identifiable {
-    public let id: Int
-    public let title: String
-    public let date: String
-}
+public typealias WorkTask = TaskRecord
+public typealias Event = EventRecord
 public struct Contents: Decodable {
     public let documents: [Document]
     public let tasks: [WorkTask]
     public let events: [Event]
 }
 public struct Login: Decodable {
-    public struct User: Codable { public let id: Int; public let name: String; public let email: String }
+    public typealias User = UserRecord
     public let user: User
 }
 public enum APIError: LocalizedError {
