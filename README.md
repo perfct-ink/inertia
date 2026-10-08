@@ -96,3 +96,5 @@ Useful host-level one-offs from `~/Sites/server-config` (bootstrapping/inspectio
 Run `make dev-native-mac` to build and open the native app. This first migration stage provides native project dashboards, task management, and an event agenda, with the existing document/spreadsheet editors embedded in WKWebView. Electron remains available through the existing targets. See [macOS setup and current scope](macos/README.md); run `make test-native-mac` for its tests.
 
 Native Inertia also opens **`.inertia-tasks` files**: portable local files using the existing Task, Epic, Event, and User entities, with Workboards and optional sprint/comment extensions. Use File → New/Open/Save in the native app. See the [file format](docs/task-file-format.md) and [sample file](examples/Launch.inertia-tasks).
+
+See [Storage options: database, blobs, and user-owned files](docs/storage-options.md) for the proposed storage direction and iCloud Drive/Dropbox tradeoffs.
