@@ -86,7 +86,7 @@ module Api
         if @folder.destroy
           head :no_content
         else
-          render json: { errors: @folder.errors.full_messages.presence || ["Folder contains a table referenced elsewhere"] }, status: :unprocessable_entity
+          render json: { errors: @folder.errors.full_messages.presence || [ "Folder contains a table referenced elsewhere" ] }, status: :unprocessable_entity
         end
       end
 

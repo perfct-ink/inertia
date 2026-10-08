@@ -5,12 +5,12 @@ module Api
       rescue_from ActiveRecord::RecordInvalid, with: :invalid_record
       rescue_from ActiveRecord::RecordNotDestroyed, with: :invalid_record
       rescue_from ActiveRecord::InvalidForeignKey do
-        render json: { errors: ["This item is still referenced by another table"] }, status: :unprocessable_entity
+        render json: { errors: [ "This item is still referenced by another table" ] }, status: :unprocessable_entity
       end
 
       def show
         render json: {
-          fields: @table.table_fields.order(:id).as_json(only: [:id, :name, :data_type, :relation_table_id]),
+          fields: @table.table_fields.order(:id).as_json(only: [ :id, :name, :data_type, :relation_table_id ]),
           records: @table.table_records.order(:id).includes(:table_cells).map(&:as_table_json)
         }
       end

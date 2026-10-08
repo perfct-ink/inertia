@@ -10,9 +10,9 @@ class RelationalTableTest < ActiveSupport::TestCase
 
   test "all scalar types enforce values and preserve false and zero" do
     examples = {
-      "text" => ["Ada", 3], "integer" => [0, 1.5], "number" => [1.5, "1.5"],
-      "boolean" => [false, "false"], "date" => ["2026-10-04", "2026-02-30"],
-      "datetime" => ["2026-10-04T10:30:00Z", "yesterday"]
+      "text" => [ "Ada", 3 ], "integer" => [ 0, 1.5 ], "number" => [ 1.5, "1.5" ],
+      "boolean" => [ false, "false" ], "date" => [ "2026-10-04", "2026-02-30" ],
+      "datetime" => [ "2026-10-04T10:30:00Z", "yesterday" ]
     }
     examples.each do |type, (valid, invalid)|
       field = @table.table_fields.create!(name: type, data_type: type)

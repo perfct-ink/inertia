@@ -7,7 +7,7 @@ class CreateRelationalTables < ActiveRecord::Migration[7.2]
       t.references :relation_table, foreign_key: { to_table: :documents }
       t.timestamps
     end
-    add_index :table_fields, [:document_id, :name], unique: true
+    add_index :table_fields, [ :document_id, :name ], unique: true
 
     create_table :table_records do |t|
       t.references :document, null: false, foreign_key: true
@@ -21,6 +21,6 @@ class CreateRelationalTables < ActiveRecord::Migration[7.2]
       t.references :related_record, foreign_key: { to_table: :table_records }
       t.timestamps
     end
-    add_index :table_cells, [:table_record_id, :table_field_id], unique: true
+    add_index :table_cells, [ :table_record_id, :table_field_id ], unique: true
   end
 end
