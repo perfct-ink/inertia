@@ -4,7 +4,7 @@ import Foundation
 public struct TaskFile: Codable, Equatable {
     public static let formatIdentifier = "com.inertia.tasks"
     public var format = formatIdentifier
-    public var version = 2
+    public var version = 3
     public var id: UUID
     public var title: String
     public var columns: [BoardColumn]
@@ -12,6 +12,7 @@ public struct TaskFile: Codable, Equatable {
     public var sprints: [Sprint]
     public var epics: [FileEpic]
     public var milestones: [FileMilestone]
+    public var users: [FileUser]
 
     public init(title: String = "Untitled Tasks") {
         id = UUID()
@@ -22,6 +23,7 @@ public struct TaskFile: Codable, Equatable {
         sprints = []
         epics = []
         milestones = []
+        users = []
     }
 
     public static func read(_ data: Data) throws -> TaskFile {
@@ -30,7 +32,9 @@ public struct TaskFile: Codable, Equatable {
               root["format"] as? String == formatIdentifier else {
             throw TaskFileError.invalid("This is not an Inertia task file.")
         }
-        guard let version = root["version"] as? Int, [1, 2].contains(version) else {
+        struct Header: Decodable { let version: Int }
+        let version = try JSONDecoder().decode(Header.self, from: data).version
+        guard [1, 2, 3].contains(version) else {
             throw TaskFileError.invalid("This task file version is not supported. Update Inertia to open it.")
         }
         if version == 1 {
@@ -43,13 +47,35 @@ public struct TaskFile: Codable, Equatable {
             root["epics"] = []
             root["milestones"] = []
         }
-        try checkKeys(root, allowed: ["format", "version", "id", "title", "columns", "tasks", "sprints", "epics", "milestones"])
+        if version < 3 {
+            try checkKeys(root, allowed: ["format", "version", "id", "title", "columns", "tasks", "sprints", "epics", "milestones"])
+            guard var tasks = root["tasks"] as? [[String: Any]] else { throw TaskFileError.invalid("Expected a tasks array.") }
+            for index in tasks.indices {
+                try checkKeys(tasks[index], allowed: ["id", "title", "notes", "columnID", "sprintID", "parentID", "dueDate", "epicID", "milestoneID"])
+                guard let notes = tasks[index].removeValue(forKey: "notes") as? String else { throw TaskFileError.invalid("Expected task notes in the older file.") }
+                tasks[index]["description"] = notes
+            }
+            root["tasks"] = tasks
+            root["version"] = 3
+        }
+        try checkKeys(root, allowed: ["format", "version", "id", "title", "columns", "tasks", "sprints", "epics", "milestones", "users"])
+        if root["users"] == nil || root["users"] is NSNull { root["users"] = [] }
+        if var tasks = root["tasks"] as? [[String: Any]] {
+            for index in tasks.indices {
+                if tasks[index]["comments"] == nil || tasks[index]["comments"] is NSNull { tasks[index]["comments"] = [] }
+                for comment in tasks[index]["comments"] as? [[String: Any]] ?? [] {
+                    try checkKeys(comment, allowed: ["id", "body", "authorID", "authorName", "createdAt"])
+                }
+            }
+            root["tasks"] = tasks
+        }
         for (key, allowed) in [
             "columns": Set(["id", "title", "isCompleted"]),
-            "tasks": Set(["id", "title", "notes", "columnID", "sprintID", "parentID", "dueDate", "epicID", "milestoneID"]),
+            "tasks": Set(["id", "title", "description", "columnID", "sprintID", "parentID", "dueDate", "epicID", "milestoneID", "assigneeID", "comments"]),
             "sprints": Set(["id", "title", "goal", "startDate", "endDate"]),
             "epics": Set(["id", "title", "notes", "startDate", "targetDate"]),
-            "milestones": Set(["id", "title", "notes", "targetDate", "epicID", "completed"])
+            "milestones": Set(["id", "title", "notes", "targetDate", "epicID", "completed"]),
+            "users": Set(["id", "name", "email"])
         ] {
             for object in root[key] as? [[String: Any]] ?? [] { try checkKeys(object, allowed: allowed) }
         }
@@ -68,10 +94,16 @@ public struct TaskFile: Codable, Equatable {
     }
 
     public func validate() throws {
-        guard format == Self.formatIdentifier, version == 2 else { throw TaskFileError.invalid("Unsupported task file format or version.") }
+        guard format == Self.formatIdentifier, version == 3 else { throw TaskFileError.invalid("Unsupported task file format or version.") }
         guard !columns.isEmpty else { throw TaskFileError.invalid("A Workboard needs at least one column.") }
         try unique(columns.map(\.id)); try unique(tasks.map(\.id)); try unique(sprints.map(\.id))
         try unique(epics.map(\.id)); try unique(milestones.map(\.id))
+        try unique(users.map(\.id))
+        try unique(tasks.flatMap { $0.comments.map(\.id) })
+        let userIDs = Set(users.map(\.id))
+        for user in users {
+            guard !user.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { throw TaskFileError.invalid("Users must have a name.") }
+        }
         let epicIDs = Set(epics.map(\.id)), milestoneIDs = Set(milestones.map(\.id))
         let columnIDs = Set(columns.map(\.id)), sprintIDs = Set(sprints.map(\.id))
         let taskByID = Dictionary(uniqueKeysWithValues: tasks.map { ($0.id, $0) })
@@ -92,6 +124,17 @@ public struct TaskFile: Codable, Equatable {
             if let epicID = milestone.epicID, !epicIDs.contains(epicID) { throw TaskFileError.invalid("A milestone refers to a missing epic.") }
         }
         for task in tasks {
+            guard !task.title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { throw TaskFileError.invalid("Tasks must have a title.") }
+            if let assigneeID = task.assigneeID, !userIDs.contains(assigneeID) { throw TaskFileError.invalid("A task refers to a missing assignee.") }
+            for comment in task.comments {
+                guard !comment.body.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { throw TaskFileError.invalid("Comments must contain text.") }
+                if let authorID = comment.authorID, !userIDs.contains(authorID) { throw TaskFileError.invalid("A comment refers to a missing user.") }
+                let timestamp = ISO8601DateFormatter()
+                timestamp.formatOptions = [.withInternetDateTime]
+                guard let parsed = timestamp.date(from: comment.createdAt), timestamp.string(from: parsed) == comment.createdAt else {
+                    throw TaskFileError.invalid("Comment timestamps must use UTC YYYY-MM-DDTHH:mm:ssZ format.")
+                }
+            }
             if let epicID = task.epicID, !epicIDs.contains(epicID) { throw TaskFileError.invalid("A task refers to a missing epic.") }
             if let milestoneID = task.milestoneID, !milestoneIDs.contains(milestoneID) { throw TaskFileError.invalid("A task refers to a missing milestone.") }
             guard columnIDs.contains(task.columnID) else { throw TaskFileError.invalid("A task refers to a missing column.") }
@@ -131,6 +174,17 @@ public struct TaskFile: Codable, Equatable {
     public mutating func removeMilestone(_ id: UUID) {
         milestones.removeAll { $0.id == id }
         for index in tasks.indices where tasks[index].milestoneID == id { tasks[index].milestoneID = nil }
+    }
+    public mutating func removeUser(_ id: UUID) {
+        let name = users.first { $0.id == id }?.name
+        users.removeAll { $0.id == id }
+        for index in tasks.indices {
+            if tasks[index].assigneeID == id { tasks[index].assigneeID = nil }
+            for commentIndex in tasks[index].comments.indices where tasks[index].comments[commentIndex].authorID == id {
+                if tasks[index].comments[commentIndex].authorName == nil { tasks[index].comments[commentIndex].authorName = name }
+                tasks[index].comments[commentIndex].authorID = nil
+            }
+        }
     }
     public func completedCount(epicID: UUID) -> Int {
         let completed = Set(columns.filter(\.isCompleted).map(\.id))
@@ -172,7 +226,9 @@ public struct BoardColumn: Codable, Equatable, Identifiable {
 public struct FileTask: Codable, Equatable, Identifiable {
     public var id: UUID
     public var title: String
-    public var notes: String
+    public var description: String
+    public var assigneeID: UUID?
+    public var comments: [TaskComment]
     public var columnID: UUID
     public var sprintID: UUID?
     public var epicID: UUID?
@@ -180,7 +236,7 @@ public struct FileTask: Codable, Equatable, Identifiable {
     public var parentID: UUID?
     public var dueDate: String?
     public init(title: String = "New Task", columnID: UUID, sprintID: UUID? = nil) {
-        id = UUID(); self.title = title; notes = ""; self.columnID = columnID; self.sprintID = sprintID
+        id = UUID(); self.title = title; description = ""; comments = []; self.columnID = columnID; self.sprintID = sprintID
     }
 }
 public struct Sprint: Codable, Equatable, Identifiable {
@@ -207,6 +263,25 @@ public struct FileMilestone: Codable, Equatable, Identifiable {
     public var epicID: UUID?
     public var completed: Bool
     public init(title: String = "New Milestone") { id = UUID(); self.title = title; notes = ""; completed = false }
+}
+public struct FileUser: Codable, Equatable, Identifiable {
+    public var id: UUID
+    public var name: String
+    public var email: String?
+    public init(name: String = "", email: String? = nil) { id = UUID(); self.name = name; self.email = email }
+}
+public struct TaskComment: Codable, Equatable, Identifiable {
+    public var id: UUID
+    public var body: String
+    public var authorID: UUID?
+    public var authorName: String?
+    public var createdAt: String
+    public init(body: String, author: FileUser? = nil, date: Date = Date()) {
+        id = UUID(); self.body = body; authorID = author?.id; authorName = author?.name
+        let formatter = ISO8601DateFormatter()
+        formatter.formatOptions = [.withInternetDateTime]
+        createdAt = formatter.string(from: date)
+    }
 }
 public enum TaskFileError: LocalizedError {
     case invalid(String)

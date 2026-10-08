@@ -1,4 +1,4 @@
-# Inertia Tasks v2
+# Inertia Tasks v3
 
 An `.inertia-tasks` file is a UTF-8 JSON document containing one task collection, its Workboard (Kanban) columns, and zero or more sprints, epics, and milestones. List and Workboard views use the same tasks. The file is the source of truth for a local document; opening it does not import it into the Rails database or require an account.
 
@@ -14,9 +14,9 @@ All fields below are required except those marked optional. Unknown fields and u
 
 | Object | Fields |
 | --- | --- |
-| Root | `format`: exactly `com.inertia.tasks`; `version`: integer `2`; `id`: UUID; `title`: string; `columns`, `tasks`, `sprints`, `epics`, `milestones`: arrays |
+| Root | `format`: exactly `com.inertia.tasks`; `version`: integer `3`; `id`: UUID; `title`: string; `columns`, `tasks`, `sprints`, `epics`, `milestones`: arrays; optional `users`: array |
 | Column | `id`: UUID; `title`: string; `isCompleted`: boolean |
-| Task | `id`: UUID; `title`: string; `notes`: plain-text string; `columnID`: column UUID; optional `sprintID`, `parentID`, `epicID`, `milestoneID`: UUID; optional `dueDate`: date |
+| Task | `id`: UUID; `title`: nonblank string; `description`: plain-text string (may be empty); `columnID`: column UUID; optional `sprintID`, `parentID`, `epicID`, `milestoneID`, `assigneeID`: UUID; optional `dueDate`: date; optional `comments`: array |
 | Sprint | `id`: UUID; `title`: string; `goal`: plain-text string; optional `startDate`, `endDate`: dates |
 
 Optional fields may be omitted or null. Dates are real Gregorian calendar dates in `YYYY-MM-DD` form, with no time zone. A sprint's end cannot precede its start. At least one column is required. Column array order determines board order; task array order determines list order and relative card order within each column. Moving a card appends it to the destination column. Sprints appear in array order.
@@ -36,7 +36,22 @@ Epic completion is the number of directly assigned tasks in completed columns di
 
 ## Version compatibility
 
-Inertia reads versions 1 and 2 and writes version 2. Version 1 has no `epics` or `milestones` arrays and no task `epicID`/`milestoneID` fields. Opening a v1 file initializes those arrays empty, preserves existing IDs, tasks, columns and sprints, and upgrades the version in memory. The next save writes v2. Older Inertia versions that only read v1 cannot open the upgraded file; use a copy if it must remain usable with an older app. Unsupported versions and unknown fields are rejected, not silently removed.
+Inertia reads versions 1, 2, and 3 and writes version 3. Version 1 has no `epics` or `milestones` arrays and no task `epicID`/`milestoneID` fields. Versions 1 and 2 use task `notes` rather than `description` and have no users, assignees, or comments. Opening them copies task notes exactly into descriptions, initializes the new collections empty, and preserves existing IDs, dates, relationships, and order. Epics and milestones retain their own `notes` field.
+
+Opening upgrades only the in-memory representation. The next save writes v3. Older Inertia versions cannot read v3 files; use a copy if the file must remain usable with an older app. Unsupported versions and unknown fields are rejected, not silently removed.
+
+## Optional users and task comments
+
+| Object | Fields |
+| --- | --- |
+| User | `id`: UUID; `name`: nonblank string; optional `email`: string |
+| Comment (nested in a task) | `id`: UUID; `body`: nonblank plain-text string; `createdAt`: UTC timestamp; optional `authorID`: user UUID; optional `authorName`: name snapshot |
+
+The root `users` array and each task's `comments` array can be omitted, null, or empty. Inertia writes them as arrays. A task can have one optional assignee; comments may have no author. Referenced users must exist in the same file. User IDs are unique among users, and comment IDs are unique across all tasks in the file. Comments appear in array order. Timestamps use the exact UTC form `YYYY-MM-DDTHH:mm:ssZ`, for example `2026-10-07T12:00:00Z`.
+
+The task editor exposes Title and Description, optional Assignee, and Comments. Users are managed from the toolbar. Add a comment with an optional author, then save the task; canceling the task editor discards draft changes. Existing comment text can be edited or removed. `createdAt` records creation time, not last edit time.
+
+Users are local file metadata, not authenticated accounts, invitations, or access controls. No email is sent. The UI stores an author-name snapshot when creating an attributed comment. Removing a user clears task assignments and comment author IDs, but keeps the comment body, timestamp and author-name snapshot (or fills it from the removed user if absent). This is editable collaboration metadata, not a verified audit trail.
 
 ## Portability and limits
 

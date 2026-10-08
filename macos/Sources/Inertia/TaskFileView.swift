@@ -11,6 +11,7 @@ struct TaskFileView: View {
     @State private var taskDraft: FileTask?
     @State private var sprintDraft: Sprint?
     @State private var editingColumns = false
+    @State private var editingUsers = false
     @State private var error: String?
 
     private var visibleTasks: [FileTask] {
@@ -77,6 +78,7 @@ struct TaskFileView: View {
         .toolbar {
             Button("New Task", systemImage: "plus") { newTask() }
             Button("New Sprint", systemImage: "calendar.badge.plus") { sprintDraft = Sprint() }
+            Button("Users", systemImage: "person.2") { editingUsers = true }
             Button("Columns", systemImage: "rectangle.split.3x1") { editingColumns = true }
             Button("Online Workspace", systemImage: "network") { openWindow(id: "workspace") }
         }
@@ -98,6 +100,7 @@ struct TaskFileView: View {
                 catch { self.error = error.localizedDescription }
             }
         }
+        .sheet(isPresented: $editingUsers) { FileUsersView(board: $document.board) }
         .sheet(isPresented: $editingColumns) { ColumnEditor(columns: $document.board.columns) }
         .alert("Could not save changes", isPresented: Binding(get: { error != nil }, set: { if !$0 { error = nil } })) {
             Button("OK") { error = nil }
@@ -119,6 +122,11 @@ struct TaskFileView: View {
                             Button { taskDraft = task } label: {
                                 VStack(alignment: .leading, spacing: 6) {
                                     Text(task.title).font(.body.weight(.medium)).foregroundStyle(.primary)
+                                    if !task.description.isEmpty { Text(task.description).lineLimit(2).font(.caption).foregroundStyle(.secondary) }
+                                    if let user = document.board.users.first(where: { $0.id == task.assigneeID }) {
+                                        Label(user.name, systemImage: "person").font(.caption).foregroundStyle(.secondary)
+                                    }
+                                    if !task.comments.isEmpty { Label("\(task.comments.count) comments", systemImage: "text.bubble").font(.caption).foregroundStyle(.secondary) }
                                     if let epic = document.board.epics.first(where: { $0.id == task.epicID }) {
                                         Label(epic.title, systemImage: "square.stack.3d.up").font(.caption).foregroundStyle(.secondary)
                                     }
@@ -155,6 +163,10 @@ struct TaskFileView: View {
                     Button(task.title) { taskDraft = task }.buttonStyle(.plain)
                     if task.parentID != nil { Image(systemName: "arrow.turn.down.right").help("Subtask") }
                     Spacer()
+                    if let user = document.board.users.first(where: { $0.id == task.assigneeID }) {
+                        Text(user.name).foregroundStyle(.secondary)
+                    }
+                    if !task.comments.isEmpty { Label("\(task.comments.count)", systemImage: "text.bubble").foregroundStyle(.secondary) }
                     Text(task.dueDate ?? "").foregroundStyle(.secondary)
                     Picker("Column", selection: Binding(get: { task.columnID }, set: { document.board.moveTask(task.id, to: $0) })) {
                         ForEach(document.board.columns) { Text($0.title).tag($0.id) }
@@ -213,29 +225,38 @@ private struct TaskEditor: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
             Text("Task").font(.title2.bold())
-            Form {
-                TextField("Title", text: $draft.title)
-                Picker("Column", selection: $draft.columnID) { ForEach(board.columns) { Text($0.title).tag($0.id) } }
-                Picker("Sprint", selection: $draft.sprintID) {
-                    Text("Unassigned").tag(nil as UUID?)
-                    ForEach(board.sprints) { Text($0.title).tag(Optional($0.id)) }
+            ScrollView {
+                VStack(alignment: .leading, spacing: 16) {
+                    Form {
+                        TextField("Title", text: $draft.title)
+                        Picker("Assignee", selection: $draft.assigneeID) {
+                            Text("Unassigned").tag(nil as UUID?)
+                            ForEach(board.users) { Text($0.name).tag(Optional($0.id)) }
+                        }
+                        Picker("Column", selection: $draft.columnID) { ForEach(board.columns) { Text($0.title).tag($0.id) } }
+                        Picker("Sprint", selection: $draft.sprintID) {
+                            Text("Unassigned").tag(nil as UUID?)
+                            ForEach(board.sprints) { Text($0.title).tag(Optional($0.id)) }
+                        }
+                        Picker("Epic", selection: $draft.epicID) {
+                            Text("Unassigned").tag(nil as UUID?)
+                            ForEach(board.epics) { Text($0.title).tag(Optional($0.id)) }
+                        }
+                        Picker("Milestone", selection: $draft.milestoneID) {
+                            Text("Unassigned").tag(nil as UUID?)
+                            ForEach(board.milestones) { Text($0.title).tag(Optional($0.id)) }
+                        }
+                        Picker("Parent task", selection: $draft.parentID) {
+                            Text("None").tag(nil as UUID?)
+                            ForEach(board.tasks.filter { $0.id != draft.id }) { Text($0.title).tag(Optional($0.id)) }
+                        }
+                        TextField("Due date (YYYY-MM-DD)", text: Binding(get: { draft.dueDate ?? "" }, set: { draft.dueDate = $0.isEmpty ? nil : $0 }))
+                    }
+                    Text("Description").font(.headline)
+                    TextEditor(text: $draft.description).frame(height: 120).border(.quaternary)
+                    TaskCommentsView(comments: $draft.comments, users: board.users)
                 }
-                Picker("Epic", selection: $draft.epicID) {
-                    Text("Unassigned").tag(nil as UUID?)
-                    ForEach(board.epics) { Text($0.title).tag(Optional($0.id)) }
-                }
-                Picker("Milestone", selection: $draft.milestoneID) {
-                    Text("Unassigned").tag(nil as UUID?)
-                    ForEach(board.milestones) { Text($0.title).tag(Optional($0.id)) }
-                }
-                Picker("Parent task", selection: $draft.parentID) {
-                    Text("None").tag(nil as UUID?)
-                    ForEach(board.tasks.filter { $0.id != draft.id }) { Text($0.title).tag(Optional($0.id)) }
-                }
-                TextField("Due date (YYYY-MM-DD)", text: Binding(get: { draft.dueDate ?? "" }, set: { draft.dueDate = $0.isEmpty ? nil : $0 }))
-            }
-            Text("Notes").font(.headline)
-            TextEditor(text: $draft.notes).frame(height: 120).border(.quaternary)
+            }.frame(maxHeight: 520)
             if let error { Text(error).foregroundStyle(.red).font(.caption) }
             HStack {
                 Button("Cancel") { dismiss() }.keyboardShortcut(.cancelAction)
@@ -248,7 +269,7 @@ private struct TaskEditor: View {
                     catch { self.error = error.localizedDescription }
                 }.keyboardShortcut(.defaultAction).disabled(draft.title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
             }
-        }.padding(24).frame(width: 480)
+        }.padding(24).frame(width: 560)
     }
 }
 private struct SprintEditor: View {

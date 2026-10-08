@@ -1,6 +1,6 @@
 {
   "format": "com.inertia.tasks",
-  "version": 2,
+  "version": 3,
   "id": "A1A0F3FF-ACA6-4127-B1AA-532C754EDD46",
   "title": "Launch Project",
   "columns": [
@@ -29,28 +29,40 @@
     {
       "id": "1AFFA3E6-799B-477C-A4E5-D84F3D3E39A8",
       "title": "Write requirements",
-      "notes": "Describe the first release.",
       "columnID": "E38638FC-2159-4EED-8595-A69B298D0FA7",
       "sprintID": "9B53A16D-5848-4529-A723-48E97ECE1BFF",
       "dueDate": "2026-10-09",
       "epicID": "29E191C3-F1BA-4099-8FF2-F6F053345B0A",
-      "milestoneID": "E5CB3D24-0BB8-4F69-A139-904A3C3D8880"
+      "milestoneID": "E5CB3D24-0BB8-4F69-A139-904A3C3D8880",
+      "description": "Describe the first release.",
+      "comments": []
     },
     {
       "id": "15061714-2F5D-4F22-8D67-A8E1F1695AAC",
       "title": "Build the project dashboard",
-      "notes": "Show documents, tasks and upcoming events.",
       "columnID": "B989512B-B1AE-4C64-B6C3-35E2F5FABFF3",
       "sprintID": "9B53A16D-5848-4529-A723-48E97ECE1BFF",
       "dueDate": "2026-10-16",
       "epicID": "29E191C3-F1BA-4099-8FF2-F6F053345B0A",
-      "milestoneID": "E5CB3D24-0BB8-4F69-A139-904A3C3D8880"
+      "milestoneID": "E5CB3D24-0BB8-4F69-A139-904A3C3D8880",
+      "description": "Show documents, tasks and upcoming events.",
+      "comments": [
+        {
+          "id": "A84B87D5-E9AB-4487-BCB7-5B2315C897CF",
+          "body": "Include upcoming milestones on the dashboard.",
+          "authorID": "883C5A3A-1B30-4A48-9B02-AFA940AA5EC9",
+          "authorName": "Example Teammate",
+          "createdAt": "2026-10-07T12:00:00Z"
+        }
+      ],
+      "assigneeID": "883C5A3A-1B30-4A48-9B02-AFA940AA5EC9"
     },
     {
       "id": "5B6EF712-D857-4960-85E5-A17345B3235B",
       "title": "Explore file sync",
-      "notes": "Future sprint: connect the Dropbox clone.",
-      "columnID": "69339438-3A19-4E06-A895-FAA9643A68FB"
+      "columnID": "69339438-3A19-4E06-A895-FAA9643A68FB",
+      "description": "Future sprint: connect the Dropbox clone.",
+      "comments": []
     }
   ],
   "sprints": [
@@ -79,6 +91,13 @@
       "targetDate": "2026-10-20",
       "epicID": "29E191C3-F1BA-4099-8FF2-F6F053345B0A",
       "completed": false
+    }
+  ],
+  "users": [
+    {
+      "id": "883C5A3A-1B30-4A48-9B02-AFA940AA5EC9",
+      "name": "Example Teammate",
+      "email": "teammate@example.test"
     }
   ]
 }

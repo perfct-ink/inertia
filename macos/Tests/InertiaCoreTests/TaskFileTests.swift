@@ -14,7 +14,7 @@ final class TaskFileTests: XCTestCase {
         milestone.targetDate = "2026-10-14"; milestone.epicID = epic.id
         file.milestones = [milestone]
         var parent = FileTask(title: "Ship launch", columnID: file.columns[0].id, sprintID: sprint.id)
-        parent.notes = "Requirements\nUnicode: café ✅"; parent.dueDate = "2026-10-14"
+        parent.description = "Requirements\nUnicode: café ✅"; parent.dueDate = "2026-10-14"
         var child = FileTask(title: "Build UI", columnID: file.columns[1].id)
         child.parentID = parent.id
         parent.epicID = epic.id; parent.milestoneID = milestone.id
@@ -67,9 +67,9 @@ final class TaskFileTests: XCTestCase {
     func testRejectsForeignFutureAndUnknownFields() throws {
         let file = fixture()
         var json = try XCTUnwrap(JSONSerialization.jsonObject(with: file.data()) as? [String: Any])
-        json["version"] = 3
+        json["version"] = 4
         XCTAssertThrowsError(try TaskFile.read(JSONSerialization.data(withJSONObject: json)))
-        json["version"] = 2; json["format"] = "some.other.tasks"
+        json["version"] = 3; json["format"] = "some.other.tasks"
         XCTAssertThrowsError(try TaskFile.read(JSONSerialization.data(withJSONObject: json)))
         json["format"] = TaskFile.formatIdentifier; json["futureField"] = true
         XCTAssertThrowsError(try TaskFile.read(JSONSerialization.data(withJSONObject: json)))
@@ -121,10 +121,17 @@ final class TaskFileTests: XCTestCase {
         original.removeMilestone(original.milestones[0].id)
         var json = try XCTUnwrap(JSONSerialization.jsonObject(with: original.data()) as? [String: Any])
         json["version"] = 1
+        json.removeValue(forKey: "users")
+        var oldTasks = try XCTUnwrap(json["tasks"] as? [[String: Any]])
+        for index in oldTasks.indices {
+            oldTasks[index]["notes"] = oldTasks[index].removeValue(forKey: "description")
+            oldTasks[index].removeValue(forKey: "comments")
+        }
+        json["tasks"] = oldTasks
         json.removeValue(forKey: "epics"); json.removeValue(forKey: "milestones")
         let upgraded = try TaskFile.read(JSONSerialization.data(withJSONObject: json))
         XCTAssertEqual(upgraded, original)
-        XCTAssertEqual(upgraded.version, 2)
+        XCTAssertEqual(upgraded.version, 3)
         XCTAssertEqual(try TaskFile.read(upgraded.data()), upgraded)
         json["epics"] = [] // These fields were not part of v1: must not discard them.
         XCTAssertThrowsError(try TaskFile.read(JSONSerialization.data(withJSONObject: json)))
@@ -174,6 +181,96 @@ final class TaskFileTests: XCTestCase {
         XCTAssertThrowsError(try file.data())
         file = fixture(); file.milestones[0].targetDate = "2026-13-01"
         XCTAssertThrowsError(try file.data())
+    }
+    func testUsersDescriptionsAndCommentsRoundTrip() throws {
+        var file = fixture()
+        let user = FileUser(name: "Alex", email: "alex@example.test")
+        file.users = [user]
+        file.tasks[0].assigneeID = user.id
+        file.tasks[0].comments = [TaskComment(body: "Ready for review\n✅", author: user, date: Date(timeIntervalSince1970: 0)), TaskComment(body: "Anonymous note")]
+        let reopened = try TaskFile.read(file.data())
+        XCTAssertEqual(reopened, file)
+        XCTAssertEqual(reopened.tasks[0].comments[0].createdAt, "1970-01-01T00:00:00Z")
+        XCTAssertEqual(reopened.tasks[0].description, "Requirements\nUnicode: café ✅")
+    }
+    func testUsersAndCommentsMayBeOmittedOrNull() throws {
+        let file = fixture()
+        var json = try XCTUnwrap(JSONSerialization.jsonObject(with: file.data()) as? [String: Any])
+        json.removeValue(forKey: "users")
+        var tasks = try XCTUnwrap(json["tasks"] as? [[String: Any]])
+        for index in tasks.indices { tasks[index].removeValue(forKey: "comments") }
+        json["tasks"] = tasks
+        XCTAssertEqual(try TaskFile.read(JSONSerialization.data(withJSONObject: json)), file)
+        json["users"] = NSNull()
+        for index in tasks.indices { tasks[index]["comments"] = NSNull() }
+        json["tasks"] = tasks
+        XCTAssertEqual(try TaskFile.read(JSONSerialization.data(withJSONObject: json)), file)
+    }
+    func testRemovingUserKeepsCommentsAndAttribution() throws {
+        var file = fixture()
+        let user = FileUser(name: "Alex")
+        file.users = [user]; file.tasks[0].assigneeID = user.id
+        var comment = TaskComment(body: "Do not lose this", author: user)
+        comment.authorName = nil // External writer did not include the optional snapshot.
+        file.tasks[0].comments = [comment]
+        file.removeUser(user.id)
+        XCTAssertNil(file.tasks[0].assigneeID)
+        XCTAssertNil(file.tasks[0].comments[0].authorID)
+        XCTAssertEqual(file.tasks[0].comments[0].authorName, "Alex")
+        XCTAssertEqual(file.tasks[0].comments[0].body, comment.body)
+        XCTAssertEqual(file.tasks[0].comments[0].createdAt, comment.createdAt)
+        XCTAssertEqual(try TaskFile.read(file.data()), file)
+    }
+    func testRejectsInvalidUserAndCommentReferences() throws {
+        var file = fixture(); file.tasks[0].assigneeID = UUID()
+        XCTAssertThrowsError(try file.data())
+        file = fixture()
+        var comment = TaskComment(body: "Hello"); comment.authorID = UUID()
+        file.tasks[0].comments = [comment]
+        XCTAssertThrowsError(try file.data())
+        file = fixture(); let user = FileUser(name: "Alex"); file.users = [user, user]
+        XCTAssertThrowsError(try file.data())
+        file = fixture(); let duplicate = TaskComment(body: "Hello")
+        file.tasks[0].comments = [duplicate]; file.tasks[1].comments = [duplicate]
+        XCTAssertThrowsError(try file.data())
+    }
+    func testRejectsEmptyTextAndInvalidCommentTimestamps() throws {
+        var file = fixture(); file.tasks[0].title = " \n"
+        XCTAssertThrowsError(try file.data())
+        file = fixture(); file.users = [FileUser(name: " ")]
+        XCTAssertThrowsError(try file.data())
+        file = fixture(); file.tasks[0].comments = [TaskComment(body: "  ")]
+        XCTAssertThrowsError(try file.data())
+        file.tasks[0].comments = [TaskComment(body: "Valid")]
+        file.tasks[0].comments[0].createdAt = "yesterday"
+        XCTAssertThrowsError(try file.data())
+    }
+    func testUnknownUserAndCommentFieldsAreNotDiscarded() throws {
+        var file = fixture(); file.users = [FileUser(name: "Alex")]
+        file.tasks[0].comments = [TaskComment(body: "Hello")]
+        var json = try XCTUnwrap(JSONSerialization.jsonObject(with: file.data()) as? [String: Any])
+        var users = try XCTUnwrap(json["users"] as? [[String: Any]])
+        users[0]["futureField"] = true; json["users"] = users
+        XCTAssertThrowsError(try TaskFile.read(JSONSerialization.data(withJSONObject: json)))
+        users[0].removeValue(forKey: "futureField"); json["users"] = users
+        var tasks = try XCTUnwrap(json["tasks"] as? [[String: Any]])
+        var comments = try XCTUnwrap(tasks[0]["comments"] as? [[String: Any]])
+        comments[0]["futureField"] = true; tasks[0]["comments"] = comments; json["tasks"] = tasks
+        XCTAssertThrowsError(try TaskFile.read(JSONSerialization.data(withJSONObject: json)))
+    }
+    func testV2NotesMigrateExactlyToDescriptions() throws {
+        let file = fixture()
+        var json = try XCTUnwrap(JSONSerialization.jsonObject(with: file.data()) as? [String: Any])
+        json["version"] = 2; json.removeValue(forKey: "users")
+        var tasks = try XCTUnwrap(json["tasks"] as? [[String: Any]])
+        for index in tasks.indices {
+            tasks[index]["notes"] = tasks[index].removeValue(forKey: "description")
+            tasks[index].removeValue(forKey: "comments")
+        }
+        json["tasks"] = tasks
+        XCTAssertEqual(try TaskFile.read(JSONSerialization.data(withJSONObject: json)), file)
+        tasks[0]["description"] = "Conflicting content"; json["tasks"] = tasks
+        XCTAssertThrowsError(try TaskFile.read(JSONSerialization.data(withJSONObject: json)))
     }
     func testDiskSaveReopen() throws {
         let url = FileManager.default.temporaryDirectory.appendingPathComponent("\(UUID()).inertia-tasks")
