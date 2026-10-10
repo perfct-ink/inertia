@@ -2,6 +2,26 @@
 <html lang="en">
   <head>
     <meta charset="utf-8">
+    <% if @page[:redirect_authenticated_to] %>
+      <script>
+        // Rails can't see client-side auth state (the JWT lives only in
+        // localStorage, under the same key frontend/src/store/auth.ts's
+        // zustand `persist` middleware uses — there's no session cookie to
+        // check server-side). So an already-logged-in visitor hitting "/"
+        // bounces to the dashboard here, client-side, before the marketing
+        // page paints; a crawler or logged-out visitor has no such entry and
+        // just sees the real marketing HTML below.
+        (function () {
+          try {
+            var raw = localStorage.getItem('inertia-auth')
+            var parsed = raw && JSON.parse(raw)
+            if (parsed && parsed.state && parsed.state.token) {
+              window.location.replace('<%= @page[:redirect_authenticated_to] %>')
+            }
+          } catch (e) {}
+        })()
+      </script>
+    <% end %>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title><%= @page[:title] %></title>
     <meta name="description" content="<%= @page[:description] %>">

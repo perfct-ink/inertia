@@ -15,7 +15,8 @@ class MarketingController < ActionController::Base
     home: {
       path: "/",
       title: "Inertia — Docs, tasks, and files in one workspace",
-      description: "Inertia is a document editor, file manager, and task tracker for teams who'd rather have one workspace than five separate apps."
+      description: "Inertia is a document editor, file manager, and task tracker for teams who'd rather have one workspace than five separate apps.",
+      redirect_authenticated_to: "/workspace"
     },
     features: {
       path: "/features",
