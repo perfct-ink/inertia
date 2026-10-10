@@ -42,7 +42,7 @@ module.exports = (_env, argv) => {
       ],
     },
     plugins: [
-      new HtmlWebpackPlugin({ template: './index.html', favicon: './src/assets/logo.png' }),
+      new HtmlWebpackPlugin({ template: './index.html', favicon: './src/assets/favicon.png' }),
       new webpack.DefinePlugin({
         // JSON.stringify(undefined) yields the bare `undefined` token (not a
         // string), so `?? 'default'` fallbacks in source still work when
