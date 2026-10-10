@@ -21,7 +21,7 @@ import { useAuthStore } from '@/store/auth'
 import { useTabsStore } from '@/store/tabs'
 import { FolderItem } from './FolderItem'
 import api from '@/lib/api'
-import logo from '@/assets/logo.png'
+import logoMark from '@/assets/logo-mark.svg'
 
 // Kept in sync by hand with the onKey handler below — there's only one
 // place global shortcuts are bound, so this is just their display copy.
@@ -307,7 +307,7 @@ export default function Sidebar() {
           className={`px-3 pb-3 flex items-center gap-2 ${isElectron ? 'pt-8' : 'pt-3'}`}
           style={{ WebkitAppRegion: 'drag' } as CSSProperties}
         >
-          <img src={logo} alt="" className="w-6 h-6 rounded-md shrink-0" />
+          <img src={logoMark} alt="" className="w-6 h-6 shrink-0" />
           <div className="min-w-0">
             <p className="font-semibold text-sm">Inertia</p>
             <p className="text-xs text-muted-foreground truncate">{workspace?.name ?? 'My Workspace'}</p>
