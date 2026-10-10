@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- Simplified Inertia mark for small sizes (sidebar, favicon). The full
+       logo.png has three overlapping objects that turn to mush below ~40px;
+       this keeps its navy tile, calendar and check as one bold shape. -->
+  <rect width="64" height="64" rx="14" fill="#121d49"/>
+  <rect x="13" y="15" width="38" height="36" rx="7" fill="#ffffff"/>
+  <path d="M13 22a7 7 0 0 1 7-7h24a7 7 0 0 1 7 7v4H13z" fill="#2d62ed"/>
+  <path d="M23 38.5l6 6 12-12" fill="none" stroke="#121d49" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
