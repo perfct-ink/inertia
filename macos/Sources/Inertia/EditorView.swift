@@ -29,10 +29,16 @@ struct EditorView: NSViewRepresentable {
     func updateNSView(_ nsView: WKWebView, context: Context) {}
     final class Coordinator: NSObject, WKNavigationDelegate {
         let origin: URL
+        // The editor only ever shows document/table content via /index.html's
+        // SPA shell (see Requests.editorURL) — these paths render server-side
+        // marketing HTML instead (backend/app/controllers/marketing_controller.rb)
+        // and must never appear inside this chrome-less embedded editor, even
+        // if some future same-origin link or redirect ever pointed at one.
+        static let marketingOnlyPaths: Set<String> = ["/", "/features", "/pricing", "/about"]
         init(origin: URL) { self.origin = origin }
         func webView(_ webView: WKWebView, decidePolicyFor action: WKNavigationAction, decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
             guard let url = action.request.url else { decisionHandler(.cancel); return }
-            if Requests.sameOrigin(url, origin) { decisionHandler(.allow) }
+            if Requests.sameOrigin(url, origin), !Coordinator.marketingOnlyPaths.contains(url.path) { decisionHandler(.allow) }
             else {
                 if ["https", "http"].contains(url.scheme ?? ""), action.navigationType == .linkActivated { NSWorkspace.shared.open(url) }
                 decisionHandler(.cancel)

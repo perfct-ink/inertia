@@ -1,4 +1,4 @@
-const { app, BrowserWindow, Menu } = require('electron')
+const { app, BrowserWindow, Menu, shell } = require('electron')
 const path = require('path')
 
 // app.getName()/app.name (used below for the menu bar's App menu label,
@@ -92,6 +92,27 @@ function createWindow() {
       nodeIntegration: false,
       contextIsolation: true,
     },
+  })
+
+  // This window must only ever show the local bundled app (or, in dev, the
+  // webpack dev server) — never a real network page. Without this, any
+  // stray navigation (a missed link, a redirect bug) could land on the real
+  // production site, including its server-rendered marketing pages at "/"
+  // (see backend/app/controllers/marketing_controller.rb) — exactly what a
+  // packaged native window must never show. will-navigate doesn't fire for
+  // React Router's history-API-based in-app routing, only real top-level
+  // navigations, so this doesn't interfere with normal use.
+  const allowedOrigin = process.env.ELECTRON_DEV_SERVER_URL
+    ? new URL(process.env.ELECTRON_DEV_SERVER_URL).origin
+    : 'file://'
+  win.webContents.on('will-navigate', (event, url) => {
+    if (url.startsWith(allowedOrigin)) return
+    event.preventDefault()
+    if (url.startsWith('http://') || url.startsWith('https://')) shell.openExternal(url)
+  })
+  win.webContents.setWindowOpenHandler(({ url }) => {
+    if (url.startsWith('http://') || url.startsWith('https://')) shell.openExternal(url)
+    return { action: 'deny' }
   })
 
   if (process.env.ELECTRON_DEV_SERVER_URL) {
