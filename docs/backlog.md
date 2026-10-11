@@ -32,7 +32,7 @@ Default chosen for this backlog: Milestone is the top-level container, and each 
 
 | ID | Item | Today | Notes |
 | --- | --- | --- | --- |
-| PM-01 | **Milestone as a first-class model** (`milestones`: title, description, target date, status, owner, workspace, folder) | Milestones exist only as `events.event_type = milestone`, linked to tasks through `event_tasks` | Keep the Event for calendar display, or migrate it. Default: new `Milestone` table, migrate existing milestone events into it, keep `event_tasks` for deadlines only. |
+| PM-01 | **Milestone as a first-class model** (`milestones`: title, description, target date, status, owner, workspace, folder). Flat: milestones do not nest (decided 2026-10-11) | Milestones exist only as `events.event_type = milestone`, linked to tasks through `event_tasks` | Keep the Event for calendar display, or migrate it. Default: new `Milestone` table, migrate existing milestone events into it, keep `event_tasks` for deadlines only. |
 | PM-02 | **Milestone rollup**: progress %, count of open/done items, health (on track / at risk / off track) computed from everything beneath it | Epic already has `tasks_count` / `done_tasks_count` | Same grouped-count approach as `EpicsController#index`, one level up. |
 | PM-03 | **Initiative model** above Epic (title, description, owner, start/target date, status, `milestone_id`) | Not present anywhere | Shape mirrors Epic → Task. See `project-management-features.md` sequence step 2. |
 | PM-04 | `epics.initiative_id`, `epics.milestone_id`, `tasks.milestone_id` | Epic has `start_date`/`target_date` only | Inheritance rule above; explicit value overrides inherited. |
@@ -180,7 +180,6 @@ Monday sells separate CRM, Service (ticketing), Campaigns and "vibe" app-builder
 
 ## Open questions
 
-- Should a Milestone be able to contain other Milestones (release trains), or stay one level?
 - Migrate existing `event_type: milestone` events into the new Milestone table, or keep both?
 - Does the Gantt / roadmap need to ship in the macOS online mode at the same time as the web?
 
