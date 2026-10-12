@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_10_04_000001) do
+ActiveRecord::Schema[7.2].define(version: 2026_10_12_000002) do
   create_table "documents", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.string "title", null: false
     t.json "content"
@@ -34,7 +34,9 @@ ActiveRecord::Schema[7.2].define(version: 2026_10_04_000001) do
     t.bigint "folder_id"
     t.date "start_date"
     t.date "target_date"
+    t.bigint "initiative_id"
     t.index ["folder_id"], name: "index_epics_on_folder_id"
+    t.index ["initiative_id"], name: "index_epics_on_initiative_id"
     t.index ["workspace_id"], name: "index_epics_on_workspace_id"
   end
 
@@ -75,6 +77,16 @@ ActiveRecord::Schema[7.2].define(version: 2026_10_04_000001) do
     t.datetime "archived_at"
     t.index ["parent_id"], name: "index_folders_on_parent_id"
     t.index ["workspace_id"], name: "index_folders_on_workspace_id"
+  end
+
+  create_table "initiatives", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+    t.string "title", null: false
+    t.bigint "workspace_id", null: false
+    t.date "start_date"
+    t.date "target_date"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["workspace_id"], name: "index_initiatives_on_workspace_id"
   end
 
   create_table "jwt_denylists", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
@@ -192,6 +204,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_10_04_000001) do
   add_foreign_key "documents", "folders"
   add_foreign_key "documents", "users", column: "created_by_id"
   add_foreign_key "epics", "folders"
+  add_foreign_key "epics", "initiatives"
   add_foreign_key "epics", "workspaces"
   add_foreign_key "event_tasks", "events"
   add_foreign_key "event_tasks", "tasks"
@@ -199,6 +212,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_10_04_000001) do
   add_foreign_key "events", "workspaces"
   add_foreign_key "folders", "folders", column: "parent_id"
   add_foreign_key "folders", "workspaces"
+  add_foreign_key "initiatives", "workspaces"
   add_foreign_key "quip_imports", "folders", column: "destination_folder_id"
   add_foreign_key "quip_imports", "workspaces"
   add_foreign_key "shares", "users", column: "created_by_id"

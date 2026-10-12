@@ -8,6 +8,7 @@ import DocumentsIndexPage from '@/pages/workspace/DocumentsIndexPage'
 import TasksPage from '@/pages/workspace/TasksPage'
 import EventsPage from '@/pages/workspace/EventsPage'
 import EpicsPage from '@/pages/workspace/EpicsPage'
+import InitiativesPage from '@/pages/workspace/InitiativesPage'
 import FolderDetailPage from '@/pages/workspace/FolderDetailPage'
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
@@ -82,6 +83,14 @@ export default function App() {
         element={
           <PrivateRoute>
             <EpicsPage />
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/initiatives"
+        element={
+          <PrivateRoute>
+            <InitiativesPage />
           </PrivateRoute>
         }
       />

@@ -3,114 +3,17 @@ import { useNavigate, useSearchParams } from 'react-router-dom'
 import { Plus, X, Target, Loader2 } from 'lucide-react'
 import WorkspaceLayout from '@/components/WorkspaceLayout'
 import { useEpics, useCreateEpic, useUpdateEpic, useDeleteEpic } from '@/api/epics'
-import type { Epic } from '@/types'
-
-function ProgressBar({ percent }: { percent: number }) {
-  return (
-    <div className="w-full h-1.5 bg-muted rounded-full overflow-hidden">
-      <div
-        className="h-full bg-primary rounded-full transition-all"
-        style={{ width: `${percent}%` }}
-      />
-    </div>
-  )
-}
-
-function donePercent(epic: Epic) {
-  return epic.tasks_count > 0 ? Math.round((epic.done_tasks_count / epic.tasks_count) * 100) : 0
-}
-
-// Appending a local midnight avoids new Date("YYYY-MM-DD") parsing as UTC
-// midnight, which toLocaleDateString can then roll back a day in any
-// timezone behind UTC.
-function formatDate(iso: string) {
-  return new Date(`${iso}T00:00:00`).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
-}
-
-type ScheduledEpic = Epic & { start_date: string; target_date: string }
-
-function TimelineBar({ epic, rangeStart, rangeEnd }: { epic: ScheduledEpic; rangeStart: number; rangeEnd: number }) {
-  const start = new Date(`${epic.start_date}T00:00:00`).getTime()
-  const end = new Date(`${epic.target_date}T00:00:00`).getTime()
-  const span = rangeEnd - rangeStart || 1
-  const left = ((start - rangeStart) / span) * 100
-  const width = Math.max(((end - start) / span) * 100, 2)
-  const percent = donePercent(epic)
-  return (
-    <div className="relative h-5">
-      <div
-        className="absolute h-full rounded-md bg-muted border border-input overflow-hidden"
-        style={{ left: `${left}%`, width: `${width}%` }}
-        title={`${epic.title}: ${formatDate(epic.start_date)} – ${formatDate(epic.target_date)} · ${percent}% done`}
-      >
-        <div className="h-full bg-primary/70" style={{ width: `${percent}%` }} />
-      </div>
-    </div>
-  )
-}
-
-// Read-only: dates are edited from the List view's per-epic inputs. Only
-// epics with both a start and target date can be placed on an axis; the
-// rest are named below it instead of silently dropped.
-function Timeline({ epics }: { epics: Epic[] }) {
-  const scheduled = epics.filter((e): e is ScheduledEpic => Boolean(e.start_date && e.target_date))
-  const unscheduled = epics.filter((e) => !e.start_date || !e.target_date)
-
-  if (scheduled.length === 0) {
-    return (
-      <div className="flex flex-col items-center py-12 gap-2 text-muted-foreground">
-        <Target className="w-8 h-8 opacity-30" />
-        <p className="text-sm">Set a start and target date on an epic to see it here</p>
-      </div>
-    )
-  }
-
-  const starts = scheduled.map((e) => new Date(`${e.start_date}T00:00:00`).getTime())
-  const ends = scheduled.map((e) => new Date(`${e.target_date}T00:00:00`).getTime())
-  const rangeStart = Math.min(...starts)
-  const rangeEnd = Math.max(...ends)
-  const span = rangeEnd - rangeStart || 1
-  const now = Date.now()
-  const todayPercent = now >= rangeStart && now <= rangeEnd ? ((now - rangeStart) / span) * 100 : null
-
-  return (
-    <div className="flex flex-col gap-4">
-      <div className="flex gap-3 text-xs text-muted-foreground">
-        <div className="w-40 shrink-0" />
-        <div className="flex-1 flex justify-between">
-          <span>{formatDate(scheduled[starts.indexOf(rangeStart)].start_date)}</span>
-          <span>{formatDate(scheduled[ends.indexOf(rangeEnd)].target_date)}</span>
-        </div>
-      </div>
-      <div className="flex gap-3">
-        <div className="w-40 shrink-0 flex flex-col gap-3">
-          {scheduled.map((epic) => (
-            <p key={epic.id} className="text-sm truncate h-5 flex items-center" title={epic.title}>{epic.title}</p>
-          ))}
-        </div>
-        <div className="relative flex-1 flex flex-col gap-3">
-          {todayPercent !== null && (
-            <div className="absolute top-0 bottom-0 w-px bg-red-400" style={{ left: `${todayPercent}%` }} title="Today" />
-          )}
-          {scheduled.map((epic) => (
-            <TimelineBar key={epic.id} epic={epic} rangeStart={rangeStart} rangeEnd={rangeEnd} />
-          ))}
-        </div>
-      </div>
-      {unscheduled.length > 0 && (
-        <p className="text-xs text-muted-foreground pt-3 border-t">
-          Not scheduled: {unscheduled.map((e) => e.title).join(', ')}
-        </p>
-      )}
-    </div>
-  )
-}
+import { useInitiatives } from '@/api/initiatives'
+import { ProgressBar, Timeline, donePercent } from '@/components/Timeline'
 
 export default function EpicsPage() {
   const navigate = useNavigate()
-  const [searchParams] = useSearchParams()
+  const [searchParams, setSearchParams] = useSearchParams()
   const view = searchParams.get('view') === 'timeline' ? 'timeline' : 'list'
-  const { data: epics = [], isLoading } = useEpics()
+  const initiativeIdFilter = searchParams.get('initiative_id')
+  const { data: allEpics = [], isLoading } = useEpics()
+  const { data: initiatives = [] } = useInitiatives()
+  const epics = initiativeIdFilter ? allEpics.filter((e) => String(e.initiative_id) === initiativeIdFilter) : allEpics
   const createEpic = useCreateEpic()
   const updateEpic = useUpdateEpic()
   const deleteEpic = useDeleteEpic()
@@ -123,6 +26,22 @@ export default function EpicsPage() {
     setAdding(false)
   }
 
+  function setView(next: 'list' | 'timeline') {
+    setSearchParams((prev) => {
+      const params = new URLSearchParams(prev)
+      params.set('view', next)
+      return params
+    })
+  }
+
+  function clearInitiativeFilter() {
+    setSearchParams((prev) => {
+      const params = new URLSearchParams(prev)
+      params.delete('initiative_id')
+      return params
+    })
+  }
+
   return (
     <WorkspaceLayout>
       <div className="flex-1 flex flex-col overflow-hidden">
@@ -130,18 +49,23 @@ export default function EpicsPage() {
           <h1 className="text-xl font-semibold">Epics</h1>
           <div className="flex gap-1">
             <button
-              onClick={() => navigate('/epics?view=list')}
+              onClick={() => setView('list')}
               className={`px-3 py-1 rounded-md text-sm ${view === 'list' ? 'bg-accent text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
             >
               List
             </button>
             <button
-              onClick={() => navigate('/epics?view=timeline')}
+              onClick={() => setView('timeline')}
               className={`px-3 py-1 rounded-md text-sm ${view === 'timeline' ? 'bg-accent text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
             >
               Timeline
             </button>
           </div>
+          {initiativeIdFilter && (
+            <button onClick={clearInitiativeFilter} className="text-xs text-muted-foreground hover:text-foreground underline">
+              Clear initiative filter
+            </button>
+          )}
           <button
             onClick={() => setAdding(true)}
             className="ml-auto flex items-center gap-1.5 text-sm bg-primary text-primary-foreground px-3 py-1.5 rounded-md hover:opacity-90"
@@ -182,7 +106,7 @@ export default function EpicsPage() {
               </div>
             )}
 
-            {!isLoading && epics.length > 0 && view === 'timeline' && <Timeline epics={epics} />}
+            {!isLoading && epics.length > 0 && view === 'timeline' && <Timeline items={epics} />}
 
             {!isLoading && view === 'list' && epics.map((epic) => (
               <div
@@ -217,6 +141,18 @@ export default function EpicsPage() {
                     onChange={(e) => updateEpic.mutate({ id: epic.id, target_date: e.target.value || null })}
                     className="bg-transparent border-b border-input pb-0.5 outline-none cursor-pointer"
                   />
+                  {initiatives.length > 0 && (
+                    <select
+                      value={epic.initiative_id ?? ''}
+                      onChange={(e) => updateEpic.mutate({ id: epic.id, initiative_id: e.target.value ? Number(e.target.value) : null })}
+                      className="bg-transparent border-b border-input pb-0.5 outline-none cursor-pointer max-w-[130px]"
+                    >
+                      <option value="">No initiative</option>
+                      {initiatives.map((initiative) => (
+                        <option key={initiative.id} value={initiative.id}>{initiative.title}</option>
+                      ))}
+                    </select>
+                  )}
                 </div>
                 <ProgressBar percent={donePercent(epic)} />
               </div>

@@ -47,6 +47,8 @@ Rails.application.routes.draw do
 
       resources :epics, only: [ :index, :create, :update, :destroy ]
 
+      resources :initiatives, only: [ :index, :create, :update, :destroy ]
+
       resources :uploads, only: [ :create ]
 
       resources :events do

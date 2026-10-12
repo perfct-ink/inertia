@@ -66,6 +66,18 @@ export interface Epic {
   id: number
   title: string
   folder_id: number | null
+  initiative_id: number | null
+  start_date: string | null
+  target_date: string | null
+  tasks_count: number
+  done_tasks_count: number
+  created_at: string
+  updated_at: string
+}
+
+export interface Initiative {
+  id: number
+  title: string
   start_date: string | null
   target_date: string | null
   tasks_count: number

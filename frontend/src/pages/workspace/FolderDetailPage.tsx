@@ -8,11 +8,12 @@ import {
 } from 'lucide-react'
 import {
   format, parseISO, startOfMonth, endOfMonth, startOfWeek, endOfWeek,
-  eachDayOfInterval, eachMonthOfInterval, isSameMonth, isToday,
-  addMonths, subMonths, differenceInCalendarDays,
+  eachDayOfInterval, isSameMonth, isToday,
+  addMonths, subMonths,
 } from 'date-fns'
 import CreateItem from '@/components/CreateItem'
 import WorkspaceLayout from '@/components/WorkspaceLayout'
+import { ProgressBar, Timeline, donePercent } from '@/components/Timeline'
 import { useFolderContents, useUpdateFolder } from '@/api/workspace'
 import { useUpdateTask } from '@/api/tasks'
 import type { Task, WorkspaceEvent, Epic } from '@/types'
@@ -250,96 +251,12 @@ function CalendarView({ events }: { events: WorkspaceEvent[] }) {
   )
 }
 
-// ── Gantt — epics as bars across a computed date range, positioned with
-// plain CSS percentages (no charting library). Only epics with both dates
-// set can be placed on a timeline; others are listed below instead of
-// being silently dropped. ───────────────────────────────────────────────
-
-function GanttView({ epics }: { epics: Epic[] }) {
-  const dated = epics.filter((e): e is Epic & { start_date: string; target_date: string } =>
-    !!e.start_date && !!e.target_date)
-  const undated = epics.filter((e) => !e.start_date || !e.target_date)
-
-  if (dated.length === 0) {
-    return (
-      <div className="flex-1 flex flex-col items-center justify-center gap-2 text-muted-foreground">
-        <GanttChart className="w-8 h-8 opacity-30" />
-        <p className="text-sm">No epics with both a start and target date yet</p>
-      </div>
-    )
-  }
-
-  const rangeStart = startOfMonth(new Date(Math.min(...dated.map((e) => parseISO(e.start_date).getTime()))))
-  const rangeEnd = endOfMonth(new Date(Math.max(...dated.map((e) => parseISO(e.target_date).getTime()))))
-  const totalDays = differenceInCalendarDays(rangeEnd, rangeStart) + 1
-  const months = eachMonthOfInterval({ start: rangeStart, end: rangeEnd })
-
-  return (
-    <div className="flex-1 overflow-auto p-4">
-      <div className="min-w-[700px] max-w-4xl">
-        <div className="flex border-b mb-3">
-          {months.map((m) => {
-            const daysInMonth = differenceInCalendarDays(endOfMonth(m), startOfMonth(m)) + 1
-            return (
-              <div
-                key={m.toISOString()}
-                style={{ width: `${(daysInMonth / totalDays) * 100}%` }}
-                className="text-xs text-muted-foreground font-medium pb-1 shrink-0 truncate"
-              >
-                {format(m, 'MMM yyyy')}
-              </div>
-            )
-          })}
-        </div>
-        <div className="flex flex-col gap-3">
-          {dated.map((epic) => {
-            const s = parseISO(epic.start_date)
-            const e = parseISO(epic.target_date)
-            const offsetPct = (differenceInCalendarDays(s, rangeStart) / totalDays) * 100
-            const widthPct = Math.max(((differenceInCalendarDays(e, s) + 1) / totalDays) * 100, 1.5)
-            const percent = epic.tasks_count > 0 ? Math.round((epic.done_tasks_count / epic.tasks_count) * 100) : 0
-            return (
-              <div key={epic.id} className="flex items-center gap-3">
-                <span className="w-36 text-sm truncate shrink-0" title={epic.title}>{epic.title}</span>
-                <div className="flex-1 relative h-6">
-                  <div
-                    className="absolute h-6 rounded-md bg-primary/20 border border-primary overflow-hidden"
-                    style={{ left: `${offsetPct}%`, width: `${widthPct}%` }}
-                    title={`${epic.start_date} → ${epic.target_date}`}
-                  >
-                    <div className="h-full bg-primary/50" style={{ width: `${percent}%` }} />
-                  </div>
-                </div>
-                <span className="w-14 text-xs text-muted-foreground text-right shrink-0">
-                  {epic.done_tasks_count}/{epic.tasks_count}
-                </span>
-              </div>
-            )
-          })}
-        </div>
-      </div>
-
-      {undated.length > 0 && (
-        <p className="text-xs text-muted-foreground mt-6">
-          Not shown (missing a start or target date): {undated.map((e) => e.title).join(', ')}
-        </p>
-      )}
-    </div>
-  )
-}
-
 // ── Overview — the landing view when you click into a folder: a dashboard
 // (a few high-level epics, upcoming events) plus the folder's documents
 // shown as a proper primary section rather than the thin chip row the other
-// four views get. ────────────────────────────────────────────────────────
-
-function ProgressBar({ percent }: { percent: number }) {
-  return (
-    <div className="w-full h-1.5 bg-muted rounded-full overflow-hidden">
-      <div className="h-full bg-primary rounded-full transition-all" style={{ width: `${percent}%` }} />
-    </div>
-  )
-}
+// four views get. The Gantt tab (below, in the main component) renders
+// epics through the same shared Timeline this page used to define locally
+// — see components/Timeline.tsx. ─────────────────────────────────────────
 
 // A small header-row link to a sibling view — always shown regardless of
 // whether this section has any data, since Overview doubles as the
@@ -431,7 +348,7 @@ function OverviewView({
           ) : (
             <div className="flex flex-col gap-3">
               {epics.slice(0, 5).map((epic) => {
-                const percent = epic.tasks_count > 0 ? Math.round((epic.done_tasks_count / epic.tasks_count) * 100) : 0
+                const percent = donePercent(epic)
                 return (
                   <div key={epic.id} className="flex items-center gap-3">
                     <span className="flex-1 text-sm truncate" title={epic.title}>{epic.title}</span>
@@ -559,7 +476,11 @@ export default function FolderDetailPage() {
         )}
         {view === 'list' && <TaskListView tasks={tasks} />}
         {view === 'calendar' && <CalendarView events={events} />}
-        {view === 'gantt' && <GanttView epics={epics} />}
+        {view === 'gantt' && (
+          <div className="flex-1 overflow-auto p-4">
+            <Timeline items={epics} />
+          </div>
+        )}
       </div>
     </WorkspaceLayout>
   )

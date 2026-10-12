@@ -5,7 +5,7 @@ import { useSidebarStore } from '@/store/sidebar'
 import {
   FolderPlus, CheckSquare, FilePlus, FileText,
   Table as TableIcon, Pin, Folder, Loader2, CalendarDays,
-  Plus, Target, Archive, ArchiveRestore, Keyboard, Download,
+  Plus, Target, Flag, Archive, ArchiveRestore, Keyboard, Download,
 } from 'lucide-react'
 import {
   useWorkspace, useCreateFolder, useCreateDocument, usePinDocument, usePinFolder,
@@ -281,6 +281,7 @@ export default function Sidebar() {
           <RailButton icon={CheckSquare} label="Tasks" active={location.pathname === '/tasks'} onClick={() => navigate('/tasks?view=backlog')} />
           <RailButton icon={CalendarDays} label="Events" active={location.pathname === '/events'} onClick={() => navigate('/events?view=list')} />
           <RailButton icon={Target} label="Epics" active={location.pathname === '/epics'} onClick={() => navigate('/epics')} />
+          <RailButton icon={Flag} label="Initiatives" active={location.pathname === '/initiatives'} onClick={() => navigate('/initiatives')} />
         </div>
         <div className="flex-1 w-full" style={{ WebkitAppRegion: 'drag' } as CSSProperties} />
         <div className="flex flex-col items-center gap-1 py-2">
