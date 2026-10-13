@@ -1,6 +1,7 @@
 module Api
   module V1
     class TasksController < ApplicationController
+      include WorkspaceScoped
       before_action :set_task, only: [ :update, :destroy ]
 
       def index
@@ -43,10 +44,6 @@ module Api
       end
 
       private
-
-      def current_workspace
-        current_user.workspace
-      end
 
       def set_task
         @task = current_workspace.tasks.find(params[:id])

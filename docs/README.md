@@ -2,7 +2,7 @@
 
 Document editor, file manager, and task tracker. Rails API + React frontend.
 
-Docs index: [services and configuration](services.md), [UI components](ui-components.md), [keyboard shortcuts](keyboard-shortcuts.md), [backlog](backlog.md).
+Docs index: [workspaces](workspaces.md), [services and configuration](services.md), [UI components](ui-components.md), [keyboard shortcuts](keyboard-shortcuts.md), [backlog](backlog.md).
 
 Create Documents, Sheets, or Tables from the file list, folder overview, or sidebar. Tables have named fields with text, integer, number, boolean, date, datetime, or relation datatypes. Relation fields link to one record in another workspace table using a database foreign key; multiple records can reference the same record. Table records are saved individually, and dates/times are entered in UTC. Clear a field's values before changing its datatype. Referenced records and tables must be unlinked before deletion.
 
@@ -35,8 +35,9 @@ POST   /api/v1/auth/signup
 POST   /api/v1/auth/login
 DELETE /api/v1/auth/logout
 
-GET    /api/v1/workspace
+GET    /api/v1/workspace        # active workspace (X-Workspace-Id header)
 PATCH  /api/v1/workspace
+GET    /api/v1/workspaces       # see docs/workspaces.md for members and roles
 
 GET    /api/v1/folders
 POST   /api/v1/folders

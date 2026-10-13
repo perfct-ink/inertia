@@ -260,6 +260,9 @@ Tailwind has been removed; the frontend uses SCSS (`frontend/src/styles/` for ap
 | PM-165 | Clear ESLint warnings deliberately | The React Compiler rules in `react-hooks` v7 (`refs`, `set-state-in-effect`, `static-components`) and `exhaustive-deps` are warnings. Each fix edits working code, so do them one component at a time with tests. |
 | PM-166 | Lint the whole repository | `npm run lint` covers `frontend/` only. Add `collab-server/` and the Swift/Ruby linters (`rubocop` already exists) to one entry point. |
 | PM-167 | WCAG 2.1 audit | Keyboard paths for every interactive element (the tab-close control in `TabBar` is a clickable `span`), focus order in modals, color contrast in both themes. |
+| PM-168 | Teams: groups of users that can be granted a role in a workspace | Builds on `workspace_memberships` (see `docs/workspaces.md`). |
+| PM-169 | Invite people without an account (email invitation, pending membership) | Today members are added by the email of an existing user. |
+| PM-170 | Move or copy content between workspaces | A document stays in its workspace today. |
 
 ## Out of scope for parity
 

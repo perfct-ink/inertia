@@ -1,16 +1,17 @@
 module Api
   module V1
     class EventsController < ApplicationController
+      include WorkspaceScoped
       before_action :set_event, only: [ :update, :destroy ]
 
       def index
-        events = current_user.workspace.events.includes(tasks: :document).order(:date)
+        events = current_workspace.events.includes(tasks: :document).order(:date)
         events = events.where(folder_id: params[:folder_id]) if params[:folder_id]
         render json: EventBlueprint.render(events, view: :with_tasks)
       end
 
       def create
-        event = current_user.workspace.events.build(event_params)
+        event = current_workspace.events.build(event_params)
         if event.save
           render json: EventBlueprint.render(event.reload.tap { |e| e.association(:tasks).load }, view: :with_tasks), status: :created
         else
@@ -34,7 +35,7 @@ module Api
       private
 
       def set_event
-        @event = current_user.workspace.events.includes(tasks: :document).find(params[:id])
+        @event = current_workspace.events.includes(tasks: :document).find(params[:id])
       end
 
       def event_params

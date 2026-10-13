@@ -1,6 +1,7 @@
 module Api
   module V1
     class FoldersController < ApplicationController
+      include WorkspaceScoped
       before_action :set_folder, only: [ :show, :update, :destroy, :contents ]
 
       def index
@@ -8,10 +9,10 @@ module Api
           # Flat, regardless of depth or nesting — an archived subfolder's
           # own (active) parent wouldn't surface it otherwise, and "show me
           # everything archived" is the whole point of this filter.
-          folders = current_user.workspace.folders.archived.order(:name)
+          folders = current_workspace.folders.archived.order(:name)
           render json: FolderBlueprint.render(folders)
         else
-          folders = current_user.workspace.folders
+          folders = current_workspace.folders
             .active
             .where(parent_id: nil)
             .includes(children: { children: :documents }, documents: [])
@@ -33,13 +34,13 @@ module Api
         folder_ids = @folder.self_and_descendant_ids
         documents = Document.where(folder_id: folder_ids).order(:title)
 
-        tasks = current_user.workspace.tasks
+        tasks = current_workspace.tasks
           .where("tasks.folder_id IN (?) OR tasks.document_id IN (?)", folder_ids, documents.select(:id))
           .includes(:document)
 
-        events = current_user.workspace.events.where(folder_id: folder_ids).order(:date)
+        events = current_workspace.events.where(folder_id: folder_ids).order(:date)
 
-        epics = current_user.workspace.epics
+        epics = current_workspace.epics
           .where(folder_id: folder_ids)
           .left_joins(:tasks)
           .group("epics.id")
@@ -61,7 +62,7 @@ module Api
       end
 
       def create
-        folder = current_user.workspace.folders.build(folder_params)
+        folder = current_workspace.folders.build(folder_params)
         if folder.save
           render json: FolderBlueprint.render(folder), status: :created
         else
@@ -93,7 +94,7 @@ module Api
       private
 
       def set_folder
-        @folder = current_user.workspace.folders.find(params[:id])
+        @folder = current_workspace.folders.find(params[:id])
       end
 
       def folder_params

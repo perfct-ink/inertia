@@ -1,14 +1,15 @@
 module Api
   module V1
     class InitiativesController < ApplicationController
+      include WorkspaceScoped
       before_action :set_initiative, only: [ :update, :destroy ]
 
       def index
-        render json: InitiativeBlueprint.render(current_user.workspace.initiatives)
+        render json: InitiativeBlueprint.render(current_workspace.initiatives)
       end
 
       def create
-        initiative = current_user.workspace.initiatives.build(initiative_params)
+        initiative = current_workspace.initiatives.build(initiative_params)
         if initiative.save
           render json: InitiativeBlueprint.render(initiative), status: :created
         else
@@ -32,7 +33,7 @@ module Api
       private
 
       def set_initiative
-        @initiative = current_user.workspace.initiatives.find(params[:id])
+        @initiative = current_workspace.initiatives.find(params[:id])
       end
 
       def initiative_params

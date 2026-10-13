@@ -1,0 +1,76 @@
+@use 'tokens' as *;
+
+@layer app.components {
+  .workspace_members {
+    &-list {
+      display: flex;
+      flex-direction: column;
+      gap: space(1);
+      margin-top: space(3);
+    }
+
+    &-row {
+      display: flex;
+      align-items: center;
+      gap: space(2);
+    }
+
+    &-person {
+      flex: 1 1 0%;
+      min-width: 0;
+    }
+
+    &-name {
+      @include text('sm');
+      @include truncate;
+
+      font-weight: 500;
+    }
+
+    &-email {
+      @include text('xs');
+      @include truncate;
+
+      color: color(muted-foreground);
+    }
+
+    &-role {
+      @include text('xs');
+
+      color: color(muted-foreground);
+      text-transform: capitalize;
+    }
+
+    &-select {
+      width: auto;
+    }
+
+    &-icon {
+      width: space(4);
+      height: space(4);
+    }
+
+    &-add {
+      display: flex;
+      flex-wrap: wrap;
+      gap: space(2);
+      margin-top: space(4);
+
+      .ui-input {
+        flex: 1 1 10rem;
+      }
+    }
+
+    &-hint {
+      margin-top: space(3);
+      color: color(muted-foreground);
+      @include text('xs');
+    }
+
+    &-footer {
+      display: flex;
+      justify-content: flex-end;
+      margin-top: space(4);
+    }
+  }
+}

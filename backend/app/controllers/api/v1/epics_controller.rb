@@ -1,13 +1,14 @@
 module Api
   module V1
     class EpicsController < ApplicationController
+      include WorkspaceScoped
       before_action :set_epic, only: [ :update, :destroy ]
 
       def index
         # Grouped left join computes each epic's task counts in one query
         # instead of N+1'ing tasks.count/tasks.done.count per epic. The
         # CASE/SUM (not FILTER — that's Postgres-only) is MySQL-compatible.
-        epics = current_user.workspace.epics
+        epics = current_workspace.epics
         epics = epics.where(folder_id: params[:folder_id]) if params[:folder_id]
         epics = epics
           .left_joins(:tasks)
@@ -23,7 +24,7 @@ module Api
       end
 
       def create
-        epic = current_user.workspace.epics.build(epic_params)
+        epic = current_workspace.epics.build(epic_params)
         if epic.save
           render json: EpicBlueprint.render(epic), status: :created
         else
@@ -47,7 +48,7 @@ module Api
       private
 
       def set_epic
-        @epic = current_user.workspace.epics.find(params[:id])
+        @epic = current_workspace.epics.find(params[:id])
       end
 
       def epic_params

@@ -1,6 +1,11 @@
 module Api
   module V1
     class DocumentsController < ApplicationController
+      include WorkspaceScoped
+      # Documents are looked up by id across every workspace the user belongs to
+      # (the collab server calls this without a workspace header), so the role is
+      # checked against the document's own workspace instead.
+      skip_before_action :require_current_workspace_write!
       before_action :set_folder, only: [ :index, :create ]
       before_action :set_document, only: [ :show, :update, :destroy ]
 
@@ -41,18 +46,26 @@ module Api
       private
 
       def set_folder
-        @folder = current_user.workspace.folders.find(params[:folder_id])
+        @folder = Folder.where(workspace_id: accessible_workspace_ids).find(params[:folder_id])
+        require_write_in!(@folder.workspace_id) unless read_request?
       end
 
       def set_document
         @document = Document.joins(:folder)
-          .where(folders: { workspace_id: current_user.workspace.id })
+          .where(folders: { workspace_id: accessible_workspace_ids })
           .find(params[:id])
+        require_write_in!(@document.folder.workspace_id) unless read_request?
+      end
+
+      def document_workspace_id
+        @document ? @document.folder.workspace_id : @folder.workspace_id
       end
 
       def document_params
         permitted = params.require(:document).permit(:title, :doc_type, :pinned, :folder_id, content: {})
-        current_user.workspace.folders.find(permitted[:folder_id]) if permitted[:folder_id]
+        # A document stays in its own workspace; moving it into another folder
+        # of that workspace is the only move allowed.
+        Folder.where(workspace_id: document_workspace_id).find(permitted[:folder_id]) if permitted[:folder_id]
         permitted.delete(:doc_type) if @document
         permitted
       end

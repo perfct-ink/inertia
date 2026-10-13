@@ -1,4 +1,5 @@
 import { flattenFolders } from './tree'
+import { WorkspaceSwitcher } from '@/components/workspace/WorkspaceSwitcher'
 import { Button, Input, Select } from '@/components/ui'
 import './Sidebar.scss'
 import { Database } from 'lucide-react'
@@ -313,7 +314,7 @@ export default function Sidebar() {
           <img src={logoMark} alt="" className="sidebar-logo" />
           <div className="sidebar-brand">
             <p className="sidebar-brand_name">Inertia</p>
-            <p className="sidebar-workspace_name">{workspace?.name ?? 'My Workspace'}</p>
+            <WorkspaceSwitcher />
           </div>
         </div>
 

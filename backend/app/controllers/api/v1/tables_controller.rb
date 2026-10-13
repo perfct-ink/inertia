@@ -1,6 +1,10 @@
 module Api
   module V1
     class TablesController < ApplicationController
+      include WorkspaceScoped
+      # Tables are looked up by id across the user's workspaces; the role is
+      # checked against the table's own workspace in set_table.
+      skip_before_action :require_current_workspace_write!
       before_action :set_table
       rescue_from ActiveRecord::RecordInvalid, with: :invalid_record
       rescue_from ActiveRecord::RecordNotDestroyed, with: :invalid_record
@@ -42,7 +46,8 @@ module Api
       private
 
       def set_table
-        @table = Document.joins(:folder).where(folders: { workspace_id: current_user.workspace.id }, doc_type: :table).find(params[:id])
+        @table = Document.joins(:folder).where(folders: { workspace_id: accessible_workspace_ids }, doc_type: :table).find(params[:id])
+        require_write_in!(@table.folder.workspace_id) unless read_request?
       end
 
       # Serialize schema/record edits on the parent table so a field cannot

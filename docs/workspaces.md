@@ -1,0 +1,54 @@
+# Workspaces
+
+A workspace is a project: its own folders (under one permanent Root), documents, tasks, epics, initiatives and events, shared by the people who belong to it. Every user also has one **personal** workspace, created at signup, that cannot be shared or deleted.
+
+## Model
+
+| Table | Purpose |
+| --- | --- |
+| `workspaces` | `name`, `personal`, `user_id` (the creator; access does not depend on it), `root_folder_id`. |
+| `workspace_memberships` | `workspace_id`, `user_id`, `role`. One row per member; unique per workspace and user. |
+
+Roles, from least to most privileged:
+
+| Role | Can |
+| --- | --- |
+| `viewer` | Read everything in the workspace. |
+| `member` | Also create, edit and delete content. |
+| `admin` | Also rename the workspace and add, change and remove members (not owners). |
+| `owner` | Also grant or change the owner role and delete the workspace. |
+
+Rules enforced in `WorkspaceMembership` / `Workspace`: a workspace always keeps at least one owner; a personal workspace has only its owner and is never deleted by itself (only with its user); a user who created a shared workspace cannot be deleted until it is removed or handed over.
+
+## Choosing the workspace for a request
+
+The client sends `X-Workspace-Id: <id>` (see `frontend/src/lib/api.ts`). Without it the server uses the user's personal workspace. A workspace the user does not belong to answers 404. `WorkspaceScoped` (`backend/app/controllers/concerns/workspace_scoped.rb`) resolves it and requires the `member` role for every write (anything but GET/HEAD).
+
+Lookups that start from a record id (`documents`, `tables`, `shares`) search all of the user's workspaces and check the role of the record's own workspace. This keeps the collab server working: it calls `GET /api/v1/documents/:id` with only the user's token.
+
+## API
+
+```
+GET    /api/v1/workspaces                      # workspaces the user belongs to, with their role
+POST   /api/v1/workspaces                      # create (caller becomes owner)
+DELETE /api/v1/workspaces/:id                  # owner only; not personal
+GET    /api/v1/workspace                       # the active workspace (header) with its folder tree
+PATCH  /api/v1/workspace                       # rename (admin or owner)
+
+GET    /api/v1/workspaces/:id/members
+POST   /api/v1/workspaces/:id/members          # { email, role } - an existing user; admin or owner
+PATCH  /api/v1/workspaces/:id/members/:member  # { role }
+DELETE /api/v1/workspaces/:id/members/:member  # admin/owner removes anyone; anyone can leave
+```
+
+## Frontend
+
+`WorkspaceSwitcher` (sidebar header) lists workspaces, creates one and opens `WorkspaceMembers`. Switching stores the id in `store/workspaces.ts` (the personal workspace is stored as "none"), clears the query cache and open tabs, and returns to `/workspace`. Signing in or out resets it so an account never inherits another's workspace.
+
+## Migration
+
+`20261014000001_create_workspace_memberships` adds `workspaces.personal`, creates `workspace_memberships`, makes every existing workspace's user its owner, and marks all existing workspaces personal.
+
+## Not built yet
+
+Teams (groups of users granted access together), invitations for people without an account, per-folder permissions, and moving content between workspaces. See `docs/backlog.md`.

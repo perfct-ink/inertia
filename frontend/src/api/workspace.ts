@@ -1,13 +1,21 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import api from '@/lib/api'
+import { useWorkspaceStore } from '@/store/workspaces'
 import type { Workspace, Folder, Document, FolderContents } from '@/types'
 
 // ── Workspace ─────────────────────────────────────────────────────────────────
 
+// The active workspace (X-Workspace-Id). If the stored workspace is gone or
+// the user lost access (404), fall back to their personal workspace.
 export function useWorkspace() {
   return useQuery<Workspace>({
     queryKey: ['workspace'],
-    queryFn: () => api.get('/api/v1/workspace').then((r) => r.data),
+    queryFn: () => api.get('/api/v1/workspace', { silent: true }).then((r) => r.data).catch((error) => {
+      const { activeWorkspaceId, setActive } = useWorkspaceStore.getState()
+      if (error.response?.status !== 404 || !activeWorkspaceId) throw error
+      setActive(null)
+      return api.get('/api/v1/workspace').then((r) => r.data)
+    }),
   })
 }
 

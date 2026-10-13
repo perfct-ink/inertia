@@ -1,5 +1,8 @@
 class Workspace < ApplicationRecord
+  # The creator (and first owner). Access is through memberships, not this column.
   belongs_to :user
+  has_many :memberships, class_name: "WorkspaceMembership", dependent: :destroy
+  has_many :members, through: :memberships, source: :user
   belongs_to :root_folder, class_name: "Folder", optional: true
   has_many :folders, dependent: :destroy
   has_many :documents, through: :folders
@@ -10,6 +13,8 @@ class Workspace < ApplicationRecord
   has_many :quip_imports, dependent: :destroy
 
   validates :name, presence: true
+  before_destroy :protect_personal, prepend: true
+  after_create :add_creator_as_owner
   after_create :ensure_document_root!
   before_destroy :clear_root_reference, prepend: true
 
@@ -27,6 +32,16 @@ class Workspace < ApplicationRecord
   end
 
   private
+
+  def add_creator_as_owner
+    memberships.create!(user: user, role: :owner)
+  end
+
+  def protect_personal
+    return unless personal? && !destroyed_by_association
+    errors.add(:base, "A personal workspace cannot be deleted")
+    throw :abort
+  end
 
   def clear_root_reference
     update_column(:root_folder_id, nil) if root_folder_id.present?

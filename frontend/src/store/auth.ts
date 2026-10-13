@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
+import { useWorkspaceStore } from './workspaces'
 
 interface User {
   id: number
@@ -19,8 +20,15 @@ export const useAuthStore = create<AuthStore>()(
     (set) => ({
       token: null,
       user: null,
-      setAuth: (token, user) => set({ token, user }),
-      logout: () => set({ token: null, user: null }),
+      // A different account must never inherit the previous one's workspace.
+      setAuth: (token, user) => {
+        useWorkspaceStore.getState().setActive(null)
+        set({ token, user })
+      },
+      logout: () => {
+        useWorkspaceStore.getState().setActive(null)
+        set({ token: null, user: null })
+      },
     }),
     { name: 'inertia-auth' }
   )

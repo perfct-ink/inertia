@@ -14,6 +14,7 @@ interface TabsStore {
   closeTab: (id: string) => Tab | null  // returns tab to navigate to, or null
   setActive: (id: string) => void
   updateTitle: (id: string, title: string) => void
+  reset: () => void
 }
 
 export const useTabsStore = create<TabsStore>((set, get) => ({
@@ -39,6 +40,10 @@ export const useTabsStore = create<TabsStore>((set, get) => ({
 
   setActive(id) {
     set({ activeId: id })
+  },
+
+  reset() {
+    set({ tabs: [], activeId: null })
   },
 
   updateTitle(id, title) {

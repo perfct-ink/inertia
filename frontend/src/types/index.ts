@@ -28,11 +28,26 @@ export interface Folder {
   has_events: boolean
 }
 
-export interface Workspace {
+export type WorkspaceRole = 'viewer' | 'member' | 'admin' | 'owner'
+
+// A workspace the signed-in user belongs to; `role` is their role in it.
+export interface WorkspaceSummary {
   id: number
   name: string
+  personal: boolean
+  role: WorkspaceRole | null
+}
+
+export interface Workspace extends WorkspaceSummary {
   root_folder_id?: number
   folders: Folder[]
+}
+
+export interface WorkspaceMember {
+  id: number
+  role: WorkspaceRole
+  user_id: number
+  user: { id: number; name: string; email: string }
 }
 
 export interface Task {
