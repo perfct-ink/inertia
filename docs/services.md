@@ -28,6 +28,7 @@ Every internal and external service Inertia uses, why it is used, and the config
 | Quip API | Importing a user's Quip folders and documents. The user supplies their own Quip token per import; it is not stored as app config. | `backend/app/services/quip/` |
 | DigitalOcean | Hosting (Ubuntu droplet) and the managed MySQL cluster. | `deploy/` |
 | GitHub Actions | CI (`.github/workflows/ci.yml`) and deploys to production on push to `main` (`deploy.yml`). | |
+| Public npm registry | Installs frontend and collab dependencies locally and in CI. Lockfile URLs must use `registry.npmjs.org`, with no private registry credentials required. | `frontend/package-lock.json`, `collab-server/package-lock.json` |
 | nginx + certbot (Let's Encrypt) | Serves the static frontend, proxies `/api` and `/collab`, terminates TLS. | `deploy/` |
 
 See [Mac social sign-in](mac-social-sign-in.md) for provider setup steps.
@@ -39,7 +40,7 @@ See [Mac social sign-in](mac-social-sign-in.md) for provider setup steps.
 | Variable | Purpose | Default / notes |
 | --- | --- | --- |
 | `RAILS_MASTER_KEY` | Decrypts `config/credentials.yml.enc` (production secrets: `secret_key_base`, `jwt_secret_key`, database credentials). | Required in production. The only secret passed to the production container. |
-| `JWT_SECRET_KEY` | Signs auth tokens (Devise JWT). | Required in dev/test. In production it comes from credentials. |
+| `JWT_SECRET_KEY` | Signs auth tokens (Devise JWT). | Required in dev. Tests supply a test-only default before boot. In production it comes from credentials. |
 | `DATABASE_HOST`, `DATABASE_USERNAME`, `DATABASE_PASSWORD` | MySQL connection. | Dev compose: `mysql` / `root` / `password`. Production: credentials. |
 | `RAILS_MAX_THREADS`, `PORT`, `RAILS_LOG_LEVEL` | Puma/Rails runtime tuning. | Optional. |
 | `CORS_ORIGINS` | Comma-separated origins allowed to call the API. | Dev: `http://localhost:5174,capacitor://localhost` (the iOS WKWebView origin). |

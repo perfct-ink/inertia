@@ -13,10 +13,9 @@ class Workspace < ApplicationRecord
   has_many :quip_imports, dependent: :destroy
 
   validates :name, presence: true
-  before_destroy :protect_personal, prepend: true
   after_create :add_creator_as_owner
   after_create :ensure_document_root!
-  before_destroy :clear_root_reference, prepend: true
+  before_destroy :prepare_destroy, prepend: true
 
   def ensure_document_root!
     return root_folder if root_folder_id.present?
@@ -32,6 +31,11 @@ class Workspace < ApplicationRecord
   end
 
   private
+
+  def prepare_destroy
+    protect_personal
+    clear_root_reference
+  end
 
   def add_creator_as_owner
     memberships.create!(user: user, role: :owner)

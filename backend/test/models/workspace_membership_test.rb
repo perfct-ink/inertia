@@ -46,7 +46,10 @@ class WorkspaceMembershipTest < ActiveSupport::TestCase
 
   test "a personal workspace cannot be deleted but goes away with its user" do
     personal = @other.workspace
+    root_id = personal.root_folder_id
     assert_not personal.destroy
+    assert_equal root_id, personal.root_folder_id
+    assert_equal root_id, personal.reload.root_folder_id
     assert_nothing_raised { @other.destroy! }
     assert_not Workspace.exists?(personal.id)
   end
