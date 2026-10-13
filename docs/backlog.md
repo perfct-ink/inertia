@@ -225,6 +225,23 @@ Today: the editor (`DocumentPage.tsx`, Tiptap) has fixed node types only (paragr
 | PM-145 | How other people see your custom styles in a shared document | Open question: since styles belong to one user, a collaborator either sees the formatting copied into the doc, or the style travels with the doc. Default: the doc stores the resolved formatting so it looks the same to everyone. |
 | PM-146 | Keyboard shortcuts for styles (e.g. Cmd+Opt+1 for Heading 1) | |
 
+## 15. Document linking, navigation and URLs (P1)
+
+Requested by Alex on 2026-10-13.
+
+Today: the editor has a plain Link extension (any URL) but no picker for internal documents or headings, and headings have no stable anchors. Routes are flat ids (`/documents/:id`, `/folders/:id`, see `frontend/src/App.tsx`); there are no slugs. Opening a folder shows its contents (`FolderDetailPage.tsx`); a folder has no home document.
+
+| ID | Item | Notes |
+| --- | --- | --- |
+| PM-150 | **Link to another document** from inside a document, with a search picker (type `[[` or `@`) | Link shows the target's current title, and updates when it's renamed. |
+| PM-151 | **Link to a heading** in another document (or the same one) | Headings need stable ids that survive edits and collaboration. Default: an `id` attribute on Tiptap heading nodes, generated once. The URL uses `#heading-slug`. |
+| PM-152 | Backlinks: each document lists which documents link to it | Needs a `document_links` table refreshed on save. |
+| PM-153 | Broken-link handling when a target doc or heading is deleted | Show the link as broken rather than removing it. |
+| PM-154 | **Table of contents as a minimap**: a slim outline of headings at the side of the document that highlights where you are and jumps on click | Built from the heading nodes; collapses to tick marks when narrow, like a code-editor minimap. |
+| PM-155 | **Hierarchical URLs** that mirror the folder tree, e.g. `/acme/product/feature-folders/requirements` | Default: slugs on folders and documents, unique within their parent, with the numeric id kept as a fallback so links don't break when something is renamed or moved (old paths redirect). |
+| PM-156 | **Folder home document**: a folder can have one document set as its home page, shown when the folder is opened | Default: `folders.home_document_id`. |
+| PM-157 | Folders without a home document show the files and folders directly inside them (one level, not everything nested) | Today's folder view also lists nested content for some views (`Folder#self_and_descendant_ids`); the default listing should be direct children only. |
+
 ## Out of scope for parity
 
 Monday sells separate CRM, Service (ticketing), Campaigns and "vibe" app-builder products on the same platform. They are not project management and are left out unless someone asks.
