@@ -14,6 +14,7 @@ export interface Folder {
   id: number
   name: string
   parent_id: number | null
+  root?: boolean
   position: number
   pinned: boolean
   archived: boolean
@@ -30,6 +31,7 @@ export interface Folder {
 export interface Workspace {
   id: number
   name: string
+  root_folder_id?: number
   folders: Folder[]
 }
 

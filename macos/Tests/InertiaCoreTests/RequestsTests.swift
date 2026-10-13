@@ -11,12 +11,12 @@ final class RequestsTests: XCTestCase {
         XCTAssertEqual(request.httpBody, payload)
         XCTAssertNil(Requests.make(base: request.url!, path: "login", token: nil).value(forHTTPHeaderField: "Authorization"))
     }
-    func testEditorKeepsTokenOutOfURL() {
-        let base = URL(string: "https://inertia.it.com")!
-        let url = Requests.editorURL(base: base, documentID: 7)
+    func testWorkspaceOpensDocumentsWithSharedNavigationAndKeepsTokenOutOfURL() {
+        let base = URL(string: "https://inertia.it.com?native=1#/tasks")!
+        let url = Requests.workspaceURL(base: base)
         XCTAssertEqual(url.path, "/index.html")
-        XCTAssertEqual(url.fragment, "/documents/7")
-        XCTAssertEqual(url.query, "native=1")
+        XCTAssertEqual(url.fragment, "/documents")
+        XCTAssertNil(url.query)
         XCTAssertTrue(Requests.sameOrigin(base, url))
         XCTAssertFalse(Requests.sameOrigin(base, URL(string: "https://inertia.it.com.evil.example")!))
         XCTAssertFalse(Requests.sameOrigin(base, URL(string: "http://inertia.it.com")!))

@@ -13,7 +13,7 @@ import InertiaCore
         }
         .commands {
             CommandGroup(after: .newItem) {
-                Button("Refresh Workspace") { Task { await session.refresh() } }.keyboardShortcut("r")
+                Button("Refresh Workspace") { NotificationCenter.default.post(name: .refreshWorkspace, object: nil) }.keyboardShortcut("r")
             }
         }
         DocumentGroup(newDocument: TasksDocument()) { file in
@@ -25,4 +25,8 @@ import InertiaCore
 final class LaunchDelegate: NSObject, NSApplicationDelegate {
     func applicationShouldOpenUntitledFile(_ sender: NSApplication) -> Bool { false }
     func applicationShouldRestoreSecureApplicationState(_ app: NSApplication) -> Bool { false }
+}
+
+extension Notification.Name {
+    static let refreshWorkspace = Notification.Name("InertiaRefreshWorkspace")
 }

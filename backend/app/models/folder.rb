@@ -9,6 +9,14 @@ class Folder < ApplicationRecord
   has_many :shares, as: :shareable, dependent: :destroy
 
   validates :name, presence: true
+  before_validation :attach_to_root
+  validate :validate_parent
+  validate :protect_root_location
+  before_destroy :protect_root_deletion, prepend: true
+
+  def root?
+    persisted? && workspace.root_folder_id == id
+  end
 
   scope :active, -> { where(archived_at: nil) }
   scope :archived, -> { where.not(archived_at: nil) }
@@ -34,5 +42,41 @@ class Folder < ApplicationRecord
     ids = [ id ]
     children.find_each { |child| ids.concat(child.self_and_descendant_ids) }
     ids
+  end
+
+  private
+
+  def attach_to_root
+    self.parent_id = workspace.root_folder_id if workspace && parent_id.nil? && !root?
+  end
+
+  def validate_parent
+    return unless parent
+    if parent.workspace_id != workspace_id
+      errors.add(:parent, "must belong to the same workspace")
+      return
+    end
+    visited = Set.new([ id ].compact)
+    ancestor = parent
+    while ancestor
+      if visited.include?(ancestor.id)
+        errors.add(:parent, "cannot create a folder cycle")
+        break
+      end
+      visited.add(ancestor.id)
+      ancestor = ancestor.parent
+    end
+  end
+
+  def protect_root_location
+    return unless root?
+    errors.add(:parent, "cannot move the document root") if parent_id.present?
+    errors.add(:archived_at, "cannot archive the document root") if archived_at.present?
+  end
+
+  def protect_root_deletion
+    return unless root? && !destroyed_by_association
+    errors.add(:base, "The document root cannot be deleted")
+    throw :abort
   end
 end

@@ -126,8 +126,10 @@ export function FolderItem({ folder, depth = 0 }: { folder: FolderType; depth?: 
     { label: 'New Subfolder', action: () => { setOpen(true); setAddingFolder(true) } },
     { label: folder.pinned ? 'Unpin' : 'Pin', action: () => pinFolder.mutate({ id: folder.id, pinned: !folder.pinned }) },
     { label: 'Rename', action: () => setRenamingFolder(true) },
-    { label: 'Archive', action: () => updateFolder.mutate({ id: folder.id, archived: true }) },
-    { label: 'Delete', action: () => deleteFolder.mutate(folder.id, { onError: e => setActionError(errorMessage(e)) }), danger: true },
+    ...(folder.root ? [] : [
+      { label: 'Archive', action: () => updateFolder.mutate({ id: folder.id, archived: true }) },
+      { label: 'Delete', action: () => deleteFolder.mutate(folder.id, { onError: e => setActionError(errorMessage(e)) }), danger: true },
+    ]),
   ]
 
   return (

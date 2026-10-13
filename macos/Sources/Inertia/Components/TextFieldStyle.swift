@@ -1,8 +1,9 @@
 import SwiftUI
 
 struct InertiaTextFieldStyle: TextFieldStyle {
-    static let minimumHeight: CGFloat = 40
+    static let loginHeight: CGFloat = 52
     var showsBorder = true
+    var minimumHeight: CGFloat = 40
     @FocusState private var focused: Bool
 
     func _body(configuration: TextField<Self._Label>) -> some View {
@@ -10,7 +11,7 @@ struct InertiaTextFieldStyle: TextFieldStyle {
             .textFieldStyle(.plain)
             .padding(.horizontal, showsBorder ? 10 : 0)
             .padding(.vertical, 10)
-            .frame(minHeight: Self.minimumHeight)
+            .frame(minHeight: minimumHeight)
             .background {
                 if showsBorder { RoundedRectangle(cornerRadius: 6).fill(.background) }
             }

@@ -1,3 +1,4 @@
+import { flattenFolders } from './tree'
 import { Button, Input, Select } from '@/components/ui'
 import { Database } from 'lucide-react'
 import { useState, useRef, useEffect, type CSSProperties, type ComponentType } from 'react'
@@ -211,17 +212,16 @@ export default function Sidebar() {
     })
   }
 
-  async function createNewDocument() {
+  async function createAtRoot(type: 'document' | 'spreadsheet' | 'table') {
     if (creatingRef.current) return
     creatingRef.current = true
     setCreationError('')
     try {
-      let folderId = workspace?.folders?.[0]?.id
-      if (!folderId) {
-        const folder = await createFolder.mutateAsync({ name: 'Documents' })
-        folderId = folder.id
-      }
-      const doc = await createDocument.mutateAsync({ folderId, title: 'Untitled', doc_type: 'document' })
+      const current = workspace ?? (await api.get('/api/v1/workspace')).data
+      const folderId = current.root_folder_id ?? current.folders?.[0]?.id
+      if (!folderId) throw new Error('The workspace root is unavailable. Please try again.')
+      const title = type === 'document' ? 'Untitled' : type === 'table' ? 'Untitled Table' : 'Untitled Sheet'
+      const doc = await createDocument.mutateAsync({ folderId, title, doc_type: type })
       navigate(`/documents/${doc.id}`)
     } catch (error) {
       setCreationError(errorMessage(error))
@@ -230,28 +230,13 @@ export default function Sidebar() {
     }
   }
 
-  async function createNewSpreadsheet(type: 'spreadsheet' | 'table' = 'spreadsheet') {
-    if (creatingRef.current) return
-    creatingRef.current = true
-    setCreationError('')
-    try {
-      let folderId = workspace?.folders?.[0]?.id
-      if (!folderId) {
-        const folder = await createFolder.mutateAsync({ name: 'Documents' })
-        folderId = folder.id
-      }
-      const doc = await createDocument.mutateAsync({ folderId, title: type === 'table' ? 'Untitled Table' : 'Untitled Sheet', doc_type: type })
-      navigate(`/documents/${doc.id}`)
-    } catch (error) {
-      setCreationError(errorMessage(error))
-    } finally {
-      creatingRef.current = false
-    }
-  }
+  function createNewDocument() { return createAtRoot('document') }
+  function createNewSpreadsheet(type: 'spreadsheet' | 'table' = 'spreadsheet') { return createAtRoot(type) }
 
-  const allDocs = workspace?.folders?.flatMap((f) => f.documents ?? []) ?? []
+  const allFolders = flattenFolders(workspace?.folders ?? [])
+  const allDocs = allFolders.flatMap((f) => f.documents ?? [])
   const pinnedDocs = allDocs.filter((d) => d.pinned)
-  const pinnedFolders = (workspace?.folders ?? []).filter((f) => f.pinned)
+  const pinnedFolders = allFolders.filter((f) => f.pinned)
   const hasPinned = pinnedDocs.length > 0 || pinnedFolders.length > 0
 
   const isDocumentsSection = location.pathname === '/' || location.pathname.startsWith('/documents')

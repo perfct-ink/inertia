@@ -3,14 +3,16 @@
 First stage of the gradual SwiftUI migration, requiring macOS 14+ and Xcode's Swift toolchain.
 
 - `make dev-mac` starts the local API and web services, builds and opens `macos/dist/Inertia.app` with local endpoints, and streams service logs until the app closes.
-- `make build-mac` (or `make build-native-mac`) rebuilds that native app without restarting the services. Reopen `macos/dist/Inertia.app` to use the new binary; for local endpoints, use `open -n --env INERTIA_API_URL=http://localhost:3000 --env INERTIA_WEB_URL=http://localhost:5174 macos/dist/Inertia.app`.
+- `make mac-build` stops all running instances of this checkout's `macos/dist/Inertia.app` and rebuilds it. API and web services keep running. The app gets five seconds to quit normally before being force-stopped. Reopen the app to use the new binary; for local endpoints, use `open -n --env INERTIA_API_URL=http://localhost:3000 --env INERTIA_WEB_URL=http://localhost:5174 macos/dist/Inertia.app`.
 - `make dev-native-mac` builds and opens the native app with its default production endpoints.
 - `make test-native-mac` runs the native regression tests.
 - Open `macos/Package.swift` in Xcode to debug, or `swift run --package-path macos`.
 
-The native app opens the online workspace on launch, with sign-in followed by **Documents, Sheets & Tables**. This searchable list includes files from nested projects. The sidebar also provides project dashboards, tasks, and a calendar agenda with event creation. Documents, spreadsheets, and tables use the existing web editors in an isolated WKWebView. The web frontend must include the `native=1` layout support to hide its duplicate sidebar. Use `make dev-electron` for Electron development.
+The Mac app opens native sign-in followed by **Documents, Sheets & Tables** in the existing React workspace. Its sidebar, tabs, projects, documents, task views, and calendar all use the same components and layout as the web app in an isolated WKWebView. The Mac shell does not create a separate workspace or sidebar layout. Use `make dev-electron` for Electron development.
 
 The login screen supports Apple and Google through the system browser, as well as email/password. Provider credentials must be configured on the backend; see [sign-in setup](../docs/mac-social-sign-in.md).
+
+For the local development API, use `admin` / `admin` as a shortcut to the seeded test workspace. The existing `test@example.com` / `password123` login also works. Run `make db-seed` if the test account has not been created.
 
 Production endpoints default to https://inertia.it.com. For development run:
 
@@ -20,11 +22,11 @@ INERTIA_API_URL=http://localhost:3000 INERTIA_WEB_URL=http://localhost:5174 swif
 
 Credentials are never saved to disk by the native app. Sessions are held in memory, with an ephemeral WebView data store; sign-in is required after relaunch. The bearer token is injected only into the configured web origin, never placed in a URL. External web links open in the default browser. The online workspace needs a network connection. Local task files work offline; automatic cloud synchronization and conflict resolution are not implemented.
 
-This is a first native slice, not full Electron parity: Native online Workboard/Gantt views, file syncing, persistent Keychain login, and native rich text/spreadsheet editors are future stages. The calendar currently uses a native agenda list. Distribution signing/notarization is not configured; builds are ad-hoc signed for local use.
+The login screen, system authentication, window/file handling, and local task-file editor use SwiftUI/AppKit. The online workspace uses the existing React UI; native rich text/spreadsheet editors, file syncing, and persistent Keychain login remain future work. Distribution signing/notarization is not configured; builds are ad-hoc signed for local use.
 
 ## UI components
 
-All native UI lives in `Sources/Inertia/Components/`: screens in `Screens/`, editor forms in `Editors/`, and shared controls in the component root. React UI has its own single home in `frontend/src/components/`, with common controls in `ui/`. Document rows and editor navigation, task and event rows, provider buttons, refresh controls, editor actions, optional fields, notes editors, completion progress, and errors each have a shared definition. Update those components to change their appearance across screens.
+Native login, local task-file screens, and platform wrappers live in `Sources/Inertia/Components/`. The shared online workspace has one layout, `frontend/src/components/WorkspaceLayout.tsx`, and one sidebar, `frontend/src/components/file-manager/Sidebar.tsx`. Update those existing React components to change the workspace in every client. Shared native controls retain a single definition for login and local file editing.
 
 ## Local task files
 

@@ -31,7 +31,7 @@ export default function LoginScreen() {
         onSubmit={(e) => { e.preventDefault(); login.mutate(form) }}
       >
         <Input
-          type="email"
+          type={process.env.NODE_ENV === 'development' ? 'text' : 'email'}
           placeholder="Email"
           value={form.email}
           onChange={(e) => setForm({ ...form, email: e.target.value })}

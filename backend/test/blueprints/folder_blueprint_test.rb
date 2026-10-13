@@ -9,7 +9,11 @@ class FolderBlueprintTest < ActiveSupport::TestCase
       task_document_ids: workspace.tasks.reorder(nil).where.not(document_id: nil).distinct.pluck(:document_id).to_set,
       event_folder_ids: workspace.events.where.not(folder_id: nil).distinct.pluck(:folder_id).to_set
     )
-    result[:folders].index_by { |f| f[:id] }
+    flatten_folders(result[:folders]).index_by { |f| f[:id] }
+  end
+
+  def flatten_folders(folders)
+    folders.flat_map { |folder| [ folder, *flatten_folders(folder[:children] || []) ] }
   end
 
   test "has_tasks is true for a task linked directly to the folder" do

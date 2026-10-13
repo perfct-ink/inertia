@@ -4,7 +4,7 @@ An `.inertia-tasks` file is a UTF-8 JSON document for a local Workboard. It uses
 
 ## Open and save
 
-Build with `make build-native-mac`, then use File → New/Open/Save in `macos/dist/Inertia.app`. SwiftUI DocumentGroup provides document windows and autosaving. The app registers `com.inertia.tasks`, conforming to `public.json`. The Electron app does not handle these files. See `examples/Launch.inertia-tasks`.
+Build with `make mac-build`, then use File → New/Open/Save in `macos/dist/Inertia.app`. SwiftUI DocumentGroup provides document windows and autosaving. The app registers `com.inertia.tasks`, conforming to `public.json`. The Electron app does not handle these files. See `examples/Launch.inertia-tasks`.
 
 ## Container and entities
 

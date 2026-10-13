@@ -19,10 +19,12 @@ Tasks can be rolled up from whats inside documents. Tasks are created in documen
 
 ## UI component organization
 
-Keep the platforms separate. Native macOS UI belongs in `macos/Sources/Inertia/Components/`; React UI belongs in `frontend/src/components/`. Both directories include their screens, editors, and reusable controls. App entrypoints handle lifecycle/routing and compose these components.
+Reuse the existing online workspace layout and sidebar across clients. The Mac shell loads `WorkspaceLayout.tsx` and `file-manager/Sidebar.tsx` through WKWebView; do not create another native workspace/sidebar layout. Native login and local task-file UI use shared SwiftUI components. Keep the platform components organized separately. Native macOS UI belongs in `macos/Sources/Inertia/Components/`; React UI belongs in `frontend/src/components/`. Both directories include their screens, editors, and reusable controls. App entrypoints handle lifecycle/routing and compose these components.
 
-Native screens belong in `Components/Screens/`, editor forms in `Components/Editors/`, and shared controls in the component root. Reuse the shared text-field style, document/activity rows, provider buttons, refresh controls, editor sheets/actions, optional fields, notes editors, progress, and errors. Use standard SwiftUI controls for native behavior.
+Native screens belong in `Components/Screens/`, editor forms in `Components/Editors/`, and shared controls in the component root. Reuse the shared text-field style, provider buttons, editor sheets/actions, optional fields, notes editors, progress, and errors. Use standard SwiftUI controls for native behavior.
 
 React screens belong in `components/screens/`, authentication UI in `components/auth/`, and document/spreadsheet/table editors in `components/editors/`. Import buttons, inputs, selects, text areas, and errors from `@/components/ui`; raw HTML controls belong only in those primitive definitions. Preserve native HTML props and refs. Use button variants for common actions and class overrides only for contextual layout or specialized controls.
 
 Change a shared component to change its appearance everywhere. Avoid duplicate control implementations in individual screens. Keep text fields at a 40-point minimum on macOS and a 40-pixel minimum in React, with consistent focus and disabled states. Checkboxes and radios retain their appropriate compact dimensions.
+
+The document filesystem has one permanent Root per workspace. Put ordinary top-level folders and new files under it, preserve existing IDs when migrating hierarchy, and protect Root from moving, archiving, or deletion. Render it using the existing sidebar tree and collect pinned items recursively.

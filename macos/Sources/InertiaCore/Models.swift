@@ -46,12 +46,12 @@ public enum Requests {
         if let token { request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization") }
         return request
     }
-    public static func editorURL(base: URL, documentID: Int) -> URL {
+    public static func workspaceURL(base: URL) -> URL {
         var parts = URLComponents(url: base, resolvingAgainstBaseURL: false)!
         // Use the SPA entry explicitly: the site root serves marketing HTML.
         parts.path = "/index.html"
-        parts.query = "native=1"
-        parts.fragment = "/documents/\(documentID)"
+        parts.query = nil
+        parts.fragment = "/documents"
         return parts.url!
     }
     public static func sameOrigin(_ lhs: URL, _ rhs: URL) -> Bool {

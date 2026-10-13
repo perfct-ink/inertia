@@ -3,6 +3,9 @@ class FolderBlueprint < Blueprinter::Base
   fields :name, :position, :pinned, :created_at, :updated_at
 
   field :parent_id
+  field :root do |folder, options|
+    folder.id == (options[:root_folder_id] || folder.workspace.root_folder_id)
+  end
   field :archived_at
   field :archived?, name: :archived
 

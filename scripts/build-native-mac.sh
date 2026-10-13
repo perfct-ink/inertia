@@ -1,12 +1,14 @@
 #!/bin/bash
 set -euo pipefail
 cd "$(dirname "$0")/.."
+swift scripts/stop-native-mac.swift "$PWD/macos/dist/Inertia.app"
 swift build --package-path macos -c release
 BIN_DIR=$(swift build --package-path macos -c release --show-bin-path)
 APP=macos/dist/Inertia.app
 mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
 cp "$BIN_DIR/Inertia" "$APP/Contents/MacOS/Inertia"
 cp frontend/build/icon.icns "$APP/Contents/Resources/icon.icns"
+cp frontend/src/assets/logo.png "$APP/Contents/Resources/logo.png"
 cat > "$APP/Contents/Info.plist" <<'PLIST'
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">

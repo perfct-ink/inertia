@@ -7,12 +7,12 @@ jest.mock('@/components/TabBar', () => () => <nav data-testid="tabs" />)
 
 afterEach(() => window.history.replaceState({}, '', '/'))
 
-test('native editor keeps content and omits duplicate web navigation', () => {
+test('Mac workspace uses the existing sidebar and tabs even with a legacy native parameter', () => {
   window.history.replaceState({}, '', '/?native=1#/documents/7')
   render(<WorkspaceLayout><p>Editor</p></WorkspaceLayout>)
   expect(screen.getByText('Editor')).toBeInTheDocument()
-  expect(screen.queryByTestId('sidebar')).not.toBeInTheDocument()
-  expect(screen.queryByTestId('tabs')).not.toBeInTheDocument()
+  expect(screen.getByTestId('sidebar')).toBeInTheDocument()
+  expect(screen.getByTestId('tabs')).toBeInTheDocument()
 })
 
 test('normal web app retains navigation', () => {

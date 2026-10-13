@@ -50,7 +50,7 @@ docker compose exec -T backend bundle exec rails db:migrate
 make dev-mac
 ```
 
-`make dev-mac` also applies pending migrations. To rebuild only the Mac binary while services are running, use `make build-mac`, then quit Inertia and reopen the native bundle with local endpoints:
+`make dev-mac` also applies pending migrations. To rebuild only the Mac binary while services are running, use `make mac-build`, then quit Inertia and reopen the native bundle with local endpoints:
 
 ```sh
 open -n --env INERTIA_API_URL=http://localhost:3000 --env INERTIA_WEB_URL=http://localhost:5174 macos/dist/Inertia.app

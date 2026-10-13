@@ -3,6 +3,7 @@ module Api
     class WorkspacesController < ApplicationController
       def show
         workspace = current_user.workspace
+        workspace.ensure_document_root!
         workspace.folders.includes(children: { children: :documents }, documents: []).load
 
         # Precomputed once here rather than per-folder in the blueprint —
@@ -18,6 +19,7 @@ module Api
         render json: WorkspaceBlueprint.render(
           workspace,
           view: :with_folders,
+          root_folder_id: workspace.root_folder_id,
           task_folder_ids: workspace.tasks.reorder(nil).where.not(folder_id: nil).distinct.pluck(:folder_id).to_set,
           task_document_ids: workspace.tasks.reorder(nil).where.not(document_id: nil).distinct.pluck(:document_id).to_set,
           event_folder_ids: workspace.events.where.not(folder_id: nil).distinct.pluck(:folder_id).to_set

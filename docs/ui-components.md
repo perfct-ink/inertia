@@ -1,6 +1,6 @@
 # UI component organization
 
-Inertia has separate native macOS and React component trees. Each platform has one home for its UI, and its screens reuse the platform's shared controls.
+Inertia reuses the existing React workspace layout and sidebar across its clients, including the Mac shell. Native login, file handling, and local task-file screens use shared SwiftUI components. Do not create an alternative workspace or sidebar layout.
 
 | UI | Component root | Organization |
 | --- | --- | --- |
@@ -11,7 +11,9 @@ Inertia has separate native macOS and React component trees. Each platform has o
 
 ## Shared controls
 
-Native screens use `InertiaTextFieldStyle`, `EditorSheet`, `EditorActions`, `OptionalTextField`, `NotesEditor`, `ValidationMessage`, `CompletionProgress`, `DocumentRow`, `DocumentEditorScreen`, `TaskRow`, `EventRow`, `ProviderSignInButton`, and `RefreshButton`. Standard SwiftUI controls provide platform behavior. The current rich text and spreadsheet editors still use the existing isolated WKWebView through the shared `EditorView` component.
+The online document tree has one permanent **Root** folder per workspace. Existing top-level folders live beneath it, and new documents, sheets, tables, and folders default to it. Root can hold files directly and cannot be moved, archived, or deleted. The workspace API exposes `root_folder_id`; root folder responses have `root: true`. The existing sidebar renders it with the same folder tree components. Pinned items are collected across the full tree.
+
+Native screens use `InertiaTextFieldStyle`, `EditorSheet`, `EditorActions`, `OptionalTextField`, `NotesEditor`, `ValidationMessage`, `CompletionProgress`, `ProviderSignInButton`, and `RefreshButton`. Standard SwiftUI controls provide platform behavior. The entire online workspace uses the shared `WorkspaceWebView` wrapper and the existing React `WorkspaceLayout` and `Sidebar` components. The native session is handed to its isolated WebView, and signing out returns to the native login.
 
 React screens import `Button`, `Input`, `Select`, `Textarea`, and `FormError` from `@/components/ui`. The shared primitives forward native element props and refs, so form submission, keyboard input, disabled controls, and editor focus continue working. Button variants cover primary, secondary, ghost, and destructive actions; unstyled controls support tabs and specialized interactive surfaces. Login and signup use one `AuthLayout`.
 

@@ -1,6 +1,6 @@
 class WorkspaceBlueprint < Blueprinter::Base
   identifier :id
-  fields :name
+  fields :name, :root_folder_id
 
   view :with_folders do
     association :folders, blueprint: FolderBlueprint, view: :with_children do |workspace, _options|

@@ -21,7 +21,7 @@ COMPOSE     = HTTP_PROXY=$(HOST_PROXY) HTTPS_PROXY=$(HOST_PROXY) docker compose
 
 # ── Main ──────────────────────────────────────────────────────────────────────
 
-all: setup dev build-mac ## Setup environment, start development, and build the macOS app (default)
+all: setup dev mac-build ## Setup environment, start development, and build the macOS app (default)
 
 deps: ## Install/verify host dependencies: Homebrew, Docker (via colima if missing), Node
 	bash scripts/bootstrap-deps.sh
@@ -61,7 +61,7 @@ dev-electron: ## Start services, stream logs, and open the Electron app
 
 build: ## Build all (backend Docker image + native macOS app)
 	$(COMPOSE) build backend
-	$(MAKE) build-mac
+	$(MAKE) mac-build
 
 build-backend: ## Build the backend production Docker image
 	$(COMPOSE) build backend
@@ -69,7 +69,7 @@ build-backend: ## Build the backend production Docker image
 build-frontend: ## Build the frontend for production (webpack bundle)
 	$(COMPOSE) run --rm frontend npm run build
 
-build-mac: build-native-mac ## Build the native Mac app (outputs to macos/dist/Inertia.app)
+build-mac: mac-build ## Build the native Mac app (outputs to macos/dist/Inertia.app)
 
 .PHONY: build-electron-mac
 build-electron-mac: ## Build the Electron Mac app (outputs to frontend/dist-electron)
@@ -208,11 +208,11 @@ hooks: ## Install the git pre-commit hook (runs `test-fast` before every commit)
 nuke: ## Remove everything including built images (full reset)
 	$(COMPOSE) down -v --remove-orphans --rmi all
 
-.PHONY: build-native-mac dev-native-mac test-native-mac
-build-native-mac: ## Build the gradual SwiftUI macOS app alongside Electron
+.PHONY: mac-build dev-native-mac test-native-mac
+mac-build: ## Stop the running development Mac app and rebuild macos/dist/Inertia.app
 	bash scripts/build-native-mac.sh
 
-dev-native-mac: build-native-mac ## Open the native SwiftUI macOS app
+dev-native-mac: mac-build ## Open the native SwiftUI macOS app
 	open macos/dist/Inertia.app
 
 test-native-mac: ## Run native API/model regression tests

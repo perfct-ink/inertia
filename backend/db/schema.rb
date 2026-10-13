@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_10_13_000001) do
+ActiveRecord::Schema[7.2].define(version: 2026_10_13_000002) do
   create_table "documents", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.string "title", null: false
     t.json "content"
@@ -228,6 +228,8 @@ ActiveRecord::Schema[7.2].define(version: 2026_10_13_000001) do
     t.bigint "user_id", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.bigint "root_folder_id"
+    t.index ["root_folder_id"], name: "index_workspaces_on_root_folder_id", unique: true
     t.index ["user_id"], name: "index_workspaces_on_user_id"
   end
 
@@ -260,5 +262,6 @@ ActiveRecord::Schema[7.2].define(version: 2026_10_13_000001) do
   add_foreign_key "tasks", "tasks", column: "parent_id"
   add_foreign_key "tasks", "users", column: "assignee_id"
   add_foreign_key "tasks", "workspaces"
+  add_foreign_key "workspaces", "folders", column: "root_folder_id"
   add_foreign_key "workspaces", "users"
 end

@@ -7,7 +7,8 @@ import { FileText, Table as TableIcon, Loader2, ArrowUp, ArrowDown } from 'lucid
 import { useWorkspace } from '@/api/workspace'
 import WorkspaceLayout from '@/components/WorkspaceLayout'
 import CreateItem from '@/components/CreateItem'
-import type { Document, Folder } from '@/types'
+import { flattenFolders } from '@/components/file-manager/tree'
+import type { Document } from '@/types'
 
 type Row = Document & { folderId: number; folderName: string }
 type SortKey = 'name' | 'location' | 'modified'
@@ -24,9 +25,8 @@ export default function DocumentsIndexScreen() {
   const [sortKey, setSortKey] = useState<SortKey>('name')
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc')
 
-  function flatten(folders: Folder[]): Folder[] { return folders.flatMap(f => [f, ...flatten(f.children ?? [])]) }
   const allDocs: Row[] =
-    flatten(workspace?.folders ?? []).flatMap((f) =>
+    flattenFolders(workspace?.folders ?? []).flatMap((f) =>
       (f.documents ?? []).map((d) => ({ ...d, folderId: f.id, folderName: f.name }))
     )
 
