@@ -212,7 +212,7 @@ Today: `UploadsController` already stores images and video in ActiveStorage (100
 
 Requested by Alex on 2026-10-13: documents have a common set of paragraph styles, and you can create your own style, which is added to your paragraph style list everywhere, for your user only.
 
-Today: the editor (`DocumentPage.tsx`, Tiptap) has fixed node types only (paragraph, headings, lists, code block, quote-like blocks). There is no style picker, no named styles, and nothing style-related stored on `users`.
+Today: the editor (`DocumentPage.tsx`, Tiptap) has fixed node types only (paragraph, headings, lists, task lists, code block, tables, images). There is no style picker, no named styles, and nothing style-related stored on `users`.
 
 | ID | Item | Notes |
 | --- | --- | --- |
