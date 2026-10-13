@@ -53,12 +53,7 @@ dev-frontend: ## Rebuild and restart the frontend service only
 	$(COMPOSE) up -d frontend
 
 dev-mac: ## Start services, stream logs, and open the Electron app
-	$(COMPOSE) up -d
-	@echo "Waiting for frontend dev server..."
-	@until $$(curl -sf http://localhost:5174 > /dev/null); do sleep 1; done
-	$(COMPOSE) logs -f &
-	cd frontend && ELECTRON_DEV_SERVER_URL=http://localhost:5174 npx electron .
-	@kill $$(jobs -p) 2>/dev/null || true
+	HTTP_PROXY=$(HOST_PROXY) HTTPS_PROXY=$(HOST_PROXY) bash scripts/dev-mac.sh
 
 build: ## Build all (backend Docker image + macOS Electron app)
 	$(COMPOSE) build backend
