@@ -1,10 +1,11 @@
+// Must load first: it declares the cascade layer order (libraries, app, view).
+import '@/styles/app.scss'
 import React from 'react'
 import ReactDOM from 'react-dom/client'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { HashRouter } from 'react-router-dom'
 import App from './App'
 import TitleBarDragRegion from '@/components/TitleBarDragRegion'
-import './index.css'
 
 const queryClient = new QueryClient({
   defaultOptions: {

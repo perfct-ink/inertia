@@ -32,6 +32,15 @@ module.exports = (_env, argv) => {
           use: 'babel-loader',
         },
         {
+          test: /\.scss$/,
+          use: [
+            isDev ? 'style-loader' : MiniCssExtractPlugin.loader,
+            'css-loader',
+            'postcss-loader',
+            { loader: 'sass-loader', options: { sassOptions: { loadPaths: [path.resolve(__dirname, 'src/styles')] } } },
+          ],
+        },
+        {
           test: /\.css$/,
           use: [isDev ? 'style-loader' : MiniCssExtractPlugin.loader, 'css-loader', 'postcss-loader'],
         },

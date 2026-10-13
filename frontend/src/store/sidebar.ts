@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 
-// Below Tailwind's md breakpoint the file-manager Sidebar (icon rail + tree)
+// Below the md breakpoint (768px) the file-manager Sidebar (icon rail + tree)
 // becomes an off-canvas drawer instead of a permanent column — see
 // components/file-manager/Sidebar.tsx and components/WorkspaceLayout.tsx.
 // A tiny store rather than local state so the hamburger button in

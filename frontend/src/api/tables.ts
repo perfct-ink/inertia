@@ -1,5 +1,4 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { isAxiosError } from 'axios'
 import api from '@/lib/api'
 
 export type DataType = 'text' | 'integer' | 'number' | 'boolean' | 'date' | 'datetime' | 'relation'
@@ -24,7 +23,4 @@ export function useEditTable(id: number) {
     },
   })
 }
-export function errorMessage(error: unknown) {
-  if (isAxiosError(error)) return error.response?.data?.errors?.join(', ') || error.response?.data?.error || error.message
-  return 'Unable to save. Please try again.'
-}
+export { errorMessage } from '@/util/errorMessage'

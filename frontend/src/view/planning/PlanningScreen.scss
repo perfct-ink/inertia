@@ -1,0 +1,229 @@
+@use 'tokens' as *;
+
+/* Shared styling for the Epics and Initiatives screens. */
+
+@layer view {
+  .view-planning {
+    display: flex;
+    flex: 1 1 0%;
+    flex-direction: column;
+    overflow: hidden;
+
+    @at-root .planning-header {
+      display: flex;
+      flex-shrink: 0;
+      align-items: center;
+      gap: space(4);
+      padding: space(3) space(6);
+      border-bottom-width: 1px;
+    }
+
+    @at-root .planning-title {
+      font-size: 1.25rem;
+      line-height: 1.75rem;
+      font-weight: 600;
+    }
+
+    @at-root .planning-tabs {
+      display: flex;
+      gap: space(1);
+    }
+
+    @at-root .planning-body {
+      flex: 1 1 0%;
+      overflow-y: auto;
+    }
+
+    @at-root .planning-list {
+      display: flex;
+      flex-direction: column;
+      gap: space(3);
+      max-width: 42rem;
+      margin-inline: auto;
+      padding: space(6);
+    }
+
+    /* Overrides of ui components use two classes to beat their base styles. */
+    .planning-tab {
+      padding: space(1) space(3);
+      border-radius: radius('md');
+      color: color(muted-foreground);
+      @include text('sm');
+
+      &:hover {
+        color: color(foreground);
+        background: color(accent, 0.5);
+      }
+
+      &--active,
+      &--active:hover {
+        background: color(accent);
+        color: color(foreground);
+      }
+    }
+
+    .planning-clear_filter {
+      color: color(muted-foreground);
+      text-decoration: underline;
+      @include text('xs');
+
+      &:hover {
+        color: color(foreground);
+      }
+    }
+
+    .planning-new {
+      display: flex;
+      align-items: center;
+      gap: space(1.5);
+      margin-left: auto;
+      padding-block: space(1.5);
+    }
+
+    @at-root .planning-icon {
+      width: space(4);
+      height: space(4);
+    }
+
+    @at-root .planning-new_card {
+      padding: space(4);
+      border-width: 1px;
+      border-radius: radius('lg');
+      background: color(card);
+    }
+
+    .planning-new_input {
+      width: 100%;
+      min-height: 0;
+      padding: 0 0 space(1);
+      border-width: 0 0 1px;
+      border-color: color(input);
+      border-radius: 0;
+      background: transparent;
+      outline: none;
+      @include text('sm');
+    }
+
+    @at-root .planning-loading {
+      display: flex;
+      justify-content: center;
+      padding-block: space(8);
+    }
+
+    @at-root .planning-spinner {
+      width: space(5);
+      height: space(5);
+      color: color(muted-foreground);
+      @include spin;
+    }
+
+    @at-root .planning-empty {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: space(2);
+      padding-block: space(12);
+      color: color(muted-foreground);
+
+      p {
+        @include text('sm');
+      }
+    }
+
+    @at-root .planning-empty_icon {
+      width: space(8);
+      height: space(8);
+      opacity: 0.3;
+    }
+
+    @at-root .planning-card {
+      display: flex;
+      flex-direction: column;
+      gap: space(2);
+      padding: space(4);
+      border-width: 1px;
+      border-radius: radius('lg');
+      background: color(card);
+      cursor: pointer;
+
+      &:hover {
+        border-color: color(primary);
+      }
+
+      &-row {
+        display: flex;
+        align-items: center;
+        gap: space(2);
+      }
+
+      &-icon {
+        flex-shrink: 0;
+        width: space(4);
+        height: space(4);
+        color: color(muted-foreground);
+      }
+
+      &-title {
+        flex: 1 1 0%;
+        font-weight: 500;
+        @include text('sm');
+        @include truncate;
+      }
+
+      &-count {
+        flex-shrink: 0;
+        color: color(muted-foreground);
+        @include text('xs');
+      }
+    }
+
+    .planning-card-delete {
+      flex-shrink: 0;
+      color: color(muted-foreground);
+      opacity: 0;
+
+      &:hover {
+        color: palette('red-500');
+      }
+
+      &:focus-visible {
+        opacity: 1;
+      }
+    }
+
+    @at-root .planning-card:hover .planning-card-delete {
+      opacity: 1;
+    }
+
+    @at-root .planning-delete_icon {
+      width: space(3.5);
+      height: space(3.5);
+    }
+
+    @at-root .planning-card-dates {
+      display: flex;
+      align-items: center;
+      gap: space(2);
+      color: color(muted-foreground);
+      @include text('xs');
+    }
+
+    .planning-date,
+    .planning-initiative {
+      width: auto;
+      min-height: 0;
+      padding: 0 0 space(0.5);
+      border-width: 0 0 1px;
+      border-color: color(input);
+      border-radius: 0;
+      background: transparent;
+      outline: none;
+      cursor: pointer;
+      @include text('xs');
+    }
+
+    .planning-initiative {
+      max-width: 130px;
+    }
+  }
+}

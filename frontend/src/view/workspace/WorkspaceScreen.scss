@@ -1,0 +1,28 @@
+@use 'tokens' as *;
+
+@layer view {
+  .view-workspace {
+    display: flex;
+    flex: 1 1 0%;
+    align-items: center;
+    justify-content: center;
+
+    @at-root .workspace-empty {
+      text-align: center;
+
+      > * + * {
+        margin-top: space(2);
+      }
+    }
+
+    @at-root .workspace-title {
+      font-weight: 500;
+      @include text('lg');
+    }
+
+    @at-root .workspace-hint {
+      color: color(muted-foreground);
+      @include text('sm');
+    }
+  }
+}

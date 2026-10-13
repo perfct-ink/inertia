@@ -1,0 +1,11 @@
+// All typography lives here: font stacks and global text helpers.
+@use 'tokens' as *;
+
+$font-mono: ui-monospace, sfmono-regular, menlo, monaco, consolas, monospace;
+
+code,
+kbd,
+pre,
+samp {
+  font-family: $font-mono;
+}

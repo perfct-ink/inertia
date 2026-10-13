@@ -1,0 +1,460 @@
+@use 'tokens' as *;
+
+@layer view {
+  .view-tasks {
+    display: flex;
+    flex: 1 1 0%;
+    flex-direction: column;
+    overflow: hidden;
+
+    @at-root .tasks-header {
+      display: flex;
+      flex-shrink: 0;
+      align-items: center;
+      gap: space(4);
+      padding: space(3) space(6);
+      border-bottom-width: 1px;
+    }
+
+    @at-root .tasks-title {
+      @include text('xl');
+
+      font-weight: 600;
+    }
+
+    @at-root .tasks-tabs {
+      display: flex;
+      gap: space(1);
+    }
+
+    @at-root .tasks-tab {
+      padding: space(1) space(3);
+      border-radius: radius('md');
+      @include text('sm');
+      @include muted-link;
+
+      &--active {
+        background: color(accent);
+        color: color(foreground);
+      }
+    }
+
+    @at-root .tasks-tools {
+      display: flex;
+      align-items: center;
+      gap: space(2);
+      margin-left: auto;
+    }
+
+    @at-root .tasks-search {
+      position: relative;
+    }
+
+    @at-root .tasks-search_icon {
+      position: absolute;
+      top: 50%;
+      left: space(2);
+      width: space(3.5);
+      height: space(3.5);
+      color: color(muted-foreground);
+      transform: translateY(-50%);
+      pointer-events: none;
+    }
+
+    @at-root .tasks-icon {
+      flex-shrink: 0;
+      width: space(3.5);
+      height: space(3.5);
+
+      &--sm {
+        width: space(3);
+        height: space(3);
+      }
+
+      &--md {
+        width: space(4);
+        height: space(4);
+      }
+    }
+
+    @at-root .tasks-filter_button {
+      display: flex;
+      align-items: center;
+      gap: space(1.5);
+      padding: space(1) space(2);
+      border-width: 1px;
+      border-color: color(input);
+      border-radius: radius('md');
+      @include text('sm');
+      @include muted-link;
+
+      &--active,
+      &--active:hover {
+        border-color: color(primary);
+        color: color(primary);
+      }
+    }
+
+    @at-root .tasks-filter_dot {
+      width: space(1.5);
+      height: space(1.5);
+      border-radius: radius('full');
+      background: color(primary);
+    }
+
+    @at-root .tasks-filters {
+      display: flex;
+      flex-shrink: 0;
+      align-items: center;
+      gap: space(3);
+      padding: space(2) space(6);
+      border-bottom-width: 1px;
+      background: color(muted, 0.2);
+    }
+
+    @at-root .tasks-filter_label {
+      @include text('xs');
+
+      color: color(muted-foreground);
+      font-weight: 500;
+    }
+
+    @at-root .tasks-clear {
+      display: flex;
+      align-items: center;
+      gap: space(1);
+      @include text('xs');
+      @include muted-link;
+    }
+
+    @at-root .tasks-loading {
+      display: flex;
+      flex: 1 1 0%;
+      align-items: center;
+      justify-content: center;
+    }
+
+    @at-root .tasks-spinner {
+      width: space(5);
+      height: space(5);
+      color: color(muted-foreground);
+      @include spin;
+    }
+
+    /* Overrides for ui components (two classes so they beat .ui-*). */
+    .tasks-search_input {
+      width: space(44);
+      min-height: 0;
+      padding: space(1) space(3) space(1) space(7);
+      border-color: color(input);
+      @include text('sm');
+
+      &:focus {
+        box-shadow: 0 0 0 1px color(primary);
+      }
+    }
+
+    .tasks-filter_select {
+      width: auto;
+      min-height: 0;
+      padding: space(1) space(2);
+      border-color: color(input);
+      border-radius: radius();
+      background: color(card);
+      @include text('sm');
+    }
+
+    /* ── Kanban ── */
+    @at-root .tasks-board {
+      flex: 1 1 0%;
+      overflow: auto;
+      padding: space(4);
+    }
+
+    @at-root .tasks-columns {
+      display: flex;
+      gap: space(4);
+      height: 100%;
+      min-width: max-content;
+    }
+
+    @at-root .tasks-column {
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+      width: space(64);
+    }
+
+    @at-root .tasks-column_header {
+      display: flex;
+      align-items: center;
+      gap: space(2);
+      margin-bottom: space(2);
+    }
+
+    @at-root .tasks-dot {
+      flex-shrink: 0;
+      width: space(2);
+      height: space(2);
+      border-radius: radius('full');
+      background: color(muted-foreground);
+
+      &--blue {
+        background: palette('blue-500');
+      }
+
+      &--yellow {
+        background: palette('yellow-500');
+      }
+
+      &--green {
+        background: palette('green-500');
+      }
+    }
+
+    @at-root .tasks-column_label {
+      @include text('sm');
+
+      font-weight: 600;
+    }
+
+    @at-root .tasks-count {
+      @include text('xs');
+
+      color: color(muted-foreground);
+    }
+
+    @at-root .tasks-column_body {
+      display: flex;
+      flex: 1 1 0%;
+      flex-direction: column;
+      gap: space(2);
+      min-height: 40px;
+    }
+
+    @at-root .tasks-sortable {
+      cursor: grab;
+
+      &:active {
+        cursor: grabbing;
+      }
+    }
+
+    @at-root .tasks-card {
+      padding: space(3);
+      border-width: 1px;
+      border-radius: radius('lg');
+      background: color(card);
+      user-select: none;
+
+      &--overlay {
+        opacity: 0.95;
+        box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+        transform: rotate(1deg);
+      }
+    }
+
+    @at-root .tasks-card_title_row {
+      display: flex;
+      align-items: flex-start;
+      gap: space(2);
+    }
+
+    @at-root .tasks-card_title {
+      flex: 1 1 0%;
+      @include text('sm');
+
+      line-height: 1.375;
+    }
+
+    @at-root .tasks-epic {
+      display: flex;
+      align-items: center;
+      gap: space(1);
+      @include text('xs');
+
+      color: color(muted-foreground);
+
+      &--card {
+        margin-top: space(1.5);
+      }
+
+      &--row {
+        flex-shrink: 0;
+        max-width: 140px;
+        @include truncate;
+      }
+    }
+
+    @at-root .tasks-epic_title {
+      @include truncate;
+    }
+
+    @at-root .tasks-card_footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: space(2);
+    }
+
+    @at-root .tasks-doc_link {
+      @include text('xs');
+      @include truncate;
+
+      color: color(muted-foreground);
+      max-width: 130px;
+
+      &:hover {
+        text-decoration: underline;
+      }
+
+      &--row {
+        flex-shrink: 0;
+        max-width: 160px;
+      }
+    }
+
+    @at-root .tasks-next {
+      margin-left: auto;
+      @include muted-link;
+    }
+
+    @at-root .tasks-add_card {
+      padding: space(2);
+      border-width: 1px;
+      border-radius: radius('lg');
+      background: color(card);
+    }
+
+    @at-root .tasks-add_button {
+      display: flex;
+      align-items: center;
+      gap: space(1.5);
+      padding: space(1);
+      border-radius: radius();
+      @include text('sm');
+      @include muted-link;
+    }
+
+    /* ── Add task input ── */
+    @at-root .tasks-add_row {
+      display: flex;
+      align-items: center;
+      gap: space(2);
+    }
+
+    .tasks-add_field {
+      min-height: 0;
+      width: auto;
+      padding: 0 0 space(1);
+      border-width: 0 0 1px;
+      border-color: color(input);
+      background: transparent;
+      outline: none;
+      @include text('xs');
+
+      color: color(muted-foreground);
+      cursor: pointer;
+
+      &--title {
+        flex: 1 1 0%;
+        @include text('sm');
+
+        color: inherit;
+        cursor: text;
+      }
+
+      &--select {
+        max-width: 110px;
+      }
+    }
+
+    /* ── Backlog ── */
+    @at-root .tasks-backlog {
+      flex: 1 1 0%;
+      overflow-y: auto;
+    }
+
+    @at-root .tasks-backlog_inner {
+      max-width: 42rem;
+      margin: 0 auto;
+      padding: space(6);
+    }
+
+    @at-root .tasks-backlog_header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: space(3);
+    }
+
+    @at-root .tasks-backlog_title {
+      display: flex;
+      align-items: center;
+      gap: space(2);
+    }
+
+    @at-root .tasks-add_icon_button {
+      @include muted-link;
+    }
+
+    @at-root .tasks-backlog_add {
+      margin-bottom: space(2);
+      padding: 0 space(1);
+    }
+
+    @at-root .tasks-list {
+      display: flex;
+      flex-direction: column;
+
+      > * + * {
+        border-top-width: 1px;
+      }
+    }
+
+    @at-root .tasks-row {
+      display: flex;
+      align-items: center;
+      gap: space(3);
+      padding: space(2) 0;
+
+      &:hover .tasks-row_actions,
+      &:focus-within .tasks-row_actions {
+        opacity: 1;
+      }
+    }
+
+    @at-root .tasks-row_title {
+      flex: 1 1 0%;
+      @include text('sm');
+    }
+
+    @at-root .tasks-row_actions {
+      display: flex;
+      flex-shrink: 0;
+      align-items: center;
+      gap: space(1);
+      opacity: 0;
+    }
+
+    @at-root .tasks-row_action {
+      color: color(muted-foreground);
+
+      &--start:hover {
+        color: palette('blue-500');
+      }
+
+      &--delete:hover {
+        color: palette('red-500');
+      }
+    }
+
+    @at-root .tasks-empty {
+      padding: space(4) 0;
+      @include text('sm');
+
+      color: color(muted-foreground);
+      text-align: center;
+    }
+  }
+}

@@ -1,4 +1,4 @@
-import { Button, Input, Select, FormError } from '@/components/ui'
+import { Button, Input, Select, FormError, ConfirmDialog } from '@/components/ui'
 import { useEffect, useState } from 'react'
 import { useQueries } from '@tanstack/react-query'
 import { Database, Loader2, Pencil, Trash2 } from 'lucide-react'
@@ -8,9 +8,12 @@ import { useUpdateDocument } from '@/api/documents'
 import { useTable, useEditTable, tableQuery, errorMessage, type TableData, type TableField, type TableRecord, type DataType } from '@/api/tables'
 import type { Document, Folder } from '@/types'
 import { useTabsStore } from '@/store/tabs'
+import './TableEditor.scss'
+import { usePageTitle } from '@/hooks/usePageTitle'
 
 const types: DataType[] = ['text', 'integer', 'number', 'boolean', 'date', 'datetime', 'relation']
-const inputClass = 'bg-background border rounded px-2 py-1.5 text-sm w-full min-w-32'
+const inputClass = 'table_editor-input'
+const fieldInputClass = `${inputClass} table_editor-input--field`
 function foldersFlat(folders: Folder[]): Folder[] { return folders.flatMap(f => [f, ...foldersFlat(f.children ?? [])]) }
 
 function RecordRow({ record, fields, relations, busy, onSave, onDelete }: {
@@ -28,12 +31,12 @@ function RecordRow({ record, fields, relations, busy, onSave, onDelete }: {
     try { await onSave(liveValues); if (!record) setValues({}) } catch (e) { setError(errorMessage(e)) }
   }
   function set(field: TableField, value: string | number | boolean | null) { setValues(prev => ({ ...prev, [field.id]: value })) }
-  return <tr className="border-b">
-    <td className="px-3 py-2 text-xs text-muted-foreground">{record ? `#${record.id}` : 'New'}</td>
+  return <tr className="table_editor-row">
+    <td className="table_editor-cell table_editor-cell--id">{record ? `#${record.id}` : 'New'}</td>
     {fields.map(field => {
       const value = values[field.id]
       const target = field.relation_table_id ? relations.get(field.relation_table_id) : undefined
-      return <td key={field.id} className="p-2 align-top">
+      return <td key={field.id} className="table_editor-cell">
         {field.data_type === 'boolean' ? <Select aria-label={field.name} className={inputClass} value={value == null ? '' : String(value)} onChange={e => set(field, e.target.value === '' ? null : e.target.value === 'true')}>
           <option value="">Empty</option><option value="true">True</option><option value="false">False</option>
         </Select> : field.data_type === 'relation' ? <Select aria-label={field.name} className={inputClass} value={value == null ? '' : String(value)} onChange={e => set(field, e.target.value ? Number(e.target.value) : null)}>
@@ -53,12 +56,12 @@ function RecordRow({ record, fields, relations, busy, onSave, onDelete }: {
           }} />}
       </td>
     })}
-    <td className="p-2 min-w-40 align-top">
-      <div className="flex items-center gap-2">
-        <Button variant="secondary" disabled={busy || (!!record && !dirty)} onClick={save} className="px-2 py-1.5 disabled:opacity-40">{record ? 'Save' : 'Add record'}</Button>
-        {record && <Button aria-label={`Delete record ${record.id}`} disabled={busy} onClick={onDelete} className="p-1.5 text-muted-foreground hover:text-red-500"><Trash2 className="w-4 h-4" /></Button>}
+    <td className="table_editor-cell table_editor-cell--actions">
+      <div className="table_editor-cell_actions">
+        <Button variant="secondary" disabled={busy || (!!record && !dirty)} onClick={save} className="table_editor-save_button">{record ? 'Save' : 'Add record'}</Button>
+        {record && <Button aria-label={`Delete record ${record.id}`} disabled={busy} onClick={onDelete} className="table_editor-icon_button table_editor-icon_button--row"><Trash2 className="table_editor-icon_button_icon" /></Button>}
       </div>
-      <FormError message={error} className="text-xs mt-2 max-w-56" />
+      <FormError message={error} className="table_editor-row_error" />
     </td>
   </tr>
 }
@@ -70,6 +73,7 @@ export default function TableEditor({ doc }: { doc: Document }) {
   const { data: workspace } = useWorkspace()
   const updateTitle = useTabsStore(s => s.updateTitle)
   const [title, setTitle] = useState(doc.title)
+  usePageTitle(title)
   const [error, setError] = useState('')
   const [editingField, setEditingField] = useState<TableField | null>(null)
   const [showForm, setShowForm] = useState(false)
@@ -86,9 +90,11 @@ export default function TableEditor({ doc }: { doc: Document }) {
     setError('')
     await edit.mutateAsync({ path, method, data: body })
   }
-  async function remove(path: string, message: string) {
-    if (!window.confirm(message)) return
-    try { await action(path, 'delete') } catch (e) { setError(errorMessage(e)) }
+  const [pendingRemoval, setPendingRemoval] = useState<{ path: string; message: string } | null>(null)
+  const remove = (path: string, message: string) => setPendingRemoval({ path, message })
+  async function confirmRemoval() {
+    if (!pendingRemoval) return
+    try { await action(pendingRemoval.path, 'delete') } catch (e) { setError(errorMessage(e)) }
   }
   function fieldForm(field?: TableField) {
     setEditingField(field ?? null); setName(field?.name ?? ''); setType(field?.data_type ?? 'text')
@@ -107,27 +113,27 @@ export default function TableEditor({ doc }: { doc: Document }) {
   }
 
   return <WorkspaceLayout>
-    <div className="flex-1 flex flex-col overflow-hidden">
-      <div className="border-b px-6 py-4 flex items-center gap-3">
-        <Database className="w-5 h-5 text-muted-foreground" />
-        <Input aria-label="Table title" className="text-xl font-semibold bg-transparent outline-none min-w-0 flex-1" value={title} onChange={e => setTitle(e.target.value)} onBlur={rename} onKeyDown={e => { if (e.key === 'Enter') e.currentTarget.blur() }} />
-        <Button variant="secondary" disabled={busy} onClick={() => fieldForm()} className="py-1.5">Add field</Button>
+    <div className="view-table_editor">
+      <div className="table_editor-header">
+        <Database className="table_editor-header_icon" />
+        <Input aria-label="Table title" className="table_editor-title" value={title} onChange={e => setTitle(e.target.value)} onBlur={rename} onKeyDown={e => { if (e.key === 'Enter') e.currentTarget.blur() }} />
+        <Button variant="secondary" disabled={busy} onClick={() => fieldForm()} className="table_editor-add_field_button">Add field</Button>
       </div>
-      <div className="px-6 py-3 text-xs text-muted-foreground">{data?.records.length ?? 0} records · {data?.fields.length ?? 0} fields · Dates and times use UTC. Save each record after editing.</div>
-      <FormError message={error || (loadError ? errorMessage(loadError) : null)} className="px-6 py-2" />
-      {showForm && <form onSubmit={saveField} className="mx-6 mb-4 p-4 border rounded-lg flex flex-wrap items-end gap-3">
-        <label className="text-sm">Field name<Input required maxLength={255} autoFocus className={`${inputClass} mt-1`} value={name} onChange={e => setName(e.target.value)} /></label>
-        <label className="text-sm">Data type<Select className={`${inputClass} mt-1`} value={type} onChange={e => setType(e.target.value as DataType)}>{types.map(t => <option key={t} value={t}>{t[0].toUpperCase() + t.slice(1)}</option>)}</Select></label>
-        {type === 'relation' && <label className="text-sm">Related table<Select required className={`${inputClass} mt-1`} value={relationTable} onChange={e => setRelationTable(e.target.value)}><option value="">Choose a table</option>{tables.map(t => <option key={t.id} value={t.id}>{t.title}</option>)}</Select></label>}
-        <Button variant="primary" disabled={busy || !name.trim()} className="py-1.5">{editingField ? 'Save field' : 'Create field'}</Button>
-        <Button type="button" onClick={() => setShowForm(false)} className="text-sm px-2 py-1.5">Cancel</Button>
-        {editingField && <p className="w-full text-xs text-muted-foreground">Clear this field’s values before changing its data type or related table.</p>}
+      <div className="table_editor-summary">{data?.records.length ?? 0} records · {data?.fields.length ?? 0} fields · Dates and times use UTC. Save each record after editing.</div>
+      <FormError message={error || (loadError ? errorMessage(loadError) : null)} className="table_editor-error" />
+      {showForm && <form onSubmit={saveField} className="table_editor-field_form">
+        <label className="table_editor-field_form_label">Field name<Input required maxLength={255} autoFocus className={`${fieldInputClass}`} value={name} onChange={e => setName(e.target.value)} /></label>
+        <label className="table_editor-field_form_label">Data type<Select className={`${fieldInputClass}`} value={type} onChange={e => setType(e.target.value as DataType)}>{types.map(t => <option key={t} value={t}>{t[0].toUpperCase() + t.slice(1)}</option>)}</Select></label>
+        {type === 'relation' && <label className="table_editor-field_form_label">Related table<Select required className={`${fieldInputClass}`} value={relationTable} onChange={e => setRelationTable(e.target.value)}><option value="">Choose a table</option>{tables.map(t => <option key={t.id} value={t.id}>{t.title}</option>)}</Select></label>}
+        <Button variant="primary" disabled={busy || !name.trim()} className="table_editor-field_form_button">{editingField ? 'Save field' : 'Create field'}</Button>
+        <Button type="button" onClick={() => setShowForm(false)} className="table_editor-cancel_button">Cancel</Button>
+        {editingField && <p className="table_editor-field_form_hint">Clear this field’s values before changing its data type or related table.</p>}
       </form>}
-      {isLoading ? <Loader2 className="w-5 h-5 mx-auto mt-8 animate-spin" /> : data && data.fields.length === 0 ? <div className="m-6 p-12 border rounded-lg text-center"><Database className="w-8 h-8 mx-auto mb-3 text-muted-foreground" /><p className="font-medium">Define your table’s fields</p><p className="text-sm text-muted-foreground mt-2">Add text, numbers, dates, booleans, or a relation to another table.</p><Button variant="secondary" onClick={() => fieldForm()} className="mt-4">Add first field</Button></div> : data && <div className="flex-1 overflow-auto px-6 pb-6">
-        <table className="w-full text-left border rounded-lg">
-          <thead className="bg-muted/30"><tr><th className="px-3 py-3 text-xs text-muted-foreground font-medium">Record ID</th>
-            {data.fields.map(field => <th key={field.id} className="p-2 min-w-48"><div className="flex items-center gap-2"><Button onClick={() => fieldForm(field)} className="flex items-center gap-2 text-sm font-medium"><span>{field.name}</span><Pencil className="w-3 h-3 text-muted-foreground" /></Button><Button aria-label={`Delete field ${field.name}`} disabled={busy} onClick={() => remove(`fields/${field.id}`, `Delete “${field.name}” and all its values?`)} className="ml-auto text-muted-foreground hover:text-red-500"><Trash2 className="w-3.5 h-3.5" /></Button></div><span className="text-xs font-normal text-muted-foreground">{field.data_type}{field.relation_table_id ? ` → ${tables.find(t => t.id === field.relation_table_id)?.title ?? 'Table'}` : ''}</span></th>)}
-            <th className="p-2 text-xs text-muted-foreground font-medium">Actions</th>
+      {isLoading ? <Loader2 className="table_editor-spinner" /> : data && data.fields.length === 0 ? <div className="table_editor-empty"><Database className="table_editor-empty_icon" /><p className="table_editor-empty_title">Define your table’s fields</p><p className="table_editor-empty_text">Add text, numbers, dates, booleans, or a relation to another table.</p><Button variant="secondary" onClick={() => fieldForm()} className="table_editor-empty_button">Add first field</Button></div> : data && <div className="table_editor-grid">
+        <table className="table_editor-table">
+          <thead className="table_editor-table_head"><tr><th className="table_editor-column_head table_editor-column_head--id">Record ID</th>
+            {data.fields.map(field => <th key={field.id} className="table_editor-column_head"><div className="table_editor-column_head_main"><Button onClick={() => fieldForm(field)} className="table_editor-column_name_button"><span>{field.name}</span><Pencil className="table_editor-column_edit_icon" /></Button><Button aria-label={`Delete field ${field.name}`} disabled={busy} onClick={() => remove(`fields/${field.id}`, `Delete “${field.name}” and all its values?`)} className="table_editor-icon_button table_editor-icon_button--column"><Trash2 className="table_editor-icon_button_icon table_editor-icon_button_icon--sm" /></Button></div><span className="table_editor-column_type">{field.data_type}{field.relation_table_id ? ` → ${tables.find(t => t.id === field.relation_table_id)?.title ?? 'Table'}` : ''}</span></th>)}
+            <th className="table_editor-column_head table_editor-column_head--actions">Actions</th>
           </tr></thead>
           <tbody>{data.records.map(record => <RecordRow key={record.id} record={record} fields={data.fields} relations={relations} busy={busy} onSave={values => action(`records/${record.id}`, 'patch', { record: { values } })} onDelete={() => remove(`records/${record.id}`, `Delete record #${record.id}?`)} />)}
             <RecordRow fields={data.fields} relations={relations} busy={busy} onSave={values => action('records', 'post', { record: { values } })} />
@@ -135,5 +141,14 @@ export default function TableEditor({ doc }: { doc: Document }) {
         </table>
       </div>}
     </div>
+    <ConfirmDialog
+      open={pendingRemoval !== null}
+      title="Delete"
+      description={pendingRemoval?.message}
+      confirmLabel="Delete"
+      destructive
+      onConfirm={confirmRemoval}
+      onClose={() => setPendingRemoval(null)}
+    />
   </WorkspaceLayout>
 }

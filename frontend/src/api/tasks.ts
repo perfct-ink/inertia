@@ -20,7 +20,7 @@ export function useTasks(filters: TaskFilters = {}) {
 export function useCreateTask() {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: (data: { title: string; status?: Task['status']; dueDate?: string; documentId?: number; epicId?: number; parentId?: number }) => {
+    mutationFn: (data: { title: string; status?: Task['status']; dueDate?: string; documentId?: number; folder_id?: number; epicId?: number; parentId?: number }) => {
       const { documentId, dueDate, epicId, parentId, ...rest } = data
       const url = documentId ? `/api/v1/documents/${documentId}/tasks` : '/api/v1/tasks'
       return api.post(url, { task: { ...rest, due_date: dueDate, epic_id: epicId, parent_id: parentId } }).then((r) => r.data as Task)

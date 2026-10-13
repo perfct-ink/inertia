@@ -1,0 +1,548 @@
+@use 'tokens' as *;
+
+@layer view {
+  .view-folder_detail {
+    display: flex;
+    flex: 1 1 0%;
+    flex-direction: column;
+    overflow: hidden;
+
+    /* ── Shared pieces ───────────────────────────────────────────────────────── */
+
+    @at-root .folder_detail-center {
+      display: flex;
+      flex: 1 1 0%;
+      align-items: center;
+      justify-content: center;
+    }
+
+    @at-root .folder_detail-pane {
+      flex: 1 1 0%;
+      overflow: auto;
+      padding: space(4);
+
+      &--overview {
+        padding: space(6);
+      }
+
+      &--list {
+        padding: 0;
+      }
+    }
+
+    @at-root .folder_detail-icon {
+      &--xs {
+        width: space(3);
+        height: space(3);
+      }
+
+      &--sm {
+        width: space(3.5);
+        height: space(3.5);
+      }
+
+      &--md {
+        width: space(4);
+        height: space(4);
+      }
+
+      &--lg {
+        width: space(5);
+        height: space(5);
+      }
+
+      &--doc {
+        flex-shrink: 0;
+        color: color(muted-foreground);
+      }
+
+      &--spin {
+        @include spin;
+        color: color(muted-foreground);
+      }
+
+      &--chevron {
+        transition: transform 150ms cubic-bezier(0.4, 0, 0.2, 1);
+      }
+
+      &--open {
+        transform: rotate(90deg);
+      }
+    }
+
+    /* Quiet text-only / icon-only buttons. */
+    @at-root .folder_detail-subtle {
+      color: color(muted-foreground);
+
+      &:hover:not(:disabled) {
+        color: color(foreground);
+      }
+    }
+
+    @at-root .folder_detail-shrink {
+      flex-shrink: 0;
+    }
+
+    @at-root .folder_detail-dot {
+      flex-shrink: 0;
+      width: space(2);
+      height: space(2);
+      border-radius: radius('full');
+
+      &--muted {
+        background: color(muted-foreground);
+      }
+
+      &--backlog {
+        background: palette('zinc-400');
+      }
+
+      &--todo {
+        background: palette('zinc-500');
+      }
+
+      &--in_progress {
+        background: palette('blue-500');
+      }
+
+      &--in_review {
+        background: palette('yellow-500');
+      }
+
+      &--done {
+        background: palette('green-500');
+      }
+
+      &--milestone {
+        background: palette('purple-500');
+      }
+
+      &--event {
+        background: palette('orange-500');
+      }
+    }
+
+    @at-root .folder_detail-heading {
+      @include text('xs');
+
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      color: color(muted-foreground);
+    }
+
+    @at-root .folder_detail-spaced {
+      margin-bottom: space(3);
+    }
+
+    @at-root .folder_detail-note {
+      @include text('sm');
+
+      color: color(muted-foreground);
+
+      &--empty {
+        padding: space(8) 0;
+        text-align: center;
+      }
+    }
+
+    @at-root .folder_detail-count {
+      @include text('xs');
+
+      flex-shrink: 0;
+      color: color(muted-foreground);
+
+      &--fixed {
+        width: space(14);
+        text-align: right;
+      }
+    }
+
+    /* ── Page header ─────────────────────────────────────────────────────────── */
+
+    @at-root .folder_detail-header {
+      display: flex;
+      flex-shrink: 0;
+      align-items: center;
+      gap: space(3);
+      padding: space(3) space(6);
+      border-bottom-width: 1px;
+    }
+
+    @at-root .folder_detail-title {
+      @include text('xl');
+      @include truncate;
+
+      font-weight: 600;
+    }
+
+    @at-root .folder_detail-tabs {
+      display: flex;
+      flex-shrink: 0;
+      gap: space(1);
+      margin-left: space(2);
+    }
+
+    @at-root .folder_detail-tab {
+      display: flex;
+      align-items: center;
+      gap: space(1.5);
+      padding: space(1) space(3);
+      border-radius: radius('md');
+      @include text('sm');
+
+      &--compact {
+        display: block;
+        padding: space(0.5) space(2);
+        border-radius: radius('default');
+        @include text('xs');
+      }
+
+      &--active {
+        background: color(accent);
+        color: color(foreground);
+      }
+    }
+
+    @at-root .folder_detail-archive {
+      display: flex;
+      flex-shrink: 0;
+      align-items: center;
+      gap: space(1.5);
+      margin-left: auto;
+      @include text('sm');
+    }
+
+    /* ── Documents ───────────────────────────────────────────────────────────── */
+
+    @at-root .folder_detail-docs {
+      display: flex;
+      flex-shrink: 0;
+      align-items: center;
+      gap: space(2);
+      padding: space(2) space(6);
+      overflow-x: auto;
+      border-bottom-width: 1px;
+    }
+
+    @at-root .folder_detail-doc {
+      display: flex;
+      min-width: 0;
+      align-items: center;
+      gap: space(2);
+      padding: space(2) space(3);
+      border-width: 1px;
+      border-radius: radius('lg');
+      @include text('sm');
+
+      &:hover {
+        background: color(accent);
+      }
+
+      &--chip {
+        flex-shrink: 0;
+        gap: space(1.5);
+        padding: space(1) space(2);
+        border-radius: radius('md');
+        @include text('xs');
+      }
+
+      &-title {
+        @include truncate;
+
+        &--chip {
+          max-width: 160px;
+        }
+      }
+    }
+
+    @at-root .folder_detail-doc_grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: space(2);
+
+      @include up(sm) {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+    }
+
+    /* ── Board ───────────────────────────────────────────────────────────────── */
+
+    @at-root .folder_detail-board {
+      display: flex;
+      gap: space(4);
+      height: 100%;
+      min-width: max-content;
+    }
+
+    @at-root .folder_detail-column {
+      display: flex;
+      flex-shrink: 0;
+      flex-direction: column;
+      width: space(64);
+
+      &-header {
+        display: flex;
+        align-items: center;
+        gap: space(2);
+        margin-bottom: space(2);
+      }
+
+      &-label {
+        @include text('sm');
+
+        font-weight: 600;
+      }
+
+      &-body {
+        display: flex;
+        flex: 1 1 0%;
+        flex-direction: column;
+        gap: space(2);
+        min-height: 40px;
+      }
+    }
+
+    @at-root .folder_detail-card {
+      padding: space(3);
+      border-width: 1px;
+      border-radius: radius('lg');
+      background: color(card);
+
+      &-title {
+        @include text('sm');
+
+        line-height: 1.375;
+      }
+
+      &-actions {
+        display: flex;
+        justify-content: flex-end;
+        margin-top: space(2);
+      }
+    }
+
+    /* ── List ────────────────────────────────────────────────────────────────── */
+
+    @at-root .folder_detail-list {
+      max-width: 42rem;
+      margin: 0 auto;
+      padding: space(6);
+
+      &-toolbar {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: space(1);
+        margin-bottom: space(2);
+      }
+
+      &-rows {
+        display: flex;
+        flex-direction: column;
+
+        > * + * {
+          border-top-width: 1px;
+        }
+      }
+    }
+
+    @at-root .folder_detail-row {
+      display: flex;
+      align-items: center;
+      gap: space(2);
+      padding: space(2) 0;
+
+      &--event {
+        gap: space(3);
+      }
+
+      &-title {
+        flex: 1 1 0%;
+        @include text('sm');
+        @include truncate;
+      }
+
+      &-spacer {
+        flex-shrink: 0;
+        width: space(3);
+      }
+    }
+
+    /* ── Calendar ────────────────────────────────────────────────────────────── */
+
+    @at-root .folder_detail-month_nav {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: space(4);
+      margin-bottom: space(3);
+    }
+
+    @at-root .folder_detail-month {
+      @include text('sm');
+
+      width: space(32);
+      font-weight: 600;
+      text-align: center;
+    }
+
+    @at-root .folder_detail-agenda {
+      display: flex;
+      flex-direction: column;
+      max-width: 48rem;
+      margin: 0 auto;
+
+      @include up(md) {
+        display: none;
+      }
+
+      &-day {
+        display: flex;
+        gap: space(3);
+        padding: space(2) 0;
+        border-bottom-width: 1px;
+
+        &:last-child {
+          border-bottom-width: 0;
+        }
+      }
+
+      &-events {
+        display: flex;
+        flex: 1 1 0%;
+        flex-direction: column;
+        gap: space(1);
+        min-width: 0;
+      }
+    }
+
+    @at-root .folder_detail-day_label {
+      flex-shrink: 0;
+      width: space(16);
+      @include text('sm');
+
+      color: color(muted-foreground);
+
+      &--today {
+        font-weight: 700;
+        color: color(primary);
+      }
+    }
+
+    @at-root .folder_detail-chip {
+      padding: space(1) space(2);
+      border-radius: radius('default');
+      background: color(accent);
+      @include text('sm');
+      @include truncate;
+
+      &--cell {
+        margin-bottom: space(0.5);
+        padding: 0 space(1);
+        @include text('xs');
+      }
+    }
+
+    @at-root .folder_detail-month_grid {
+      display: none;
+      max-width: 48rem;
+      margin: 0 auto;
+      gap: 1px;
+      overflow: hidden;
+      border-radius: radius('lg');
+      background: color(border);
+
+      @include up(md) {
+        display: grid;
+        grid-template-columns: repeat(7, minmax(0, 1fr));
+      }
+
+      &-weekday {
+        padding: space(1) 0;
+        background: color(muted);
+        color: color(muted-foreground);
+        @include text('xs');
+
+        font-weight: 500;
+        text-align: center;
+      }
+    }
+
+    @at-root .folder_detail-cell {
+      min-height: 80px;
+      padding: space(1);
+      background: color(card);
+
+      &--outside {
+        opacity: 0.4;
+      }
+
+      &-day {
+        margin-bottom: space(1);
+        color: color(muted-foreground);
+        @include text('xs');
+
+        &--today {
+          font-weight: 700;
+          color: color(primary);
+        }
+      }
+    }
+
+    /* ── Overview ────────────────────────────────────────────────────────────── */
+
+    @at-root .folder_detail-overview {
+      display: flex;
+      flex-direction: column;
+      gap: space(8);
+      max-width: 48rem;
+      margin: 0 auto;
+    }
+
+    @at-root .folder_detail-section_header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: space(3);
+    }
+
+    @at-root .folder_detail-section_links {
+      display: flex;
+      align-items: center;
+      gap: space(3);
+    }
+
+    @at-root .folder_detail-epics {
+      display: flex;
+      flex-direction: column;
+      gap: space(3);
+    }
+
+    @at-root .folder_detail-epic {
+      display: flex;
+      align-items: center;
+      gap: space(3);
+
+      &-title {
+        flex: 1 1 0%;
+        @include text('sm');
+        @include truncate;
+      }
+
+      &-bar {
+        flex-shrink: 0;
+        width: space(32);
+      }
+    }
+
+    @at-root .folder_detail-events {
+      display: flex;
+      flex-direction: column;
+
+      > * + * {
+        border-top-width: 1px;
+      }
+    }
+  }
+}

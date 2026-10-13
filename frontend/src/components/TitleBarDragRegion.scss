@@ -1,0 +1,12 @@
+@layer app.components {
+  .view-title_bar_drag_region {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 9999;
+    width: 80px;
+    height: 28px;
+    pointer-events: none;
+    -webkit-app-region: drag;
+  }
+}

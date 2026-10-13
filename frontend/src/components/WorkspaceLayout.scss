@@ -1,0 +1,54 @@
+@use 'tokens' as *;
+
+@layer app.components {
+  .view-workspace_layout {
+    display: flex;
+    height: 100vh;
+
+    @at-root .workspace_layout-main {
+      display: flex;
+      flex: 1 1 0%;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    @at-root .workspace_layout-mobile_bar {
+      display: flex;
+      flex-shrink: 0;
+      align-items: center;
+      gap: space(2);
+      height: calc(2.75rem + env(safe-area-inset-top));
+      padding-top: env(safe-area-inset-top);
+      padding-right: space(2);
+      padding-left: space(2);
+      border-bottom-width: 1px;
+
+      @include up(md) {
+        display: none;
+      }
+    }
+
+    .workspace_layout-menu_button {
+      margin-left: -#{space(1)};
+      padding: space(2);
+      border-radius: radius('md');
+      color: color(muted-foreground);
+
+      &:hover {
+        background: color(accent);
+        color: color(foreground);
+      }
+
+      svg {
+        width: space(5);
+        height: space(5);
+      }
+    }
+
+    @at-root .workspace_layout-brand {
+      @include text('sm');
+
+      font-weight: 600;
+    }
+  }
+}

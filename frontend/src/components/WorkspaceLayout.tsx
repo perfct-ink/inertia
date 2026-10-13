@@ -2,29 +2,29 @@ import { Button } from '@/components/ui'
 import { Menu } from 'lucide-react'
 import Sidebar from '@/components/file-manager/Sidebar'
 import TabBar from '@/components/TabBar'
+import './WorkspaceLayout.scss'
 import { useSidebarStore } from '@/store/sidebar'
 
 export default function WorkspaceLayout({ children }: { children: React.ReactNode }) {
   const toggleSidebar = useSidebarStore((s) => s.toggle)
 
   return (
-    <div className="flex h-screen">
+    <div className="view-workspace_layout">
       <Sidebar />
-      <div className="flex-1 flex flex-col overflow-hidden">
+      <div className="workspace_layout-main">
         {/* Mobile-only top bar — below md the Sidebar becomes an off-canvas
             drawer with nothing else providing a way back into it. */}
         <div
-          className="md:hidden flex items-center gap-2 px-2 h-11 border-b shrink-0"
-          style={{ paddingTop: 'env(safe-area-inset-top)', height: 'calc(2.75rem + env(safe-area-inset-top))' }}
+          className="workspace_layout-mobile_bar"
         >
           <Button
             onClick={toggleSidebar}
             aria-label="Open sidebar"
-            className="p-2 -ml-1 rounded-md text-muted-foreground hover:bg-accent hover:text-foreground"
+            className="workspace_layout-menu_button"
           >
-            <Menu className="w-5 h-5" />
+            <Menu aria-hidden="true" />
           </Button>
-          <span className="font-semibold text-sm">Inertia</span>
+          <span className="workspace_layout-brand">Inertia</span>
         </div>
         <TabBar />
         {children}

@@ -1,0 +1,86 @@
+@use 'tokens' as *;
+
+@layer app.components {
+  .view-task_item {
+    display: flex;
+    align-items: flex-start;
+    gap: space(2);
+    margin-top: space(0.5);
+    margin-bottom: space(0.5);
+
+    @at-root .task_item-dot {
+      flex-shrink: 0;
+      width: space(2);
+      height: space(2);
+      margin-top: 0.4rem;
+      border-radius: radius('full');
+
+      &--backlog {
+        background: palette('zinc-400');
+      }
+
+      &--todo {
+        background: palette('zinc-500');
+      }
+
+      &--in_progress {
+        background: palette('blue-500');
+      }
+
+      &--in_review {
+        background: palette('yellow-500');
+      }
+
+      &--done {
+        background: palette('green-500');
+      }
+
+      &--unsaved {
+        opacity: 0.4;
+      }
+    }
+
+    @at-root .task_item-body {
+      display: flex;
+      flex: 1 1 0%;
+      flex-direction: column;
+      gap: space(0.5);
+      min-width: 0;
+    }
+
+    & .task_item-due_input {
+      align-self: flex-start;
+      border-width: 0 0 1px;
+      border-color: color(input);
+      background: transparent;
+      outline: none;
+      @include text('xs');
+
+      color: color(muted-foreground);
+    }
+
+    & .task_item-due_button {
+      display: flex;
+      flex-shrink: 0;
+      align-items: center;
+      align-self: flex-start;
+      gap: space(1);
+      @include text('xs');
+
+      color: color(muted-foreground);
+
+      &--empty {
+        color: color(muted-foreground, 0.4);
+      }
+
+      &:hover {
+        color: color(foreground);
+      }
+    }
+
+    @at-root .task_item-due_icon {
+      width: space(3);
+      height: space(3);
+    }
+  }
+}

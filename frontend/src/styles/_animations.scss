@@ -1,0 +1,6 @@
+// Shared keyframes. Use through the `spin` mixin in _tokens.scss.
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

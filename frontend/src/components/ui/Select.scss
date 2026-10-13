@@ -1,0 +1,21 @@
+@use 'tokens' as *;
+
+@layer app.ui {
+  .ui-select {
+    min-height: space(10);
+    padding: space(2) space(3);
+    border-width: 1px;
+    border-radius: radius('md');
+    background: color(card);
+    outline: none;
+    @include text('sm');
+
+    &:focus {
+      @include focus-ring;
+    }
+
+    &:disabled {
+      opacity: 0.5;
+    }
+  }
+}

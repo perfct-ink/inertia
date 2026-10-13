@@ -2,8 +2,8 @@ import '@testing-library/jest-dom'
 import { render, screen } from '@testing-library/react'
 import WorkspaceLayout from './WorkspaceLayout'
 
-jest.mock('@/components/file-manager/Sidebar', () => () => <nav data-testid="sidebar" />)
-jest.mock('@/components/TabBar', () => () => <nav data-testid="tabs" />)
+jest.mock('@/components/file-manager/Sidebar', () => function SidebarMock() { return <nav data-testid="sidebar" /> })
+jest.mock('@/components/TabBar', () => function TabBarMock() { return <nav data-testid="tabs" /> })
 
 afterEach(() => window.history.replaceState({}, '', '/'))
 

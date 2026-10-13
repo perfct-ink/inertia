@@ -246,6 +246,21 @@ Today: the editor has a plain Link extension (any URL) but no picker for interna
 | PM-156 | **Folder home document**: a folder can have one document set as its home page, shown when the folder is opened | Default: `folders.home_document_id`. |
 | PM-157 | Folders without a home document show the files and folders directly inside them (one level, not everything nested) | Today's folder view also lists nested content for some views (`Folder#self_and_descendant_ids`); the default listing should be direct children only. |
 
+## 16. Frontend conventions follow-up (P1)
+
+Tailwind has been removed; the frontend uses SCSS (`frontend/src/styles/` for app-wide tokens, reset, theme, typography and spacing; a `.scss` beside each component; `ui-` and `view-` root classes). These items finish aligning the code with `AGENTS.md`.
+
+| ID | Item | Notes |
+| --- | --- | --- |
+| PM-160 | **Visual QA of every screen in light and dark mode** after the Tailwind removal | The conversion was done without a browser. Check hover/focus states, the sidebar, kanban drag overlay, calendar grid, document toolbar, and the Electron/iOS/Mac WebView shells. |
+| PM-161 | Reconcile the "UI component organization" section of `AGENTS.md` with the Views rules | Pages now live in `frontend/src/view/<name>/` per "Views" and "Frontend Views". The UI-component section still says React screens belong in `components/screens/` and auth UI in `components/auth/`; update that text. |
+| PM-162 | Promote repeated local patterns into `components/ui` | Underline-only input/select, muted-text link, icon-size helper, danger-hover icon button, tab/segmented control, sortable table header, save-status indicator. |
+| PM-163 | Data files and `util/` | Move pure data functions (filtering, sorting, enums, rollups) next to each entity (singular file names) and pure helpers into `src/util/`. `src/lib/` only holds `api.ts` today. |
+| PM-164 | Base API file plus one class per model | `src/api/` has one module per model but no shared base class. |
+| PM-165 | Clear ESLint warnings deliberately | The React Compiler rules in `react-hooks` v7 (`refs`, `set-state-in-effect`, `static-components`) and `exhaustive-deps` are warnings. Each fix edits working code, so do them one component at a time with tests. |
+| PM-166 | Lint the whole repository | `npm run lint` covers `frontend/` only. Add `collab-server/` and the Swift/Ruby linters (`rubocop` already exists) to one entry point. |
+| PM-167 | WCAG 2.1 audit | Keyboard paths for every interactive element (the tab-close control in `TabBar` is a clickable `span`), focus order in modals, color contrast in both themes. |
+
 ## Out of scope for parity
 
 Monday sells separate CRM, Service (ticketing), Campaigns and "vibe" app-builder products on the same platform. They are not project management and are left out unless someone asks.

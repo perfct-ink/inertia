@@ -1,4 +1,4 @@
-import type { CSSProperties } from 'react'
+import './TitleBarDragRegion.scss'
 
 // Thin drag region for the macOS traffic light area only. Must stay
 // narrow: -webkit-app-region hit-testing happens at the Chromium/OS layer,
@@ -9,18 +9,5 @@ import type { CSSProperties } from 'react'
 export default function TitleBarDragRegion() {
   const isElectron = navigator.userAgent.toLowerCase().includes('electron')
   if (!isElectron) return null
-  return (
-    <div
-      style={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        width: '80px',
-        height: '28px',
-        WebkitAppRegion: 'drag',
-        zIndex: 9999,
-        pointerEvents: 'none',
-      } as CSSProperties}
-    />
-  )
+  return <div className="view-title_bar_drag_region" />
 }

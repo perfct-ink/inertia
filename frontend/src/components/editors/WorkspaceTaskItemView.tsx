@@ -4,13 +4,14 @@ import { format, parseISO } from 'date-fns'
 import { CalendarDays } from 'lucide-react'
 import { useTasks, useUpdateTask } from '@/api/tasks'
 import { Button, Input } from '@/components/ui'
+import './WorkspaceTaskItemView.scss'
 
 const STATUS_DOT: Record<string, string> = {
-  backlog: 'bg-zinc-400',
-  todo: 'bg-zinc-500',
-  in_progress: 'bg-blue-500',
-  in_review: 'bg-yellow-500',
-  done: 'bg-green-500',
+  backlog: 'task_item-dot--backlog',
+  todo: 'task_item-dot--todo',
+  in_progress: 'task_item-dot--in_progress',
+  in_review: 'task_item-dot--in_review',
+  done: 'task_item-dot--done',
 }
 
 // Lets a task item written inline in a document (a product requirements doc,
@@ -27,7 +28,7 @@ function DueDateControl({ taskId, dueDate }: { taskId: number; dueDate: string |
         autoFocus
         defaultValue={dueDate ?? ''}
         contentEditable={false}
-        className="self-start text-xs text-muted-foreground bg-transparent border-b border-input outline-none"
+        className="task_item-due_input"
         onChange={(e) => { updateTask.mutate({ id: taskId, due_date: e.target.value || null }); setEditing(false) }}
         onBlur={() => setEditing(false)}
       />
@@ -39,9 +40,9 @@ function DueDateControl({ taskId, dueDate }: { taskId: number; dueDate: string |
       onClick={() => setEditing(true)}
       contentEditable={false}
       title={dueDate ? `Due ${dueDate}` : 'Set a due date'}
-      className={`self-start flex items-center gap-1 text-xs shrink-0 hover:text-foreground ${dueDate ? 'text-muted-foreground' : 'text-muted-foreground/40'}`}
+      className={`task_item-due_button ${dueDate ? '' : 'task_item-due_button--empty'}`}
     >
-      <CalendarDays className="w-3 h-3" />
+      <CalendarDays className="task_item-due_icon" />
       {dueDate && format(parseISO(dueDate), 'MMM d')}
     </Button>
   )
@@ -52,15 +53,15 @@ export default function WorkspaceTaskItemView({ node }: NodeViewProps) {
   const taskId = node.attrs.taskId as number | null
   const task = tasks.find((t) => t.id === taskId)
   const status = task?.status ?? 'backlog'
-  const dotClass = STATUS_DOT[status] ?? 'bg-zinc-400'
+  const dotClass = STATUS_DOT[status] ?? 'task_item-dot--backlog'
 
   return (
-    <NodeViewWrapper as="li" className="flex items-start gap-2 my-0.5">
+    <NodeViewWrapper as="li" className="view-task_item">
       <span
-        className={`w-2 h-2 rounded-full mt-[0.4rem] shrink-0 ${dotClass} ${!taskId ? 'opacity-40' : ''}`}
+        className={`task_item-dot ${dotClass} ${!taskId ? 'task_item-dot--unsaved' : ''}`}
         title={task ? `Status: ${status.replace('_', ' ')}` : 'Unsaved task'}
       />
-      <div className="flex-1 min-w-0 flex flex-col gap-0.5">
+      <div className="task_item-body">
         <NodeViewContent as="div" />
         {/* Only once the item has synced to a real Task (see DocumentScreen.
             tsx's syncTaskNodes) — there's nothing to attach a date to

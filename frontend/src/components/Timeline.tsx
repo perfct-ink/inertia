@@ -1,6 +1,7 @@
 import {
   format, parseISO, startOfMonth, endOfMonth, eachMonthOfInterval, differenceInCalendarDays,
 } from 'date-fns'
+import './Timeline.scss'
 
 // Shared by EpicsPage, InitiativesPage, and FolderDetailPage's per-folder
 // Gantt tab — all three are "a title, an optional start/target date, and a
@@ -17,8 +18,8 @@ export interface Scheduled {
 
 export function ProgressBar({ percent }: { percent: number }) {
   return (
-    <div className="w-full h-1.5 bg-muted rounded-full overflow-hidden">
-      <div className="h-full bg-primary rounded-full transition-all" style={{ width: `${percent}%` }} />
+    <div className="timeline-progress">
+      <div className="timeline-progress-fill" style={{ width: `${percent}%` }} />
     </div>
   )
 }
@@ -39,8 +40,8 @@ export function Timeline({ items }: { items: Scheduled[] }) {
 
   if (dated.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center gap-2 text-muted-foreground py-12">
-        <p className="text-sm">Set a start and target date to see it here</p>
+      <div className="view-timeline view-timeline--empty">
+        <p>Set a start and target date to see it here</p>
       </div>
     )
   }
@@ -51,23 +52,23 @@ export function Timeline({ items }: { items: Scheduled[] }) {
   const months = eachMonthOfInterval({ start: rangeStart, end: rangeEnd })
 
   return (
-    <div className="overflow-auto">
-      <div className="min-w-[700px] max-w-4xl">
-        <div className="flex border-b mb-3">
+    <div className="view-timeline">
+      <div className="timeline-chart">
+        <div className="timeline-months">
           {months.map((m) => {
             const daysInMonth = differenceInCalendarDays(endOfMonth(m), startOfMonth(m)) + 1
             return (
               <div
                 key={m.toISOString()}
                 style={{ width: `${(daysInMonth / totalDays) * 100}%` }}
-                className="text-xs text-muted-foreground font-medium pb-1 shrink-0 truncate"
+                className="timeline-month"
               >
                 {format(m, 'MMM yyyy')}
               </div>
             )
           })}
         </div>
-        <div className="flex flex-col gap-3">
+        <div className="timeline-rows">
           {dated.map((item) => {
             const s = parseISO(item.start_date)
             const e = parseISO(item.target_date)
@@ -75,18 +76,18 @@ export function Timeline({ items }: { items: Scheduled[] }) {
             const widthPct = Math.max(((differenceInCalendarDays(e, s) + 1) / totalDays) * 100, 1.5)
             const percent = donePercent(item)
             return (
-              <div key={item.id} className="flex items-center gap-3">
-                <span className="w-36 text-sm truncate shrink-0" title={item.title}>{item.title}</span>
-                <div className="flex-1 relative h-6">
+              <div key={item.id} className="timeline-row">
+                <span className="timeline-title" title={item.title}>{item.title}</span>
+                <div className="timeline-track">
                   <div
-                    className="absolute h-6 rounded-md bg-primary/20 border border-primary overflow-hidden"
+                    className="timeline-bar"
                     style={{ left: `${offsetPct}%`, width: `${widthPct}%` }}
                     title={`${item.start_date} → ${item.target_date}`}
                   >
-                    <div className="h-full bg-primary/50" style={{ width: `${percent}%` }} />
+                    <div className="timeline-bar-fill" style={{ width: `${percent}%` }} />
                   </div>
                 </div>
-                <span className="w-14 text-xs text-muted-foreground text-right shrink-0">
+                <span className="timeline-count">
                   {item.done_tasks_count}/{item.tasks_count}
                 </span>
               </div>
@@ -96,7 +97,7 @@ export function Timeline({ items }: { items: Scheduled[] }) {
       </div>
 
       {undated.length > 0 && (
-        <p className="text-xs text-muted-foreground mt-6">
+        <p className="timeline-undated">
           Not shown (missing a start or target date): {undated.map((e) => e.title).join(', ')}
         </p>
       )}

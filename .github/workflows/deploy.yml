@@ -2,7 +2,7 @@ name: Deploy
 
 # Mirrors ~/Sites/pocketproducer-web/.github/workflows/deploy.yml — same
 # shared droplet, same "test gate, then build and ship" shape. See this
-# repo's README "Deploy" section for the one-time setup this depends on.
+# repo's docs/README.md "Deploy" section for the one-time setup this depends on.
 
 on:
   push:

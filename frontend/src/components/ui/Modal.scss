@@ -1,0 +1,66 @@
+@use 'tokens' as *;
+
+@layer app.ui {
+  .ui-modal {
+    &-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 50;
+      background: palette('black', 0.4);
+    }
+
+    &-content {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      z-index: 50;
+      width: calc(100vw - #{space(8)});
+      max-width: 24rem;
+      padding: space(4);
+      transform: translate(-50%, -50%);
+      border-width: 1px;
+      border-radius: radius('lg');
+      background: color(card);
+      color: color(foreground);
+      box-shadow: 0 10px 15px -3px rgb(0, 0, 0, 0.1), 0 4px 6px -4px rgb(0, 0, 0, 0.1);
+    }
+
+    &-title {
+      font-weight: 600;
+      @include text('sm');
+    }
+
+    &-description {
+      margin-top: space(1);
+      color: color(muted-foreground);
+      @include text('sm');
+    }
+
+    &-description--hidden {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip-path: inset(50%);
+      white-space: nowrap;
+    }
+
+    &-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: space(2);
+      margin-top: space(4);
+    }
+
+    &-form {
+      display: flex;
+      flex-direction: column;
+      gap: space(3);
+      margin-top: space(3);
+    }
+
+    &-form &-actions {
+      margin-top: 0;
+    }
+  }
+}

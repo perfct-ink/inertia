@@ -1,7 +1,8 @@
 import { flattenFolders } from './tree'
 import { Button, Input, Select } from '@/components/ui'
+import './Sidebar.scss'
 import { Database } from 'lucide-react'
-import { useState, useRef, useEffect, type CSSProperties, type ComponentType } from 'react'
+import { useState, useRef, useEffect, type ComponentType } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useSidebarStore } from '@/store/sidebar'
 import {
@@ -29,8 +30,9 @@ import logoMark from '@/assets/logo-mark.svg'
 // place global shortcuts are bound, so this is just their display copy.
 const KEYBOARD_SHORTCUTS: { keys: string; label: string }[] = [
   { keys: '⌘K', label: 'Quick-add a task or event' },
-  { keys: '⌘N', label: 'New document' },
-  { keys: '⌘T', label: 'New task' },
+  { keys: '⌘N', label: 'New document in this folder' },
+  { keys: '⌘⇧N', label: 'New sheet in this folder' },
+  { keys: '⌘T', label: 'New task in this folder' },
   { keys: '⌘E', label: 'New event' },
   { keys: '⌘W', label: 'Close the active tab' },
   { keys: '⌘/', label: 'Show or hide this list' },
@@ -61,11 +63,10 @@ function RailButton({ icon: Icon, label, active, onClick }: {
     <Button
       onClick={onClick}
       title={label}
-      className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${
-        active ? 'bg-accent text-foreground' : 'text-muted-foreground hover:bg-accent hover:text-foreground'
-      }`}
+      aria-label={label}
+      className={`sidebar-rail_button${active ? ' sidebar-rail_button--active' : ''}`}
     >
-      <Icon className="w-4 h-4" />
+      <Icon className="sidebar-icon--md" />
     </Button>
   )
 }
@@ -108,6 +109,9 @@ export default function Sidebar() {
   const quickAddInputRef = useRef<HTMLInputElement>(null)
   const createNewDocumentRef = useRef(createNewDocument)
   createNewDocumentRef.current = createNewDocument
+  const createNewSpreadsheetRef = useRef(createNewSpreadsheet)
+  createNewSpreadsheetRef.current = createNewSpreadsheet
+  const scopeFolderIdRef = useRef<number | undefined>(undefined)
   const openQuickAddRef = useRef(openQuickAdd)
   openQuickAddRef.current = openQuickAdd
   const shortcutsOpenRef = useRef(shortcutsOpen)
@@ -157,7 +161,7 @@ export default function Sidebar() {
     setQuickAddOpen(false)
   }
 
-  // Cmd+N → new document, Cmd+T → new task, Cmd+E → new event, Cmd+W → close
+  // Cmd+N → new document, Cmd+Shift+N → new sheet, Cmd+T → new task, Cmd+E → new event, Cmd+W → close
   // tab, Cmd+K → quick-add a task or event without leaving the current page,
   // Cmd+/ (or Cmd+? — Shift+/ on a US layout) → toggle the shortcuts cheat
   // sheet. Keep KEYBOARD_SHORTCUTS below in sync with this list.
@@ -174,12 +178,14 @@ export default function Sidebar() {
         return
       }
       if (!(e.metaKey || e.ctrlKey)) return
-      if (e.key === 'n') {
+      if (e.key === 'n' || e.key === 'N') {
         e.preventDefault()
-        createNewDocumentRef.current()
+        if (e.shiftKey) createNewSpreadsheetRef.current()
+        else createNewDocumentRef.current()
       } else if (e.key === 't') {
         e.preventDefault()
-        navigate('/tasks?view=backlog&new=1')
+        const fid = scopeFolderIdRef.current
+        navigate(`/tasks?view=backlog&new=1${fid ? `&folder_id=${fid}` : ''}`)
       } else if (e.key === 'e') {
         e.preventDefault()
         navigate('/events?new=1')
@@ -212,13 +218,27 @@ export default function Sidebar() {
     })
   }
 
+  // The folder the user is "in": the open folder page, or the folder of the
+  // open document. Falls back to the workspace root on any other page.
+  function scopeFolderId() {
+    const folderMatch = location.pathname.match(/^\/folders\/(\d+)/)
+    if (folderMatch) return Number(folderMatch[1])
+    const docMatch = location.pathname.match(/^\/documents\/(\d+)/)
+    if (docMatch) {
+      const folder = flattenFolders(workspace?.folders ?? []).find((f) => f.documents?.some((d) => d.id === Number(docMatch[1])))
+      if (folder) return folder.id
+    }
+    return undefined
+  }
+  scopeFolderIdRef.current = scopeFolderId()
+
   async function createAtRoot(type: 'document' | 'spreadsheet' | 'table') {
     if (creatingRef.current) return
     creatingRef.current = true
     setCreationError('')
     try {
       const current = workspace ?? (await api.get('/api/v1/workspace')).data
-      const folderId = current.root_folder_id ?? current.folders?.[0]?.id
+      const folderId = scopeFolderId() ?? current.root_folder_id ?? current.folders?.[0]?.id
       if (!folderId) throw new Error('The workspace root is unavailable. Please try again.')
       const title = type === 'document' ? 'Untitled' : type === 'table' ? 'Untitled Table' : 'Untitled Sheet'
       const doc = await createDocument.mutateAsync({ folderId, title, doc_type: type })
@@ -245,38 +265,36 @@ export default function Sidebar() {
     <>
       {/* Mobile-only backdrop — tap outside the drawer to close it. */}
       {drawerOpen && (
-        <div className="md:hidden fixed inset-0 bg-black/40 z-30" onClick={closeDrawer} />
+        <div className="sidebar-backdrop" onClick={closeDrawer} />
       )}
       <div
-        className={`flex h-screen shrink-0 fixed md:static inset-y-0 left-0 z-40 transition-transform duration-200 ease-out md:translate-x-0 ${
-          drawerOpen ? 'translate-x-0' : '-translate-x-full'
-        }`}
+        className={`view-sidebar${drawerOpen ? ' view-sidebar--open' : ''}`}
       >
       {/* Icon rail — top-level section nav. Traffic lights float over its
           top-left corner, so the top strip and the flexible middle spacer
           are both drag regions (nothing interactive sits in either). */}
       <nav
-        className="w-14 border-r bg-muted/30 flex flex-col items-center h-screen shrink-0"
-        style={{ paddingTop: 'env(safe-area-inset-top)', paddingBottom: 'env(safe-area-inset-bottom)' }}
+        className="sidebar-rail"
       >
         {isElectron && (
-          <div className="h-8 w-full shrink-0" style={{ WebkitAppRegion: 'drag' } as CSSProperties} />
+          <div className="sidebar-titlebar sidebar-drag" />
         )}
-        <div className="flex flex-col items-center gap-1 py-2">
+        <div className="sidebar-rail_group">
           <RailButton icon={FileText} label="Documents" active={isDocumentsSection} onClick={() => navigate('/documents')} />
           <RailButton icon={CheckSquare} label="Tasks" active={location.pathname === '/tasks'} onClick={() => navigate('/tasks?view=backlog')} />
           <RailButton icon={CalendarDays} label="Events" active={location.pathname === '/events'} onClick={() => navigate('/events?view=list')} />
           <RailButton icon={Target} label="Epics" active={location.pathname === '/epics'} onClick={() => navigate('/epics')} />
           <RailButton icon={Flag} label="Initiatives" active={location.pathname === '/initiatives'} onClick={() => navigate('/initiatives')} />
         </div>
-        <div className="flex-1 w-full" style={{ WebkitAppRegion: 'drag' } as CSSProperties} />
-        <div className="flex flex-col items-center gap-1 py-2">
+        <div className="sidebar-rail_spacer sidebar-drag" />
+        <div className="sidebar-rail_group">
           <RailButton icon={Plus} label="Quick add (⌘K)" onClick={openQuickAdd} />
           <RailButton icon={Keyboard} label="Keyboard shortcuts (⌘/)" onClick={() => setShortcutsOpen(true)} />
           <Button variant="primary"
             onClick={() => setAccountOpen(true)}
             title={user?.name ?? 'Account'}
-            className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold shrink-0 mb-2"
+            aria-label={user?.name ?? 'Account'}
+            className="sidebar-avatar_button"
           >
             {initials}
           </Button>
@@ -287,27 +305,25 @@ export default function Sidebar() {
           actually unique to it now that Tasks/Events/Epics moved to the
           rail. */}
       <aside
-        className="w-60 border-r bg-muted/20 flex flex-col h-screen"
-        style={{ paddingTop: 'env(safe-area-inset-top)', paddingBottom: 'env(safe-area-inset-bottom)' }}
+        className="sidebar-panel"
       >
         <div
-          className={`px-3 pb-3 flex items-center gap-2 ${isElectron ? 'pt-8' : 'pt-3'}`}
-          style={{ WebkitAppRegion: 'drag' } as CSSProperties}
+          className={`sidebar-header sidebar-drag${isElectron ? ' sidebar-header--electron' : ''}`}
         >
-          <img src={logoMark} alt="" className="w-6 h-6 shrink-0" />
-          <div className="min-w-0">
-            <p className="font-semibold text-sm">Inertia</p>
-            <p className="text-xs text-muted-foreground truncate">{workspace?.name ?? 'My Workspace'}</p>
+          <img src={logoMark} alt="" className="sidebar-logo" />
+          <div className="sidebar-brand">
+            <p className="sidebar-brand_name">Inertia</p>
+            <p className="sidebar-workspace_name">{workspace?.name ?? 'My Workspace'}</p>
           </div>
         </div>
 
-        <div className="flex-1 overflow-y-auto py-2 flex flex-col gap-3">
+        <div className="sidebar-body">
           {/* Pinned section */}
           {hasPinned && (
             <div>
-              <div className="flex items-center gap-1.5 px-3 mb-1">
-                <Pin className="w-3 h-3 text-muted-foreground" />
-                <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Pinned</span>
+              <div className="sidebar-section_bar sidebar-section_bar--pinned">
+                <Pin className="sidebar-icon--xs sidebar-icon--muted" />
+                <span className="sidebar-section_label">Pinned</span>
               </div>
               {pinnedFolders.map((folder) => {
                 const firstDoc = folder.documents?.[0]
@@ -315,16 +331,17 @@ export default function Sidebar() {
                   <Button
                     key={folder.id}
                     onClick={() => firstDoc && navigate(`/documents/${firstDoc.id}`)}
-                    className="flex items-center gap-1.5 w-full px-3 py-1 rounded-md text-sm hover:bg-accent text-left group"
+                    className="sidebar-pinned_item"
                   >
-                    <Folder className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
-                    <span className="flex-1 truncate">{folder.name}</span>
+                    <Folder className="sidebar-icon--sm sidebar-icon--muted sidebar-icon--shrink" />
+                    <span className="sidebar-item_label">{folder.name}</span>
                     <Button
                       onClick={(e) => { e.stopPropagation(); pinFolder.mutate({ id: folder.id, pinned: false }) }}
-                      className="hidden group-hover:flex text-muted-foreground hover:text-foreground"
+                      className="sidebar-unpin"
                       title="Unpin"
+                      aria-label="Unpin"
                     >
-                      <Pin className="w-3 h-3" />
+                      <Pin className="sidebar-icon--xs" />
                     </Button>
                   </Button>
                 )
@@ -335,21 +352,22 @@ export default function Sidebar() {
                   <Button
                     key={doc.id}
                     onClick={() => navigate(`/documents/${doc.id}`)}
-                    className={`flex items-center gap-1.5 w-full px-3 py-1 rounded-md text-sm hover:bg-accent text-left group ${active ? 'bg-accent' : ''}`}
+                    className={`sidebar-pinned_item${active ? ' sidebar-pinned_item--active' : ''}`}
                   >
                     {doc.doc_type === 'table'
-                      ? <Database className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
+                      ? <Database className="sidebar-icon--sm sidebar-icon--muted sidebar-icon--shrink" />
                       : doc.doc_type === 'spreadsheet'
-                      ? <TableIcon className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
-                      : <FileText className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
+                      ? <TableIcon className="sidebar-icon--sm sidebar-icon--muted sidebar-icon--shrink" />
+                      : <FileText className="sidebar-icon--sm sidebar-icon--muted sidebar-icon--shrink" />
                     }
-                    <span className="flex-1 truncate">{doc.title}</span>
+                    <span className="sidebar-item_label">{doc.title}</span>
                     <Button
                       onClick={(e) => { e.stopPropagation(); pinDocument.mutate({ id: doc.id, pinned: false }) }}
-                      className="hidden group-hover:flex text-muted-foreground hover:text-foreground"
+                      className="sidebar-unpin"
                       title="Unpin"
+                      aria-label="Unpin"
                     >
-                      <Pin className="w-3 h-3" />
+                      <Pin className="sidebar-icon--xs" />
                     </Button>
                   </Button>
                 )
@@ -357,75 +375,81 @@ export default function Sidebar() {
             </div>
           )}
 
-          {creationError && <p role="alert" className="px-3 py-2 text-xs text-red-500">{creationError}</p>}
+          {creationError && <p role="alert" className="sidebar-error">{creationError}</p>}
           {/* Documents section (unified tree) */}
           <div>
-            <div className="flex items-center justify-between px-3 mb-1">
+            <div className="sidebar-section_bar sidebar-section_bar--documents">
               <Button
                 onClick={() => navigate('/documents')}
-                className="text-xs font-semibold text-muted-foreground uppercase tracking-wider hover:text-foreground"
+                className="sidebar-section_label sidebar-section_link"
               >
                 Documents
               </Button>
-              <div className="flex items-center gap-0.5">
+              <div className="sidebar-tools">
                 <Button
                   title={showArchived ? 'Show active folders' : 'Show archived folders'}
                   onClick={() => setShowArchived((s) => !s)}
-                  className={`p-0.5 rounded hover:bg-accent ${showArchived ? 'text-foreground bg-accent' : 'text-muted-foreground hover:text-foreground'}`}
+                  aria-label={showArchived ? 'Show active folders' : 'Show archived folders'}
+                  className={`sidebar-tool${showArchived ? ' sidebar-tool--active' : ''}`}
                 >
-                  <Archive className="w-3.5 h-3.5" />
+                  <Archive className="sidebar-icon--sm" />
                 </Button>
                 <Button
                   title="New document (⌘N)"
+                  aria-label="New document (⌘N)"
                   onClick={() => createNewDocument()}
-                  className="p-0.5 rounded hover:bg-accent text-muted-foreground hover:text-foreground"
+                  className="sidebar-tool"
                 >
-                  <FilePlus className="w-3.5 h-3.5" />
+                  <FilePlus className="sidebar-icon--sm" />
                 </Button>
                 <Button
                   title="New Sheet"
+                  aria-label="New Sheet"
                   onClick={() => createNewSpreadsheet()}
-                  className="p-0.5 rounded hover:bg-accent text-muted-foreground hover:text-foreground"
+                  className="sidebar-tool"
                 >
-                  <TableIcon className="w-3.5 h-3.5" />
+                  <TableIcon className="sidebar-icon--sm" />
                 </Button>
                 <Button
                   title="New Table"
+                  aria-label="New Table"
                   onClick={() => createNewSpreadsheet('table')}
-                  className="p-0.5 rounded hover:bg-accent text-muted-foreground hover:text-foreground"
+                  className="sidebar-tool"
                 >
-                  <Database className="w-3.5 h-3.5" />
+                  <Database className="sidebar-icon--sm" />
                 </Button>
                 <Button
                   title="New folder"
+                  aria-label="New folder"
                   onClick={() => setAddingFolder(true)}
-                  className="p-0.5 rounded hover:bg-accent text-muted-foreground hover:text-foreground"
+                  className="sidebar-tool"
                 >
-                  <FolderPlus className="w-3.5 h-3.5" />
+                  <FolderPlus className="sidebar-icon--sm" />
                 </Button>
               </div>
             </div>
 
             {showArchived ? (
-              <div className="flex flex-col gap-0.5">
+              <div className="sidebar-archived">
                 {archivedFolders.length === 0 && (
-                  <p className="px-3 py-2 text-xs text-muted-foreground">No archived folders</p>
+                  <p className="sidebar-note">No archived folders</p>
                 )}
                 {archivedFolders.map((folder) => (
-                  <div key={folder.id} className="flex items-center gap-1.5 px-3 py-1 rounded-md text-sm group">
-                    <Folder className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
+                  <div key={folder.id} className="sidebar-archived_row">
+                    <Folder className="sidebar-icon--sm sidebar-icon--muted sidebar-icon--shrink" />
                     <Button
                       onClick={() => navigate(`/folders/${folder.id}`)}
-                      className="flex-1 min-w-0 text-left truncate hover:underline"
+                      className="sidebar-archived_open"
                     >
                       {folder.name}
                     </Button>
                     <Button
                       onClick={() => updateFolder.mutate({ id: folder.id, archived: false })}
                       title="Unarchive"
-                      className="opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-foreground shrink-0"
+                      aria-label="Unarchive"
+                      className="sidebar-unarchive"
                     >
-                      <ArchiveRestore className="w-3.5 h-3.5" />
+                      <ArchiveRestore className="sidebar-icon--sm" />
                     </Button>
                   </div>
                 ))}
@@ -433,11 +457,11 @@ export default function Sidebar() {
             ) : (
               <>
                 {addingFolder && (
-                  <div className="px-2 pb-1">
+                  <div className="sidebar-new_folder">
                     <Input
                       ref={folderInputRef}
                       placeholder="Folder name"
-                      className="w-full text-sm px-2 py-0.5 rounded border border-input bg-card outline-none focus:ring-1 focus:ring-primary"
+                      className="sidebar-folder_input"
                       onKeyDown={(e) => {
                         if (e.key === 'Enter' && e.currentTarget.value.trim()) {
                           createFolder.mutate({ name: e.currentTarget.value.trim() })
@@ -451,14 +475,14 @@ export default function Sidebar() {
                 )}
 
                 {isLoading && (
-                  <div className="flex justify-center py-4">
-                    <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />
+                  <div className="sidebar-loading">
+                    <Loader2 className="sidebar-icon--md sidebar-icon--muted sidebar-icon--spin" />
                   </div>
                 )}
 
                 {!isLoading && workspace?.folders?.length === 0 && !addingFolder && (
-                  <div className="flex flex-col items-center py-4 gap-2 text-muted-foreground">
-                    <FilePlus className="w-8 h-8 opacity-30" />
+                  <div className="sidebar-empty">
+                    <FilePlus className="sidebar-icon--lg sidebar-icon--faint" />
                   </div>
                 )}
 
@@ -478,28 +502,28 @@ export default function Sidebar() {
           ancestor are positioned relative to IT, not the viewport — these
           modals would otherwise slide off with a closed drawer. */}
       {accountOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={() => setAccountOpen(false)}>
-          <div className="bg-card border rounded-xl shadow-xl w-80 p-6 flex flex-col gap-4" onClick={(e) => e.stopPropagation()}>
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-lg font-bold shrink-0">
+        <div className="sidebar-overlay" onClick={() => setAccountOpen(false)}>
+          <div className="sidebar-dialog sidebar-dialog--narrow sidebar-dialog--roomy" onClick={(e) => e.stopPropagation()}>
+            <div className="sidebar-profile">
+              <div className="sidebar-avatar">
                 {initials}
               </div>
-              <div className="min-w-0">
-                <p className="font-semibold truncate">{user?.name}</p>
-                <p className="text-sm text-muted-foreground truncate">{user?.email}</p>
+              <div className="sidebar-identity">
+                <p className="sidebar-user_name">{user?.name}</p>
+                <p className="sidebar-user_email">{user?.email}</p>
               </div>
             </div>
-            <div className="border-t pt-4 flex flex-col gap-2">
+            <div className="sidebar-account_actions">
               <Button variant="secondary"
                 onClick={() => { setAccountOpen(false); setQuipImportOpen(true) }}
-                className="w-full flex items-center justify-center gap-1.5 px-4"
+                className="sidebar-wide_button sidebar-import_button"
               >
-                <Download className="w-3.5 h-3.5" />
+                <Download className="sidebar-icon--sm" />
                 Import from Quip
               </Button>
               <Button variant="secondary"
                 onClick={handleLogout}
-                className="w-full px-4 text-red-500 hover:bg-red-50 dark:hover:bg-red-950 border-red-200 dark:border-red-900"
+                className="sidebar-wide_button sidebar-signout"
               >
                 Sign out
               </Button>
@@ -510,20 +534,20 @@ export default function Sidebar() {
 
       {/* Import from Quip */}
       {quipImportOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={() => setQuipImportOpen(false)}>
-          <div className="bg-card border rounded-xl shadow-xl w-96 p-5 flex flex-col gap-4" onClick={(e) => e.stopPropagation()}>
-            <div className="flex items-center gap-2">
-              <Download className="w-4 h-4 text-muted-foreground" />
-              <h2 className="font-semibold text-sm">Import from Quip</h2>
+        <div className="sidebar-overlay" onClick={() => setQuipImportOpen(false)}>
+          <div className="sidebar-dialog" onClick={(e) => e.stopPropagation()}>
+            <div className="sidebar-dialog_title">
+              <Download className="sidebar-icon--md sidebar-icon--muted" />
+              <h2 className="sidebar-dialog_heading">Import from Quip</h2>
             </div>
 
             {!startedQuipImportId ? (
               <>
-                <p className="text-xs text-muted-foreground -mt-2">
-                  Walks your Quip account's Desktop, Starred, and Shared folders and imports every document found,
+                <p className="sidebar-hint">
+                  Walks your Quip account&apos;s Desktop, Starred, and Shared folders and imports every document found,
                   mirroring the folder structure, into your workspace root.
                 </p>
-                <label className="flex flex-col gap-1 text-sm">
+                <label className="sidebar-field">
                   Quip API token
                   <Input
                     type="password"
@@ -531,24 +555,24 @@ export default function Sidebar() {
                     value={quipToken}
                     onChange={(e) => setQuipToken(e.target.value)}
                     placeholder="Paste your token"
-                    className="text-sm px-3 py-2 rounded-lg border border-input bg-background outline-none focus:ring-1 focus:ring-primary"
+                    className="sidebar-input"
                   />
                 </label>
-                <label className="flex flex-col gap-1 text-sm">
+                <label className="sidebar-field">
                   Domain
                   <Select
                     value={quipDomain}
                     onChange={(e) => setQuipDomain(e.target.value)}
-                    className="text-sm px-3 py-2 rounded-lg border border-input bg-background outline-none focus:ring-1 focus:ring-primary"
+                    className="sidebar-input"
                   >
                     <option value="quip.com">quip.com</option>
                     <option value="quip-apple.com">quip-apple.com</option>
                   </Select>
                 </label>
-                <div className="flex justify-end gap-2">
+                <div className="sidebar-actions">
                   <Button
                     onClick={() => setQuipImportOpen(false)}
-                    className="px-3 py-1.5 rounded-md text-sm text-muted-foreground hover:bg-accent"
+                    className="sidebar-cancel"
                   >
                     Cancel
                   </Button>
@@ -560,7 +584,7 @@ export default function Sidebar() {
                       )
                     }}
                     disabled={!quipToken.trim() || startQuipImport.isPending}
-                    className="py-1.5"
+                    className="sidebar-submit"
                   >
                     {startQuipImport.isPending ? 'Starting…' : 'Start import'}
                   </Button>
@@ -568,32 +592,32 @@ export default function Sidebar() {
               </>
             ) : (
               <>
-                <div className="flex items-center gap-2 text-sm">
+                <div className="sidebar-import_status">
                   {(quipImport?.status === 'pending' || quipImport?.status === 'running') && (
-                    <Loader2 className="w-3.5 h-3.5 animate-spin text-muted-foreground" />
+                    <Loader2 className="sidebar-icon--sm sidebar-icon--muted sidebar-icon--spin" />
                   )}
-                  <span className="font-medium">
+                  <span className="sidebar-import_state">
                     {quipImport?.status === 'completed' && 'Done'}
                     {quipImport?.status === 'failed' && 'Failed'}
                     {(quipImport?.status === 'pending' || quipImport?.status === 'running' || !quipImport) && 'Importing…'}
                   </span>
                 </div>
-                <div className="flex flex-col gap-1 text-sm text-muted-foreground">
+                <div className="sidebar-import_counts">
                   <span>{quipImport?.folders_created ?? 0} folders created</span>
                   <span>{quipImport?.documents_imported ?? 0} documents imported</span>
                   {!!quipImport?.documents_failed && <span>{quipImport.documents_failed} documents failed</span>}
                 </div>
                 {quipImport?.status === 'failed' && quipImport.error_message && (
-                  <p className="text-xs text-red-500 break-words">{quipImport.error_message}</p>
+                  <p className="sidebar-import_error">{quipImport.error_message}</p>
                 )}
-                <div className="flex justify-end">
+                <div className="sidebar-actions">
                   <Button
                     onClick={() => {
                       setQuipImportOpen(false)
                       setStartedQuipImportId(null)
                       setQuipToken('')
                     }}
-                    className="px-3 py-1.5 rounded-md text-sm text-muted-foreground hover:bg-accent"
+                    className="sidebar-cancel"
                   >
                     Close
                   </Button>
@@ -606,17 +630,17 @@ export default function Sidebar() {
 
       {/* Keyboard shortcuts modal */}
       {shortcutsOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={() => setShortcutsOpen(false)}>
-          <div className="bg-card border rounded-xl shadow-xl w-80 p-5 flex flex-col gap-4" onClick={(e) => e.stopPropagation()}>
-            <div className="flex items-center gap-2">
-              <Keyboard className="w-4 h-4 text-muted-foreground" />
-              <h2 className="font-semibold text-sm">Keyboard shortcuts</h2>
+        <div className="sidebar-overlay" onClick={() => setShortcutsOpen(false)}>
+          <div className="sidebar-dialog sidebar-dialog--narrow" onClick={(e) => e.stopPropagation()}>
+            <div className="sidebar-dialog_title">
+              <Keyboard className="sidebar-icon--md sidebar-icon--muted" />
+              <h2 className="sidebar-dialog_heading">Keyboard shortcuts</h2>
             </div>
-            <div className="flex flex-col gap-2">
+            <div className="sidebar-shortcuts">
               {KEYBOARD_SHORTCUTS.map(({ keys, label }) => (
-                <div key={keys} className="flex items-center justify-between gap-4 text-sm">
-                  <span className="text-muted-foreground">{label}</span>
-                  <kbd className="px-1.5 py-0.5 rounded border bg-muted text-xs font-mono shrink-0">{keys}</kbd>
+                <div key={keys} className="sidebar-shortcut">
+                  <span>{label}</span>
+                  <kbd className="sidebar-kbd">{keys}</kbd>
                 </div>
               ))}
             </div>
@@ -626,21 +650,21 @@ export default function Sidebar() {
 
       {/* Quick add modal */}
       {quickAddOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={() => setQuickAddOpen(false)}>
-          <div className="bg-card border rounded-xl shadow-xl w-96 p-5 flex flex-col gap-4" onClick={(e) => e.stopPropagation()}>
-            <div className="flex gap-1 p-0.5 bg-muted rounded-lg">
+        <div className="sidebar-overlay" onClick={() => setQuickAddOpen(false)}>
+          <div className="sidebar-dialog" onClick={(e) => e.stopPropagation()}>
+            <div className="sidebar-tabs">
               <Button
                 onClick={() => setQuickAddType('task')}
-                className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-md text-sm ${quickAddType === 'task' ? 'bg-card shadow-sm text-foreground' : 'text-muted-foreground'}`}
+                className={`sidebar-tab${quickAddType === 'task' ? ' sidebar-tab--active' : ''}`}
               >
-                <CheckSquare className="w-3.5 h-3.5" />
+                <CheckSquare className="sidebar-icon--sm" />
                 Task
               </Button>
               <Button
                 onClick={() => setQuickAddType('event')}
-                className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-md text-sm ${quickAddType === 'event' ? 'bg-card shadow-sm text-foreground' : 'text-muted-foreground'}`}
+                className={`sidebar-tab${quickAddType === 'event' ? ' sidebar-tab--active' : ''}`}
               >
-                <CalendarDays className="w-3.5 h-3.5" />
+                <CalendarDays className="sidebar-icon--sm" />
                 Event
               </Button>
             </div>
@@ -650,30 +674,30 @@ export default function Sidebar() {
               value={quickAddTitle}
               onChange={(e) => setQuickAddTitle(e.target.value)}
               placeholder="Title"
-              className="w-full text-sm px-3 py-2 rounded-lg border border-input bg-background outline-none focus:ring-1 focus:ring-primary"
+              className="sidebar-input"
               onKeyDown={(e) => {
                 if (e.key === 'Enter') submitQuickAdd()
                 if (e.key === 'Escape') setQuickAddOpen(false)
               }}
             />
 
-            <label className="flex items-center gap-2 text-sm text-muted-foreground">
+            <label className="sidebar-inline_field">
               {quickAddType === 'task' ? 'Due date' : 'Date'}
               <Input
                 type="date"
                 value={quickAddDate}
                 onChange={(e) => setQuickAddDate(e.target.value)}
-                className="flex-1 text-sm px-2 py-1 rounded-md border border-input bg-background outline-none focus:ring-1 focus:ring-primary"
+                className="sidebar-input sidebar-input--compact"
               />
             </label>
 
             {quickAddType === 'task' && epics.length > 0 && (
-              <label className="flex items-center gap-2 text-sm text-muted-foreground">
+              <label className="sidebar-inline_field">
                 Epic
                 <Select
                   value={quickAddEpicId}
                   onChange={(e) => setQuickAddEpicId(e.target.value)}
-                  className="flex-1 text-sm px-2 py-1 rounded-md border border-input bg-background outline-none focus:ring-1 focus:ring-primary"
+                  className="sidebar-input sidebar-input--compact"
                 >
                   <option value="">No epic</option>
                   {epics.map((epic) => (
@@ -683,17 +707,17 @@ export default function Sidebar() {
               </label>
             )}
 
-            <div className="flex justify-end gap-2">
+            <div className="sidebar-actions">
               <Button
                 onClick={() => setQuickAddOpen(false)}
-                className="px-3 py-1.5 rounded-md text-sm text-muted-foreground hover:bg-accent"
+                className="sidebar-cancel"
               >
                 Cancel
               </Button>
               <Button variant="primary"
                 onClick={submitQuickAdd}
                 disabled={!quickAddTitle.trim() || createTask.isPending || createEvent.isPending}
-                className="py-1.5"
+                className="sidebar-submit"
               >
                 Add {quickAddType === 'task' ? 'task' : 'event'}
               </Button>

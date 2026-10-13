@@ -1,0 +1,69 @@
+@use 'tokens' as *;
+
+/* Patterns shared by Sidebar.scss and FolderItem.scss. */
+
+@mixin icon($n, $muted: true) {
+  width: space($n);
+  height: space($n);
+
+  @if $muted {
+    color: color(muted-foreground);
+  }
+}
+
+@mixin error_text {
+  padding: space(2) space(3);
+  color: palette('red-500');
+  @include text('xs');
+}
+
+@mixin row {
+  display: flex;
+  align-items: center;
+  border-radius: radius('md');
+  @include text('sm');
+
+  &:hover {
+    background: color(accent);
+  }
+}
+
+/* Small icon-only button (pin, new document, more actions...). */
+@mixin icon_action {
+  padding: space(0.5);
+  border-radius: radius();
+  color: color(muted-foreground);
+
+  &:hover {
+    background: color(accent);
+    color: color(foreground);
+  }
+}
+
+@mixin danger_hover {
+  color: palette('red-500');
+
+  &:hover {
+    background: palette('red-50');
+
+    @include dark {
+      background: palette('red-950');
+    }
+  }
+}
+
+/* Text field overrides; include inside a selector that outranks .ui-input / */
+
+/* .ui-select (e.g. `.ui-input.foo-field`). */
+@mixin field($px, $py, $radius, $bg) {
+  padding: space($py) space($px);
+  border-radius: $radius;
+  border-color: color(input);
+  background: color($bg);
+  outline: none;
+
+  &:focus {
+    outline: none;
+    box-shadow: 0 0 0 1px color(primary);
+  }
+}

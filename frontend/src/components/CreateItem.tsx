@@ -5,6 +5,7 @@ import { useCreateDocument, useWorkspace } from '@/api/workspace'
 import { errorMessage } from '@/api/tables'
 import { flattenFolders } from '@/components/file-manager/tree'
 import type { Document } from '@/types'
+import './CreateItem.scss'
 
 export default function CreateItem({ folderId }: { folderId?: number }) {
   const navigate = useNavigate()
@@ -25,12 +26,12 @@ export default function CreateItem({ folderId }: { folderId?: number }) {
       navigate(`/documents/${doc.id}`)
     } catch (e) { setError(errorMessage(e)) } finally { setBusy(false) }
   }
-  return <div className="flex flex-wrap items-center gap-2 text-sm">
-    {!folderId && folders.length > 0 && <Select aria-label="Create in folder" className="bg-background border rounded px-2 py-1.5 max-w-40" value={destination} onChange={e => setDestination(e.target.value)}>
+  return <div className="view-create_item">
+    {!folderId && folders.length > 0 && <Select aria-label="Create in folder" className="create_item-folder" value={destination} onChange={e => setDestination(e.target.value)}>
       <option value="">{rootName}</option>
       {folders.filter(f => f.id !== rootId).map(f => <option key={f.id} value={f.id}>{f.name}</option>)}
     </Select>}
-    {(['document', 'spreadsheet', 'table'] as const).map(type => <Button variant="secondary" key={type} disabled={busy || !workspace} onClick={() => make(type)} className="py-1.5">New {type === 'spreadsheet' ? 'Sheet' : type === 'table' ? 'Table' : 'Document'}</Button>)}
+    {(['document', 'spreadsheet', 'table'] as const).map(type => <Button variant="secondary" key={type} disabled={busy || !workspace} onClick={() => make(type)} className="create_item-button">New {type === 'spreadsheet' ? 'Sheet' : type === 'table' ? 'Table' : 'Document'}</Button>)}
     <FormError message={error} />
   </div>
 }

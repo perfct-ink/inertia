@@ -1,0 +1,81 @@
+@use 'tokens' as *;
+
+/* Fortune Sheet — hide sheet tabs (single-sheet mode) */
+
+@layer app.components {
+  .fortune-sheet-tabs-container,
+  .fortune-sheet-tab-add-btn {
+    display: none !important;
+  }
+
+  /* Fortune Sheet — dark mode.
+     The grid, headers, and toolbar icons are drawn on <canvas>, and the
+     library exposes no theme API (checked @fortune-sheet/core's Settings
+     type — no `theme`/`darkMode` option, and it's already on the latest
+     1.0.4). CSS background/color rules can't reach canvas-drawn pixels at
+     all, so this is done with a filter instead.
+     .fortune-sheet-container (used here previously) only wraps the grid —
+     toolbar, sheet tabs, and the zoom footer are siblings of it, not
+     descendants, so they stayed unstyled. Verified against the library's own
+     bundle (node_modules/@fortune-sheet/react/dist/index.js): the actual
+     outermost element is a single <div className="fortune-container"> that
+     wraps everything — toolbar, grid, sheet tabs, zoom controls, and all
+     dialogs/menus (no React portals are used, so nothing renders outside this
+     tree). Inverting + hue-rotating that root flips its white/black chrome to
+     dark/light while keeping any user-set cell colors at roughly their
+     original hue. */
+
+  @media (prefers-color-scheme: dark) {
+    .fortune-container {
+      filter: invert(1) hue-rotate(180deg);
+    }
+  }
+
+  .view-spreadsheet {
+    display: flex;
+    flex: 1 1 0%;
+    flex-direction: column;
+    overflow: hidden;
+
+    @at-root .spreadsheet-header {
+      display: flex;
+      flex-shrink: 0;
+      align-items: center;
+      padding: space(1.5) space(3);
+      border-bottom-width: 1px;
+    }
+
+    @at-root .spreadsheet-title {
+      @include truncate;
+      @include text('sm');
+
+      font-weight: 500;
+    }
+
+    @at-root .spreadsheet-status {
+      display: flex;
+      align-items: center;
+      margin-left: auto;
+      padding-right: space(2);
+    }
+
+    @at-root .spreadsheet-status_spinner {
+      width: space(3.5);
+      height: space(3.5);
+      color: color(muted-foreground);
+      @include spin;
+    }
+
+    @at-root .spreadsheet-status_dot {
+      width: space(2);
+      height: space(2);
+      border-radius: radius('full');
+      background: color(muted-foreground, 0.6);
+    }
+
+    @at-root .spreadsheet-body {
+      flex: 1 1 0%;
+      height: 0;
+    }
+  }
+}

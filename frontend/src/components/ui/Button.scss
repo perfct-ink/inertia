@@ -1,0 +1,62 @@
+@use 'tokens' as *;
+
+@layer app.ui {
+  .ui-button {
+    &:focus-visible {
+      @include focus-ring;
+    }
+
+    &:disabled {
+      cursor: not-allowed;
+      opacity: 0.5;
+    }
+
+    &--primary,
+    &--secondary,
+    &--destructive {
+      min-height: space(10);
+      padding: space(2) space(3);
+      border-radius: radius('md');
+      @include text('sm');
+
+      font-weight: 500;
+    }
+
+    &--primary {
+      background: color(primary);
+      color: color(primary-foreground);
+
+      &:hover:not(:disabled) {
+        opacity: 0.9;
+      }
+    }
+
+    &--secondary {
+      border-width: 1px;
+      background: color(card);
+
+      &:hover:not(:disabled) {
+        background: color(accent);
+      }
+    }
+
+    &--ghost {
+      padding: space(1) space(2);
+      border-radius: radius('md');
+      @include text('sm');
+
+      &:hover:not(:disabled) {
+        background: color(accent);
+      }
+    }
+
+    &--destructive {
+      background: palette('red-600');
+      color: palette('white');
+
+      &:hover:not(:disabled) {
+        background: palette('red-700');
+      }
+    }
+  }
+}

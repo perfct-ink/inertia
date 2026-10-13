@@ -1,0 +1,73 @@
+@use 'tokens' as *;
+
+@layer app.components {
+  .view-auth {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    background: color(muted);
+
+    @at-root .auth-card {
+      width: 100%;
+      max-width: 24rem;
+      padding: space(8);
+      border-radius: radius('xl');
+      background: color(card);
+      box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+
+      > * + * {
+        margin-top: space(6);
+      }
+    }
+
+    @at-root .auth-logo {
+      display: block;
+      width: space(14);
+      height: space(14);
+      margin-right: auto;
+      margin-left: auto;
+      border-radius: radius('xl');
+    }
+
+    @at-root .auth-title {
+      @include text('2xl');
+
+      font-weight: 600;
+      letter-spacing: -0.025em;
+      text-align: center;
+    }
+
+    @at-root .auth-form {
+      > * + * {
+        margin-top: space(4);
+      }
+    }
+
+    @at-root .auth-switch {
+      @include text('sm');
+
+      color: color(muted-foreground);
+      text-align: center;
+    }
+
+    @at-root .auth-link {
+      text-decoration: underline;
+    }
+
+    /* Two-class selectors so they beat the ui-button variant styles. */
+    .auth-submit {
+      width: 100%;
+    }
+
+    .auth-dev_button {
+      width: 100%;
+      border-style: dashed;
+      color: color(muted-foreground);
+
+      &:hover:not(:disabled) {
+        color: color(foreground);
+      }
+    }
+  }
+}

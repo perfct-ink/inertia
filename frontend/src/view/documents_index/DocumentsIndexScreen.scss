@@ -1,0 +1,158 @@
+@use 'tokens' as *;
+
+@layer view {
+  .view-documents_index {
+    flex: 1 1 0%;
+    overflow-y: auto;
+
+    @at-root .documents_index-content {
+      max-width: 56rem;
+      margin-inline: auto;
+      padding: space(8) space(6);
+    }
+
+    @at-root .documents_index-title {
+      margin-bottom: space(4);
+      font-size: 1.5rem;
+      line-height: 2rem;
+      font-weight: 600;
+    }
+
+    @at-root .documents_index-create {
+      margin-bottom: space(6);
+    }
+
+    @at-root .documents_index-loading {
+      display: flex;
+      justify-content: center;
+      padding-block: space(12);
+    }
+
+    @at-root .documents_index-spinner {
+      width: space(5);
+      height: space(5);
+      color: color(muted-foreground);
+      @include spin;
+    }
+
+    @at-root .documents_index-empty {
+      padding-block: space(12);
+      color: color(muted-foreground);
+      text-align: center;
+      @include text('sm');
+    }
+
+    @at-root .documents_index-table {
+      display: flex;
+      flex-direction: column;
+    }
+
+    @at-root .documents_index-head {
+      display: flex;
+      align-items: center;
+      gap: space(3);
+      padding: space(2);
+      border-bottom-width: 1px;
+    }
+
+    @at-root .documents_index-spacer {
+      flex-shrink: 0;
+      width: space(4);
+    }
+
+    @at-root .documents_index-rows {
+      display: flex;
+      flex-direction: column;
+
+      > * + * {
+        border-top-width: 1px;
+      }
+    }
+
+    @at-root .documents_index-row {
+      display: flex;
+      align-items: center;
+      gap: space(3);
+      padding: space(2.5) space(2);
+      border-radius: radius('md');
+
+      &:hover {
+        background: color(accent);
+      }
+    }
+
+    @at-root .documents_index-icon {
+      flex-shrink: 0;
+      width: space(4);
+      height: space(4);
+      color: color(muted-foreground);
+    }
+
+    .documents_index-sort {
+      display: flex;
+      align-items: center;
+      gap: space(1);
+      color: color(muted-foreground);
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      @include text('xs');
+
+      &:hover,
+      &--active {
+        color: color(foreground);
+      }
+    }
+
+    @at-root .documents_index-sort_icon {
+      width: space(3);
+      height: space(3);
+    }
+
+    @at-root .documents_index-col--name {
+      flex: 1 1 0%;
+    }
+
+    @at-root .documents_index-col--location {
+      flex-shrink: 0;
+      width: space(32);
+    }
+
+    @at-root .documents_index-col--modified {
+      flex-shrink: 0;
+      width: space(36);
+    }
+
+    .documents_index-link {
+      flex: 1 1 0%;
+      font-weight: 500;
+      text-align: left;
+      @include text('sm');
+      @include truncate;
+
+      &:hover {
+        text-decoration: underline;
+      }
+    }
+
+    .documents_index-location {
+      flex-shrink: 0;
+      width: space(32);
+      color: color(muted-foreground);
+      text-align: left;
+      @include text('xs');
+      @include truncate;
+
+      &:hover {
+        text-decoration: underline;
+      }
+    }
+
+    @at-root .documents_index-modified {
+      flex-shrink: 0;
+      width: space(36);
+      color: color(muted-foreground);
+      @include text('xs');
+    }
+  }
+}

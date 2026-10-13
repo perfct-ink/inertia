@@ -1,0 +1,110 @@
+@use 'tokens' as *;
+
+@layer view {
+  .view-document {
+    display: flex;
+    flex: 1 1 0%;
+    flex-direction: column;
+    overflow: hidden;
+
+    /* Loading / not-found placeholders. */
+    &--centered {
+      align-items: center;
+      justify-content: center;
+    }
+
+    @at-root .document-placeholder_icon {
+      width: space(5);
+      height: space(5);
+      color: color(muted-foreground);
+
+      &--spinning {
+        @include spin;
+      }
+
+      &--missing {
+        width: space(8);
+        height: space(8);
+        opacity: 0.4;
+      }
+    }
+
+    @at-root .document-toolbar {
+      display: flex;
+      flex-shrink: 0;
+      align-items: center;
+      gap: space(0.5);
+      overflow-x: auto;
+      padding: space(1) space(3);
+      border-bottom-width: 1px;
+    }
+
+    & .document-toolbar_button {
+      padding: space(1.5);
+      border-radius: radius();
+      color: color(muted-foreground);
+      transition: color 150ms, background-color 150ms;
+
+      &:hover:not(:disabled) {
+        background: color(accent);
+        color: color(foreground);
+      }
+
+      &:disabled {
+        opacity: 0.3;
+        cursor: not-allowed;
+      }
+
+      &--active {
+        background: color(accent);
+        color: color(foreground);
+      }
+    }
+
+    @at-root .document-toolbar_icon {
+      width: space(4);
+      height: space(4);
+    }
+
+    @at-root .document-toolbar_divider {
+      flex-shrink: 0;
+      align-self: center;
+      width: 1px;
+      height: space(5);
+      margin: 0 space(0.5);
+      background: color(border);
+    }
+
+    @at-root .document-status {
+      flex-shrink: 0;
+      margin-left: auto;
+      padding-right: space(2);
+    }
+
+    @at-root .document-status_spinner {
+      width: space(3.5);
+      height: space(3.5);
+      color: color(muted-foreground);
+      @include spin;
+    }
+
+    @at-root .document-status_dot {
+      width: space(2);
+      height: space(2);
+      border-radius: radius('full');
+      background: color(muted-foreground, 0.6);
+    }
+
+    @at-root .document-editor_area {
+      flex: 1 1 0%;
+      overflow-y: auto;
+      cursor: text;
+    }
+
+    @at-root .document-page {
+      max-width: 48rem;
+      margin: 0 auto;
+      padding: space(12) space(8);
+    }
+  }
+}

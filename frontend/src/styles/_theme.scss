@@ -1,0 +1,32 @@
+// App-wide theme: color variables (HSL channels) for light and dark mode.
+:root {
+  --background: 0 0% 100%;
+  --foreground: 240 10% 3.9%;
+  --muted: 174 20% 94%;
+  --muted-foreground: 174 10% 45%;
+  --border: 174 20% 88%;
+  --input: 174 20% 88%;
+  --primary: 174 72% 32%;
+  --primary-foreground: 0 0% 98%;
+  --accent: 174 30% 90%;
+  --accent-foreground: 174 72% 20%;
+  --card: 0 0% 100%;
+  --card-foreground: 240 10% 3.9%;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: 220 13% 9%;
+    --foreground: 0 0% 95%;
+    --muted: 174 10% 16%;
+    --muted-foreground: 174 10% 58%;
+    --border: 174 10% 22%;
+    --input: 174 10% 22%;
+    --primary: 174 72% 42%;
+    --primary-foreground: 0 0% 4%;
+    --accent: 174 15% 18%;
+    --accent-foreground: 174 60% 75%;
+    --card: 220 13% 11%;
+    --card-foreground: 0 0% 95%;
+  }
+}

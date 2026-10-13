@@ -1,0 +1,150 @@
+@use 'tokens' as *;
+@use 'file_manager' as fm;
+
+@layer app.components {
+  .view-folder_item {
+    @at-root .folder_item-error {
+      @include fm.error_text;
+    }
+
+    @at-root .folder_item-dismiss {
+      margin-left: space(2);
+      text-decoration: underline;
+    }
+
+    @at-root .folder_item-row {
+      @include fm.row;
+
+      padding-top: space(1);
+      padding-bottom: space(1);
+
+      &--folder {
+        gap: space(1);
+        user-select: none;
+      }
+
+      &--doc {
+        width: 100%;
+        gap: space(1.5);
+      }
+
+      &--active {
+        background: color(accent);
+      }
+    }
+
+    @at-root .folder_item-toggle {
+      flex-shrink: 0;
+      padding: space(0.5);
+      color: color(muted-foreground);
+    }
+
+    @at-root .folder_item-chevron {
+      @include fm.icon(3, false);
+
+      transition: transform 150ms cubic-bezier(0.4, 0, 0.2, 1);
+
+      &--open {
+        transform: rotate(90deg);
+      }
+    }
+
+    @at-root .folder_item-icon {
+      flex-shrink: 0;
+      color: color(muted-foreground);
+
+      &--xs {
+        @include fm.icon(2.5);
+      }
+
+      &--sm {
+        @include fm.icon(3.5);
+      }
+    }
+
+    @at-root .folder_item-badge {
+      display: flex;
+      flex-shrink: 0;
+    }
+
+    @at-root .folder_item-name {
+      flex: 1 1 0%;
+      min-width: 0;
+      @include truncate;
+
+      text-align: left;
+      color: color(foreground);
+      cursor: pointer;
+    }
+
+    @at-root .folder_item-doc_title {
+      flex: 1 1 0%;
+      @include truncate;
+
+      text-align: left;
+      user-select: none;
+    }
+
+    @at-root .folder_item-actions {
+      @include fm.icon_action;
+
+      flex-shrink: 0;
+      opacity: 1;
+      cursor: pointer;
+
+      /* Follow the button's hover color instead of the icon's own muted color. */
+      svg {
+        color: inherit;
+      }
+
+      @include up(md) {
+        opacity: 0;
+      }
+    }
+
+    @at-root .folder_item-row:hover .folder_item-actions {
+      @include up(md) {
+        opacity: 1;
+      }
+    }
+
+    @at-root .folder_item-new_folder {
+      padding-top: space(0.5);
+      padding-bottom: space(0.5);
+      padding-right: space(2);
+    }
+
+    @at-root .folder_item-menu {
+      position: fixed;
+      z-index: 50;
+      width: space(44);
+      padding: space(1) 0;
+      border-width: 1px;
+      border-radius: radius('lg');
+      background: color(card);
+      box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+    }
+
+    @at-root .folder_item-menu_item {
+      display: flex;
+      width: 100%;
+      align-items: center;
+      padding: space(1.5) space(3);
+      @include text('sm');
+
+      &:hover {
+        background: color(accent);
+      }
+
+      &--danger {
+        @include fm.danger_hover;
+      }
+    }
+  }
+
+  .ui-input.folder_item-inline_input {
+    flex: 1 1 0%;
+    min-width: 0;
+    @include fm.field(1, 0, radius(), card);
+  }
+}

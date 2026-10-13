@@ -10,6 +10,7 @@ import {
 import { useUpdateDocument } from '@/api/documents'
 import { errorMessage } from '@/api/tables'
 import type { Folder as FolderType, Document } from '@/types'
+import './FolderItem.scss'
 
 // ── Context menu ─────────────────────────────────────────────────────────────
 
@@ -26,7 +27,7 @@ function ContextMenu({ x, y, items, onClose }: { x: number; y: number; items: Me
   return (
     <div
       ref={ref}
-      className="fixed z-50 bg-card border rounded-lg shadow-lg py-1 w-44"
+      className="folder_item-menu"
       style={{
         left: Math.min(x, window.innerWidth - 176),
         top: Math.min(y, window.innerHeight - items.length * 36 - 8),
@@ -36,7 +37,7 @@ function ContextMenu({ x, y, items, onClose }: { x: number; y: number; items: Me
         <Button
           key={item.label}
           onClick={() => { item.action(); onClose() }}
-          className={`flex w-full items-center px-3 py-1.5 text-sm ${item.danger ? 'text-red-500 hover:bg-red-50 dark:hover:bg-red-950' : 'hover:bg-accent'}`}
+          className={`folder_item-menu_item${item.danger ? ' folder_item-menu_item--danger' : ''}`}
         >
           {item.label}
         </Button>
@@ -59,9 +60,10 @@ function ActionsButton({ onOpen }: { onOpen: (pos: { x: number; y: number }) => 
         onOpen({ x: rect.right, y: rect.bottom + 4 })
       }}
       title="More actions"
-      className="shrink-0 p-0.5 rounded text-muted-foreground hover:bg-accent hover:text-foreground opacity-100 md:opacity-0 md:group-hover:opacity-100"
+      aria-label="More actions"
+      className="folder_item-actions"
     >
-      <MoreVertical className="w-3.5 h-3.5" />
+      <MoreVertical className="folder_item-icon--sm" />
     </Button>
   )
 }
@@ -76,7 +78,7 @@ function InlineInput({ defaultValue, onConfirm, onCancel }: { defaultValue: stri
     <Input
       ref={ref}
       defaultValue={defaultValue}
-      className="flex-1 min-w-0 text-sm px-1 py-0 rounded border border-input bg-card outline-none focus:ring-1 focus:ring-primary"
+      className="folder_item-inline_input"
       onKeyDown={(e) => {
         if (e.key === 'Enter' && e.currentTarget.value.trim()) { submitted.current = true; onConfirm(e.currentTarget.value.trim()) }
         if (e.key === 'Escape') onCancel()
@@ -133,18 +135,18 @@ export function FolderItem({ folder, depth = 0 }: { folder: FolderType; depth?: 
   ]
 
   return (
-    <div>
-      {actionError && <div role="alert" className="px-3 py-2 text-xs text-red-500">{actionError}<Button className="ml-2 underline" onClick={() => setActionError('')}>Dismiss</Button></div>}
+    <div className="view-folder_item">
+      {actionError && <div role="alert" className="folder_item-error">{actionError}<Button className="folder_item-dismiss" onClick={() => setActionError('')}>Dismiss</Button></div>}
       {/* Folder row */}
       <div
-        className={`group flex items-center gap-1 py-1 rounded-md hover:bg-accent text-sm select-none ${location.pathname === `/folders/${folder.id}` ? 'bg-accent' : ''}`}
+        className={`folder_item-row folder_item-row--folder${location.pathname === `/folders/${folder.id}` ? ' folder_item-row--active' : ''}`}
         style={{ paddingLeft: `${8 + indent}px`, paddingRight: '8px' }}
         onContextMenu={(e) => { e.preventDefault(); e.stopPropagation(); setFolderCtx({ x: e.clientX, y: e.clientY }) }}
       >
-        <Button onClick={() => setOpen((o) => !o)} className="text-muted-foreground shrink-0 p-0.5">
-          <ChevronRight className={`w-3 h-3 transition-transform ${open ? 'rotate-90' : ''}`} />
+        <Button onClick={() => setOpen((o) => !o)} className="folder_item-toggle">
+          <ChevronRight className={`folder_item-chevron${open ? ' folder_item-chevron--open' : ''}`} />
         </Button>
-        <Folder className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
+        <Folder className="folder_item-icon folder_item-icon--sm" />
         {renamingFolder ? (
           <InlineInput
             defaultValue={folder.name}
@@ -155,22 +157,22 @@ export function FolderItem({ folder, depth = 0 }: { folder: FolderType; depth?: 
           <Button
             onClick={() => navigate(`/folders/${folder.id}`)}
             title="Open folder — see its documents, tasks, and events"
-            className="flex-1 min-w-0 text-left truncate text-foreground cursor-pointer"
+            className="folder_item-name"
           >
             {folder.name}
           </Button>
         )}
         {folder.has_tasks && (
-          <span title="Has tasks" className="shrink-0 flex">
-            <CheckSquare className="w-2.5 h-2.5 text-muted-foreground" />
+          <span title="Has tasks" className="folder_item-badge">
+            <CheckSquare className="folder_item-icon--xs" />
           </span>
         )}
         {folder.has_events && (
-          <span title="Has events" className="shrink-0 flex">
-            <CalendarDays className="w-2.5 h-2.5 text-muted-foreground" />
+          <span title="Has events" className="folder_item-badge">
+            <CalendarDays className="folder_item-icon--xs" />
           </span>
         )}
-        {folder.pinned && <Pin className="w-2.5 h-2.5 text-muted-foreground shrink-0" />}
+        {folder.pinned && <Pin className="folder_item-icon folder_item-icon--xs" />}
         <ActionsButton onOpen={setFolderCtx} />
       </div>
 
@@ -179,7 +181,7 @@ export function FolderItem({ folder, depth = 0 }: { folder: FolderType; depth?: 
       {open && (
         <div>
           {addingFolder && (
-            <div style={{ paddingLeft: `${20 + indent}px` }} className="pr-2 py-0.5">
+            <div style={{ paddingLeft: `${20 + indent}px` }} className="folder_item-new_folder">
               <InlineInput
                 defaultValue=""
                 onConfirm={(name) => { createFolder.mutate({ name, parent_id: folder.id }); setAddingFolder(false) }}
@@ -198,15 +200,15 @@ export function FolderItem({ folder, depth = 0 }: { folder: FolderType; depth?: 
               <Link
                 key={doc.id}
                 to={`/documents/${doc.id}`}
-                className={`group flex items-center gap-1.5 w-full py-1 rounded-md text-sm hover:bg-accent ${active ? 'bg-accent' : ''}`}
+                className={`folder_item-row folder_item-row--doc${active ? ' folder_item-row--active' : ''}`}
                 style={{ paddingLeft: `${36 + indent}px`, paddingRight: '8px' }}
                 onContextMenu={(e) => { e.preventDefault(); e.stopPropagation(); setDocCtx({ x: e.clientX, y: e.clientY, doc }) }}
               >
                 {doc.doc_type === 'table'
-                  ? <Database className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
+                  ? <Database className="folder_item-icon folder_item-icon--sm" />
                   : doc.doc_type === 'spreadsheet'
-                  ? <TableIcon className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
-                  : <FileText className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
+                  ? <TableIcon className="folder_item-icon folder_item-icon--sm" />
+                  : <FileText className="folder_item-icon folder_item-icon--sm" />
                 }
                 {renamingDocId === doc.id ? (
                   <InlineInput
@@ -215,9 +217,9 @@ export function FolderItem({ folder, depth = 0 }: { folder: FolderType; depth?: 
                     onCancel={() => setRenamingDocId(null)}
                   />
                 ) : (
-                  <span className="flex-1 truncate text-left select-none">{doc.title}</span>
+                  <span className="folder_item-doc_title">{doc.title}</span>
                 )}
-                {doc.pinned && <Pin className="w-2.5 h-2.5 text-muted-foreground shrink-0" />}
+                {doc.pinned && <Pin className="folder_item-icon folder_item-icon--xs" />}
                 <ActionsButton onOpen={(pos) => setDocCtx({ ...pos, doc })} />
               </Link>
             )

@@ -1,0 +1,8 @@
+@use 'tokens' as *;
+
+@layer app.ui {
+  .ui-form_error {
+    color: palette('red-500');
+    @include text('sm');
+  }
+}

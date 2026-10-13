@@ -1,0 +1,22 @@
+@use 'tokens' as *;
+
+@layer app.ui {
+  .ui-textarea {
+    min-height: space(24);
+    width: 100%;
+    padding: space(2) space(3);
+    border-width: 1px;
+    border-radius: radius('md');
+    background: transparent;
+    outline: none;
+    @include text('sm');
+
+    &:focus {
+      @include focus-ring;
+    }
+
+    &:disabled {
+      opacity: 0.5;
+    }
+  }
+}

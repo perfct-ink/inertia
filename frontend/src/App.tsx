@@ -1,16 +1,17 @@
 import { Routes, Route, Navigate, useParams } from 'react-router-dom'
 import { useAuthStore } from '@/store/auth'
-import LoginScreen from '@/components/auth/LoginScreen'
-import SignupScreen from '@/components/auth/SignupScreen'
-import WorkspaceScreen from '@/components/screens/WorkspaceScreen'
-import DocumentScreen from '@/components/editors/DocumentScreen'
-import DocumentsIndexScreen from '@/components/screens/DocumentsIndexScreen'
-import TasksScreen from '@/components/screens/TasksScreen'
-import EventsScreen from '@/components/screens/EventsScreen'
-import EpicsScreen from '@/components/screens/EpicsScreen'
-import InitiativesScreen from '@/components/screens/InitiativesScreen'
-import FolderDetailScreen from '@/components/screens/FolderDetailScreen'
-import SharedScreen from '@/components/screens/SharedScreen'
+import { ToastRegion } from '@/components/ui'
+import LoginScreen from '@/view/login/LoginScreen'
+import SignupScreen from '@/view/signup/SignupScreen'
+import WorkspaceScreen from '@/view/workspace/WorkspaceScreen'
+import DocumentScreen from '@/view/document/DocumentScreen'
+import DocumentsIndexScreen from '@/view/documents_index/DocumentsIndexScreen'
+import TasksScreen from '@/view/tasks/TasksScreen'
+import EventsScreen from '@/view/events/EventsScreen'
+import EpicsScreen from '@/view/epics/EpicsScreen'
+import InitiativesScreen from '@/view/initiatives/InitiativesScreen'
+import FolderDetailScreen from '@/view/folder_detail/FolderDetailScreen'
+import SharedScreen from '@/view/shared/SharedScreen'
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
   const token = useAuthStore((s) => s.token)
@@ -29,81 +30,84 @@ function DocumentRoute() {
 
 export default function App() {
   return (
-    <Routes>
-      <Route path="/login" element={<LoginScreen />} />
-      <Route path="/signup" element={<SignupScreen />} />
-      <Route path="/shared/:token" element={<SharedScreen />} />
-      {/* Rails owns "/" in production for the marketing homepage (see
-          backend/app/controllers/marketing_controller.rb and the nginx vhost
-          under deploy/) — this route only matters for local dev (no Rails
-          marketing page competing there) and for in-app client-side nav,
-          which never leaves the already-loaded SPA. */}
-      <Route path="/" element={<Navigate to="/workspace" replace />} />
-      <Route
-        path="/workspace"
-        element={
-          <PrivateRoute>
-            <WorkspaceScreen />
-          </PrivateRoute>
-        }
-      />
-      <Route
-        path="/documents"
-        element={
-          <PrivateRoute>
-            <DocumentsIndexScreen />
-          </PrivateRoute>
-        }
-      />
-      <Route
-        path="/documents/:id"
-        element={
-          <PrivateRoute>
-            <DocumentRoute />
-          </PrivateRoute>
-        }
-      />
-      <Route
-        path="/tasks"
-        element={
-          <PrivateRoute>
-            <TasksScreen />
-          </PrivateRoute>
-        }
-      />
-      <Route
-        path="/events"
-        element={
-          <PrivateRoute>
-            <EventsScreen />
-          </PrivateRoute>
-        }
-      />
-      <Route
-        path="/epics"
-        element={
-          <PrivateRoute>
-            <EpicsScreen />
-          </PrivateRoute>
-        }
-      />
-      <Route
-        path="/initiatives"
-        element={
-          <PrivateRoute>
-            <InitiativesScreen />
-          </PrivateRoute>
-        }
-      />
-      <Route
-        path="/folders/:id"
-        element={
-          <PrivateRoute>
-            <FolderDetailScreen />
-          </PrivateRoute>
-        }
-      />
-      <Route path="*" element={<Navigate to="/workspace" replace />} />
-    </Routes>
+    <>
+      <Routes>
+        <Route path="/login" element={<LoginScreen />} />
+        <Route path="/signup" element={<SignupScreen />} />
+        <Route path="/shared/:token" element={<SharedScreen />} />
+        {/* Rails owns "/" in production for the marketing homepage (see
+            backend/app/controllers/marketing_controller.rb and the nginx vhost
+            under deploy/) — this route only matters for local dev (no Rails
+            marketing page competing there) and for in-app client-side nav,
+            which never leaves the already-loaded SPA. */}
+        <Route path="/" element={<Navigate to="/workspace" replace />} />
+        <Route
+          path="/workspace"
+          element={
+            <PrivateRoute>
+              <WorkspaceScreen />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/documents"
+          element={
+            <PrivateRoute>
+              <DocumentsIndexScreen />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/documents/:id"
+          element={
+            <PrivateRoute>
+              <DocumentRoute />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/tasks"
+          element={
+            <PrivateRoute>
+              <TasksScreen />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/events"
+          element={
+            <PrivateRoute>
+              <EventsScreen />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/epics"
+          element={
+            <PrivateRoute>
+              <EpicsScreen />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/initiatives"
+          element={
+            <PrivateRoute>
+              <InitiativesScreen />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/folders/:id"
+          element={
+            <PrivateRoute>
+              <FolderDetailScreen />
+            </PrivateRoute>
+          }
+        />
+        <Route path="*" element={<Navigate to="/workspace" replace />} />
+      </Routes>
+      <ToastRegion />
+    </>
   )
 }

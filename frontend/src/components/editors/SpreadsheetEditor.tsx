@@ -1,6 +1,6 @@
 import { useState, useRef, useMemo, useEffect } from 'react'
 import { Workbook } from '@fortune-sheet/react'
-import '@fortune-sheet/react/dist/index.css'
+import './SpreadsheetEditor.scss'
 import { Loader2 } from 'lucide-react'
 import WorkspaceLayout from '@/components/WorkspaceLayout'
 import { useDocument, useUpdateDocument } from '@/api/documents'
@@ -64,15 +64,15 @@ export default function SpreadsheetEditor({ docId }: { docId: number }) {
 
   return (
     <WorkspaceLayout>
-      <div className="flex-1 flex flex-col overflow-hidden">
-        <div className="border-b px-3 py-1.5 flex items-center shrink-0">
-          <span className="text-sm font-medium truncate">{doc?.title ?? 'Spreadsheet'}</span>
-          <div className="ml-auto pr-2 flex items-center">
-            {saveStatus === 'saving' && <Loader2 className="w-3.5 h-3.5 animate-spin text-muted-foreground" />}
-            {saveStatus === 'unsaved' && <div className="w-2 h-2 rounded-full bg-muted-foreground/60" />}
+      <div className="view-spreadsheet">
+        <div className="spreadsheet-header">
+          <span className="spreadsheet-title">{doc?.title ?? 'Spreadsheet'}</span>
+          <div className="spreadsheet-status">
+            {saveStatus === 'saving' && <Loader2 className="spreadsheet-status_spinner" />}
+            {saveStatus === 'unsaved' && <div className="spreadsheet-status_dot" />}
           </div>
         </div>
-        <div className="flex-1" style={{ height: 0 }}>
+        <div className="spreadsheet-body">
           <Workbook
             key={docId}
             data={initialSheets}

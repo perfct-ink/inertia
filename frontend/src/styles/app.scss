@@ -1,0 +1,25 @@
+// App-wide styles and the cascade order (AGENTS.md "Inheritance"):
+//   1. libraries      - reset/native styles and external libraries
+//   2. app            - theme/typography/spacing (app.base), shared controls (app.ui),
+//                       shared components (app.components)
+//   3. view           - view-specific overrides
+// Later layers win regardless of selector specificity or import order, so
+// every other stylesheet wraps its rules in one of these layers.
+@use 'sass:meta';
+
+@layer libraries, app.base, app.ui, app.components, view;
+
+// A plain CSS import (not a Sass one) so it can be assigned to a cascade layer.
+// stylelint-disable-next-line import-notation
+@import url('@fortune-sheet/react/dist/index.css') layer(libraries);
+
+@layer libraries {
+  @include meta.load-css('reset');
+}
+
+@layer app.base {
+  @include meta.load-css('theme');
+  @include meta.load-css('typography');
+  @include meta.load-css('spacing');
+  @include meta.load-css('animations');
+}

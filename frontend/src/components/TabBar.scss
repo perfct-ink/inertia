@@ -1,0 +1,76 @@
+@use 'tokens' as *;
+
+@layer app.components {
+  .view-tab_bar {
+    display: flex;
+    flex-shrink: 0;
+    align-items: flex-end;
+    height: space(9);
+    overflow-x: auto;
+    border-bottom-width: 1px;
+    background: color(muted, 0.1);
+
+    @at-root .tab_bar-tab {
+      position: relative;
+      display: flex;
+      flex-shrink: 0;
+      align-items: center;
+      gap: space(1.5);
+      max-width: 160px;
+      height: 100%;
+      padding: 0 space(3);
+      border-right-width: 1px;
+      @include text('sm');
+
+      color: color(muted-foreground);
+      transition: color 150ms, background-color 150ms;
+
+      &:hover {
+        background: color(accent, 0.5);
+        color: color(foreground);
+      }
+
+      &--active,
+      &--active:hover {
+        margin-bottom: -1px;
+        border-bottom-color: color(canvas);
+        background: color(background);
+        color: color(foreground);
+      }
+    }
+
+    @at-root .tab_bar-icon {
+      flex-shrink: 0;
+      width: space(3.5);
+      height: space(3.5);
+      opacity: 0.6;
+    }
+
+    @at-root .tab_bar-label {
+      @include truncate;
+    }
+
+    @at-root .tab_bar-close {
+      flex-shrink: 0;
+      padding: space(0.5);
+      border-radius: radius();
+      color: color(muted-foreground);
+      cursor: pointer;
+      opacity: 0;
+
+      &:hover {
+        background: color(muted);
+        color: color(foreground);
+      }
+    }
+
+    @at-root .tab_bar-tab:hover .tab_bar-close {
+      opacity: 1;
+    }
+
+    @at-root .tab_bar-close_icon {
+      width: space(3);
+      height: space(3);
+    }
+  }
+}

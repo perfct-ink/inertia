@@ -1,5 +1,6 @@
-import { twMerge } from 'tailwind-merge'
+import { classNames } from './classNames'
+import './FormError.scss'
 
 export function FormError({ message, className }: { message: string | null | undefined; className?: string }) {
-  return message ? <p role="alert" className={twMerge('text-sm text-red-500', className)}>{message}</p> : null
+  return message ? <p role="alert" className={classNames('ui-form_error', className)}>{message}</p> : null
 }

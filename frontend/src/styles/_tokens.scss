@@ -1,0 +1,134 @@
+// Design tokens shared by every stylesheet: `@use 'tokens' as *;`
+// (webpack's sass-loader resolves `tokens` through loadPaths = src/styles).
+@use 'sass:color';
+@use 'sass:list';
+@use 'sass:map';
+@use 'sass:math';
+
+// Theme colors are CSS variables (see _theme.scss) so light/dark switches at
+// runtime. color(primary) / color(primary, 0.5).
+@function color($name, $alpha: null) {
+  @if $alpha {
+    @return hsl(var(--#{$name}) / #{$alpha});
+  }
+
+  @return hsl(var(--#{$name}));
+}
+
+// Fixed palette for status/semantic colors that don't change with the theme.
+$palette: (
+  'white': #fff,
+  'black': #000,
+  'red-50': #fef2f2,
+  'red-100': #fee2e2,
+  'red-200': #fecaca,
+  'red-300': #fca5a5,
+  'red-500': #ef4444,
+  'red-600': #dc2626,
+  'red-700': #b91c1c,
+  'red-900': #7f1d1d,
+  'red-950': #450a0a,
+  'orange-500': #f97316,
+  'yellow-500': #eab308,
+  'green-500': #22c55e,
+  'blue-500': #3b82f6,
+  'purple-100': #f3e8ff,
+  'purple-200': #e9d5ff,
+  'purple-300': #d8b4fe,
+  'purple-500': #a855f7,
+  'purple-700': #7e22ce,
+  'purple-900': #581c87,
+  'purple-950': #3b0764,
+  'zinc-400': #a1a1aa,
+  'zinc-500': #71717a,
+);
+
+@function palette($name, $alpha: null) {
+  $value: map.get($palette, $name);
+
+  @if $alpha {
+    @return color.change($value, $alpha: $alpha);
+  }
+
+  @return $value;
+}
+
+// Spacing scale: space(1) = 0.25rem, space(2) = 0.5rem, space(0.5) = 0.125rem...
+@function space($n) {
+  @return math.div($n, 4) * 1rem;
+}
+
+// Type scale: [font-size, line-height].
+$font-sizes: (
+  'xs': (0.75rem, 1rem),
+  'sm': (0.875rem, 1.25rem),
+  'base': (1rem, 1.5rem),
+  'lg': (1.125rem, 1.75rem),
+  'xl': (1.25rem, 1.75rem),
+  '2xl': (1.5rem, 2rem),
+  '3xl': (1.875rem, 2.25rem),
+);
+
+@mixin text($size) {
+  $pair: map.get($font-sizes, $size);
+
+  font-size: list.nth($pair, 1);
+  line-height: list.nth($pair, 2);
+}
+
+$radii: (
+  'sm': 0.125rem,
+  'default': 0.25rem,
+  'md': 0.375rem,
+  'lg': 0.5rem,
+  'xl': 0.75rem,
+  'full': 9999px,
+);
+
+@function radius($name: 'default') {
+  @return map.get($radii, $name);
+}
+
+$breakpoints: (
+  'sm': 640px,
+  'md': 768px,
+  'lg': 1024px,
+  'xl': 1280px,
+);
+
+@mixin up($name) {
+  @media (min-width: map.get($breakpoints, $name)) {
+    @content;
+  }
+}
+
+@mixin dark {
+  @media (prefers-color-scheme: dark) {
+    @content;
+  }
+}
+
+@mixin focus-ring {
+  outline: none;
+  box-shadow: 0 0 0 2px color(background), 0 0 0 4px color(primary);
+}
+
+@mixin truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+// Rotating spinner (pair with a lucide Loader2 icon). Keyframes live in _animations.scss.
+@mixin spin {
+  animation: spin 1s linear infinite;
+}
+
+// Muted text/icon that turns to full foreground on hover.
+@mixin muted-link {
+  color: color(muted-foreground);
+
+  &:hover {
+    color: color(foreground);
+  }
+}
