@@ -13,6 +13,8 @@ Every internal and external service Inertia uses, why it is used, and the config
 
 ## Data stores
 
+The Docker frontend starts through `frontend/scripts/start-dev.sh`. It compares the package and lockfile hashes with the dependency volume and runs `npm ci` when they change. Restart the frontend after webpack configuration changes (`docker compose restart frontend`); webpack loads its configuration when the process starts.
+
 | Service | Why | Notes |
 | --- | --- | --- |
 | MySQL 8 | Primary database for all workspace data. | Dev: `mysql` container. Production: a DigitalOcean managed MySQL cluster. |

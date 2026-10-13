@@ -69,6 +69,7 @@ services:
       - "6379:6379"
 
   frontend:
+    command: ["sh", "scripts/start-dev.sh"]
     build:
       context: ./frontend
       dockerfile: Dockerfile.dev

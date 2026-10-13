@@ -11,6 +11,7 @@ import InertiaCore
                 .textFieldStyle(InertiaTextFieldStyle())
                 .appErrorAlert(error: $session.error)
         }
+        .windowStyle(.hiddenTitleBar)
         .commands {
             CommandGroup(after: .newItem) {
                 Button("Refresh Workspace") { NotificationCenter.default.post(name: .refreshWorkspace, object: nil) }.keyboardShortcut("r")
@@ -20,6 +21,7 @@ import InertiaCore
             TaskFileView(document: file.$document)
                 .textFieldStyle(InertiaTextFieldStyle())
         }
+        .windowStyle(.hiddenTitleBar)
     }
 }
 final class LaunchDelegate: NSObject, NSApplicationDelegate {
