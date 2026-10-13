@@ -190,6 +190,24 @@ Today: folders already nest to any depth (`folders.parent_id`, `Folder#self_and_
 | PM-125 | Feature status and owner, derived from its tasks or set by hand | |
 | PM-126 | Link features to the planning hierarchy (a feature can belong to an epic, initiative or milestone) | Ties into section 1. |
 
+## 13. Files and images in collections (P1)
+
+Requested by Alex on 2026-10-13: collections should let you upload files or images and keep them there.
+
+"Collection" isn't a term in the codebase yet. This assumes it means a folder (project or feature folder) and the documents inside it. If it turns out to be a separate concept, these items move to it.
+
+Today: `UploadsController` already stores images and video in ActiveStorage (100 MB cap, images/video only), but only so they can be embedded in a document. An uploaded file isn't an item of its own: it doesn't show in the folder, and nothing lists it.
+
+| ID | Item | Notes |
+| --- | --- | --- |
+| PM-130 | **Upload files and images into a folder** as items of their own, listed alongside documents, spreadsheets and tables | Default: a new `doc_type: file` on `documents` with an ActiveStorage attachment, so files inherit folder placement, pinning, sharing and archiving. |
+| PM-131 | Allow any file type (PDF, Office docs, zip, etc.), not just images and video | `UploadsController::ALLOWED_TYPES` limits uploads to images and video today. |
+| PM-132 | Drag-and-drop and multi-file upload onto a folder | |
+| PM-133 | Previews: image thumbnails, a grid/gallery view, inline PDF and video preview | Pairs with PM-65 (files gallery). |
+| PM-134 | Download, rename, move, delete, replace with a new version | |
+| PM-135 | Attach uploaded files to tasks and features | Ties into section 12. |
+| PM-136 | Storage quota per workspace and a per-file size limit | Production uses ActiveStorage `:local` today; large uploads need real object storage (see `docs/storage-options.md`). |
+
 ## Out of scope for parity
 
 Monday sells separate CRM, Service (ticketing), Campaigns and "vibe" app-builder products on the same platform. They are not project management and are left out unless someone asks.
