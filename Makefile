@@ -52,12 +52,16 @@ dev-frontend: ## Rebuild and restart the frontend service only
 	$(COMPOSE) build frontend
 	$(COMPOSE) up -d frontend
 
-dev-mac: ## Start services, stream logs, and open the Electron app
+dev-mac: ## Start the local API and web services, build and open the native Mac app
 	HTTP_PROXY=$(HOST_PROXY) HTTPS_PROXY=$(HOST_PROXY) bash scripts/dev-mac.sh
 
-build: ## Build all (backend Docker image + macOS Electron app)
+.PHONY: dev-electron
+dev-electron: ## Start services, stream logs, and open the Electron app
+	HTTP_PROXY=$(HOST_PROXY) HTTPS_PROXY=$(HOST_PROXY) bash scripts/dev-electron.sh
+
+build: ## Build all (backend Docker image + native macOS app)
 	$(COMPOSE) build backend
-	cd frontend && npm install && npm run electron:build-mac
+	$(MAKE) build-mac
 
 build-backend: ## Build the backend production Docker image
 	$(COMPOSE) build backend
@@ -65,7 +69,10 @@ build-backend: ## Build the backend production Docker image
 build-frontend: ## Build the frontend for production (webpack bundle)
 	$(COMPOSE) run --rm frontend npm run build
 
-build-mac: ## Build the macOS Electron app (outputs to frontend/dist-electron)
+build-mac: build-native-mac ## Build the native Mac app (outputs to macos/dist/Inertia.app)
+
+.PHONY: build-electron-mac
+build-electron-mac: ## Build the Electron Mac app (outputs to frontend/dist-electron)
 	cd frontend && npm install && npm run electron:build-mac
 
 clean: ## Remove containers, volumes, all build artifacts, and Docker build cache

@@ -1,3 +1,4 @@
+import { Button } from '@/components/ui'
 import { Database } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { X, FileText, Table as TableIcon } from 'lucide-react'
@@ -21,7 +22,7 @@ export default function TabBar() {
       {tabs.map((tab) => {
         const active = tab.id === activeId
         return (
-          <button
+          <Button
             key={tab.id}
             onClick={() => { setActive(tab.id); navigate(tab.path) }}
             className={`group flex items-center gap-1.5 px-3 h-full border-r text-sm shrink-0 max-w-[160px] relative transition-colors ${
@@ -43,7 +44,7 @@ export default function TabBar() {
             >
               <X className="w-3 h-3" />
             </span>
-          </button>
+          </Button>
         )
       })}
     </div>

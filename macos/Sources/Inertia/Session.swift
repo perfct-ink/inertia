@@ -1,5 +1,6 @@
 import SwiftUI
 import InertiaCore
+import AuthenticationServices
 
 @MainActor final class Session: ObservableObject {
     // Production by default; local development can override both endpoints.
@@ -10,6 +11,7 @@ import InertiaCore
     @Published var folders: [Folder] = []
     @Published var error: String?
     @Published var busy = false
+    private let socialSignIn = SocialSignIn()
 
     func request<T: Decodable>(_ path: String, method: String = "GET", body: [String: Any]? = nil) async throws -> T {
         let payload = try body.map { try JSONSerialization.data(withJSONObject: $0) }
@@ -20,6 +22,7 @@ import InertiaCore
         return try JSONDecoder().decode(T.self, from: data)
     }
     func login(email: String, password: String) async {
+        guard !busy else { return }
         busy = true
         defer { busy = false }
         do {
@@ -31,6 +34,22 @@ import InertiaCore
             user = try JSONDecoder().decode(Login.self, from: data).user
             token = String(header.dropFirst(7))
             await refresh()
+        } catch { self.error = error.localizedDescription }
+    }
+    func login(provider: String) async {
+        guard !busy else { return }
+        busy = true
+        error = nil
+        defer { busy = false }
+        do {
+            let (data, response) = try await socialSignIn.signIn(provider: provider, session: self)
+            guard let header = response.value(forHTTPHeaderField: "Authorization"), header.hasPrefix("Bearer ") else { throw APIError.missingToken }
+            let login = try JSONDecoder().decode(Login.self, from: data)
+            user = login.user
+            token = String(header.dropFirst(7))
+            await refresh()
+        } catch let error as ASWebAuthenticationSessionError where error.code == .canceledLogin {
+            // Closing the provider sheet leaves the user on the login screen.
         } catch { self.error = error.localizedDescription }
     }
     func refresh() async {

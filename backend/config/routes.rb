@@ -24,6 +24,9 @@ Rails.application.routes.draw do
 
   namespace :api do
     namespace :v1 do
+      post "auth/social/:provider/start", to: "auth/social#start", constraints: { provider: /apple|google/ }
+      match "auth/social/:provider/callback", to: "auth/social#callback", via: [:get, :post], constraints: { provider: /apple|google/ }
+      post "auth/social/exchange", to: "auth/social#exchange"
       resource :workspace, only: [ :show, :update ]
 
       resources :folders do

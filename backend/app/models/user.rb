@@ -4,6 +4,8 @@ class User < ApplicationRecord
          :jwt_authenticatable, jwt_revocation_strategy: JwtDenylist
 
   has_one :workspace, dependent: :destroy
+  has_many :social_identities, dependent: :destroy
+  has_many :social_login_attempts, dependent: :destroy
   after_create :create_default_workspace
 
   validates :name, presence: true

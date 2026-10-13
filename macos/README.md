@@ -2,11 +2,15 @@
 
 First stage of the gradual SwiftUI migration, requiring macOS 14+ and Xcode's Swift toolchain.
 
-- `make dev-native-mac` builds and opens `macos/dist/Inertia.app`.
+- `make dev-mac` starts the local API and web services, builds and opens `macos/dist/Inertia.app` with local endpoints, and streams service logs until the app closes.
+- `make build-mac` (or `make build-native-mac`) rebuilds that native app without restarting the services. Reopen `macos/dist/Inertia.app` to use the new binary; for local endpoints, use `open -n --env INERTIA_API_URL=http://localhost:3000 --env INERTIA_WEB_URL=http://localhost:5174 macos/dist/Inertia.app`.
+- `make dev-native-mac` builds and opens the native app with its default production endpoints.
 - `make test-native-mac` runs the native regression tests.
 - Open `macos/Package.swift` in Xcode to debug, or `swift run --package-path macos`.
 
-The native app provides sign-in, nested project navigation, project document lists and dashboards, task creation/completion, and an event agenda with event creation. Documents and spreadsheets use the existing web editors in an isolated WKWebView. The web frontend must include the `native=1` layout support to hide its duplicate sidebar. Existing Electron targets remain available.
+The native app opens the online workspace on launch, with sign-in followed by **Documents, Sheets & Tables**. This searchable list includes files from nested projects. The sidebar also provides project dashboards, tasks, and a calendar agenda with event creation. Documents, spreadsheets, and tables use the existing web editors in an isolated WKWebView. The web frontend must include the `native=1` layout support to hide its duplicate sidebar. Use `make dev-electron` for Electron development.
+
+The login screen supports Apple and Google through the system browser, as well as email/password. Provider credentials must be configured on the backend; see [sign-in setup](../docs/mac-social-sign-in.md).
 
 Production endpoints default to https://inertia.it.com. For development run:
 
@@ -18,7 +22,13 @@ Credentials are never saved to disk by the native app. Sessions are held in memo
 
 This is a first native slice, not full Electron parity: Native online Workboard/Gantt views, file syncing, persistent Keychain login, and native rich text/spreadsheet editors are future stages. The calendar currently uses a native agenda list. Distribution signing/notarization is not configured; builds are ad-hoc signed for local use.
 
+## UI components
+
+All native UI lives in `Sources/Inertia/Components/`: screens in `Screens/`, editor forms in `Editors/`, and shared controls in the component root. React UI has its own single home in `frontend/src/components/`, with common controls in `ui/`. Document rows and editor navigation, task and event rows, provider buttons, refresh controls, editor actions, optional fields, notes editors, completion progress, and errors each have a shared definition. Update those components to change their appearance across screens.
+
 ## Local task files
+
+The local Kanban editor opens when you explicitly create or open a task file.
 
 Choose **File → New** (Command-N) to create an `.inertia-tasks` document, and **File → Save** (Command-S) to name it. Open an existing file with **File → Open** (Command-O) or Finder's **Open With → Inertia**. The local file editor does not require sign-in. Use **Online Workspace** in its toolbar to access the server-backed app.
 

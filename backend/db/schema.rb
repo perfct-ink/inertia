@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_10_12_000002) do
+ActiveRecord::Schema[7.2].define(version: 2026_10_13_000001) do
   create_table "documents", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.string "title", null: false
     t.json "content"
@@ -125,6 +125,36 @@ ActiveRecord::Schema[7.2].define(version: 2026_10_12_000002) do
     t.index ["token"], name: "index_shares_on_token", unique: true
   end
 
+  create_table "social_identities", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.string "provider", null: false
+    t.string "subject", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["provider", "subject"], name: "index_social_identities_on_provider_and_subject", unique: true
+    t.index ["user_id"], name: "index_social_identities_on_user_id"
+  end
+
+  create_table "social_login_attempts", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+    t.string "provider", null: false
+    t.string "state_digest", null: false
+    t.string "client_state", null: false
+    t.string "code_challenge", null: false
+    t.string "nonce", null: false
+    t.string "provider_verifier", null: false
+    t.bigint "user_id"
+    t.string "exchange_digest"
+    t.datetime "expires_at", null: false
+    t.datetime "callback_at"
+    t.datetime "exchanged_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["exchange_digest"], name: "index_social_login_attempts_on_exchange_digest", unique: true
+    t.index ["expires_at"], name: "index_social_login_attempts_on_expires_at"
+    t.index ["state_digest"], name: "index_social_login_attempts_on_state_digest", unique: true
+    t.index ["user_id"], name: "index_social_login_attempts_on_user_id"
+  end
+
   create_table "table_cells", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.bigint "table_record_id", null: false
     t.bigint "table_field_id", null: false
@@ -216,6 +246,8 @@ ActiveRecord::Schema[7.2].define(version: 2026_10_12_000002) do
   add_foreign_key "quip_imports", "folders", column: "destination_folder_id"
   add_foreign_key "quip_imports", "workspaces"
   add_foreign_key "shares", "users", column: "created_by_id"
+  add_foreign_key "social_identities", "users"
+  add_foreign_key "social_login_attempts", "users"
   add_foreign_key "table_cells", "table_fields"
   add_foreign_key "table_cells", "table_records"
   add_foreign_key "table_cells", "table_records", column: "related_record_id"

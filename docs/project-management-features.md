@@ -16,8 +16,8 @@ Don't aim for full Jira parity — it's a mature product built by a large team o
 Three distinct surfaces exist. Worth being precise about which one is missing what, since they currently have different feature sets:
 
 **1. Web app (Rails + React), hosted/multi-user** — the actual day-to-day product.
-- Tasks: a kanban board with backlog/board toggle, drag-and-drop across `backlog → todo → in_progress → in_review → done`, subtasks to any depth (`frontend/src/pages/workspace/TasksPage.tsx`, `backend/app/models/task.rb`). This already exists — if you haven't seen it, it's the "Board" toggle at `/tasks?view=kanban`.
-- Epics: grouping plus live progress counts (`tasks_count`/`done_tasks_count`) and `start_date`/`target_date`, but no visual board or timeline rendering of those dates (`backend/app/models/epic.rb`, `frontend/src/pages/workspace/EpicsPage.tsx`).
+- Tasks: a kanban board with backlog/board toggle, drag-and-drop across `backlog → todo → in_progress → in_review → done`, subtasks to any depth (`frontend/src/components/screens/TasksScreen.tsx`, `backend/app/models/task.rb`). This already exists — if you haven't seen it, it's the "Board" toggle at `/tasks?view=kanban`.
+- Epics: grouping plus live progress counts (`tasks_count`/`done_tasks_count`) and `start_date`/`target_date`, but no visual board or timeline rendering of those dates (`backend/app/models/epic.rb`, `frontend/src/components/screens/EpicsScreen.tsx`).
 - Events: `deadline` and `milestone` types, list/month calendar views, no Gantt/timeline rendering (`backend/app/models/event.rb`, `EventsPage.tsx`).
 - Nothing named sprint, initiative, dependency/link, estimate, or custom workflow/field exists anywhere in `backend/db/schema.rb` — confirmed directly, not inferred.
 

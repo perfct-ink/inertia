@@ -1,3 +1,4 @@
+import { Button, Input, Select } from '@/components/ui'
 import { Database } from 'lucide-react'
 import { useState, useRef, useEffect, type CSSProperties, type ComponentType } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
@@ -56,7 +57,7 @@ function RailButton({ icon: Icon, label, active, onClick }: {
   onClick: () => void
 }) {
   return (
-    <button
+    <Button
       onClick={onClick}
       title={label}
       className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${
@@ -64,7 +65,7 @@ function RailButton({ icon: Icon, label, active, onClick }: {
       }`}
     >
       <Icon className="w-4 h-4" />
-    </button>
+    </Button>
   )
 }
 
@@ -287,13 +288,13 @@ export default function Sidebar() {
         <div className="flex flex-col items-center gap-1 py-2">
           <RailButton icon={Plus} label="Quick add (⌘K)" onClick={openQuickAdd} />
           <RailButton icon={Keyboard} label="Keyboard shortcuts (⌘/)" onClick={() => setShortcutsOpen(true)} />
-          <button
+          <Button variant="primary"
             onClick={() => setAccountOpen(true)}
             title={user?.name ?? 'Account'}
-            className="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-semibold shrink-0 mb-2"
+            className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold shrink-0 mb-2"
           >
             {initials}
-          </button>
+          </Button>
         </div>
       </nav>
 
@@ -326,27 +327,27 @@ export default function Sidebar() {
               {pinnedFolders.map((folder) => {
                 const firstDoc = folder.documents?.[0]
                 return (
-                  <button
+                  <Button
                     key={folder.id}
                     onClick={() => firstDoc && navigate(`/documents/${firstDoc.id}`)}
                     className="flex items-center gap-1.5 w-full px-3 py-1 rounded-md text-sm hover:bg-accent text-left group"
                   >
                     <Folder className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
                     <span className="flex-1 truncate">{folder.name}</span>
-                    <button
+                    <Button
                       onClick={(e) => { e.stopPropagation(); pinFolder.mutate({ id: folder.id, pinned: false }) }}
                       className="hidden group-hover:flex text-muted-foreground hover:text-foreground"
                       title="Unpin"
                     >
                       <Pin className="w-3 h-3" />
-                    </button>
-                  </button>
+                    </Button>
+                  </Button>
                 )
               })}
               {pinnedDocs.map((doc) => {
                 const active = location.pathname === `/documents/${doc.id}`
                 return (
-                  <button
+                  <Button
                     key={doc.id}
                     onClick={() => navigate(`/documents/${doc.id}`)}
                     className={`flex items-center gap-1.5 w-full px-3 py-1 rounded-md text-sm hover:bg-accent text-left group ${active ? 'bg-accent' : ''}`}
@@ -358,14 +359,14 @@ export default function Sidebar() {
                       : <FileText className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
                     }
                     <span className="flex-1 truncate">{doc.title}</span>
-                    <button
+                    <Button
                       onClick={(e) => { e.stopPropagation(); pinDocument.mutate({ id: doc.id, pinned: false }) }}
                       className="hidden group-hover:flex text-muted-foreground hover:text-foreground"
                       title="Unpin"
                     >
                       <Pin className="w-3 h-3" />
-                    </button>
-                  </button>
+                    </Button>
+                  </Button>
                 )
               })}
             </div>
@@ -375,48 +376,48 @@ export default function Sidebar() {
           {/* Documents section (unified tree) */}
           <div>
             <div className="flex items-center justify-between px-3 mb-1">
-              <button
+              <Button
                 onClick={() => navigate('/documents')}
                 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider hover:text-foreground"
               >
                 Documents
-              </button>
+              </Button>
               <div className="flex items-center gap-0.5">
-                <button
+                <Button
                   title={showArchived ? 'Show active folders' : 'Show archived folders'}
                   onClick={() => setShowArchived((s) => !s)}
                   className={`p-0.5 rounded hover:bg-accent ${showArchived ? 'text-foreground bg-accent' : 'text-muted-foreground hover:text-foreground'}`}
                 >
                   <Archive className="w-3.5 h-3.5" />
-                </button>
-                <button
+                </Button>
+                <Button
                   title="New document (⌘N)"
                   onClick={() => createNewDocument()}
                   className="p-0.5 rounded hover:bg-accent text-muted-foreground hover:text-foreground"
                 >
                   <FilePlus className="w-3.5 h-3.5" />
-                </button>
-                <button
+                </Button>
+                <Button
                   title="New Sheet"
                   onClick={() => createNewSpreadsheet()}
                   className="p-0.5 rounded hover:bg-accent text-muted-foreground hover:text-foreground"
                 >
                   <TableIcon className="w-3.5 h-3.5" />
-                </button>
-                <button
+                </Button>
+                <Button
                   title="New Table"
                   onClick={() => createNewSpreadsheet('table')}
                   className="p-0.5 rounded hover:bg-accent text-muted-foreground hover:text-foreground"
                 >
                   <Database className="w-3.5 h-3.5" />
-                </button>
-                <button
+                </Button>
+                <Button
                   title="New folder"
                   onClick={() => setAddingFolder(true)}
                   className="p-0.5 rounded hover:bg-accent text-muted-foreground hover:text-foreground"
                 >
                   <FolderPlus className="w-3.5 h-3.5" />
-                </button>
+                </Button>
               </div>
             </div>
 
@@ -428,19 +429,19 @@ export default function Sidebar() {
                 {archivedFolders.map((folder) => (
                   <div key={folder.id} className="flex items-center gap-1.5 px-3 py-1 rounded-md text-sm group">
                     <Folder className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
-                    <button
+                    <Button
                       onClick={() => navigate(`/folders/${folder.id}`)}
                       className="flex-1 min-w-0 text-left truncate hover:underline"
                     >
                       {folder.name}
-                    </button>
-                    <button
+                    </Button>
+                    <Button
                       onClick={() => updateFolder.mutate({ id: folder.id, archived: false })}
                       title="Unarchive"
                       className="opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-foreground shrink-0"
                     >
                       <ArchiveRestore className="w-3.5 h-3.5" />
-                    </button>
+                    </Button>
                   </div>
                 ))}
               </div>
@@ -448,7 +449,7 @@ export default function Sidebar() {
               <>
                 {addingFolder && (
                   <div className="px-2 pb-1">
-                    <input
+                    <Input
                       ref={folderInputRef}
                       placeholder="Folder name"
                       className="w-full text-sm px-2 py-0.5 rounded border border-input bg-card outline-none focus:ring-1 focus:ring-primary"
@@ -504,19 +505,19 @@ export default function Sidebar() {
               </div>
             </div>
             <div className="border-t pt-4 flex flex-col gap-2">
-              <button
+              <Button variant="secondary"
                 onClick={() => { setAccountOpen(false); setQuipImportOpen(true) }}
-                className="w-full flex items-center justify-center gap-1.5 px-4 py-2 rounded-md text-sm border hover:bg-accent"
+                className="w-full flex items-center justify-center gap-1.5 px-4"
               >
                 <Download className="w-3.5 h-3.5" />
                 Import from Quip
-              </button>
-              <button
+              </Button>
+              <Button variant="secondary"
                 onClick={handleLogout}
-                className="w-full px-4 py-2 rounded-md text-sm text-red-500 hover:bg-red-50 dark:hover:bg-red-950 border border-red-200 dark:border-red-900"
+                className="w-full px-4 text-red-500 hover:bg-red-50 dark:hover:bg-red-950 border-red-200 dark:border-red-900"
               >
                 Sign out
-              </button>
+              </Button>
             </div>
           </div>
         </div>
@@ -539,7 +540,7 @@ export default function Sidebar() {
                 </p>
                 <label className="flex flex-col gap-1 text-sm">
                   Quip API token
-                  <input
+                  <Input
                     type="password"
                     autoFocus
                     value={quipToken}
@@ -550,23 +551,23 @@ export default function Sidebar() {
                 </label>
                 <label className="flex flex-col gap-1 text-sm">
                   Domain
-                  <select
+                  <Select
                     value={quipDomain}
                     onChange={(e) => setQuipDomain(e.target.value)}
                     className="text-sm px-3 py-2 rounded-lg border border-input bg-background outline-none focus:ring-1 focus:ring-primary"
                   >
                     <option value="quip.com">quip.com</option>
                     <option value="quip-apple.com">quip-apple.com</option>
-                  </select>
+                  </Select>
                 </label>
                 <div className="flex justify-end gap-2">
-                  <button
+                  <Button
                     onClick={() => setQuipImportOpen(false)}
                     className="px-3 py-1.5 rounded-md text-sm text-muted-foreground hover:bg-accent"
                   >
                     Cancel
-                  </button>
-                  <button
+                  </Button>
+                  <Button variant="primary"
                     onClick={() => {
                       startQuipImport.mutate(
                         { token: quipToken, domain: quipDomain },
@@ -574,10 +575,10 @@ export default function Sidebar() {
                       )
                     }}
                     disabled={!quipToken.trim() || startQuipImport.isPending}
-                    className="px-3 py-1.5 rounded-md text-sm bg-primary text-primary-foreground hover:opacity-90 disabled:opacity-50"
+                    className="py-1.5"
                   >
                     {startQuipImport.isPending ? 'Starting…' : 'Start import'}
-                  </button>
+                  </Button>
                 </div>
               </>
             ) : (
@@ -601,7 +602,7 @@ export default function Sidebar() {
                   <p className="text-xs text-red-500 break-words">{quipImport.error_message}</p>
                 )}
                 <div className="flex justify-end">
-                  <button
+                  <Button
                     onClick={() => {
                       setQuipImportOpen(false)
                       setStartedQuipImportId(null)
@@ -610,7 +611,7 @@ export default function Sidebar() {
                     className="px-3 py-1.5 rounded-md text-sm text-muted-foreground hover:bg-accent"
                   >
                     Close
-                  </button>
+                  </Button>
                 </div>
               </>
             )}
@@ -643,23 +644,23 @@ export default function Sidebar() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={() => setQuickAddOpen(false)}>
           <div className="bg-card border rounded-xl shadow-xl w-96 p-5 flex flex-col gap-4" onClick={(e) => e.stopPropagation()}>
             <div className="flex gap-1 p-0.5 bg-muted rounded-lg">
-              <button
+              <Button
                 onClick={() => setQuickAddType('task')}
                 className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-md text-sm ${quickAddType === 'task' ? 'bg-card shadow-sm text-foreground' : 'text-muted-foreground'}`}
               >
                 <CheckSquare className="w-3.5 h-3.5" />
                 Task
-              </button>
-              <button
+              </Button>
+              <Button
                 onClick={() => setQuickAddType('event')}
                 className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-md text-sm ${quickAddType === 'event' ? 'bg-card shadow-sm text-foreground' : 'text-muted-foreground'}`}
               >
                 <CalendarDays className="w-3.5 h-3.5" />
                 Event
-              </button>
+              </Button>
             </div>
 
-            <input
+            <Input
               ref={quickAddInputRef}
               value={quickAddTitle}
               onChange={(e) => setQuickAddTitle(e.target.value)}
@@ -673,7 +674,7 @@ export default function Sidebar() {
 
             <label className="flex items-center gap-2 text-sm text-muted-foreground">
               {quickAddType === 'task' ? 'Due date' : 'Date'}
-              <input
+              <Input
                 type="date"
                 value={quickAddDate}
                 onChange={(e) => setQuickAddDate(e.target.value)}
@@ -684,7 +685,7 @@ export default function Sidebar() {
             {quickAddType === 'task' && epics.length > 0 && (
               <label className="flex items-center gap-2 text-sm text-muted-foreground">
                 Epic
-                <select
+                <Select
                   value={quickAddEpicId}
                   onChange={(e) => setQuickAddEpicId(e.target.value)}
                   className="flex-1 text-sm px-2 py-1 rounded-md border border-input bg-background outline-none focus:ring-1 focus:ring-primary"
@@ -693,24 +694,24 @@ export default function Sidebar() {
                   {epics.map((epic) => (
                     <option key={epic.id} value={epic.id}>{epic.title}</option>
                   ))}
-                </select>
+                </Select>
               </label>
             )}
 
             <div className="flex justify-end gap-2">
-              <button
+              <Button
                 onClick={() => setQuickAddOpen(false)}
                 className="px-3 py-1.5 rounded-md text-sm text-muted-foreground hover:bg-accent"
               >
                 Cancel
-              </button>
-              <button
+              </Button>
+              <Button variant="primary"
                 onClick={submitQuickAdd}
                 disabled={!quickAddTitle.trim() || createTask.isPending || createEvent.isPending}
-                className="px-3 py-1.5 rounded-md text-sm bg-primary text-primary-foreground hover:opacity-90 disabled:opacity-50"
+                className="py-1.5"
               >
                 Add {quickAddType === 'task' ? 'task' : 'event'}
-              </button>
+              </Button>
             </div>
           </div>
         </div>

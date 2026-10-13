@@ -1,3 +1,4 @@
+import { Button, Input } from '@/components/ui'
 import { Database } from 'lucide-react'
 import { useState, useRef, useEffect } from 'react'
 import { useNavigate, useLocation, Link } from 'react-router-dom'
@@ -32,13 +33,13 @@ function ContextMenu({ x, y, items, onClose }: { x: number; y: number; items: Me
       }}
     >
       {items.map((item) => (
-        <button
+        <Button
           key={item.label}
           onClick={() => { item.action(); onClose() }}
           className={`flex w-full items-center px-3 py-1.5 text-sm ${item.danger ? 'text-red-500 hover:bg-red-50 dark:hover:bg-red-950' : 'hover:bg-accent'}`}
         >
           {item.label}
-        </button>
+        </Button>
       ))}
     </div>
   )
@@ -50,7 +51,7 @@ function ContextMenu({ x, y, items, onClose }: { x: number; y: number; items: Me
 // matching the row's existing group-hover affordances.
 function ActionsButton({ onOpen }: { onOpen: (pos: { x: number; y: number }) => void }) {
   return (
-    <button
+    <Button
       onClick={(e) => {
         e.preventDefault()
         e.stopPropagation()
@@ -61,7 +62,7 @@ function ActionsButton({ onOpen }: { onOpen: (pos: { x: number; y: number }) => 
       className="shrink-0 p-0.5 rounded text-muted-foreground hover:bg-accent hover:text-foreground opacity-100 md:opacity-0 md:group-hover:opacity-100"
     >
       <MoreVertical className="w-3.5 h-3.5" />
-    </button>
+    </Button>
   )
 }
 
@@ -72,7 +73,7 @@ function InlineInput({ defaultValue, onConfirm, onCancel }: { defaultValue: stri
   const submitted = useRef(false)
   useEffect(() => { ref.current?.focus(); ref.current?.select() }, [])
   return (
-    <input
+    <Input
       ref={ref}
       defaultValue={defaultValue}
       className="flex-1 min-w-0 text-sm px-1 py-0 rounded border border-input bg-card outline-none focus:ring-1 focus:ring-primary"
@@ -131,16 +132,16 @@ export function FolderItem({ folder, depth = 0 }: { folder: FolderType; depth?: 
 
   return (
     <div>
-      {actionError && <div role="alert" className="px-3 py-2 text-xs text-red-500">{actionError}<button className="ml-2 underline" onClick={() => setActionError('')}>Dismiss</button></div>}
+      {actionError && <div role="alert" className="px-3 py-2 text-xs text-red-500">{actionError}<Button className="ml-2 underline" onClick={() => setActionError('')}>Dismiss</Button></div>}
       {/* Folder row */}
       <div
         className={`group flex items-center gap-1 py-1 rounded-md hover:bg-accent text-sm select-none ${location.pathname === `/folders/${folder.id}` ? 'bg-accent' : ''}`}
         style={{ paddingLeft: `${8 + indent}px`, paddingRight: '8px' }}
         onContextMenu={(e) => { e.preventDefault(); e.stopPropagation(); setFolderCtx({ x: e.clientX, y: e.clientY }) }}
       >
-        <button onClick={() => setOpen((o) => !o)} className="text-muted-foreground shrink-0 p-0.5">
+        <Button onClick={() => setOpen((o) => !o)} className="text-muted-foreground shrink-0 p-0.5">
           <ChevronRight className={`w-3 h-3 transition-transform ${open ? 'rotate-90' : ''}`} />
-        </button>
+        </Button>
         <Folder className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
         {renamingFolder ? (
           <InlineInput
@@ -149,13 +150,13 @@ export function FolderItem({ folder, depth = 0 }: { folder: FolderType; depth?: 
             onCancel={() => setRenamingFolder(false)}
           />
         ) : (
-          <button
+          <Button
             onClick={() => navigate(`/folders/${folder.id}`)}
             title="Open folder — see its documents, tasks, and events"
             className="flex-1 min-w-0 text-left truncate text-foreground cursor-pointer"
           >
             {folder.name}
-          </button>
+          </Button>
         )}
         {folder.has_tasks && (
           <span title="Has tasks" className="shrink-0 flex">

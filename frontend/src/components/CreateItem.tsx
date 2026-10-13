@@ -1,3 +1,4 @@
+import { Button, Select, FormError } from '@/components/ui'
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useCreateDocument, useCreateFolder, useWorkspace } from '@/api/workspace'
@@ -23,11 +24,11 @@ export default function CreateItem({ folderId }: { folderId?: number }) {
     } catch (e) { setError(errorMessage(e)) } finally { setBusy(false) }
   }
   return <div className="flex flex-wrap items-center gap-2 text-sm">
-    {!folderId && folders.length > 0 && <select aria-label="Create in folder" className="bg-background border rounded px-2 py-1.5 max-w-40" value={destination} onChange={e => setDestination(e.target.value)}>
+    {!folderId && folders.length > 0 && <Select aria-label="Create in folder" className="bg-background border rounded px-2 py-1.5 max-w-40" value={destination} onChange={e => setDestination(e.target.value)}>
       <option value="">{folders[0].name}</option>
       {folders.map(f => <option key={f.id} value={f.id}>{f.name}</option>)}
-    </select>}
-    {(['document', 'spreadsheet', 'table'] as const).map(type => <button key={type} disabled={busy} onClick={() => make(type)} className="border rounded px-3 py-1.5 hover:bg-accent disabled:opacity-50">New {type === 'spreadsheet' ? 'Sheet' : type === 'table' ? 'Table' : 'Document'}</button>)}
-    {error && <p role="alert" className="text-red-500">{error}</p>}
+    </Select>}
+    {(['document', 'spreadsheet', 'table'] as const).map(type => <Button variant="secondary" key={type} disabled={busy} onClick={() => make(type)} className="py-1.5">New {type === 'spreadsheet' ? 'Sheet' : type === 'table' ? 'Table' : 'Document'}</Button>)}
+    <FormError message={error} />
   </div>
 }

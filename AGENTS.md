@@ -16,3 +16,13 @@ A collection document is one similar to a database table, where a name is set an
 
 ### Tasks
 Tasks can be rolled up from whats inside documents. Tasks are created in documents by just creating a checklist or a checkable item. Epics can be created from the paragraph headings that tasks are inside of. For example, if I am working on a feature for a tool called Messages. In a Messages document, I might have a paragraph about a feature called "Background images", and a checkbox for the tasks to complete that feature. This makes each checkbox a task automatically.
+
+## UI component organization
+
+Keep the platforms separate. Native macOS UI belongs in `macos/Sources/Inertia/Components/`; React UI belongs in `frontend/src/components/`. Both directories include their screens, editors, and reusable controls. App entrypoints handle lifecycle/routing and compose these components.
+
+Native screens belong in `Components/Screens/`, editor forms in `Components/Editors/`, and shared controls in the component root. Reuse the shared text-field style, document/activity rows, provider buttons, refresh controls, editor sheets/actions, optional fields, notes editors, progress, and errors. Use standard SwiftUI controls for native behavior.
+
+React screens belong in `components/screens/`, authentication UI in `components/auth/`, and document/spreadsheet/table editors in `components/editors/`. Import buttons, inputs, selects, text areas, and errors from `@/components/ui`; raw HTML controls belong only in those primitive definitions. Preserve native HTML props and refs. Use button variants for common actions and class overrides only for contextual layout or specialized controls.
+
+Change a shared component to change its appearance everywhere. Avoid duplicate control implementations in individual screens. Keep text fields at a 40-point minimum on macOS and a 40-pixel minimum in React, with consistent focus and disabled states. Checkboxes and radios retain their appropriate compact dimensions.
