@@ -154,7 +154,9 @@ Monday board views: Table, Kanban, Gantt, Timeline, Calendar, Workload, Chart, C
 | PM-103 | Forms that create tasks (public or internal) | None |
 | PM-104 | Embed live task lists / Gantt in documents (Monday Workdocs) | Documents exist; embedding does not |
 | PM-105 | Whiteboard (Monday WorkCanvas) | None. P3. |
-| PM-106 | Guests and per-board permissions (view-only, edit, owner) | `shares` exists for documents |
+| PM-106 | Guests and per-board permissions (view-only, edit, owner) | `shares` exists: token links with view/edit on documents and folders; the `/shared/:token` page in the frontend is still a placeholder |
+| PM-108 | **Collaborate on entire folders** (Alex, 2026-10-13): invite named people to a folder with viewer / commenter / editor / owner roles; access covers every document, file, task and sub-folder inside it | Today each workspace belongs to one user (`workspaces.user_id`) and sharing is by anonymous token link only. Needs a `folder_memberships` table (user, folder, role), inherited by sub-folders, plus invite-by-email and a "Shared with me" list. Real-time co-editing already exists via `collab-server`. |
+| PM-109 | **Comments on documents** (Alex, 2026-10-13): others can comment on a document, either on a highlighted passage (inline) or on the document as a whole, with replies, @mentions, resolve/reopen and notifications | No Comment model in the backend. Default: one polymorphic `comments` table shared with PM-100, with an optional anchor (text range in the doc) for inline comments. Needs commenter role from PM-108. |
 | PM-107 | Board / item templates (project template, roadmap template, sprint template) | None |
 
 ## 11. Platform, AI, admin (P3)
