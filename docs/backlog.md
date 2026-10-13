@@ -166,6 +166,30 @@ Monday board views: Table, Kanban, Gantt, Timeline, Calendar, Workload, Chart, C
 | PM-113 | Audit log, SSO, MFA, data export | |
 | PM-114 | Mobile apps | macOS app exists; iOS/Android do not. |
 
+## 12. Feature folders (P0)
+
+Requested by Alex on 2026-10-13. A feature folder holds a hierarchy of features, each written as a business or product requirements document. Tasks are created from those feature documents, and opening the project folder shows a rollup of all tasks under each feature.
+
+```
+Project folder            (click it: task rollup per feature)
+└── Feature folder
+    └── Feature           (requirements doc)
+        └── Sub-feature   (requirements doc, any depth)
+            └── Tasks created from the doc
+```
+
+Today: folders already nest to any depth (`folders.parent_id`, `Folder#self_and_descendant_ids`), documents live in folders, and tasks already carry `document_id` and `folder_id`. What is missing is a way to mark a folder or document as a feature, task creation from inside a feature doc, and the per-feature rollup.
+
+| ID | Item | Notes |
+| --- | --- | --- |
+| PM-120 | **Feature folder type**: a folder flagged as holding features | Default: a `kind` column on `folders` (`regular` / `feature`) rather than a new table, so existing folder nesting, sharing and archiving keep working. |
+| PM-121 | **Feature hierarchy**: features nest under features, each one a requirements document | Default: each feature is a document plus an optional `parent_feature` link, so a feature's doc and its children sit together. |
+| PM-122 | **Requirements template** for new feature docs (problem, goals, user stories, acceptance criteria, out of scope) | |
+| PM-123 | **Create tasks from a feature doc**: select text or an acceptance criterion and turn it into a task linked back to the feature (`tasks.document_id`) | `document_id` already exists on tasks. |
+| PM-124 | **Project folder rollup**: clicking the project folder lists each feature with its task counts, % done, and status, including tasks from sub-features | Same counting approach as Epic/Initiative `tasks_count` / `done_tasks_count`. |
+| PM-125 | Feature status and owner, derived from its tasks or set by hand | |
+| PM-126 | Link features to the planning hierarchy (a feature can belong to an epic, initiative or milestone) | Ties into section 1. |
+
 ## Out of scope for parity
 
 Monday sells separate CRM, Service (ticketing), Campaigns and "vibe" app-builder products on the same platform. They are not project management and are left out unless someone asks.
