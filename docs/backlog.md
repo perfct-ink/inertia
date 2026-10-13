@@ -104,7 +104,7 @@ Monday board views: Table, Kanban, Gantt, Timeline, Calendar, Workload, Chart, C
 | ID | Item | Today |
 | --- | --- | --- |
 | PM-60 | Table view with inline editing, grouping, column show/hide, sort, filter | Task list exists; check grouping/filter coverage |
-| PM-61 | Kanban: group by any field, swimlanes, WIP limits, configurable columns. Alex re-requested 2026-10-13 | Kanban exists on the fixed status enum (`/tasks?view=kanban`); the rest is missing |
+| PM-61 | Kanban: group by any field, swimlanes, WIP limits, configurable columns. Alex re-requested 2026-10-13, and asked specifically for **organize by epic** (swimlane per epic, plus a "No epic" lane), as an option you can toggle on or off | Kanban exists on the fixed status enum (`/tasks?view=kanban`); the rest is missing |
 | PM-62 | Calendar view of tasks (not only events) | Events have list/month views |
 | PM-63 | Timeline view (simpler than Gantt: bars, no dependencies) | None |
 | PM-64 | Cards / gallery view | None |
@@ -113,6 +113,7 @@ Monday board views: Table, Kanban, Gantt, Timeline, Calendar, Workload, Chart, C
 | PM-67 | Pivot view | None |
 | PM-68 | Saved views per user and shared views, saved filters | None |
 | PM-69 | "My Work": everything assigned to me across the workspace, by date | None |
+| PM-59 | **Epic and feature planning view** (Alex, 2026-10-13): plan tasks by epic or by feature. Pick an epic or a feature (section 12), see its tasks grouped by status, drag tasks from the backlog into it, set dates/estimates, and see its rollup | Today tasks can be assigned an epic (`tasks.epic_id`) and `EpicsPage.tsx` lists epics with progress, but there's no planning screen. Feature planning needs PM-121/PM-123. |
 
 ## 7. Automations (P2)
 
