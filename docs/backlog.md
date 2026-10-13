@@ -34,7 +34,7 @@ Default chosen for this backlog: Milestone is the top-level container, and each 
 | --- | --- | --- | --- |
 | PM-01 | **Milestone as a first-class model** (`milestones`: title, description, target date, status, owner, workspace, folder). Flat: milestones do not nest (decided 2026-10-11) | Milestones exist only as `events.event_type = milestone`, linked to tasks through `event_tasks` | Keep the Event for calendar display, or migrate it. Default: new `Milestone` table, migrate existing milestone events into it, keep `event_tasks` for deadlines only. |
 | PM-02 | **Milestone rollup**: progress %, count of open/done items, health (on track / at risk / off track) computed from everything beneath it | Epic already has `tasks_count` / `done_tasks_count` | Same grouped-count approach as `EpicsController#index`, one level up. |
-| PM-03 | **Initiative model** above Epic (title, description, owner, start/target date, status, `milestone_id`) | **Partly built** (2026-10-12): `Initiative` with title, start/target date, task rollup, `InitiativesPage.tsx`. Missing: description, owner, status, `milestone_id` | Shape mirrors Epic → Task. See `project-management-features.md` sequence step 2. |
+| PM-03 | **Initiative model and initiative list** above Epic (Alex re-requested the list 2026-10-13) (title, description, owner, start/target date, status, `milestone_id`) | **Partly built** (2026-10-12): `Initiative` with title, start/target date, task rollup, `InitiativesPage.tsx`. Missing: description, owner, status, `milestone_id` | Shape mirrors Epic → Task. See `project-management-features.md` sequence step 2. |
 | PM-04 | `epics.initiative_id`, `epics.milestone_id`, `tasks.milestone_id` | `epics.initiative_id` built (2026-10-12); milestone columns missing | Inheritance rule above; explicit value overrides inherited. |
 | PM-05 | **Hierarchy tree view**: Milestone → Initiative → Epic → Task → Subtask, expand/collapse, inline progress bars at each level | `TasksPage.tsx` shows subtasks with depth filters; `EpicsPage.tsx` is a flat list | Monday equivalent: items + subitems, plus Portfolio boards linking projects. |
 | PM-06 | Move/reparent anywhere in the tree by drag-and-drop | Task reparenting validated in `Task#parent_is_not_self_or_a_descendant` | Extend the same cycle check to epic↔initiative↔milestone moves. |
@@ -65,12 +65,13 @@ Default chosen for this backlog: Milestone is the top-level container, and each 
 | PM-23 | Shareable read-only roadmap link (external stakeholders) | `shares` table exists for documents | Reuse the share mechanism. |
 | PM-24 | Idea / feature-request intake that can be promoted to an epic or initiative | Not present | Monday: WorkForms + intake boards with approval. |
 
-## 4. Portfolio, goals, resources (P1)
+## 4. Portfolio, goals, resources (P1; OKRs and IO Map are P0)
 
 | ID | Item | Today | Notes |
 | --- | --- | --- | --- |
 | PM-30 | **Portfolio view**: every project (folder) with owner, status, health, dates, progress in one table | Folders exist, no portfolio rollup | Monday Portfolio (Enterprise). |
-| PM-31 | **Goals / OKRs** linked to initiatives, with key-result progress from linked work | Not present | |
+| PM-31 | **Goals / OKRs** linked to initiatives, with key-result progress from linked work. **P0**: Alex re-requested 2026-10-13 | Not present | Objectives with 2–5 measurable key results, a quarter or date range, owner, and a score (0–1 or %). Key results either track a number by hand or roll up from linked initiatives/epics/tasks. |
+| PM-36 | **Intermediate Objectives Map** (IO Map). **P0**: Alex requested 2026-10-13 | Not present | A visual goal tree from Goldratt's Thinking Process: one Goal at the top, 3–5 Critical Success Factors under it, Necessary Conditions under those. Drawn as a node-and-arrow map. Each node can link to OKRs (PM-31) and initiatives (PM-03), and shows their progress, so the map is the "why" above the roadmap. |
 | PM-32 | **Workload view**: assigned effort per person per week, over-allocation warnings | `assignee_id` exists, no effort field | Needs PM-41 (effort). |
 | PM-33 | Resource management: capacity per person, allocation to projects | Not present | Jira doc argued against early; still P1 here because Monday has it. |
 | PM-34 | Cross-project dependencies | Not present | Builds on PM-13. |
@@ -103,7 +104,7 @@ Monday board views: Table, Kanban, Gantt, Timeline, Calendar, Workload, Chart, C
 | ID | Item | Today |
 | --- | --- | --- |
 | PM-60 | Table view with inline editing, grouping, column show/hide, sort, filter | Task list exists; check grouping/filter coverage |
-| PM-61 | Kanban: group by any field, swimlanes, WIP limits, configurable columns | Kanban exists on the fixed status enum |
+| PM-61 | Kanban: group by any field, swimlanes, WIP limits, configurable columns. Alex re-requested 2026-10-13 | Kanban exists on the fixed status enum (`/tasks?view=kanban`); the rest is missing |
 | PM-62 | Calendar view of tasks (not only events) | Events have list/month views |
 | PM-63 | Timeline view (simpler than Gantt: bars, no dependencies) | None |
 | PM-64 | Cards / gallery view | None |
