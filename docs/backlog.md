@@ -34,8 +34,8 @@ Default chosen for this backlog: Milestone is the top-level container, and each 
 | --- | --- | --- | --- |
 | PM-01 | **Milestone as a first-class model** (`milestones`: title, description, target date, status, owner, workspace, folder). Flat: milestones do not nest (decided 2026-10-11) | Milestones exist only as `events.event_type = milestone`, linked to tasks through `event_tasks` | Keep the Event for calendar display, or migrate it. Default: new `Milestone` table, migrate existing milestone events into it, keep `event_tasks` for deadlines only. |
 | PM-02 | **Milestone rollup**: progress %, count of open/done items, health (on track / at risk / off track) computed from everything beneath it | Epic already has `tasks_count` / `done_tasks_count` | Same grouped-count approach as `EpicsController#index`, one level up. |
-| PM-03 | **Initiative model** above Epic (title, description, owner, start/target date, status, `milestone_id`) | Not present anywhere | Shape mirrors Epic → Task. See `project-management-features.md` sequence step 2. |
-| PM-04 | `epics.initiative_id`, `epics.milestone_id`, `tasks.milestone_id` | Epic has `start_date`/`target_date` only | Inheritance rule above; explicit value overrides inherited. |
+| PM-03 | **Initiative model** above Epic (title, description, owner, start/target date, status, `milestone_id`) | **Partly built** (2026-10-12): `Initiative` with title, start/target date, task rollup, `InitiativesPage.tsx`. Missing: description, owner, status, `milestone_id` | Shape mirrors Epic → Task. See `project-management-features.md` sequence step 2. |
+| PM-04 | `epics.initiative_id`, `epics.milestone_id`, `tasks.milestone_id` | `epics.initiative_id` built (2026-10-12); milestone columns missing | Inheritance rule above; explicit value overrides inherited. |
 | PM-05 | **Hierarchy tree view**: Milestone → Initiative → Epic → Task → Subtask, expand/collapse, inline progress bars at each level | `TasksPage.tsx` shows subtasks with depth filters; `EpicsPage.tsx` is a flat list | Monday equivalent: items + subitems, plus Portfolio boards linking projects. |
 | PM-06 | Move/reparent anywhere in the tree by drag-and-drop | Task reparenting validated in `Task#parent_is_not_self_or_a_descendant` | Extend the same cycle check to epic↔initiative↔milestone moves. |
 | PM-07 | Local `.inertia-tasks` file format gains Initiative + Milestone levels | File format has Epics, Sprints, Milestones (via Events) | Open question carried over from `project-management-features.md`. Default: hosted first, file format follows. |
@@ -44,7 +44,7 @@ Default chosen for this backlog: Milestone is the top-level container, and each 
 
 | ID | Item | Today | Notes |
 | --- | --- | --- | --- |
-| PM-10 | **Gantt view** for tasks, epics, initiatives: bars from start to end date, grouped by hierarchy, milestone diamonds on the axis | No timeline anywhere online. Epics have dates; tasks only have `due_date` | Needs PM-11 first for task bars. |
+| PM-10 | **Gantt view** for tasks, epics, initiatives: bars from start to end date, grouped by hierarchy, milestone diamonds on the axis | **Partly built** (2026-10-12): shared `components/Timeline.tsx` renders read-only bars for epics, initiatives and a per-folder Gantt tab. Missing: task bars, hierarchy grouping, milestone markers | Needs PM-11 first for task bars. |
 | PM-11 | `tasks.start_date` (keep `due_date` as end) | Missing | Monday uses a single Timeline column (start + end). |
 | PM-12 | Drag a bar to reschedule, drag an edge to resize | n/a | |
 | PM-13 | **Dependencies**: finish-to-start, start-to-start, finish-to-finish, start-to-finish, drawn as arrows | No link table | New `task_dependencies` join table. Also Jira-doc sequence step 5. |
