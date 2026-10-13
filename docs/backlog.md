@@ -208,6 +208,22 @@ Today: `UploadsController` already stores images and video in ActiveStorage (100
 | PM-135 | Attach uploaded files to tasks and features | Ties into section 12. |
 | PM-136 | Storage quota per workspace and a per-file size limit | Production uses ActiveStorage `:local` today; large uploads need real object storage (see `docs/storage-options.md`). |
 
+## 14. Paragraph styles in documents (P1)
+
+Requested by Alex on 2026-10-13: documents have a common set of paragraph styles, and you can create your own style, which is added to your paragraph style list everywhere, for your user only.
+
+Today: the editor (`DocumentPage.tsx`, Tiptap) has fixed node types only (paragraph, headings, lists, code block, quote-like blocks). There is no style picker, no named styles, and nothing style-related stored on `users`.
+
+| ID | Item | Notes |
+| --- | --- | --- |
+| PM-140 | **Built-in paragraph styles**: Title, Subtitle, Heading 1–3, Body, Quote, Caption, Monospace | Like the style menu in Quip, Google Docs and Pages. |
+| PM-141 | **Style picker** in the editor toolbar that applies a style to the current paragraph | |
+| PM-142 | **Create a custom style** from the current paragraph's formatting (font, size, weight, color, spacing, alignment) and name it | |
+| PM-143 | **Custom styles are per user and global**: saved to the user's account and available in every document they edit | Default: a `paragraph_styles` table keyed to `user_id` (or a JSON column on `users`). Rendered as a Tiptap attribute on the block, e.g. `data-style="my-callout"`. |
+| PM-144 | Edit or delete a custom style; documents that use it update | Needs a fallback when a style is deleted: render as Body. |
+| PM-145 | How other people see your custom styles in a shared document | Open question: since styles belong to one user, a collaborator either sees the formatting copied into the doc, or the style travels with the doc. Default: the doc stores the resolved formatting so it looks the same to everyone. |
+| PM-146 | Keyboard shortcuts for styles (e.g. Cmd+Opt+1 for Heading 1) | |
+
 ## Out of scope for parity
 
 Monday sells separate CRM, Service (ticketing), Campaigns and "vibe" app-builder products on the same platform. They are not project management and are left out unless someone asks.
