@@ -210,6 +210,7 @@ Today: `UploadsController` already stores images and video in ActiveStorage (100
 | PM-134 | Download, rename, move, delete, replace with a new version | |
 | PM-135 | Attach uploaded files to tasks and features | Ties into section 12. |
 | PM-136 | Storage quota per workspace and a per-file size limit | Production uses ActiveStorage `:local` today; large uploads need real object storage (see `docs/storage-options.md`). |
+| PM-137 | **Any file type embedded inside a document** (Alex, 2026-10-13): audio/music (mp3, m4a, wav, flac, ogg) with an inline player, video (already works), and any other file (PDF, zip, Office docs) as an attachment card with name, size, type icon, preview and download | Today the editor accepts images and video only: `DocumentPage.tsx` filters drops/pastes to `image/*` and `video/*`, and `UploadsController::ALLOWED_TYPES` has no audio or other types. Needs an Audio node and a File-attachment node in the editor, and the allow-list widened (shares the work in PM-131). |
 
 ## 14. Paragraph styles in documents (P1)
 
