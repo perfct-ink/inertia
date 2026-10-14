@@ -5,8 +5,9 @@ import { Plus, X, Flag, Loader2 } from 'lucide-react'
 import WorkspaceLayout from '@/components/WorkspaceLayout'
 import { useInitiatives, useCreateInitiative, useUpdateInitiative, useDeleteInitiative } from '@/api/initiatives'
 import '../planning/PlanningScreen.scss'
-import { ProgressBar, Timeline, donePercent } from '@/components/Timeline'
+import { ProgressBar, Timeline } from '@/components/Timeline'
 import { usePageTitle } from '@/hooks/usePageTitle'
+import { donePercent } from '@/data/schedule'
 
 export default function InitiativesScreen() {
   usePageTitle('Initiatives')

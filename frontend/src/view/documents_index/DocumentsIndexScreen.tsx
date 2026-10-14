@@ -7,17 +7,14 @@ import { FileText, Table as TableIcon, Loader2, ArrowUp, ArrowDown } from 'lucid
 import { useWorkspace } from '@/api/workspace'
 import WorkspaceLayout from '@/components/WorkspaceLayout'
 import CreateItem from '@/components/CreateItem'
-import { flattenFolders } from '@/components/file-manager/tree'
+import { flattenFolders } from '@/data/folder'
 import './DocumentsIndexScreen.scss'
 import type { Document } from '@/types'
 import { usePageTitle } from '@/hooks/usePageTitle'
+import { lastModified } from '@/data/document'
 
 type Row = Document & { folderId: number; folderName: string }
 type SortKey = 'name' | 'location' | 'modified'
-
-function lastModified(doc: Document) {
-  return doc.content_updated_at ?? doc.updated_at
-}
 
 // A file manager's list view: sortable Name/Location/Last Modified columns,
 // full width instead of a centered single-item-per-row list.

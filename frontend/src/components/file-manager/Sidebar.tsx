@@ -1,4 +1,4 @@
-import { flattenFolders } from './tree'
+import { flattenFolders } from '@/data/folder'
 import { WorkspaceSwitcher } from '@/components/workspace/WorkspaceSwitcher'
 import { Button, Input, Select } from '@/components/ui'
 import './Sidebar.scss'
@@ -26,6 +26,7 @@ import { useTabsStore } from '@/store/tabs'
 import { FolderItem } from './FolderItem'
 import api from '@/lib/api'
 import logoMark from '@/assets/logo-mark.svg'
+import { todayISO } from '@/util/date'
 
 // Kept in sync by hand with the onKey handler below — there's only one
 // place global shortcuts are bound, so this is just their display copy.
@@ -45,11 +46,6 @@ const KEYBOARD_SHORTCUTS: { keys: string; label: string }[] = [
 // window — in a normal browser tab there's nothing to reserve space for,
 // so it just reads as unwanted empty padding.
 const isElectron = navigator.userAgent.toLowerCase().includes('electron')
-
-function todayISO() {
-  const d = new Date()
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
-}
 
 // Backlog/Workboard and List/Month toggles already live on each page's own
 // header (TasksPage, EventsPage) — the rail only needs to get you to a

@@ -32,7 +32,6 @@ import History from '@tiptap/extension-history'
 import Placeholder from '@tiptap/extension-placeholder'
 import Dropcursor from '@tiptap/extension-dropcursor'
 import Gapcursor from '@tiptap/extension-gapcursor'
-import type { Node } from '@tiptap/pm/model'
 import {
   Bold as BoldIcon,
   Italic as ItalicIcon,
@@ -72,40 +71,11 @@ import api from '@/lib/api'
 import { useTabsStore } from '@/store/tabs'
 import { useAuthStore } from '@/store/auth'
 import { usePageTitle } from '@/hooks/usePageTitle'
+import { extractTitle, buildInitialContent } from '@/data/document'
+import { colorForUserId } from '@/util/color'
 
 // Enforce: document always starts with a heading followed by body content
 const CustomDocument = TiptapDocument.extend({ content: 'heading block*' })
-
-function extractTitle(json: Record<string, unknown>): string {
-  const first = (json.content as Node[] | undefined)?.[0] as Record<string, unknown> | undefined
-  if (first?.type === 'heading') {
-    const nodes = first.content as { text?: string }[] | undefined
-    return nodes?.map((n) => n.text ?? '').join('').trim() || 'Untitled'
-  }
-  return 'Untitled'
-}
-
-function buildInitialContent(title: string): Record<string, unknown> {
-  return {
-    type: 'doc',
-    content: [
-      {
-        type: 'heading',
-        attrs: { level: 1 },
-        content: title ? [{ type: 'text', text: title }] : [],
-      },
-      { type: 'paragraph' },
-    ],
-  }
-}
-
-// Deterministic user id -> HSL hue, so the same user always gets the same
-// collaboration cursor color across tabs/sessions, and different users
-// visibly differ.
-function colorForUserId(userId: number | undefined): string {
-  const hue = ((userId ?? 0) * 137.508) % 360 // golden-angle spacing
-  return `hsl(${hue}, 70%, 45%)`
-}
 
 function ToolbarBtn({
   icon,

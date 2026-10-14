@@ -6,8 +6,9 @@ import WorkspaceLayout from '@/components/WorkspaceLayout'
 import { useEpics, useCreateEpic, useUpdateEpic, useDeleteEpic } from '@/api/epics'
 import { useInitiatives } from '@/api/initiatives'
 import '../planning/PlanningScreen.scss'
-import { ProgressBar, Timeline, donePercent } from '@/components/Timeline'
+import { ProgressBar, Timeline } from '@/components/Timeline'
 import { usePageTitle } from '@/hooks/usePageTitle'
+import { donePercent } from '@/data/schedule'
 
 export default function EpicsScreen() {
   usePageTitle('Epics')

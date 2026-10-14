@@ -23,25 +23,29 @@ export default function TabBar() {
       {tabs.map((tab) => {
         const active = tab.id === activeId
         return (
-          <Button
-            key={tab.id}
-            onClick={() => { setActive(tab.id); navigate(tab.path) }}
-            className={classNames('tab_bar-tab', active && 'tab_bar-tab--active')}
-          >
-            {tab.docType === 'table'
-              ? <Database className="tab_bar-icon" />
-              : tab.docType === 'spreadsheet'
-              ? <TableIcon className="tab_bar-icon" />
-              : <FileText className="tab_bar-icon" />
-            }
-            <span className="tab_bar-label">{tab.title}</span>
-            <span
+          <div key={tab.id} className={classNames('tab_bar-tab', active && 'tab_bar-tab--active')}>
+            <Button
+              onClick={() => { setActive(tab.id); navigate(tab.path) }}
+              aria-current={active ? 'page' : undefined}
+              className="tab_bar-select"
+            >
+              {tab.docType === 'table'
+                ? <Database className="tab_bar-icon" />
+                : tab.docType === 'spreadsheet'
+                ? <TableIcon className="tab_bar-icon" />
+                : <FileText className="tab_bar-icon" />
+              }
+              <span className="tab_bar-label">{tab.title}</span>
+            </Button>
+            <Button
               onClick={(e) => handleClose(e, tab.id)}
+              aria-label={`Close ${tab.title}`}
+              title="Close"
               className="tab_bar-close"
             >
               <X className="tab_bar-close_icon" />
-            </span>
-          </Button>
+            </Button>
+          </div>
         )
       })}
     </div>

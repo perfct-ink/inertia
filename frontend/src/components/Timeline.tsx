@@ -2,30 +2,18 @@ import {
   format, parseISO, startOfMonth, endOfMonth, eachMonthOfInterval, differenceInCalendarDays,
 } from 'date-fns'
 import './Timeline.scss'
+import { donePercent, type Scheduled } from '@/data/schedule'
 
 // Shared by EpicsPage, InitiativesPage, and FolderDetailPage's per-folder
 // Gantt tab — all three are "a title, an optional start/target date, and a
 // tasks_count/done_tasks_count rollup," so one renderer covers all of them
 // instead of near-identical copies drifting apart.
-export interface Scheduled {
-  id: number
-  title: string
-  start_date: string | null
-  target_date: string | null
-  tasks_count: number
-  done_tasks_count: number
-}
-
 export function ProgressBar({ percent }: { percent: number }) {
   return (
     <div className="timeline-progress">
       <div className="timeline-progress-fill" style={{ width: `${percent}%` }} />
     </div>
   )
-}
-
-export function donePercent(item: Scheduled) {
-  return item.tasks_count > 0 ? Math.round((item.done_tasks_count / item.tasks_count) * 100) : 0
 }
 
 type Dated = Scheduled & { start_date: string; target_date: string }

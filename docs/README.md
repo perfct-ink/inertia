@@ -6,6 +6,15 @@ Docs index: [workspaces](workspaces.md), [services and configuration](services.m
 
 Create Documents, Sheets, or Tables from the file list, folder overview, or sidebar. Tables have named fields with text, integer, number, boolean, date, datetime, or relation datatypes. Relation fields link to one record in another workspace table using a database foreign key; multiple records can reference the same record. Table records are saved individually, and dates/times are entered in UTC. Clear a field's values before changing its datatype. Referenced records and tables must be unlinked before deletion.
 
+## Linting and tests
+
+```bash
+npm run lint   # ESLint + Stylelint (frontend), ESLint (collab-server)
+npm test       # Jest (frontend), Vitest (collab-server)
+```
+
+Backend tests: `docker compose run --rm backend bin/rails test`.
+
 ## Running locally
 
 ```bash

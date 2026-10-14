@@ -1,0 +1,9 @@
+{
+  "name": "inertia-repo",
+  "private": true,
+  "description": "Repository-level scripts. Each app keeps its own package.json.",
+  "scripts": {
+    "lint": "npm --prefix frontend run lint && npm --prefix collab-server run lint",
+    "test": "npm --prefix frontend test && npm --prefix collab-server test"
+  }
+}

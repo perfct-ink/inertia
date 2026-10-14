@@ -18,6 +18,7 @@ import { useTasks } from '@/api/tasks'
 import type { WorkspaceEvent, Task } from '@/types'
 import './EventsScreen.scss'
 import { usePageTitle } from '@/hooks/usePageTitle'
+import { dateStatus, todayISO } from '@/util/date'
 
 function StatusDot({ status }: { status: Task['status'] }) {
   return <span className={`events-status events-status--${status}`} />
@@ -37,10 +38,7 @@ function EventTypeIcon({ type, size, tinted }: {
 }
 
 function dateBadgeClass(dateStr: string) {
-  const d = new Date(dateStr + 'T00:00:00')
-  if (isPast(d) && !isToday(d)) return 'events-date--overdue'
-  if (isToday(d)) return 'events-date--today'
-  return 'events-date--upcoming'
+  return `events-date--${dateStatus(dateStr)}`
 }
 
 // ── Task picker ───────────────────────────────────────────────────────────────
@@ -508,11 +506,6 @@ export default function EventsScreen() {
   const { data: events = [], isLoading } = useEvents()
   const view = searchParams.get('view') === 'month' ? 'month' : 'list'
   const [sidebar, setSidebar] = useState<SidebarState>(null)
-
-  function todayISO() {
-    const d = new Date()
-    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
-  }
 
   function openNew(defaultDate?: string) {
     setSidebar({ mode: 'new', defaultDate: defaultDate ?? todayISO() })

@@ -3,7 +3,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useCreateDocument, useWorkspace } from '@/api/workspace'
 import { errorMessage } from '@/api/tables'
-import { flattenFolders } from '@/components/file-manager/tree'
+import { flattenFolders } from '@/data/folder'
 import type { Document } from '@/types'
 import './CreateItem.scss'
 

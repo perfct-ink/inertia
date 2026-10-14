@@ -14,12 +14,14 @@ import {
 } from 'date-fns'
 import CreateItem from '@/components/CreateItem'
 import WorkspaceLayout from '@/components/WorkspaceLayout'
-import { ProgressBar, Timeline, donePercent } from '@/components/Timeline'
+import { ProgressBar, Timeline } from '@/components/Timeline'
 import { useFolderContents, useUpdateFolder } from '@/api/workspace'
 import { useUpdateTask } from '@/api/tasks'
 import type { Task, WorkspaceEvent, Epic } from '@/types'
 import './FolderDetailScreen.scss'
 import { usePageTitle } from '@/hooks/usePageTitle'
+import { donePercent } from '@/data/schedule'
+import { buildTaskTree, type TaskNode } from '@/data/task'
 
 const KANBAN_STATUSES: { key: Task['status']; label: string; dot: string }[] = [
   { key: 'todo', label: 'To Do', dot: 'muted' },
@@ -99,19 +101,6 @@ function BoardView({ tasks, onAdvance }: { tasks: Task[]; onAdvance: (task: Task
 // ...). Two independent ways to manage depth: a global "Level 1 only /
 // Levels 1–2 / All levels" cutoff for hiding whole tiers at once, and a
 // per-task collapse arrow for folding just one subtree. ────────────────────
-
-interface TaskNode extends Task { children: TaskNode[] }
-
-function buildTaskTree(tasks: Task[]): TaskNode[] {
-  const byId = new Map<number, TaskNode>(tasks.map((t) => [ t.id, { ...t, children: [] } ]))
-  const roots: TaskNode[] = []
-  byId.forEach((node) => {
-    const parent = node.parent_id != null ? byId.get(node.parent_id) : undefined
-    if (parent) parent.children.push(node)
-    else roots.push(node)
-  })
-  return roots
-}
 
 const DEPTH_OPTIONS: { label: string; maxDepth: number | null }[] = [
   { label: 'Level 1 only', maxDepth: 0 },

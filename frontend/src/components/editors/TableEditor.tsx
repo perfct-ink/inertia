@@ -6,15 +6,15 @@ import WorkspaceLayout from '@/components/WorkspaceLayout'
 import { useWorkspace } from '@/api/workspace'
 import { useUpdateDocument } from '@/api/documents'
 import { useTable, useEditTable, tableQuery, errorMessage, type TableData, type TableField, type TableRecord, type DataType } from '@/api/tables'
-import type { Document, Folder } from '@/types'
+import type { Document } from '@/types'
 import { useTabsStore } from '@/store/tabs'
 import './TableEditor.scss'
 import { usePageTitle } from '@/hooks/usePageTitle'
+import { flattenFolders } from '@/data/folder'
 
 const types: DataType[] = ['text', 'integer', 'number', 'boolean', 'date', 'datetime', 'relation']
 const inputClass = 'table_editor-input'
 const fieldInputClass = `${inputClass} table_editor-input--field`
-function foldersFlat(folders: Folder[]): Folder[] { return folders.flatMap(f => [f, ...foldersFlat(f.children ?? [])]) }
 
 function RecordRow({ record, fields, relations, busy, onSave, onDelete }: {
   record?: TableRecord; fields: TableField[]; relations: Map<number, TableData>; busy: boolean
@@ -80,7 +80,7 @@ export default function TableEditor({ doc }: { doc: Document }) {
   const [name, setName] = useState('')
   const [type, setType] = useState<DataType>('text')
   const [relationTable, setRelationTable] = useState('')
-  const tables = foldersFlat(workspace?.folders ?? []).flatMap(f => f.documents ?? []).filter(d => d.doc_type === 'table')
+  const tables = flattenFolders(workspace?.folders ?? []).flatMap(f => f.documents ?? []).filter(d => d.doc_type === 'table')
   const targetIds = [...new Set((data?.fields ?? []).flatMap(f => f.relation_table_id ? [f.relation_table_id] : []))]
   const queries = useQueries({ queries: targetIds.map(tableQuery) })
   const relations = new Map(targetIds.flatMap((id, i) => queries[i].data ? [[id, queries[i].data!] as const] : []))

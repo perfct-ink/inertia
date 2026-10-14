@@ -18,7 +18,7 @@
       gap: space(1.5);
       max-width: 160px;
       height: 100%;
-      padding: 0 space(3);
+      padding: 0 space(1) 0 space(3);
       border-right-width: 1px;
       @include text('sm');
 
@@ -37,6 +37,19 @@
         background: color(background);
         color: color(foreground);
       }
+    }
+
+    // The tab's main button fills the tab; the close button sits beside it
+    // (two sibling buttons, never one button nested in another).
+    @at-root .tab_bar-select {
+      display: flex;
+      flex: 1 1 0%;
+      align-items: center;
+      gap: space(1.5);
+      min-width: 0;
+      height: 100%;
+      color: inherit;
+      text-align: left;
     }
 
     @at-root .tab_bar-icon {
@@ -58,13 +71,15 @@
       cursor: pointer;
       opacity: 0;
 
+      &:focus-visible,
       &:hover {
         background: color(muted);
         color: color(foreground);
       }
     }
 
-    @at-root .tab_bar-tab:hover .tab_bar-close {
+    @at-root .tab_bar-tab:hover .tab_bar-close,
+    .tab_bar-tab:focus-within .tab_bar-close {
       opacity: 1;
     }
 
