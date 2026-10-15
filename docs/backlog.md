@@ -9,6 +9,7 @@ Related: `docs/project-management-features.md` (gap analysis vs. Jira) already c
 
 ## How to read this
 
+- **Naming**: workspaces are called **Spaces** in the product (Alex, 2026-10-15). Prose here says Space; code identifiers (`workspaces`, `workspace_id`, `/workspace` routes, `docs/workspaces.md`) keep their current names until the code rename lands.
 - IDs are stable (`PM-03`); reference them in PRs and commits.
 - **Priority**: P0 = the headline ask (milestone, hierarchy, Gantt, roadmap), P1 = needed for the headline items to be useful day to day, P2 = Monday parity beyond that, P3 = large or speculative.
 - **Today** says what already exists in this repo, checked against `backend/db/schema.rb` and the models on 2026-10-11.
@@ -32,7 +33,7 @@ Default chosen for this backlog: Milestone is the top-level container, and each 
 
 | ID | Item | Today | Notes |
 | --- | --- | --- | --- |
-| PM-01 | **Milestone as a first-class model** (`milestones`: title, description, target date, status, owner, workspace, folder). Flat: milestones do not nest (decided 2026-10-11) | Milestones exist only as `events.event_type = milestone`, linked to tasks through `event_tasks` | Keep the Event for calendar display, or migrate it. Default: new `Milestone` table, migrate existing milestone events into it, keep `event_tasks` for deadlines only. |
+| PM-01 | **Milestone as a first-class model** (`milestones`: title, description, target date, status, owner, Space, folder). Flat: milestones do not nest (decided 2026-10-11) | Milestones exist only as `events.event_type = milestone`, linked to tasks through `event_tasks` | Keep the Event for calendar display, or migrate it. Default: new `Milestone` table, migrate existing milestone events into it, keep `event_tasks` for deadlines only. |
 | PM-02 | **Milestone rollup**: progress %, count of open/done items, health (on track / at risk / off track) computed from everything beneath it | Epic already has `tasks_count` / `done_tasks_count` | Same grouped-count approach as `EpicsController#index`, one level up. |
 | PM-03 | **Initiative model and initiative list** above Epic (Alex re-requested the list 2026-10-13) (title, description, owner, start/target date, status, `milestone_id`) | **Partly built** (2026-10-12): `Initiative` with title, start/target date, task rollup, `InitiativesPage.tsx`. Missing: description, owner, status, `milestone_id` | Shape mirrors Epic → Task. See `project-management-features.md` sequence step 2. |
 | PM-04 | `epics.initiative_id`, `epics.milestone_id`, `tasks.milestone_id` | `epics.initiative_id` built (2026-10-12); milestone columns missing | Inheritance rule above; explicit value overrides inherited. |
@@ -112,7 +113,7 @@ Monday board views: Table, Kanban, Gantt, Timeline, Calendar, Workload, Chart, C
 | PM-66 | Map view (location field) | None |
 | PM-67 | Pivot view | None |
 | PM-68 | Saved views per user and shared views, saved filters | None |
-| PM-69 | "My Work": everything assigned to me across the workspace, by date | None |
+| PM-69 | "My Work": everything assigned to me across the Space, by date | None |
 | PM-59 | **Epic and feature planning view** (Alex, 2026-10-13): plan tasks by epic or by feature. Pick an epic or a feature (section 12), see its tasks grouped by status, drag tasks from the backlog into it, set dates/estimates, and see its rollup | Today tasks can be assigned an epic (`tasks.epic_id`) and `EpicsPage.tsx` lists epics with progress, but there's no planning screen. Feature planning needs PM-121/PM-123. |
 
 ## 7. Automations (P2)
@@ -124,7 +125,7 @@ Monday board views: Table, Kanban, Gantt, Timeline, Calendar, Workload, Chart, C
 | PM-72 | Actions: notify, assign, change status, move, create item, set date, create subtask | |
 | PM-73 | Recipe templates (e.g. "when all subtasks done, mark parent done"; "when epic done, update milestone health") | Rollup recipes tie into PM-02. |
 | PM-74 | Recurring tasks | |
-| PM-75 | Automation run log and per-workspace limits | |
+| PM-75 | Automation run log and per-Space limits | |
 
 ## 8. Dashboards and reporting (P2)
 
@@ -156,7 +157,7 @@ Monday board views: Table, Kanban, Gantt, Timeline, Calendar, Workload, Chart, C
 | PM-104 | Embed live task lists / Gantt in documents (Monday Workdocs) | Documents exist; embedding does not |
 | PM-105 | Whiteboard (Monday WorkCanvas) | None. P3. |
 | PM-106 | Guests and per-board permissions (view-only, edit, owner) | `shares` exists: token links with view/edit on documents and folders; the `/shared/:token` page in the frontend is still a placeholder |
-| PM-108 | **Collaborate on entire folders** (Alex, 2026-10-13): invite named people to a folder with viewer / commenter / editor / owner roles; access covers every document, file, task and sub-folder inside it | Today each workspace belongs to one user (`workspaces.user_id`) and sharing is by anonymous token link only. Needs a `folder_memberships` table (user, folder, role), inherited by sub-folders, plus invite-by-email and a "Shared with me" list. Real-time co-editing already exists via `collab-server`. |
+| PM-108 | **Collaborate on entire folders** (Alex, 2026-10-13): invite named people to a folder with viewer / commenter / editor / owner roles; access covers every document, file, task and sub-folder inside it | Today each Space belongs to one user (`workspaces.user_id`) and sharing is by anonymous token link only. Needs a `folder_memberships` table (user, folder, role), inherited by sub-folders, plus invite-by-email and a "Shared with me" list. Real-time co-editing already exists via `collab-server`. |
 | PM-109 | **Comments on documents** (Alex, 2026-10-13): others can comment on a document, either on a highlighted passage (inline) or on the document as a whole, with replies, @mentions, resolve/reopen and notifications | No Comment model in the backend. Default: one polymorphic `comments` table shared with PM-100, with an optional anchor (text range in the doc) for inline comments. Needs commenter role from PM-108. |
 | PM-107 | Board / item templates (project template, roadmap template, sprint template) | None |
 
@@ -210,7 +211,7 @@ Today: `UploadsController` already stores images and video in ActiveStorage (100
 | PM-133 | Previews: image thumbnails, a grid/gallery view, inline PDF and video preview | Pairs with PM-65 (files gallery). |
 | PM-134 | Download, rename, move, delete, replace with a new version | |
 | PM-135 | Attach uploaded files to tasks and features | Ties into section 12. |
-| PM-136 | Storage quota per workspace and a per-file size limit | Production uses ActiveStorage `:local` today; large uploads need real object storage (see `docs/storage-options.md`). |
+| PM-136 | Storage quota per Space and a per-file size limit | Production uses ActiveStorage `:local` today; large uploads need real object storage (see `docs/storage-options.md`). |
 | PM-137 | **Any file type embedded inside a document** (Alex, 2026-10-13): audio/music (mp3, m4a, wav, flac, ogg) with an inline player, video (already works), and any other file (PDF, zip, Office docs) as an attachment card with name, size, type icon, preview and download | Today the editor accepts images and video only: `DocumentScreen.tsx` filters drops/pastes to `image/*` and `video/*`, and `UploadsController::ALLOWED_TYPES` has no audio or other types. Needs an Audio node and a File-attachment node in the editor, and the allow-list widened (shares the work in PM-131). |
 
 ## 14. Paragraph styles in documents (P1)
@@ -260,9 +261,9 @@ Tailwind has been removed; the frontend uses SCSS (`frontend/src/styles/` for ap
 | PM-165 | Clear ESLint warnings deliberately | The React Compiler rules in `react-hooks` v7 (`refs`, `set-state-in-effect`, `static-components`) and `exhaustive-deps` are warnings. Each fix edits working code, so do them one component at a time with tests. |
 | PM-166 | Lint the whole repository (partly done) | Done: root `npm run lint` runs ESLint + Stylelint in `frontend/` and ESLint in `collab-server/`. Remaining: Ruby (`rubocop`) and Swift linters in the same entry point. |
 | PM-167 | WCAG 2.1 audit (started) | Done: `TabBar` tabs and close controls are real buttons with names. Remaining: keyboard paths for every interactive element, focus order in modals, color contrast in both themes. |
-| PM-168 | Teams: groups of users that can be granted a role in a workspace | Builds on `workspace_memberships` (see `docs/workspaces.md`). |
+| PM-168 | Teams: groups of users that can be granted a role in a Space | Builds on `workspace_memberships` (see `docs/workspaces.md`). |
 | PM-169 | Invite people without an account (email invitation, pending membership) | Today members are added by the email of an existing user. |
-| PM-170 | Move or copy content between workspaces | A document stays in its workspace today. |
+| PM-170 | Move or copy content between Spaces | A document stays in its Space today. |
 
 ## Out of scope for parity
 
