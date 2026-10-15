@@ -9,7 +9,7 @@ Related: `docs/project-management-features.md` (gap analysis vs. Jira) already c
 
 ## How to read this
 
-- **Naming**: workspaces are called **Spaces** in the product (Alex, 2026-10-15). Prose here says Space; code identifiers (`workspaces`, `workspace_id`, `/workspace` routes, `docs/workspaces.md`) keep their current names until the code rename lands.
+- **Terminology**: workspaces are called Spaces in the product (all UI, copy and docs). Code, API paths, X-Workspace-Id and DB keep 'workspace'. See `docs/spaces.md`.
 - IDs are stable (`PM-03`); reference them in PRs and commits.
 - **Priority**: P0 = the headline ask (milestone, hierarchy, Gantt, roadmap), P1 = needed for the headline items to be useful day to day, P2 = Monday parity beyond that, P3 = large or speculative.
 - **Today** says what already exists in this repo, checked against `backend/db/schema.rb` and the models on 2026-10-11.
@@ -261,7 +261,7 @@ Tailwind has been removed; the frontend uses SCSS (`frontend/src/styles/` for ap
 | PM-165 | Clear ESLint warnings deliberately | The React Compiler rules in `react-hooks` v7 (`refs`, `set-state-in-effect`, `static-components`) and `exhaustive-deps` are warnings. Each fix edits working code, so do them one component at a time with tests. |
 | PM-166 | Lint the whole repository (partly done) | Done: root `npm run lint` runs ESLint + Stylelint in `frontend/` and ESLint in `collab-server/`. Remaining: Ruby (`rubocop`) and Swift linters in the same entry point. |
 | PM-167 | WCAG 2.1 audit (started) | Done: `TabBar` tabs and close controls are real buttons with names. Remaining: keyboard paths for every interactive element, focus order in modals, color contrast in both themes. |
-| PM-168 | Teams: groups of users that can be granted a role in a Space | Builds on `workspace_memberships` (see `docs/workspaces.md`). |
+| PM-168 | Teams: groups of users that can be granted a role in a Space | Builds on `workspace_memberships` (see `docs/spaces.md`). |
 | PM-169 | Invite people without an account (email invitation, pending membership) | Today members are added by the email of an existing user. |
 | PM-170 | Move or copy content between Spaces | A document stays in its Space today. |
 
