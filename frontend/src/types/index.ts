@@ -59,6 +59,7 @@ export interface Task {
   position: number
   document_id: number
   assignee_id: number | null
+  milestone_id?: number | null
   epic_id: number | null
   parent_id: number | null
   folder_id: number | null
@@ -84,6 +85,7 @@ export interface Epic {
   title: string
   folder_id: number | null
   initiative_id: number | null
+  milestone_id: number | null
   start_date: string | null
   target_date: string | null
   tasks_count: number
@@ -92,9 +94,34 @@ export interface Epic {
   updated_at: string
 }
 
+export type PlanningStatus = 'planned' | 'active' | 'done'
+export type MilestoneHealth = 'on_track' | 'at_risk' | 'off_track'
+
+export interface Milestone {
+  id: number
+  title: string
+  description: string | null
+  target_date: string | null
+  status: PlanningStatus
+  owner_id: number | null
+  folder_id: number | null
+  tasks_count: number
+  done_tasks_count: number
+  epics_count: number
+  initiatives_count: number
+  percent: number
+  health: MilestoneHealth
+  created_at: string
+  updated_at: string
+}
+
 export interface Initiative {
   id: number
   title: string
+  description: string | null
+  status: PlanningStatus
+  owner_id: number | null
+  milestone_id: number | null
   start_date: string | null
   target_date: string | null
   tasks_count: number

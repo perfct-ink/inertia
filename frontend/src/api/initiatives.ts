@@ -14,7 +14,10 @@ export function useCreateInitiative() {
   return useMutation({
     mutationFn: (data: { title: string }) =>
       api.post('/api/v1/initiatives', { initiative: data }).then((r) => r.data as Initiative),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['initiatives'] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['initiatives'] })
+      qc.invalidateQueries({ queryKey: ['milestones'] })
+    },
   })
 }
 
@@ -23,7 +26,10 @@ export function useUpdateInitiative() {
   return useMutation({
     mutationFn: ({ id, ...data }: Partial<Initiative> & { id: number }) =>
       api.patch(`/api/v1/initiatives/${id}`, { initiative: data }).then((r) => r.data as Initiative),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['initiatives'] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['initiatives'] })
+      qc.invalidateQueries({ queryKey: ['milestones'] })
+    },
   })
 }
 

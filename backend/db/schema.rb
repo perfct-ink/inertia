@@ -35,8 +35,10 @@ ActiveRecord::Schema[7.2].define(version: 2026_10_15_000001) do
     t.date "start_date"
     t.date "target_date"
     t.bigint "initiative_id"
+    t.bigint "milestone_id"
     t.index ["folder_id"], name: "index_epics_on_folder_id"
     t.index ["initiative_id"], name: "index_epics_on_initiative_id"
+    t.index ["milestone_id"], name: "index_epics_on_milestone_id"
     t.index ["workspace_id"], name: "index_epics_on_workspace_id"
   end
 
@@ -86,6 +88,12 @@ ActiveRecord::Schema[7.2].define(version: 2026_10_15_000001) do
     t.date "target_date"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.bigint "milestone_id"
+    t.text "description"
+    t.integer "status", default: 0, null: false
+    t.bigint "owner_id"
+    t.index ["milestone_id"], name: "index_initiatives_on_milestone_id"
+    t.index ["owner_id"], name: "index_initiatives_on_owner_id"
     t.index ["workspace_id"], name: "index_initiatives_on_workspace_id"
   end
 
@@ -93,6 +101,21 @@ ActiveRecord::Schema[7.2].define(version: 2026_10_15_000001) do
     t.string "jti", null: false
     t.datetime "exp", null: false
     t.index ["jti"], name: "index_jwt_denylists_on_jti", unique: true
+  end
+
+  create_table "milestones", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+    t.bigint "workspace_id", null: false
+    t.bigint "folder_id"
+    t.bigint "owner_id"
+    t.string "title", null: false
+    t.text "description"
+    t.date "target_date"
+    t.integer "status", default: 0, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["folder_id"], name: "index_milestones_on_folder_id"
+    t.index ["owner_id"], name: "index_milestones_on_owner_id"
+    t.index ["workspace_id"], name: "index_milestones_on_workspace_id"
   end
 
   create_table "quip_imports", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
@@ -201,10 +224,12 @@ ActiveRecord::Schema[7.2].define(version: 2026_10_15_000001) do
     t.bigint "epic_id"
     t.bigint "folder_id"
     t.bigint "parent_id"
+    t.bigint "milestone_id"
     t.index ["assignee_id"], name: "index_tasks_on_assignee_id"
     t.index ["document_id"], name: "index_tasks_on_document_id"
     t.index ["epic_id"], name: "index_tasks_on_epic_id"
     t.index ["folder_id"], name: "index_tasks_on_folder_id"
+    t.index ["milestone_id"], name: "index_tasks_on_milestone_id"
     t.index ["parent_id"], name: "index_tasks_on_parent_id"
     t.index ["status"], name: "index_tasks_on_status"
     t.index ["workspace_id"], name: "index_tasks_on_workspace_id"
@@ -249,6 +274,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_10_15_000001) do
   add_foreign_key "documents", "users", column: "created_by_id"
   add_foreign_key "epics", "folders"
   add_foreign_key "epics", "initiatives"
+  add_foreign_key "epics", "milestones"
   add_foreign_key "epics", "workspaces"
   add_foreign_key "event_tasks", "events"
   add_foreign_key "event_tasks", "tasks"
@@ -256,7 +282,12 @@ ActiveRecord::Schema[7.2].define(version: 2026_10_15_000001) do
   add_foreign_key "events", "workspaces"
   add_foreign_key "folders", "folders", column: "parent_id"
   add_foreign_key "folders", "workspaces"
+  add_foreign_key "initiatives", "milestones"
+  add_foreign_key "initiatives", "users", column: "owner_id", on_delete: :nullify
   add_foreign_key "initiatives", "workspaces"
+  add_foreign_key "milestones", "folders"
+  add_foreign_key "milestones", "users", column: "owner_id", on_delete: :nullify
+  add_foreign_key "milestones", "workspaces"
   add_foreign_key "quip_imports", "folders", column: "destination_folder_id"
   add_foreign_key "quip_imports", "workspaces"
   add_foreign_key "shares", "users", column: "created_by_id"
@@ -271,6 +302,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_10_15_000001) do
   add_foreign_key "tasks", "documents"
   add_foreign_key "tasks", "epics"
   add_foreign_key "tasks", "folders"
+  add_foreign_key "tasks", "milestones"
   add_foreign_key "tasks", "tasks", column: "parent_id"
   add_foreign_key "tasks", "users", column: "assignee_id"
   add_foreign_key "tasks", "workspaces"

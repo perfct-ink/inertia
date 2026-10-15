@@ -14,7 +14,10 @@ export function useCreateEpic() {
   return useMutation({
     mutationFn: (data: { title: string }) =>
       api.post('/api/v1/epics', { epic: data }).then((r) => r.data as Epic),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['epics'] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['epics'] })
+      qc.invalidateQueries({ queryKey: ['milestones'] })
+    },
   })
 }
 
@@ -23,7 +26,10 @@ export function useUpdateEpic() {
   return useMutation({
     mutationFn: ({ id, ...data }: Partial<Epic> & { id: number }) =>
       api.patch(`/api/v1/epics/${id}`, { epic: data }).then((r) => r.data as Epic),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['epics'] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['epics'] })
+      qc.invalidateQueries({ queryKey: ['milestones'] })
+    },
   })
 }
 

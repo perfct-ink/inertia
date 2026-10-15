@@ -5,6 +5,7 @@ import { Plus, X, Target, Loader2 } from 'lucide-react'
 import WorkspaceLayout from '@/components/WorkspaceLayout'
 import { useEpics, useCreateEpic, useUpdateEpic, useDeleteEpic } from '@/api/epics'
 import { useInitiatives } from '@/api/initiatives'
+import { useMilestones } from '@/api/milestones'
 import '../planning/PlanningScreen.scss'
 import { ProgressBar, Timeline } from '@/components/Timeline'
 import { usePageTitle } from '@/hooks/usePageTitle'
@@ -18,6 +19,7 @@ export default function EpicsScreen() {
   const initiativeIdFilter = searchParams.get('initiative_id')
   const { data: allEpics = [], isLoading } = useEpics()
   const { data: initiatives = [] } = useInitiatives()
+  const { data: milestones = [] } = useMilestones()
   const epics = initiativeIdFilter ? allEpics.filter((e) => String(e.initiative_id) === initiativeIdFilter) : allEpics
   const createEpic = useCreateEpic()
   const updateEpic = useUpdateEpic()
@@ -156,6 +158,19 @@ export default function EpicsScreen() {
                       <option value="">No initiative</option>
                       {initiatives.map((initiative) => (
                         <option key={initiative.id} value={initiative.id}>{initiative.title}</option>
+                      ))}
+                    </Select>
+                  )}
+                  {milestones.length > 0 && (
+                    <Select
+                      aria-label="Milestone"
+                      value={epic.milestone_id ?? ''}
+                      onChange={(e) => updateEpic.mutate({ id: epic.id, milestone_id: e.target.value ? Number(e.target.value) : null })}
+                      className="planning-initiative"
+                    >
+                      <option value="">No milestone</option>
+                      {milestones.map((milestone) => (
+                        <option key={milestone.id} value={milestone.id}>{milestone.title}</option>
                       ))}
                     </Select>
                   )}

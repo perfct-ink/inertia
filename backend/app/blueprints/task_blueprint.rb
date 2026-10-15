@@ -5,6 +5,7 @@ class TaskBlueprint < Blueprinter::Base
   field :document_id
   field :assignee_id
   field :epic_id
+  field :milestone_id
   field :folder_id
   field :parent_id
 

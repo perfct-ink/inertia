@@ -1,0 +1,159 @@
+@use 'tokens' as *;
+
+@layer view {
+  .view-milestones {
+    display: flex;
+    flex: 1 1 0%;
+    flex-direction: column;
+    overflow: hidden;
+
+    @at-root .milestones-header {
+      display: flex;
+      flex-shrink: 0;
+      align-items: center;
+      gap: space(4);
+      padding: space(3) space(6);
+      border-bottom-width: 1px;
+    }
+
+    @at-root .milestones-title {
+      flex: 1 1 0%;
+      font-size: 1.25rem;
+      line-height: 1.75rem;
+      font-weight: 600;
+    }
+
+    @at-root .milestones-new {
+      display: flex;
+      align-items: center;
+      gap: space(1);
+    }
+
+    @at-root .milestones-icon {
+      width: space(4);
+      height: space(4);
+
+      &--spin {
+        @include spin;
+      }
+    }
+
+    @at-root .milestones-body {
+      flex: 1 1 0%;
+      overflow-y: auto;
+    }
+
+    @at-root .milestones-list {
+      display: flex;
+      flex-direction: column;
+      gap: space(3);
+      max-width: 42rem;
+      margin-inline: auto;
+      padding: space(6);
+    }
+
+    @at-root .milestones-empty {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: space(2);
+      padding: space(10) 0;
+      color: color(muted-foreground);
+      text-align: center;
+      @include text('sm');
+    }
+
+    @at-root .milestones-empty_icon {
+      width: space(8);
+      height: space(8);
+      opacity: 0.5;
+    }
+
+    @at-root .milestones-card {
+      display: flex;
+      flex-direction: column;
+      gap: space(3);
+      padding: space(4);
+      border-width: 1px;
+      border-radius: radius('lg');
+      background: color(card);
+    }
+
+    @at-root .milestones-card-top {
+      display: flex;
+      align-items: center;
+      gap: space(2);
+    }
+
+    @at-root .milestones-card-title {
+      flex: 1 1 0%;
+      min-width: 0;
+      font-weight: 600;
+      @include truncate;
+    }
+
+    @at-root .milestones-card-delete {
+      color: color(muted-foreground);
+
+      &:hover {
+        color: palette('red-500');
+      }
+    }
+
+    @at-root .milestones-card-fields {
+      display: flex;
+      flex-wrap: wrap;
+      gap: space(4);
+    }
+
+    @at-root .milestones-field {
+      display: flex;
+      flex-direction: column;
+      gap: space(1);
+      color: color(muted-foreground);
+      @include text('xs');
+    }
+
+    @at-root .milestones-card-counts {
+      color: color(muted-foreground);
+      @include text('xs');
+    }
+
+    @at-root .milestones-health {
+      padding: space(0.5) space(2);
+      border-radius: radius('full');
+      font-weight: 500;
+      @include text('xs');
+
+      &--on_track {
+        background: palette('green-500', 0.15);
+        color: palette('green-500');
+      }
+
+      &--at_risk {
+        background: palette('yellow-500', 0.15);
+        color: palette('yellow-500');
+      }
+
+      &--off_track {
+        background: palette('red-500', 0.15);
+        color: palette('red-500');
+      }
+    }
+
+    // Compact field overrides (two classes beat the shared control styles).
+    .milestones-date,
+    .milestones-status {
+      width: auto;
+      min-height: 0;
+      padding: 0 0 space(0.5);
+      border-width: 0 0 1px;
+      border-color: color(input);
+      border-radius: 0;
+      background: transparent;
+      cursor: pointer;
+      text-transform: capitalize;
+      @include text('sm');
+    }
+  }
+}

@@ -1,4 +1,6 @@
 class Epic < ApplicationRecord
+  include BelongsToMilestone
+
   belongs_to :workspace
   belongs_to :folder, optional: true
   belongs_to :initiative, optional: true

@@ -1,4 +1,6 @@
 class Task < ApplicationRecord
+  include BelongsToMilestone
+
   belongs_to :workspace
   belongs_to :document, optional: true
   belongs_to :assignee, class_name: "User", optional: true

@@ -1,4 +1,7 @@
 class Initiative < ApplicationRecord
+  include PlanningItem
+  include BelongsToMilestone
+
   belongs_to :workspace
   has_many :epics, dependent: :nullify
 

@@ -1,8 +1,9 @@
-import { Button, Input } from '@/components/ui'
+import { Button, Input, Select } from '@/components/ui'
 import { useState, useRef } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { Plus, X, Flag, Loader2 } from 'lucide-react'
 import WorkspaceLayout from '@/components/WorkspaceLayout'
+import { useMilestones } from '@/api/milestones'
 import { useInitiatives, useCreateInitiative, useUpdateInitiative, useDeleteInitiative } from '@/api/initiatives'
 import '../planning/PlanningScreen.scss'
 import { ProgressBar, Timeline } from '@/components/Timeline'
@@ -15,6 +16,7 @@ export default function InitiativesScreen() {
   const [searchParams] = useSearchParams()
   const view = searchParams.get('view') === 'timeline' ? 'timeline' : 'list'
   const { data: initiatives = [], isLoading } = useInitiatives()
+  const { data: milestones = [] } = useMilestones()
   const createInitiative = useCreateInitiative()
   const updateInitiative = useUpdateInitiative()
   const deleteInitiative = useDeleteInitiative()
@@ -122,6 +124,19 @@ export default function InitiativesScreen() {
                     onChange={(e) => updateInitiative.mutate({ id: initiative.id, target_date: e.target.value || null })}
                     className="planning-date"
                   />
+                  {milestones.length > 0 && (
+                    <Select
+                      aria-label="Milestone"
+                      value={initiative.milestone_id ?? ''}
+                      onChange={(e) => updateInitiative.mutate({ id: initiative.id, milestone_id: e.target.value ? Number(e.target.value) : null })}
+                      className="planning-initiative"
+                    >
+                      <option value="">No milestone</option>
+                      {milestones.map((milestone) => (
+                        <option key={milestone.id} value={milestone.id}>{milestone.title}</option>
+                      ))}
+                    </Select>
+                  )}
                 </div>
                 <ProgressBar percent={donePercent(initiative)} />
               </div>

@@ -10,6 +10,7 @@ import TasksScreen from '@/view/tasks/TasksScreen'
 import EventsScreen from '@/view/events/EventsScreen'
 import EpicsScreen from '@/view/epics/EpicsScreen'
 import InitiativesScreen from '@/view/initiatives/InitiativesScreen'
+import MilestonesScreen from '@/view/milestones/MilestonesScreen'
 import FolderDetailScreen from '@/view/folder_detail/FolderDetailScreen'
 import SharedScreen from '@/view/shared/SharedScreen'
 
@@ -96,6 +97,14 @@ export default function App() {
           element={
             <PrivateRoute>
               <InitiativesScreen />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/milestones"
+          element={
+            <PrivateRoute>
+              <MilestonesScreen />
             </PrivateRoute>
           }
         />
