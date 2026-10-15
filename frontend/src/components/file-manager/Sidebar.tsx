@@ -201,7 +201,7 @@ export default function Sidebar() {
         const { activeId, closeTab } = useTabsStore.getState()
         if (!activeId) return
         const next = closeTab(activeId)
-        navigate(next ? next.path : '/workspace')
+        navigate(next ? next.path : '/space')
       }
     }
     window.addEventListener('keydown', onKey)
@@ -236,7 +236,7 @@ export default function Sidebar() {
     try {
       const current = workspace ?? (await api.get('/api/v1/workspace')).data
       const folderId = scopeFolderId() ?? current.root_folder_id ?? current.folders?.[0]?.id
-      if (!folderId) throw new Error('The workspace root is unavailable. Please try again.')
+      if (!folderId) throw new Error('The space root is unavailable. Please try again.')
       const title = type === 'document' ? 'Untitled' : type === 'table' ? 'Untitled Table' : 'Untitled Sheet'
       const doc = await createDocument.mutateAsync({ folderId, title, doc_type: type })
       navigate(`/documents/${doc.id}`)

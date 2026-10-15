@@ -32,7 +32,7 @@ class WorkspaceMembershipTest < ActiveSupport::TestCase
   test "a personal workspace cannot be shared" do
     membership = @owner.workspace.memberships.build(user: @other, role: :member)
     assert_not membership.valid?
-    assert_includes membership.errors.full_messages, "A personal workspace cannot be shared"
+    assert_includes membership.errors.full_messages, "A personal space cannot be shared"
   end
 
   test "a workspace keeps at least one owner" do

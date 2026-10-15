@@ -21,7 +21,7 @@ export default function CreateItem({ folderId }: { folderId?: number }) {
     setBusy(true); setError('')
     try {
       const target = folderId ?? (Number(destination) || rootId)
-      if (!target) throw new Error('The workspace root is unavailable. Please try again.')
+      if (!target) throw new Error('The space root is unavailable. Please try again.')
       const doc = await create.mutateAsync({ folderId: target, title: `Untitled ${type === 'spreadsheet' ? 'Sheet' : type === 'table' ? 'Table' : 'Document'}`, doc_type: type })
       navigate(`/documents/${doc.id}`)
     } catch (e) { setError(errorMessage(e)) } finally { setBusy(false) }

@@ -6,7 +6,7 @@ import { canManageWorkspace, useAddMember, useRemoveMember, useUpdateMemberRole,
 import type { WorkspaceRole, WorkspaceSummary } from '@/types'
 import './WorkspaceMembers.scss'
 
-// People in a workspace and their roles. Admins and owners add (by the email
+// People in a space and their roles. Admins and owners add (by the email
 // of an existing user), change roles and remove; anyone can leave.
 export function WorkspaceMembers({ workspace, open, onClose }: { workspace: WorkspaceSummary; open: boolean; onClose: () => void }) {
   const me = useAuthStore((s) => s.user)
@@ -53,8 +53,8 @@ export function WorkspaceMembers({ workspace, open, onClose }: { workspace: Work
               {(isMe ? !workspace.personal : !locked) && (
                 <Button
                   variant="ghost"
-                  aria-label={isMe ? 'Leave workspace' : `Remove ${m.user.name}`}
-                  title={isMe ? 'Leave workspace' : 'Remove'}
+                  aria-label={isMe ? 'Leave space' : `Remove ${m.user.name}`}
+                  title={isMe ? 'Leave space' : 'Remove'}
                   onClick={() => removeMember.mutate(m.id, { onSuccess: () => { if (isMe) onClose() } })}
                 >
                   <X className="workspace_members-icon" />
@@ -74,7 +74,7 @@ export function WorkspaceMembers({ workspace, open, onClose }: { workspace: Work
           <Button type="submit" variant="primary" disabled={addMember.isPending}>Add</Button>
         </form>
       )}
-      {workspace.personal && <p className="workspace_members-hint">A personal workspace can&apos;t be shared. Create a workspace to work with others.</p>}
+      {workspace.personal && <p className="workspace_members-hint">A personal space can&apos;t be shared. Create a space to work with others.</p>}
 
       <div className="workspace_members-footer">
         <Button variant="secondary" onClick={onClose}>Close</Button>

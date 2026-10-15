@@ -62,6 +62,6 @@ Defined in `macos/Sources/Inertia`.
 
 | Keys | Action |
 |------|--------|
-| `⌘R` | Refresh workspace |
+| `⌘R` | Refresh space |
 | `Return` | Default action in sheets (Save / Done) |
 | `Esc` | Cancel a sheet |

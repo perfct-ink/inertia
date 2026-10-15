@@ -10,6 +10,6 @@ class UserTest < ActiveSupport::TestCase
   test "creating a user creates a default workspace" do
     user = User.create!(name: "Ada", email: "ada@example.com", password: "password123")
     assert user.workspace.present?
-    assert_equal "Ada's Workspace", user.workspace.name
+    assert_equal "Ada's Space", user.workspace.name
   end
 end

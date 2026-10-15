@@ -40,9 +40,11 @@ export default function App() {
             under deploy/) — this route only matters for local dev (no Rails
             marketing page competing there) and for in-app client-side nav,
             which never leaves the already-loaded SPA. */}
-        <Route path="/" element={<Navigate to="/workspace" replace />} />
+        <Route path="/" element={<Navigate to="/space" replace />} />
+        {/* Old links from before workspaces were renamed to spaces. */}
+        <Route path="/workspace" element={<Navigate to="/space" replace />} />
         <Route
-          path="/workspace"
+          path="/space"
           element={
             <PrivateRoute>
               <WorkspaceScreen />
@@ -105,7 +107,7 @@ export default function App() {
             </PrivateRoute>
           }
         />
-        <Route path="*" element={<Navigate to="/workspace" replace />} />
+        <Route path="*" element={<Navigate to="/space" replace />} />
       </Routes>
       <ToastRegion />
     </>

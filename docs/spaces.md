@@ -1,6 +1,8 @@
-# Workspaces
+# Spaces
 
-A workspace is a project: its own folders (under one permanent Root), documents, tasks, epics, initiatives and events, shared by the people who belong to it. Every user also has one **personal** workspace, created at signup, that cannot be shared or deleted.
+The product calls them **Spaces**; the code, API, routes under `/api/v1` and database still call them workspaces (`Workspace`, `workspaces`, `workspace_id`, `X-Workspace-Id`). The web app's page is `/space`, and the old `/workspace` link redirects there.
+
+A space is a project: its own folders (under one permanent Root), documents, tasks, epics, initiatives and events, shared by the people who belong to it. Every user also has one **personal** space, created at signup and named "<name>'s Space", that cannot be shared or deleted.
 
 ## Model
 
@@ -43,11 +45,11 @@ DELETE /api/v1/workspaces/:id/members/:member  # admin/owner removes anyone; any
 
 ## Frontend
 
-`WorkspaceSwitcher` (sidebar header) lists workspaces, creates one and opens `WorkspaceMembers`. Switching stores the id in `store/workspaces.ts` (the personal workspace is stored as "none"), clears the query cache and open tabs, and returns to `/workspace`. Signing in or out resets it so an account never inherits another's workspace.
+`WorkspaceSwitcher` (sidebar header) lists workspaces, creates one and opens `WorkspaceMembers`. Switching stores the id in `store/workspaces.ts` (the personal workspace is stored as "none"), clears the query cache and open tabs, and returns to `/space`. Signing in or out resets it so an account never inherits another's workspace.
 
 ## Migration
 
-`20261014000001_create_workspace_memberships` adds `workspaces.personal`, creates `workspace_memberships`, makes every existing workspace's user its owner, and marks all existing workspaces personal.
+`20261015000001_rename_personal_workspaces_to_spaces` renames personal workspaces still called "<name>'s Workspace" to "<name>'s Space". `20261014000001_create_workspace_memberships` adds `workspaces.personal`, creates `workspace_memberships`, makes every existing workspace's user its owner, and marks all existing workspaces personal.
 
 ## Not built yet
 

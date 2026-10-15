@@ -29,3 +29,28 @@
 
 en:
   hello: "Hello world"
+  # Workspaces are called "Spaces" in the product; the code keeps "workspace".
+  activerecord:
+    models:
+      workspace:
+        one: "Space"
+        other: "Spaces"
+      workspace_membership:
+        one: "Space membership"
+        other: "Space memberships"
+    attributes:
+      folder:
+        workspace: "Space"
+      document:
+        workspace: "Space"
+      task:
+        workspace: "Space"
+      epic:
+        workspace: "Space"
+      event:
+        workspace: "Space"
+      initiative:
+        workspace: "Space"
+      workspace_membership:
+        workspace: "Space"
+

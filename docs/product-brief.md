@@ -2,9 +2,9 @@
 
 ## Product idea
 
-Inertia is a cross-platform workspace for creating and organizing documents, spreadsheets, and tasks in one connected place. It should feel familiar to people who like Google Docs and Quip, while making it easier to find and manage work over time.
+Inertia is a cross-platform workspace for creating and organizing documents, spreadsheets, and tasks in one connected place, grouped into Spaces. It should feel familiar to people who like Google Docs and Quip, while making it easier to find and manage work over time.
 
-The target experience includes a web app, a native macOS app, and a native iPhone app. The same workspace and content should stay in sync across all three.
+The target experience includes a web app, a native macOS app, and a native iPhone app. The same spaces and content should stay in sync across all three.
 
 ## The problem
 
@@ -23,8 +23,8 @@ Inertia should combine these useful ideas without making organization an afterth
 
 1. **Documents are a first-class workspace.** Rich-text documents should support familiar formatting, collaboration, comments, and reusable templates.
 2. **Spreadsheets are real spreadsheets.** Users need a grid with formulas and familiar spreadsheet behavior, both as standalone sheets and, where practical, embedded in documents.
-3. **Organization is part of the product.** Workspaces, folders, clear navigation, search, and useful document indexes should make it easy to put things away and find them again.
-4. **Tasks keep their context.** A task can be created inside a document or associated with a section, then found again in a workspace-wide task view.
+3. **Organization is part of the product.** Spaces, folders, clear navigation, search, and useful document indexes should make it easy to put things away and find them again.
+4. **Tasks keep their context.** A task can be created inside a document or associated with a section, then found again in a space-wide task view.
 5. **One coherent cross-platform experience.** Web, Mac, and iPhone should work with the same content and provide an interface suited to each device.
 
 ## Core user needs
@@ -33,7 +33,7 @@ Inertia should combine these useful ideas without making organization an afterth
 - Organize content in a predictable hierarchy and search across it.
 - Keep tasks connected to the documents or projects that explain them.
 - See tasks across documents in one place, with status and due dates.
-- Use the workspace on Mac, iPhone, and the web without maintaining separate copies.
+- Use your spaces on Mac, iPhone, and the web without maintaining separate copies.
 
 ## Product direction
 
@@ -50,7 +50,7 @@ A useful distinction:
 
 ### Organization
 
-- Make folders and the workspace hierarchy visible and easy to navigate.
+- Make folders and the space hierarchy visible and easy to navigate.
 - Provide a quick-capture or inbox destination for items that are not filed yet.
 - Support search across document titles and contents, with filters that help narrow results.
 - Make it easy to see where an item lives and which documents, tasks, or records link to it.
@@ -65,7 +65,7 @@ A useful distinction:
 
 - Let users create a task from a checklist item or other document content.
 - Preserve a link back to the source document and relevant heading or section.
-- Provide a workspace-wide task list, plus filters by document, project, status, and due date.
+- Provide a space-wide task list, plus filters by document, project, status, and due date.
 
 ### Cross-platform use
 

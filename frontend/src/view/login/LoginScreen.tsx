@@ -20,7 +20,7 @@ export default function LoginScreen() {
     onSuccess: (res) => {
       const token = res.headers['authorization']?.replace('Bearer ', '')
       setAuth(token, res.data.user)
-      navigate('/workspace')
+      navigate('/space')
     },
     onError: () => setError('Invalid email or password'),
   })

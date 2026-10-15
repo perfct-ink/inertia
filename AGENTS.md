@@ -17,6 +17,9 @@ A collection document is one similar to a database table, where a name is set an
 ### Tasks
 Tasks can be rolled up from whats inside documents. Tasks are created in documents by just creating a checklist or a checkable item. Epics can be created from the paragraph headings that tasks are inside of. For example, if I am working on a feature for a tool called Messages. In a Messages document, I might have a paragraph about a feature called "Background images", and a checkbox for the tasks to complete that feature. This makes each checkbox a task automatically.
 
+### Spaces (code: workspaces)
+Users see workspaces as **Spaces**. Use "Space" in every label, message, page title and doc meant for users. Code, API paths, the `X-Workspace-Id` header and the database keep the name `workspace`. Rails model names are translated in `backend/config/locales/en.yml`. See `docs/spaces.md`.
+
 ## UI component organization
 
 Reuse the existing online workspace layout and sidebar across clients. The Mac shell loads `WorkspaceLayout.tsx` and `file-manager/Sidebar.tsx` through WKWebView; do not create another native workspace/sidebar layout. Native login and local task-file UI use shared SwiftUI components. Keep the platform components organized separately. Native macOS UI belongs in `macos/Sources/Inertia/Components/`; React UI belongs in `frontend/src/components/`. Both directories include their screens, editors, and reusable controls. App entrypoints handle lifecycle/routing and compose these components.

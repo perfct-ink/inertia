@@ -43,7 +43,7 @@ class Workspace < ApplicationRecord
 
   def protect_personal
     return unless personal? && !destroyed_by_association
-    errors.add(:base, "A personal workspace cannot be deleted")
+    errors.add(:base, "A personal space cannot be deleted")
     throw :abort
   end
 

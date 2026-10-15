@@ -80,7 +80,7 @@ struct TaskFileView: View {
             Button("New Sprint", systemImage: "calendar.badge.plus") { sprintDraft = Sprint() }
             Button("Users", systemImage: "person.2") { editingUsers = true }
             Button("Columns", systemImage: "rectangle.split.3x1") { editingColumns = true }
-            Button("Online Workspace", systemImage: "network") { openWindow(id: "workspace") }
+            Button("Online Space", systemImage: "network") { openWindow(id: "workspace") }
         }
         .sheet(item: $taskDraft) { draft in
             TaskEditor(draft: draft, eventIDs: Set(document.board.eventIDs(for: draft.id) + (Int(milestoneFilter).map { [$0] } ?? [])), board: document.board) { task, eventIDs in

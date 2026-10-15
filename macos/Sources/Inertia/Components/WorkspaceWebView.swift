@@ -102,7 +102,7 @@ struct WorkspaceWebView: NSViewRepresentable {
         func webView(_ webView: WKWebView, didFailProvisionalNavigation navigation: WKNavigation!, withError error: Error) {
             // No token or server response body is exposed in the error page.
             guard (error as NSError).code != NSURLErrorCancelled else { return }
-            webView.loadHTMLString("<h2>Unable to load Inertia</h2><p>Check your connection, then use Refresh Workspace (Command-R) to try again.</p>", baseURL: nil)
+            webView.loadHTMLString("<h2>Unable to load Inertia</h2><p>Check your connection, then use Refresh Space (Command-R) to try again.</p>", baseURL: nil)
         }
     }
 }

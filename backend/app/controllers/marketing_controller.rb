@@ -14,14 +14,14 @@ class MarketingController < ActionController::Base
   PAGES = {
     home: {
       path: "/",
-      title: "Inertia — Docs, tasks, and files in one workspace",
-      description: "Inertia is a document editor, file manager, and task tracker for teams who'd rather have one workspace than five separate apps.",
+      title: "Inertia — Docs, tasks, and files in one space",
+      description: "Inertia is a document editor, file manager, and task tracker for teams who'd rather have one space than five separate apps.",
       redirect_authenticated_to: "/workspace"
     },
     features: {
       path: "/features",
       title: "Features — Inertia",
-      description: "Real-time collaborative docs, a full file manager, task tracking with epics and a calendar, and shareable links — all in one workspace."
+      description: "Real-time collaborative docs, a full file manager, task tracking with epics and a calendar, and shareable links — all in one space."
     },
     pricing: {
       path: "/pricing",
@@ -31,7 +31,7 @@ class MarketingController < ActionController::Base
     about: {
       path: "/about",
       title: "About — Inertia",
-      description: "Why Inertia exists: one real-time workspace for docs, tasks, and files instead of five apps synced by hand."
+      description: "Why Inertia exists: one real-time space for docs, tasks, and files instead of five apps synced by hand."
     }
   }.freeze
 

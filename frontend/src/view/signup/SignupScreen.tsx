@@ -20,7 +20,7 @@ export default function SignupScreen() {
     onSuccess: (res) => {
       const token = res.headers['authorization']?.replace('Bearer ', '')
       setAuth(token, res.data.user)
-      navigate('/workspace')
+      navigate('/space')
     },
     onError: (err: { response?: { data?: { errors?: string[] } } }) => setErrors(err.response?.data?.errors ?? ['Something went wrong']),
   })

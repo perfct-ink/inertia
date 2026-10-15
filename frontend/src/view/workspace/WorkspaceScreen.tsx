@@ -3,7 +3,7 @@ import WorkspaceLayout from '@/components/WorkspaceLayout'
 import { usePageTitle } from '@/hooks/usePageTitle'
 
 export default function WorkspaceScreen() {
-  usePageTitle('Workspace')
+  usePageTitle('Space')
   return (
     <WorkspaceLayout>
       <main className="view-workspace">

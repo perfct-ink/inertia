@@ -53,7 +53,7 @@ class Folder < ApplicationRecord
   def validate_parent
     return unless parent
     if parent.workspace_id != workspace_id
-      errors.add(:parent, "must belong to the same workspace")
+      errors.add(:parent, "must belong to the same space")
       return
     end
     visited = Set.new([ id ].compact)

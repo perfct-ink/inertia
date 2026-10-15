@@ -18,6 +18,6 @@ class User < ApplicationRecord
   private
 
   def create_default_workspace
-    create_workspace!(name: "#{name}'s Workspace", personal: true)
+    create_workspace!(name: "#{name}'s Space", personal: true)
   end
 end

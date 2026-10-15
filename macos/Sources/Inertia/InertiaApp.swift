@@ -6,7 +6,7 @@ import InertiaCore
     @StateObject private var session = Session()
     var body: some Scene {
         // Launch the workspace; task files are opened explicitly.
-        Window("Online Workspace", id: "workspace") {
+        Window("Online Space", id: "workspace") {
             RootView().environmentObject(session).frame(minWidth: 900, minHeight: 600)
                 .textFieldStyle(InertiaTextFieldStyle())
                 .appErrorAlert(error: $session.error)
@@ -14,7 +14,7 @@ import InertiaCore
         .windowStyle(.hiddenTitleBar)
         .commands {
             CommandGroup(after: .newItem) {
-                Button("Refresh Workspace") { NotificationCenter.default.post(name: .refreshWorkspace, object: nil) }.keyboardShortcut("r")
+                Button("Refresh Space") { NotificationCenter.default.post(name: .refreshWorkspace, object: nil) }.keyboardShortcut("r")
             }
         }
         DocumentGroup(newDocument: TasksDocument()) { file in

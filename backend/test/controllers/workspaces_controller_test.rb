@@ -26,7 +26,7 @@ class WorkspacesControllerTest < ActionDispatch::IntegrationTest
     get "/api/v1/workspaces", headers: headers_for(@member)
     assert_response :success
     roles = response.parsed_body.to_h { |w| [ w["name"], w["role"] ] }
-    assert_equal "owner", roles["Member's Workspace"]
+    assert_equal "owner", roles["Member's Space"]
     assert_equal "member", roles["Team"]
     assert_equal 2, roles.size
   end

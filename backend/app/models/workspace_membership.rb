@@ -25,7 +25,7 @@ class WorkspaceMembership < ApplicationRecord
 
   def personal_workspace_is_not_shared
     return unless workspace&.personal?
-    errors.add(:base, "A personal workspace cannot be shared") unless user_id == workspace.user_id
+    errors.add(:base, "A personal space cannot be shared") unless user_id == workspace.user_id
   end
 
   def last_owner?
@@ -34,7 +34,7 @@ class WorkspaceMembership < ApplicationRecord
 
   def keep_an_owner
     return unless last_owner?
-    errors.add(:base, "A workspace needs at least one owner")
+    errors.add(:base, "A space needs at least one owner")
     throw :abort
   end
 
@@ -42,7 +42,7 @@ class WorkspaceMembership < ApplicationRecord
     return unless role_changed? && role_was == "owner"
     others = workspace.memberships.owner.where.not(id: id)
     return if others.exists?
-    errors.add(:role, "cannot change: a workspace needs at least one owner")
+    errors.add(:role, "cannot change: a space needs at least one owner")
     throw :abort
   end
 end
