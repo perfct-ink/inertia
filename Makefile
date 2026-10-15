@@ -52,7 +52,7 @@ dev-frontend: ## Rebuild and restart the frontend service only
 	$(COMPOSE) build frontend
 	$(COMPOSE) up -d frontend
 
-dev-mac: ## Start the local API and web services, build and open the native Mac app
+dev-mac: ## Build and start the local API and web services, then build and open the native Mac app
 	HTTP_PROXY=$(HOST_PROXY) HTTPS_PROXY=$(HOST_PROXY) bash scripts/dev-mac.sh
 
 .PHONY: dev-electron

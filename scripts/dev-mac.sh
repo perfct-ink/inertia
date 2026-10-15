@@ -5,7 +5,9 @@ cd "$(dirname "$0")/.."
 
 bash scripts/build-native-mac.sh
 
-# A persisted bundle volume can lag behind the current Gemfile.lock.
+docker compose build backend
+# A persisted bundle volume can lag behind the current Gemfile.lock even
+# after an image rebuild — gems live in a named volume, not the image layer.
 docker compose run --rm --no-deps backend bash -c 'bundle check || bundle install'
 docker compose up -d
 
