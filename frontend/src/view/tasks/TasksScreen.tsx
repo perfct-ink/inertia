@@ -149,7 +149,7 @@ function KanbanColumn({ status, label, dot, tasks, children }: {
 // ── AddTaskInput ──────────────────────────────────────────────────────────────
 
 interface AddTaskInputProps {
-  onAdd: (title: string, dueDate: string, epicId?: number, sprintId?: number) => void
+  onAdd: (title: string, startDate: string, dueDate: string, epicId?: number, sprintId?: number) => void
   onCancel: () => void
   epics: Epic[]
   sprints: Sprint[]
@@ -157,6 +157,7 @@ interface AddTaskInputProps {
 
 function AddTaskInput({ onAdd, onCancel, epics, sprints }: AddTaskInputProps) {
   const [title, setTitle] = useState('')
+  const [startDate, setStartDate] = useState('')
   const [dueDate, setDueDate] = useState('')
   const [epicId, setEpicId] = useState('')
   const [sprintId, setSprintId] = useState('')
@@ -164,7 +165,7 @@ function AddTaskInput({ onAdd, onCancel, epics, sprints }: AddTaskInputProps) {
   const containerRef = useRef<HTMLDivElement>(null)
 
   function commit() {
-    if (titleRef.current.trim()) onAdd(titleRef.current.trim(), dueDate, epicId ? Number(epicId) : undefined, sprintId ? Number(sprintId) : undefined)
+    if (titleRef.current.trim()) onAdd(titleRef.current.trim(), startDate, dueDate, epicId ? Number(epicId) : undefined, sprintId ? Number(sprintId) : undefined)
     else onCancel()
   }
 
@@ -191,6 +192,16 @@ function AddTaskInput({ onAdd, onCancel, epics, sprints }: AddTaskInputProps) {
       />
       <Input
         type="date"
+        aria-label="Start date"
+        className="tasks-add_field"
+        value={startDate}
+        onChange={(e) => setStartDate(e.target.value)}
+        onBlur={handleBlur}
+      />
+      <span>&rarr;</span>
+      <Input
+        type="date"
+        aria-label="Due date"
         className="tasks-add_field"
         value={dueDate}
         onChange={(e) => setDueDate(e.target.value)}
@@ -370,8 +381,8 @@ export default function TasksScreen() {
     setLocalTasksState(tasks)
   }
 
-  function createTaskWith(title: string, status: Task['status'], dueDate: string, epicId?: number, sprintId?: number) {
-    createTask.mutate({ title, status, dueDate, epicId, sprintId, folder_id: filters.folder_id })
+  function createTaskWith(title: string, status: Task['status'], startDate: string, dueDate: string, epicId?: number, sprintId?: number) {
+    createTask.mutate({ title, status, startDate, dueDate, epicId, sprintId, folder_id: filters.folder_id })
   }
 
   return (
@@ -506,7 +517,7 @@ export default function TasksScreen() {
                       {addingTo === key ? (
                         <div className="tasks-add_card">
                           <AddTaskInput
-                            onAdd={(title, dueDate, epicId, sprintId) => { createTaskWith(title, key, dueDate, epicId, sprintId); setAddingTo(null) }}
+                            onAdd={(title, startDate, dueDate, epicId, sprintId) => { createTaskWith(title, key, startDate, dueDate, epicId, sprintId); setAddingTo(null) }}
                             onCancel={() => setAddingTo(null)}
                             epics={epics}
                             sprints={sprints}
@@ -561,7 +572,7 @@ export default function TasksScreen() {
               {addingTo === 'backlog' && (
                 <div className="tasks-backlog_add">
                   <AddTaskInput
-                    onAdd={(title, dueDate, epicId, sprintId) => { createTaskWith(title, 'backlog', dueDate, epicId, sprintId); setAddingTo(null) }}
+                    onAdd={(title, startDate, dueDate, epicId, sprintId) => { createTaskWith(title, 'backlog', startDate, dueDate, epicId, sprintId); setAddingTo(null) }}
                     onCancel={() => setAddingTo(null)}
                     epics={epics}
                     sprints={sprints}

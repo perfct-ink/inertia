@@ -21,6 +21,7 @@ class Task < ApplicationRecord
   validates :title, presence: true
   validates :status, presence: true
   validate :parent_is_not_self_or_a_descendant
+  validate :due_date_not_before_start_date
 
   default_scope { order(:position) }
 
@@ -57,5 +58,10 @@ class Task < ApplicationRecord
       end
       ancestor = ancestor.parent
     end
+  end
+
+  def due_date_not_before_start_date
+    return unless start_date && due_date
+    errors.add(:due_date, "can't be before the start date") if due_date < start_date
   end
 end

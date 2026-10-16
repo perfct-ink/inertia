@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_10_15_000005) do
+ActiveRecord::Schema[7.2].define(version: 2026_10_16_000001) do
   create_table "documents", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.string "title", null: false
     t.json "content"
@@ -228,6 +228,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_10_15_000005) do
     t.string "title", null: false
     t.text "description"
     t.integer "status", default: 4, null: false
+    t.date "start_date"
     t.date "due_date"
     t.integer "position", default: 0
     t.bigint "document_id"

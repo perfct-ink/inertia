@@ -15,6 +15,7 @@ import {
 import CreateItem from '@/components/CreateItem'
 import WorkspaceLayout from '@/components/WorkspaceLayout'
 import { ProgressBar, Timeline } from '@/components/Timeline'
+import type { Scheduled } from '@/data/schedule'
 import { useFolderContents, useUpdateFolder } from '@/api/workspace'
 import { useUpdateTask } from '@/api/tasks'
 import type { Task, WorkspaceEvent, Epic } from '@/types'
@@ -250,8 +251,8 @@ function CalendarView({ events }: { events: WorkspaceEvent[] }) {
 // (a few high-level epics, upcoming events) plus the folder's documents
 // shown as a proper primary section rather than the thin chip row the other
 // four views get. The Gantt tab (below, in the main component) renders
-// epics through the same shared Timeline this page used to define locally
-// — see components/Timeline.tsx. ─────────────────────────────────────────
+// epics and dated tasks through the same shared Timeline this page used to
+// define locally — see components/Timeline.tsx. ──────────────────────────
 
 // A small header-row link to a sibling view — always shown regardless of
 // whether this section has any data, since Overview doubles as the
@@ -474,7 +475,24 @@ export default function FolderDetailScreen() {
         {view === 'calendar' && <CalendarView events={events} />}
         {view === 'gantt' && (
           <div className="folder_detail-pane">
-            <Timeline items={epics} />
+            <Timeline items={[
+              ...epics,
+              // Tasks with no due_date at all were never Gantt-relevant —
+              // excluded here rather than left for Timeline's own "not
+              // shown" list, which would otherwise be every undated task in
+              // the folder instead of just the handful missing a start date.
+              // id is negated: epic ids and task ids are independent
+              // sequences that can collide, and Timeline uses item.id as a
+              // bare React key.
+              ...tasks.filter((t) => t.due_date).map((t): Scheduled => ({
+                id: -t.id,
+                title: t.title,
+                start_date: t.start_date ?? null,
+                target_date: t.due_date,
+                tasks_count: 1,
+                done_tasks_count: t.status === 'done' ? 1 : 0,
+              })),
+            ]} />
           </div>
         )}
       </div>

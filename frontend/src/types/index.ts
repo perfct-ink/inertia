@@ -55,6 +55,7 @@ export interface Task {
   title: string
   description: string | null
   status: 'todo' | 'in_progress' | 'in_review' | 'done' | 'backlog'
+  start_date?: string | null
   due_date: string | null
   position: number
   document_id: number
