@@ -15,6 +15,8 @@ npm test       # Jest (frontend), Vitest (collab-server)
 
 Backend tests: `docker compose run --rm backend bin/rails test`.
 
+Rails migration timestamps must be unique across branches. Keep existing migration versions and assign each new migration an unused timestamp before merging; regenerate `backend/db/schema.rb` after migrating. CI and Deploy both validate the migration list when preparing their test databases.
+
 ## Running locally
 
 ```bash
