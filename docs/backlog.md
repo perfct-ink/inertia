@@ -141,7 +141,7 @@ Monday board views: Table, Kanban, Gantt, Timeline, Calendar, Workload, Chart, C
 
 | ID | Item | Notes |
 | --- | --- | --- |
-| PM-90 | Sprints as a Rails model (goal, dates, active sprint board) | Exists only as a local-file extension. Jira doc step 4. |
+| PM-90 | **Sprints as a Rails model** (built 2026-10-15) | Done: `sprints` table (title, goal, owner, status, start/end date), `Sprint` model (`PlanningItem`, deliberately not `BelongsToMilestone` — a sprint spans epics/initiatives rather than rolling up through them), `/api/v1/sprints`, Sprints page (list only, no board yet). `tasks.sprint_id` plus a Sprint filter and assignment on `TasksScreen`. Remaining: an active-sprint board view (today's kanban is status-only, not scoped to one sprint) and PM-91 (start/close/carry over). |
 | PM-91 | Sprint automation: start, close, carry over unfinished | |
 | PM-92 | Retrospective board template | |
 | PM-93 | Bugs queue / item types (task, bug, story) | |
