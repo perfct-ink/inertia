@@ -1,0 +1,131 @@
+@use 'tokens' as *;
+
+@layer view {
+  .view-hierarchy {
+    display: flex;
+    flex: 1 1 0%;
+    flex-direction: column;
+    overflow: hidden;
+
+    @at-root .hierarchy-header {
+      display: flex;
+      flex-shrink: 0;
+      align-items: center;
+      gap: space(4);
+      padding: space(3) space(6);
+      border-bottom-width: 1px;
+    }
+
+    @at-root .hierarchy-heading {
+      font-size: 1.25rem;
+      line-height: 1.75rem;
+      font-weight: 600;
+    }
+
+    @at-root .hierarchy-body {
+      flex: 1 1 0%;
+      overflow-y: auto;
+    }
+
+    @at-root .hierarchy-tree {
+      max-width: 56rem;
+      margin-inline: auto;
+      padding: space(6);
+    }
+
+    @at-root .hierarchy-loading {
+      display: flex;
+      justify-content: center;
+      padding: space(8) 0;
+    }
+
+    @at-root .hierarchy-spinner {
+      width: space(5);
+      height: space(5);
+      color: color(muted-foreground);
+      @include spin;
+    }
+
+    @at-root .hierarchy-empty {
+      padding: space(10) 0;
+      color: color(muted-foreground);
+      text-align: center;
+      @include text('sm');
+    }
+
+    @at-root .hierarchy-section_label {
+      margin-top: space(4);
+      padding-top: space(3);
+      border-top-width: 1px;
+      color: color(muted-foreground);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      @include text('xs');
+    }
+
+    @at-root .hierarchy-row {
+      display: flex;
+      align-items: center;
+      gap: space(2);
+      padding: space(1.5) 0;
+      border-bottom-width: 1px;
+    }
+
+    @at-root .hierarchy-toggle {
+      display: flex;
+      flex-shrink: 0;
+      align-items: center;
+      justify-content: center;
+      width: space(5);
+      height: space(5);
+      color: color(muted-foreground);
+
+      &:hover {
+        color: color(foreground);
+      }
+    }
+
+    @at-root .hierarchy-toggle_spacer {
+      flex-shrink: 0;
+      width: space(5);
+    }
+
+    @at-root .hierarchy-chevron {
+      width: space(3.5);
+      height: space(3.5);
+      transition: transform 150ms ease;
+
+      &--open {
+        transform: rotate(90deg);
+      }
+    }
+
+    @at-root .hierarchy-icon {
+      width: space(4);
+      height: space(4);
+      flex-shrink: 0;
+      color: color(muted-foreground);
+    }
+
+    @at-root .hierarchy-title {
+      flex: 1 1 0%;
+      min-width: 0;
+      @include truncate;
+      @include text('sm');
+    }
+
+    @at-root .hierarchy-progress {
+      width: space(28);
+      flex-shrink: 0;
+    }
+
+    @at-root .hierarchy-count {
+      flex-shrink: 0;
+      width: space(14);
+      color: color(muted-foreground);
+      text-align: right;
+      @include text('xs');
+    }
+  }
+}

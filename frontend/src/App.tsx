@@ -12,6 +12,7 @@ import EpicsScreen from '@/view/epics/EpicsScreen'
 import InitiativesScreen from '@/view/initiatives/InitiativesScreen'
 import MilestonesScreen from '@/view/milestones/MilestonesScreen'
 import SprintsScreen from '@/view/sprints/SprintsScreen'
+import HierarchyScreen from '@/view/hierarchy/HierarchyScreen'
 import FolderDetailScreen from '@/view/folder_detail/FolderDetailScreen'
 import SharedScreen from '@/view/shared/SharedScreen'
 
@@ -114,6 +115,14 @@ export default function App() {
           element={
             <PrivateRoute>
               <SprintsScreen />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/hierarchy"
+          element={
+            <PrivateRoute>
+              <HierarchyScreen />
             </PrivateRoute>
           }
         />
