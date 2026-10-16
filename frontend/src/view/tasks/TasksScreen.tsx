@@ -27,7 +27,8 @@ import WorkspaceLayout from '@/components/WorkspaceLayout'
 import { useTasks, useCreateTask, useUpdateTask, useDeleteTask, type TaskFilters } from '@/api/tasks'
 import { useWorkspace } from '@/api/workspace'
 import { useEpics } from '@/api/epics'
-import type { Task, Epic } from '@/types'
+import { useSprints } from '@/api/sprints'
+import type { Task, Epic, Sprint } from '@/types'
 import './TasksScreen.scss'
 import { usePageTitle } from '@/hooks/usePageTitle'
 
@@ -148,20 +149,22 @@ function KanbanColumn({ status, label, dot, tasks, children }: {
 // ── AddTaskInput ──────────────────────────────────────────────────────────────
 
 interface AddTaskInputProps {
-  onAdd: (title: string, dueDate: string, epicId?: number) => void
+  onAdd: (title: string, dueDate: string, epicId?: number, sprintId?: number) => void
   onCancel: () => void
   epics: Epic[]
+  sprints: Sprint[]
 }
 
-function AddTaskInput({ onAdd, onCancel, epics }: AddTaskInputProps) {
+function AddTaskInput({ onAdd, onCancel, epics, sprints }: AddTaskInputProps) {
   const [title, setTitle] = useState('')
   const [dueDate, setDueDate] = useState('')
   const [epicId, setEpicId] = useState('')
+  const [sprintId, setSprintId] = useState('')
   const titleRef = useRef('')
   const containerRef = useRef<HTMLDivElement>(null)
 
   function commit() {
-    if (titleRef.current.trim()) onAdd(titleRef.current.trim(), dueDate, epicId ? Number(epicId) : undefined)
+    if (titleRef.current.trim()) onAdd(titleRef.current.trim(), dueDate, epicId ? Number(epicId) : undefined, sprintId ? Number(sprintId) : undefined)
     else onCancel()
   }
 
@@ -206,6 +209,19 @@ function AddTaskInput({ onAdd, onCancel, epics }: AddTaskInputProps) {
           ))}
         </Select>
       )}
+      {sprints.length > 0 && (
+        <Select
+          value={sprintId}
+          onChange={(e) => setSprintId(e.target.value)}
+          onBlur={handleBlur}
+          className="tasks-add_field tasks-add_field--select"
+        >
+          <option value="">No sprint</option>
+          {sprints.map((sprint) => (
+            <option key={sprint.id} value={sprint.id}>{sprint.title}</option>
+          ))}
+        </Select>
+      )}
     </div>
   )
 }
@@ -220,9 +236,11 @@ export default function TasksScreen() {
 
   const [filters, setFilters] = useState<TaskFilters>(() => {
     const epicId = searchParams.get('epic_id')
+    const sprintId = searchParams.get('sprint_id')
     const folderId = searchParams.get('folder_id')
     return {
       ...(epicId ? { epic_id: Number(epicId) } : {}),
+      ...(sprintId ? { sprint_id: Number(sprintId) } : {}),
       ...(folderId ? { folder_id: Number(folderId) } : {}),
     }
   })
@@ -230,11 +248,14 @@ export default function TasksScreen() {
   const [searchQ, setSearchQ] = useState('')
   const { data: workspace } = useWorkspace()
   const { data: epics = [] } = useEpics()
+  const { data: sprints = [] } = useSprints()
   const epicById = new Map(epics.map((e) => [e.id, e]))
 
   useEffect(() => {
     const epicId = searchParams.get('epic_id')
     if (epicId) setFilters((f) => ({ ...f, epic_id: Number(epicId) }))
+    const sprintId = searchParams.get('sprint_id')
+    if (sprintId) setFilters((f) => ({ ...f, sprint_id: Number(sprintId) }))
     const folderId = searchParams.get('folder_id')
     if (folderId) setFilters((f) => ({ ...f, folder_id: Number(folderId) }))
   }, [searchParams])
@@ -243,6 +264,7 @@ export default function TasksScreen() {
     ...(filters.folder_id ? { folder_id: filters.folder_id } : {}),
     ...(filters.status ? { status: filters.status } : {}),
     ...(filters.epic_id ? { epic_id: filters.epic_id } : {}),
+    ...(filters.sprint_id ? { sprint_id: filters.sprint_id } : {}),
     ...(searchQ.trim() ? { q: searchQ.trim() } : {}),
   }
 
@@ -348,8 +370,8 @@ export default function TasksScreen() {
     setLocalTasksState(tasks)
   }
 
-  function createTaskWith(title: string, status: Task['status'], dueDate: string, epicId?: number) {
-    createTask.mutate({ title, status, dueDate, epicId, folder_id: filters.folder_id })
+  function createTaskWith(title: string, status: Task['status'], dueDate: string, epicId?: number, sprintId?: number) {
+    createTask.mutate({ title, status, dueDate, epicId, sprintId, folder_id: filters.folder_id })
   }
 
   return (
@@ -383,11 +405,11 @@ export default function TasksScreen() {
             </div>
             <Button
               onClick={() => setShowFilters((o) => !o)}
-              className={classNames('tasks-filter_button', !!(showFilters || filters.folder_id || filters.status || filters.epic_id) && 'tasks-filter_button--active')}
+              className={classNames('tasks-filter_button', !!(showFilters || filters.folder_id || filters.status || filters.epic_id || filters.sprint_id) && 'tasks-filter_button--active')}
             >
               <Filter className="tasks-icon" />
               Filter
-              {(filters.folder_id || filters.status || filters.epic_id) && <span className="tasks-filter_dot" />}
+              {(filters.folder_id || filters.status || filters.epic_id || filters.sprint_id) && <span className="tasks-filter_dot" />}
             </Button>
           </div>
         </div>
@@ -429,7 +451,18 @@ export default function TasksScreen() {
                 <option key={epic.id} value={epic.id}>{epic.title}</option>
               ))}
             </Select>
-            {(filters.folder_id || filters.status || filters.epic_id) && (
+            <span className="tasks-filter_label">Sprint</span>
+            <Select
+              className="tasks-filter_select"
+              value={filters.sprint_id ?? ''}
+              onChange={(e) => setFilters((f) => ({ ...f, sprint_id: e.target.value ? Number(e.target.value) : undefined }))}
+            >
+              <option value="">All sprints</option>
+              {sprints.map((sprint) => (
+                <option key={sprint.id} value={sprint.id}>{sprint.title}</option>
+              ))}
+            </Select>
+            {(filters.folder_id || filters.status || filters.epic_id || filters.sprint_id) && (
               <Button
                 onClick={() => setFilters({})}
                 className="tasks-clear"
@@ -473,9 +506,10 @@ export default function TasksScreen() {
                       {addingTo === key ? (
                         <div className="tasks-add_card">
                           <AddTaskInput
-                            onAdd={(title, dueDate, epicId) => { createTaskWith(title, key, dueDate, epicId); setAddingTo(null) }}
+                            onAdd={(title, dueDate, epicId, sprintId) => { createTaskWith(title, key, dueDate, epicId, sprintId); setAddingTo(null) }}
                             onCancel={() => setAddingTo(null)}
                             epics={epics}
+                            sprints={sprints}
                           />
                         </div>
                       ) : (
@@ -527,9 +561,10 @@ export default function TasksScreen() {
               {addingTo === 'backlog' && (
                 <div className="tasks-backlog_add">
                   <AddTaskInput
-                    onAdd={(title, dueDate, epicId) => { createTaskWith(title, 'backlog', dueDate, epicId); setAddingTo(null) }}
+                    onAdd={(title, dueDate, epicId, sprintId) => { createTaskWith(title, 'backlog', dueDate, epicId, sprintId); setAddingTo(null) }}
                     onCancel={() => setAddingTo(null)}
                     epics={epics}
+                    sprints={sprints}
                   />
                 </div>
               )}

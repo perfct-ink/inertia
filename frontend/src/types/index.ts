@@ -61,6 +61,7 @@ export interface Task {
   assignee_id: number | null
   milestone_id?: number | null
   epic_id: number | null
+  sprint_id?: number | null
   parent_id: number | null
   folder_id: number | null
   document?: Document
@@ -124,6 +125,23 @@ export interface Initiative {
   milestone_id: number | null
   start_date: string | null
   target_date: string | null
+  tasks_count: number
+  done_tasks_count: number
+  created_at: string
+  updated_at: string
+}
+
+// Orthogonal to Milestone/Initiative/Epic: a time-boxed slice of work, not
+// a rollup level — start_date/end_date (not target_date), since a sprint
+// genuinely ends on that date rather than aiming for it.
+export interface Sprint {
+  id: number
+  title: string
+  goal: string | null
+  status: PlanningStatus
+  owner_id: number | null
+  start_date: string | null
+  end_date: string | null
   tasks_count: number
   done_tasks_count: number
   created_at: string

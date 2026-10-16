@@ -58,6 +58,8 @@ Rails.application.routes.draw do
 
       resources :milestones, only: [ :index, :create, :update, :destroy ]
 
+      resources :sprints, only: [ :index, :create, :update, :destroy ]
+
       resources :uploads, only: [ :create ]
 
       resources :events do
