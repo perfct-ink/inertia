@@ -92,9 +92,14 @@ export interface Epic {
   target_date: string | null
   tasks_count: number
   done_tasks_count: number
+  horizon: RoadmapHorizon | null
   created_at: string
   updated_at: string
 }
+
+// Now / Next / Later column on the roadmap board. Null means "not placed by
+// hand"; data/roadmap.ts derives a column from status and dates instead.
+export type RoadmapHorizon = 'now' | 'next' | 'later'
 
 export type PlanningStatus = 'planned' | 'active' | 'done'
 export type MilestoneHealth = 'on_track' | 'at_risk' | 'off_track'
@@ -128,6 +133,8 @@ export interface Initiative {
   target_date: string | null
   tasks_count: number
   done_tasks_count: number
+  horizon: RoadmapHorizon | null
+  health: MilestoneHealth
   created_at: string
   updated_at: string
 }

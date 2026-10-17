@@ -1,0 +1,27 @@
+@use 'tokens' as *;
+
+@layer app.ui {
+  .ui-health {
+    flex-shrink: 0;
+    padding: space(0.5) space(2);
+    border-radius: radius('full');
+    font-weight: 500;
+    white-space: nowrap;
+    @include text('xs');
+
+    &--on_track {
+      background: palette('green-500', 0.15);
+      color: palette('green-500');
+    }
+
+    &--at_risk {
+      background: palette('yellow-500', 0.15);
+      color: palette('yellow-500');
+    }
+
+    &--off_track {
+      background: palette('red-500', 0.15);
+      color: palette('red-500');
+    }
+  }
+}

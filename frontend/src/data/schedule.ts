@@ -1,3 +1,5 @@
+import type { MilestoneHealth } from '@/types'
+
 // "A title, an optional start/target date, and a tasks_count/done_tasks_count
 // rollup" - shared by epics, initiatives and folder timelines.
 export interface Scheduled {
@@ -9,6 +11,11 @@ export interface Scheduled {
   done_tasks_count: number
   // Nesting level in the rendered list; 0 (or absent) is top level.
   depth?: number
+  // React key when rows mix kinds whose ids can collide (initiatives and
+  // epics are separate sequences); falls back to id.
+  key?: string
+  // Colors the bar by health (roadmap); absent draws the default bar.
+  health?: MilestoneHealth
 }
 
 // Whole-number percentage of an item's tasks that are done. Narrower than

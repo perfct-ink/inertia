@@ -52,7 +52,7 @@ module Api
       end
 
       def epic_params
-        params.require(:epic).permit(:title, :folder_id, :initiative_id, :milestone_id, :start_date, :target_date)
+        params.require(:epic).permit(:title, :folder_id, :initiative_id, :milestone_id, :start_date, :target_date, :horizon)
       end
     end
   end

@@ -13,6 +13,7 @@ import InitiativesScreen from '@/view/initiatives/InitiativesScreen'
 import MilestonesScreen from '@/view/milestones/MilestonesScreen'
 import SprintsScreen from '@/view/sprints/SprintsScreen'
 import HierarchyScreen from '@/view/hierarchy/HierarchyScreen'
+import RoadmapScreen from '@/view/roadmap/RoadmapScreen'
 import FolderDetailScreen from '@/view/folder_detail/FolderDetailScreen'
 import SharedScreen from '@/view/shared/SharedScreen'
 
@@ -115,6 +116,14 @@ export default function App() {
           element={
             <PrivateRoute>
               <SprintsScreen />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/roadmap"
+          element={
+            <PrivateRoute>
+              <RoadmapScreen />
             </PrivateRoute>
           }
         />

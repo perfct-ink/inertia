@@ -2,6 +2,7 @@ import {
   format, parseISO, startOfMonth, endOfMonth, eachMonthOfInterval, differenceInCalendarDays,
 } from 'date-fns'
 import './Timeline.scss'
+import { classNames } from '@/components/ui'
 import { donePercent, type Scheduled } from '@/data/schedule'
 
 // Shared by EpicsPage, InitiativesPage, and FolderDetailPage's per-folder
@@ -26,7 +27,13 @@ export type TimelineMilestone = { id: number; title: string; target_date: string
 
 // Milestones are diamonds on a marker row above the bars. Ones outside the
 // bars' month range are left off rather than stretching the axis.
-export function Timeline({ items, milestones = [] }: { items: Scheduled[]; milestones?: TimelineMilestone[] }) {
+// `range` pins the axis (the roadmap stacks one Timeline per lane and needs
+// their months to line up); without it the axis fits this list's own dates.
+export function Timeline({ items, milestones = [], range }: {
+  items: Scheduled[]
+  milestones?: TimelineMilestone[]
+  range?: { start: Date; end: Date }
+}) {
   const dated = items.filter((e): e is Dated => Boolean(e.start_date && e.target_date))
   const undated = items.filter((e) => !e.start_date || !e.target_date)
 
@@ -34,12 +41,13 @@ export function Timeline({ items, milestones = [] }: { items: Scheduled[]; miles
     return (
       <div className="view-timeline view-timeline--empty">
         <p>Set a start and target date to see it here</p>
+        {undated.length > 0 && <p className="timeline-undated">Undated: {undated.map((e) => e.title).join(', ')}</p>}
       </div>
     )
   }
 
-  const rangeStart = startOfMonth(new Date(Math.min(...dated.map((e) => parseISO(e.start_date).getTime()))))
-  const rangeEnd = endOfMonth(new Date(Math.max(...dated.map((e) => parseISO(e.target_date).getTime()))))
+  const rangeStart = range?.start ?? startOfMonth(new Date(Math.min(...dated.map((e) => parseISO(e.start_date).getTime()))))
+  const rangeEnd = range?.end ?? endOfMonth(new Date(Math.max(...dated.map((e) => parseISO(e.target_date).getTime()))))
   const totalDays = differenceInCalendarDays(rangeEnd, rangeStart) + 1
   const months = eachMonthOfInterval({ start: rangeStart, end: rangeEnd })
 
@@ -101,7 +109,7 @@ export function Timeline({ items, milestones = [] }: { items: Scheduled[]; miles
             const widthPct = Math.max(((differenceInCalendarDays(e, s) + 1) / totalDays) * 100, 1.5)
             const percent = donePercent(item)
             return (
-              <div key={item.id} className="timeline-row">
+              <div key={item.key ?? item.id} className="timeline-row">
                 <span
                   className="timeline-title"
                   title={item.title}
@@ -111,7 +119,7 @@ export function Timeline({ items, milestones = [] }: { items: Scheduled[]; miles
                 </span>
                 <div className="timeline-track">
                   <div
-                    className="timeline-bar"
+                    className={classNames('timeline-bar', item.health && `timeline-bar--${item.health}`)}
                     style={{ left: `${offsetPct}%`, width: `${widthPct}%` }}
                     title={`${item.start_date} → ${item.target_date}`}
                   >

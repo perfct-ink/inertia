@@ -1,6 +1,8 @@
 class Initiative < ApplicationRecord
   include PlanningItem
+  include PlanningHealth
   include BelongsToMilestone
+  include RoadmapHorizon
 
   belongs_to :workspace
   has_many :epics, dependent: :nullify
@@ -18,6 +20,11 @@ class Initiative < ApplicationRecord
 
   def done_tasks_count
     Task.joins(:epic).where(epics: { initiative_id: id }, status: Task.statuses[:done]).count
+  end
+
+  def percent
+    total = tasks_count
+    total.zero? ? 0 : (done_tasks_count * 100.0 / total).round
   end
 
   private

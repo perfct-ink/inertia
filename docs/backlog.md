@@ -60,9 +60,9 @@ Default chosen for this backlog: Milestone is the top-level container, and each 
 
 | ID | Item | Today | Notes |
 | --- | --- | --- | --- |
-| PM-20 | **Roadmap view**: initiatives and epics as swimlanes on a quarter/month axis, grouped by milestone | Not present | Monday: Roadmap template + Timeline view + Portfolio. |
-| PM-21 | Now / Next / Later board mode (no dates required) | Not present | Useful before dates are known. |
-| PM-22 | Roadmap status and health per initiative, rolled up from epics | Needs PM-02 | |
+| PM-20 | **Roadmap view**: initiatives and epics as swimlanes on a quarter/month axis, grouped by milestone (built 2026-10-17) | Done: `/roadmap` Timeline tab (`view/roadmap/RoadmapScreen.tsx`, `data/roadmap.ts`): one lane per milestone in target-date order, then "No milestone"; each initiative followed by its epics; one shared month axis (`Timeline` `range` prop) so lanes line up; the lane's milestone diamond, health and percent in its header. Not done: quarter zoom (see PM-17). | Monday: Roadmap template + Timeline view + Portfolio. |
+| PM-21 | Now / Next / Later board mode (no dates required) (built 2026-10-17) | Done: `/roadmap?view=board`. `initiatives.horizon` / `epics.horizon` (nullable enum) hold a hand placement; unplaced items sit by status and dates (active or started = Now, starting within 90 days = Next, else Later). Drag a card, or use its column picker (keyboard path), "Automatic" clears the placement. Finished work and epics under an initiative are left off; the initiative card counts its epics. | Useful before dates are known. |
+| PM-22 | Roadmap status and health per initiative, rolled up from epics (built 2026-10-17) | Done: `Initiative#health` (same rule as milestones, now shared in the `PlanningHealth` concern) served on `/api/v1/initiatives`; shown as a badge on board cards and as yellow/red bars on the roadmap timeline. Shared `HealthBadge` UI component replaces the milestone page's own pill. | |
 | PM-23 | Shareable read-only roadmap link (external stakeholders) | `shares` table exists for documents | Reuse the share mechanism. |
 | PM-24 | Idea / feature-request intake that can be promoted to an epic or initiative | Not present | Monday: WorkForms + intake boards with approval. |
 

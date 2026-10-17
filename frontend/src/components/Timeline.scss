@@ -94,6 +94,25 @@
         height: 100%;
         background: color(primary, 0.5);
       }
+
+      // Roadmap colors bars by health; on track keeps the default primary.
+      &--at_risk {
+        border-color: palette('yellow-500');
+        background: palette('yellow-500', 0.2);
+
+        .timeline-bar-fill {
+          background: palette('yellow-500', 0.5);
+        }
+      }
+
+      &--off_track {
+        border-color: palette('red-500');
+        background: palette('red-500', 0.2);
+
+        .timeline-bar-fill {
+          background: palette('red-500', 0.5);
+        }
+      }
     }
 
     // Overlay spanning the track column only: same offsets as the title

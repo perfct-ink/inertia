@@ -8,4 +8,5 @@ class EpicBlueprint < Blueprinter::Base
   field :target_date
   field :tasks_count
   field :done_tasks_count
+  field :horizon
 end

@@ -1,10 +1,10 @@
 import { useRef, useState } from 'react'
 import { Plus, X, Milestone as MilestoneIcon, Loader2 } from 'lucide-react'
-import { Button, Input, Select, classNames } from '@/components/ui'
+import { Button, HealthBadge, Input, Select } from '@/components/ui'
 import WorkspaceLayout from '@/components/WorkspaceLayout'
 import { ProgressBar } from '@/components/Timeline'
 import { useMilestones, useCreateMilestone, useUpdateMilestone, useDeleteMilestone } from '@/api/milestones'
-import { PLANNING_STATUSES, healthLabel } from '@/data/milestone'
+import { PLANNING_STATUSES } from '@/data/milestone'
 import { usePageTitle } from '@/hooks/usePageTitle'
 import type { PlanningStatus } from '@/types'
 import './MilestonesScreen.scss'
@@ -64,9 +64,7 @@ export default function MilestonesScreen() {
               <div key={milestone.id} className="milestones-card">
                 <div className="milestones-card-top">
                   <h2 className="milestones-card-title">{milestone.title}</h2>
-                  <span className={classNames('milestones-health', `milestones-health--${milestone.health}`)}>
-                    {healthLabel(milestone.health)}
-                  </span>
+                  <HealthBadge health={milestone.health} />
                   <Button
                     onClick={() => deleteMilestone.mutate(milestone.id)}
                     aria-label={`Delete ${milestone.title}`}

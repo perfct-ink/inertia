@@ -1,5 +1,6 @@
 class Epic < ApplicationRecord
   include BelongsToMilestone
+  include RoadmapHorizon
 
   belongs_to :workspace
   belongs_to :folder, optional: true

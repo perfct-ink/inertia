@@ -1,5 +1,6 @@
 class Milestone < ApplicationRecord
   include PlanningItem
+  include PlanningHealth
 
   belongs_to :workspace
   belongs_to :folder, optional: true
@@ -9,19 +10,6 @@ class Milestone < ApplicationRecord
 
   validates :title, presence: true
   validate :folder_in_same_workspace
-
-  AT_RISK_WITHIN = 14.days
-  AT_RISK_BELOW_PERCENT = 75
-
-  # on_track / at_risk / off_track from the rollup percent and target date:
-  # complete or undated is on track; a missed target date is off track; a
-  # target within two weeks with under 75% done is at risk.
-  def health(percent, today: Date.current)
-    return "on_track" if done? || percent >= 100 || target_date.nil?
-    return "off_track" if target_date < today
-    return "at_risk" if target_date <= today + AT_RISK_WITHIN && percent < AT_RISK_BELOW_PERCENT
-    "on_track"
-  end
 
   private
 

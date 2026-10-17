@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_10_16_000001) do
+ActiveRecord::Schema[7.2].define(version: 2026_10_17_000001) do
   create_table "documents", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.string "title", null: false
     t.json "content"
@@ -36,6 +36,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_10_16_000001) do
     t.date "target_date"
     t.bigint "initiative_id"
     t.bigint "milestone_id"
+    t.integer "horizon"
     t.index ["folder_id"], name: "index_epics_on_folder_id"
     t.index ["initiative_id"], name: "index_epics_on_initiative_id"
     t.index ["milestone_id"], name: "index_epics_on_milestone_id"
@@ -92,6 +93,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_10_16_000001) do
     t.text "description"
     t.integer "status", default: 0, null: false
     t.bigint "owner_id"
+    t.integer "horizon"
     t.index ["milestone_id"], name: "index_initiatives_on_milestone_id"
     t.index ["owner_id"], name: "index_initiatives_on_owner_id"
     t.index ["workspace_id"], name: "index_initiatives_on_workspace_id"
