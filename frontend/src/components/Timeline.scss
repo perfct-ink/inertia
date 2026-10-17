@@ -55,6 +55,7 @@
     }
 
     @at-root .timeline-rows {
+      position: relative;
       display: flex;
       flex-direction: column;
       gap: space(3);
@@ -93,6 +94,40 @@
         height: 100%;
         background: color(primary, 0.5);
       }
+    }
+
+    // Overlay spanning the track column only: same offsets as the title
+    // (width 36) and count (width 14) columns plus their gaps.
+    @at-root .timeline-today_area {
+      position: absolute;
+      top: 0;
+      right: calc(#{space(14)} + #{space(3)});
+      bottom: 0;
+      left: calc(#{space(36)} + #{space(3)});
+      pointer-events: none;
+    }
+
+    @at-root .timeline-today {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: 2px;
+      background: palette('red-500');
+      transform: translateX(-50%);
+    }
+
+    @at-root .timeline-markers {
+      margin-bottom: space(3);
+    }
+
+    @at-root .timeline-milestone {
+      position: absolute;
+      top: 50%;
+      width: space(3.5);
+      height: space(3.5);
+      border: 1px solid color(primary);
+      background: color(primary);
+      transform: translate(-50%, -50%) rotate(45deg);
     }
 
     @at-root .timeline-count {

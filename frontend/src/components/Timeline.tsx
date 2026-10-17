@@ -22,7 +22,11 @@ type Dated = Scheduled & { start_date: string; target_date: string }
 // items with both a start and target date can be placed on the month grid;
 // the rest are named below it instead of silently dropped. No charting
 // library — plain CSS percentages against a computed day range.
-export function Timeline({ items }: { items: Scheduled[] }) {
+export type TimelineMilestone = { id: number; title: string; target_date: string }
+
+// Milestones are diamonds on a marker row above the bars. Ones outside the
+// bars' month range are left off rather than stretching the axis.
+export function Timeline({ items, milestones = [] }: { items: Scheduled[]; milestones?: TimelineMilestone[] }) {
   const dated = items.filter((e): e is Dated => Boolean(e.start_date && e.target_date))
   const undated = items.filter((e) => !e.start_date || !e.target_date)
 
@@ -38,6 +42,16 @@ export function Timeline({ items }: { items: Scheduled[] }) {
   const rangeEnd = endOfMonth(new Date(Math.max(...dated.map((e) => parseISO(e.target_date).getTime()))))
   const totalDays = differenceInCalendarDays(rangeEnd, rangeStart) + 1
   const months = eachMonthOfInterval({ start: rangeStart, end: rangeEnd })
+
+  const markers = milestones
+    .map((m) => ({ ...m, date: parseISO(m.target_date) }))
+    .filter((m) => m.date >= rangeStart && m.date <= rangeEnd)
+    .map((m) => ({ ...m, offsetPct: ((differenceInCalendarDays(m.date, rangeStart) + 0.5) / totalDays) * 100 }))
+
+  const today = new Date()
+  const todayPct = today >= rangeStart && today <= rangeEnd
+    ? ((differenceInCalendarDays(today, rangeStart) + 0.5) / totalDays) * 100
+    : null
 
   return (
     <div className="view-timeline">
@@ -56,7 +70,30 @@ export function Timeline({ items }: { items: Scheduled[] }) {
             )
           })}
         </div>
+        {markers.length > 0 && (
+          <div className="timeline-row timeline-markers">
+            <span className="timeline-title">Milestones</span>
+            <div className="timeline-track">
+              {markers.map((m) => (
+                <span
+                  key={m.id}
+                  className="timeline-milestone"
+                  style={{ left: `${m.offsetPct}%` }}
+                  title={`${m.title} — ${m.target_date}`}
+                  role="img"
+                  aria-label={`Milestone ${m.title}, ${m.target_date}`}
+                />
+              ))}
+            </div>
+            <span className="timeline-count" />
+          </div>
+        )}
         <div className="timeline-rows">
+          {todayPct !== null && (
+            <div className="timeline-today_area" aria-hidden="true">
+              <span className="timeline-today" style={{ left: `${todayPct}%` }} title="Today" />
+            </div>
+          )}
           {dated.map((item) => {
             const s = parseISO(item.start_date)
             const e = parseISO(item.target_date)
@@ -65,7 +102,13 @@ export function Timeline({ items }: { items: Scheduled[] }) {
             const percent = donePercent(item)
             return (
               <div key={item.id} className="timeline-row">
-                <span className="timeline-title" title={item.title}>{item.title}</span>
+                <span
+                  className="timeline-title"
+                  title={item.title}
+                  style={item.depth ? { paddingLeft: `${item.depth}rem` } : undefined}
+                >
+                  {item.title}
+                </span>
                 <div className="timeline-track">
                   <div
                     className="timeline-bar"

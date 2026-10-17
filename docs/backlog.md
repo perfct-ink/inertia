@@ -45,14 +45,14 @@ Default chosen for this backlog: Milestone is the top-level container, and each 
 
 | ID | Item | Today | Notes |
 | --- | --- | --- | --- |
-| PM-10 | **Gantt view** for tasks, epics, initiatives: bars from start to end date, grouped by hierarchy, milestone diamonds on the axis | **Partly built** (2026-10-16): the per-folder Gantt tab now also plots that folder's tasks (`start_date`→`due_date`) alongside its epics, combined on one shared `components/Timeline.tsx` axis. Still missing: hierarchy grouping (tasks/epics sit in one flat list today, not nested under their parent), milestone diamond markers, and this hasn't reached the global Epics/Initiatives Timeline pages, only the folder Gantt tab. | Needs PM-11 first for task bars — done. |
+| PM-10 | **Gantt view** for tasks, epics, initiatives: bars from start to end date, grouped by hierarchy, milestone diamonds on the axis | **Partly built** (2026-10-16): the per-folder Gantt tab now also plots that folder's tasks (`start_date`→`due_date`) alongside its epics, combined on one shared `components/Timeline.tsx` axis. Milestones with a target date in that folder now show as diamonds on a marker row above the bars. Dated tasks are now nested under their epic (indented; `groupGanttRows`). Still missing: initiative/milestone grouping above epics, and this hasn't reached the global Epics/Initiatives Timeline pages, only the folder Gantt tab. | Needs PM-11 first for task bars — done. |
 | PM-11 | `tasks.start_date` (keep `due_date` as end) (built 2026-10-16) | Done: `tasks.start_date` column, `due_date`-not-before-`start_date` validation (same pattern as Epic/Sprint), permitted on the API, shown as a Start→Due pair in the task quick-add row (`AddTaskInput`). | Still write-only like `due_date` already was — no task detail view exists yet to edit dates after creation (pre-existing gap, not new). |
 | PM-12 | Drag a bar to reschedule, drag an edge to resize | n/a | |
 | PM-13 | **Dependencies**: finish-to-start, start-to-start, finish-to-finish, start-to-finish, drawn as arrows | No link table | New `task_dependencies` join table. Also Jira-doc sequence step 5. |
 | PM-14 | Dependency scheduling modes: strict (block invalid dates), flexible (auto-shift successors), none | n/a | Monday offers these three modes per board. |
 | PM-15 | **Critical path** highlight | n/a | Needs PM-13. |
 | PM-16 | **Baselines**: snapshot planned dates, show planned vs. actual bars | n/a | |
-| PM-17 | Zoom: days / weeks / months / quarters / years; "today" line; weekends shaded or skipped | n/a | |
+| PM-17 | Zoom: days / weeks / months / quarters / years; "today" line; weekends shaded or skipped | **Partly built**: a "today" line on the shared `Timeline` (when today is in range). | Zoom levels and weekend shading remain. |
 | PM-18 | Export Gantt to PNG / PDF | n/a | |
 | PM-19 | Native macOS online Gantt | Named a future stage in `macos/README.md` | Same API as web. |
 

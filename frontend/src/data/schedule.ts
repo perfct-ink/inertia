@@ -7,6 +7,8 @@ export interface Scheduled {
   target_date: string | null
   tasks_count: number
   done_tasks_count: number
+  // Nesting level in the rendered list; 0 (or absent) is top level.
+  depth?: number
 }
 
 // Whole-number percentage of an item's tasks that are done. Narrower than
@@ -15,4 +17,36 @@ export interface Scheduled {
 // Sprint, which has no start/target dates in the Scheduled sense).
 export function donePercent(item: { tasks_count: number; done_tasks_count: number }): number {
   return item.tasks_count > 0 ? Math.round((item.done_tasks_count / item.tasks_count) * 100) : 0
+}
+
+type Epicish = Scheduled
+type TaskLike = { id: number; title: string; status: string; epic_id: number | null; start_date?: string | null; due_date: string | null }
+
+// Flat Gantt rows grouped by hierarchy: each epic followed by its dated tasks
+// (depth 1), then tasks with no epic. Tasks without a due_date are skipped, as
+// they have no end to draw. Task ids are negated because epic and task ids are
+// independent sequences and Timeline uses id as a React key. A task whose epic
+// has no dates (so it won't be drawn) stays top level instead of nesting under
+// a missing parent.
+export function groupGanttRows(epics: Epicish[], tasks: TaskLike[]): Scheduled[] {
+  const toRow = (t: TaskLike, depth: number): Scheduled => ({
+    id: -t.id,
+    title: t.title,
+    start_date: t.start_date ?? null,
+    target_date: t.due_date,
+    tasks_count: 1,
+    done_tasks_count: t.status === 'done' ? 1 : 0,
+    depth,
+  })
+  const dated = tasks.filter((t) => t.due_date)
+  const drawnEpics = new Set(epics.filter((e) => e.start_date && e.target_date).map((e) => e.id))
+  const rows: Scheduled[] = []
+  for (const epic of epics) {
+    rows.push({ ...epic, depth: 0 })
+    if (drawnEpics.has(epic.id)) {
+      dated.filter((t) => t.epic_id === epic.id).forEach((t) => rows.push(toRow(t, 1)))
+    }
+  }
+  dated.filter((t) => t.epic_id === null || !drawnEpics.has(t.epic_id)).forEach((t) => rows.push(toRow(t, 0)))
+  return rows
 }

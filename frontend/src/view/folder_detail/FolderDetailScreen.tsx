@@ -15,13 +15,13 @@ import {
 import CreateItem from '@/components/CreateItem'
 import WorkspaceLayout from '@/components/WorkspaceLayout'
 import { ProgressBar, Timeline } from '@/components/Timeline'
-import type { Scheduled } from '@/data/schedule'
 import { useFolderContents, useUpdateFolder } from '@/api/workspace'
 import { useUpdateTask } from '@/api/tasks'
+import { useMilestones } from '@/api/milestones'
 import type { Task, WorkspaceEvent, Epic } from '@/types'
 import './FolderDetailScreen.scss'
 import { usePageTitle } from '@/hooks/usePageTitle'
-import { donePercent } from '@/data/schedule'
+import { donePercent, groupGanttRows } from '@/data/schedule'
 import { buildTaskTree, type TaskNode } from '@/data/task'
 
 const KANBAN_STATUSES: { key: Task['status']; label: string; dot: string }[] = [
@@ -395,6 +395,7 @@ export default function FolderDetailScreen() {
   const { data, isLoading } = useFolderContents(folderId)
   const updateFolder = useUpdateFolder()
   const updateTask = useUpdateTask()
+  const { data: allMilestones = [] } = useMilestones()
   usePageTitle(data?.folder.name)
 
   if (isLoading || !data) {
@@ -408,6 +409,9 @@ export default function FolderDetailScreen() {
   }
 
   const { folder, documents, tasks, events, epics } = data
+  const milestones = allMilestones
+    .filter((m) => m.folder_id === folderId && m.target_date)
+    .map((m) => ({ id: m.id, title: m.title, target_date: m.target_date! }))
 
   return (
     <WorkspaceLayout>
@@ -475,24 +479,7 @@ export default function FolderDetailScreen() {
         {view === 'calendar' && <CalendarView events={events} />}
         {view === 'gantt' && (
           <div className="folder_detail-pane">
-            <Timeline items={[
-              ...epics,
-              // Tasks with no due_date at all were never Gantt-relevant —
-              // excluded here rather than left for Timeline's own "not
-              // shown" list, which would otherwise be every undated task in
-              // the folder instead of just the handful missing a start date.
-              // id is negated: epic ids and task ids are independent
-              // sequences that can collide, and Timeline uses item.id as a
-              // bare React key.
-              ...tasks.filter((t) => t.due_date).map((t): Scheduled => ({
-                id: -t.id,
-                title: t.title,
-                start_date: t.start_date ?? null,
-                target_date: t.due_date,
-                tasks_count: 1,
-                done_tasks_count: t.status === 'done' ? 1 : 0,
-              })),
-            ]} />
+            <Timeline milestones={milestones} items={groupGanttRows(epics, tasks)} />
           </div>
         )}
       </div>
