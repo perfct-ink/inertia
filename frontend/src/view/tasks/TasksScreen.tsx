@@ -28,7 +28,8 @@ import { useTasks, useCreateTask, useUpdateTask, useDeleteTask, type TaskFilters
 import { useWorkspace } from '@/api/workspace'
 import { useEpics } from '@/api/epics'
 import { useSprints } from '@/api/sprints'
-import type { Task, Epic, Sprint } from '@/types'
+import { useMilestones } from '@/api/milestones'
+import type { Task, Epic, Sprint, Milestone } from '@/types'
 import './TasksScreen.scss'
 import { usePageTitle } from '@/hooks/usePageTitle'
 
@@ -148,25 +149,44 @@ function KanbanColumn({ status, label, dot, tasks, children }: {
 
 // ── AddTaskInput ──────────────────────────────────────────────────────────────
 
+interface NewTaskFields {
+  title: string
+  startDate: string
+  dueDate: string
+  epicId?: number
+  sprintId?: number
+  milestoneId?: number
+}
+
 interface AddTaskInputProps {
-  onAdd: (title: string, startDate: string, dueDate: string, epicId?: number, sprintId?: number) => void
+  onAdd: (fields: NewTaskFields) => void
   onCancel: () => void
   epics: Epic[]
   sprints: Sprint[]
+  milestones: Milestone[]
 }
 
-function AddTaskInput({ onAdd, onCancel, epics, sprints }: AddTaskInputProps) {
+function AddTaskInput({ onAdd, onCancel, epics, sprints, milestones }: AddTaskInputProps) {
   const [title, setTitle] = useState('')
   const [startDate, setStartDate] = useState('')
   const [dueDate, setDueDate] = useState('')
   const [epicId, setEpicId] = useState('')
   const [sprintId, setSprintId] = useState('')
+  const [milestoneId, setMilestoneId] = useState('')
   const titleRef = useRef('')
   const containerRef = useRef<HTMLDivElement>(null)
 
   function commit() {
-    if (titleRef.current.trim()) onAdd(titleRef.current.trim(), startDate, dueDate, epicId ? Number(epicId) : undefined, sprintId ? Number(sprintId) : undefined)
-    else onCancel()
+    if (titleRef.current.trim()) {
+      onAdd({
+        title: titleRef.current.trim(),
+        startDate,
+        dueDate,
+        epicId: epicId ? Number(epicId) : undefined,
+        sprintId: sprintId ? Number(sprintId) : undefined,
+        milestoneId: milestoneId ? Number(milestoneId) : undefined,
+      })
+    } else onCancel()
   }
 
   // Only commit once focus leaves the whole row — otherwise tabbing from
@@ -233,6 +253,20 @@ function AddTaskInput({ onAdd, onCancel, epics, sprints }: AddTaskInputProps) {
           ))}
         </Select>
       )}
+      {milestones.length > 0 && (
+        <Select
+          aria-label="Milestone"
+          value={milestoneId}
+          onChange={(e) => setMilestoneId(e.target.value)}
+          onBlur={handleBlur}
+          className="tasks-add_field tasks-add_field--select"
+        >
+          <option value="">No milestone</option>
+          {milestones.map((milestone) => (
+            <option key={milestone.id} value={milestone.id}>{milestone.title}</option>
+          ))}
+        </Select>
+      )}
     </div>
   )
 }
@@ -260,6 +294,7 @@ export default function TasksScreen() {
   const { data: workspace } = useWorkspace()
   const { data: epics = [] } = useEpics()
   const { data: sprints = [] } = useSprints()
+  const { data: milestones = [] } = useMilestones()
   const epicById = new Map(epics.map((e) => [e.id, e]))
 
   useEffect(() => {
@@ -381,8 +416,8 @@ export default function TasksScreen() {
     setLocalTasksState(tasks)
   }
 
-  function createTaskWith(title: string, status: Task['status'], startDate: string, dueDate: string, epicId?: number, sprintId?: number) {
-    createTask.mutate({ title, status, startDate, dueDate, epicId, sprintId, folder_id: filters.folder_id })
+  function createTaskWith(status: Task['status'], fields: NewTaskFields) {
+    createTask.mutate({ ...fields, status, folder_id: filters.folder_id })
   }
 
   return (
@@ -517,10 +552,11 @@ export default function TasksScreen() {
                       {addingTo === key ? (
                         <div className="tasks-add_card">
                           <AddTaskInput
-                            onAdd={(title, startDate, dueDate, epicId, sprintId) => { createTaskWith(title, key, startDate, dueDate, epicId, sprintId); setAddingTo(null) }}
+                            onAdd={(fields) => { createTaskWith(key, fields); setAddingTo(null) }}
                             onCancel={() => setAddingTo(null)}
                             epics={epics}
                             sprints={sprints}
+                            milestones={milestones}
                           />
                         </div>
                       ) : (
@@ -572,10 +608,11 @@ export default function TasksScreen() {
               {addingTo === 'backlog' && (
                 <div className="tasks-backlog_add">
                   <AddTaskInput
-                    onAdd={(title, startDate, dueDate, epicId, sprintId) => { createTaskWith(title, 'backlog', startDate, dueDate, epicId, sprintId); setAddingTo(null) }}
+                    onAdd={(fields) => { createTaskWith('backlog', fields); setAddingTo(null) }}
                     onCancel={() => setAddingTo(null)}
                     epics={epics}
                     sprints={sprints}
+                    milestones={milestones}
                   />
                 </div>
               )}

@@ -21,10 +21,10 @@ export function useTasks(filters: TaskFilters = {}) {
 export function useCreateTask() {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: (data: { title: string; status?: Task['status']; startDate?: string; dueDate?: string; documentId?: number; folder_id?: number; epicId?: number; sprintId?: number; parentId?: number }) => {
-      const { documentId, startDate, dueDate, epicId, sprintId, parentId, ...rest } = data
+    mutationFn: (data: { title: string; status?: Task['status']; startDate?: string; dueDate?: string; documentId?: number; folder_id?: number; epicId?: number; sprintId?: number; milestoneId?: number; parentId?: number }) => {
+      const { documentId, startDate, dueDate, epicId, sprintId, milestoneId, parentId, ...rest } = data
       const url = documentId ? `/api/v1/documents/${documentId}/tasks` : '/api/v1/tasks'
-      return api.post(url, { task: { ...rest, start_date: startDate, due_date: dueDate, epic_id: epicId, sprint_id: sprintId, parent_id: parentId } }).then((r) => r.data as Task)
+      return api.post(url, { task: { ...rest, start_date: startDate, due_date: dueDate, epic_id: epicId, sprint_id: sprintId, milestone_id: milestoneId, parent_id: parentId } }).then((r) => r.data as Task)
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ['tasks'] }),
   })
