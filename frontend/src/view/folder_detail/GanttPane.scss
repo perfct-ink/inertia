@@ -1,0 +1,87 @@
+@use 'tokens' as *;
+
+@layer view {
+  .view-gantt_pane {
+    display: flex;
+    flex-direction: column;
+    gap: space(4);
+
+    @at-root .gantt_pane-toolbar {
+      display: flex;
+      justify-content: flex-end;
+    }
+
+    @at-root .gantt_pane-toggle {
+      display: flex;
+      align-items: center;
+      gap: space(2);
+      color: color(muted-foreground);
+      cursor: pointer;
+      @include text('sm');
+    }
+
+    @at-root .gantt_pane-deps {
+      display: flex;
+      flex-direction: column;
+      gap: space(3);
+      max-width: 56rem;
+      padding-top: space(4);
+      border-top-width: 1px;
+    }
+
+    @at-root .gantt_pane-heading {
+      font-weight: 600;
+      @include text('sm');
+    }
+
+    @at-root .gantt_pane-muted {
+      color: color(muted-foreground);
+      @include text('xs');
+    }
+
+    @at-root .gantt_pane-list {
+      display: flex;
+      flex-direction: column;
+      gap: space(1);
+    }
+
+    @at-root .gantt_pane-item {
+      display: flex;
+      align-items: center;
+      gap: space(2);
+      @include text('sm');
+
+      &-text {
+        flex: 1 1 0%;
+        min-width: 0;
+      }
+    }
+
+    @at-root .gantt_pane-icon {
+      width: space(3.5);
+      height: space(3.5);
+    }
+
+    .gantt_pane-remove {
+      padding: space(1);
+      color: color(muted-foreground);
+
+      &:hover {
+        color: palette('red-500');
+      }
+    }
+
+    @at-root .gantt_pane-form {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: space(2);
+    }
+
+    .gantt_pane-select {
+      width: auto;
+      min-width: space(36);
+      max-width: 100%;
+    }
+  }
+}

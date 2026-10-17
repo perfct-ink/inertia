@@ -59,6 +59,7 @@ Rails.application.routes.draw do
       resources :milestones, only: [ :index, :create, :update, :destroy ]
 
       resources :sprints, only: [ :index, :create, :update, :destroy ]
+      resources :task_dependencies, only: [ :index, :create, :destroy ]
 
       resources :uploads, only: [ :create ]
 

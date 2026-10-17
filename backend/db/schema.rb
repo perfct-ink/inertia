@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_10_17_000001) do
+ActiveRecord::Schema[7.2].define(version: 2026_10_17_000002) do
   create_table "documents", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.string "title", null: false
     t.json "content"
@@ -226,6 +226,19 @@ ActiveRecord::Schema[7.2].define(version: 2026_10_17_000001) do
     t.index ["document_id"], name: "index_table_records_on_document_id"
   end
 
+  create_table "task_dependencies", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+    t.bigint "workspace_id", null: false
+    t.bigint "predecessor_id", null: false
+    t.bigint "successor_id", null: false
+    t.integer "kind", default: 0, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["predecessor_id", "successor_id"], name: "index_task_dependencies_on_predecessor_id_and_successor_id", unique: true
+    t.index ["predecessor_id"], name: "index_task_dependencies_on_predecessor_id"
+    t.index ["successor_id"], name: "index_task_dependencies_on_successor_id"
+    t.index ["workspace_id"], name: "index_task_dependencies_on_workspace_id"
+  end
+
   create_table "tasks", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.string "title", null: false
     t.text "description"
@@ -320,6 +333,9 @@ ActiveRecord::Schema[7.2].define(version: 2026_10_17_000001) do
   add_foreign_key "table_fields", "documents"
   add_foreign_key "table_fields", "documents", column: "relation_table_id"
   add_foreign_key "table_records", "documents"
+  add_foreign_key "task_dependencies", "tasks", column: "predecessor_id"
+  add_foreign_key "task_dependencies", "tasks", column: "successor_id"
+  add_foreign_key "task_dependencies", "workspaces"
   add_foreign_key "tasks", "documents"
   add_foreign_key "tasks", "epics"
   add_foreign_key "tasks", "folders"

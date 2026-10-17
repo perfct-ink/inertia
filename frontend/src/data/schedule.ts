@@ -16,6 +16,8 @@ export interface Scheduled {
   key?: string
   // Colors the bar by health (roadmap); absent draws the default bar.
   health?: MilestoneHealth
+  // On the driving (critical) path of a Gantt chart.
+  critical?: boolean
 }
 
 // Whole-number percentage of an item's tasks that are done. Narrower than
@@ -29,15 +31,24 @@ export function donePercent(item: { tasks_count: number; done_tasks_count: numbe
 type Epicish = Scheduled
 type TaskLike = { id: number; title: string; status: string; epic_id: number | null; start_date?: string | null; due_date: string | null }
 
+// Row key for a task on the Gantt, so dependency links can name their ends.
+export function ganttTaskKey(taskId: number): string {
+  return `task-${taskId}`
+}
+
 // Flat Gantt rows grouped by hierarchy: each epic followed by its dated tasks
 // (depth 1), then tasks with no epic. Tasks without a due_date are skipped, as
-// they have no end to draw. Task ids are negated because epic and task ids are
-// independent sequences and Timeline uses id as a React key. A task whose epic
+// they have no end to draw. Epic and task ids are independent sequences, so
+// rows carry a `key` (epic-1, task-1) that Timeline uses for React keys and
+// dependency links; task ids also stay negated for anything still keying on
+// id. `critical` flags tasks on the driving path. A task whose epic
 // has no dates (so it won't be drawn) stays top level instead of nesting under
 // a missing parent.
-export function groupGanttRows(epics: Epicish[], tasks: TaskLike[]): Scheduled[] {
+export function groupGanttRows(epics: Epicish[], tasks: TaskLike[], critical: Set<number> = new Set()): Scheduled[] {
   const toRow = (t: TaskLike, depth: number): Scheduled => ({
     id: -t.id,
+    key: ganttTaskKey(t.id),
+    critical: critical.has(t.id),
     title: t.title,
     start_date: t.start_date ?? null,
     target_date: t.due_date,
@@ -49,7 +60,7 @@ export function groupGanttRows(epics: Epicish[], tasks: TaskLike[]): Scheduled[]
   const drawnEpics = new Set(epics.filter((e) => e.start_date && e.target_date).map((e) => e.id))
   const rows: Scheduled[] = []
   for (const epic of epics) {
-    rows.push({ ...epic, depth: 0 })
+    rows.push({ ...epic, key: `epic-${epic.id}`, depth: 0 })
     if (drawnEpics.has(epic.id)) {
       dated.filter((t) => t.epic_id === epic.id).forEach((t) => rows.push(toRow(t, 1)))
     }

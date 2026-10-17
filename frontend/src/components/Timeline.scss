@@ -38,9 +38,11 @@
       max-width: 56rem;
     }
 
+    // Month labels sit over the track column only (same offsets as the
+    // today overlay), so a label starts where its month's bars start.
     @at-root .timeline-months {
       display: flex;
-      margin-bottom: space(3);
+      margin: 0 calc(#{space(14)} + #{space(3)}) space(3) calc(#{space(36)} + #{space(3)});
       border-bottom-width: 1px;
     }
 
@@ -105,6 +107,11 @@
         }
       }
 
+      &--critical {
+        border-width: 2px;
+        border-color: palette('red-500');
+      }
+
       &--off_track {
         border-color: palette('red-500');
         background: palette('red-500', 0.2);
@@ -121,6 +128,43 @@
       position: absolute;
       inset: 0 calc(#{space(14)} + #{space(3)}) 0 calc(#{space(36)} + #{space(3)});
       pointer-events: none;
+    }
+
+    // Dependency arrows: same horizontal span as the today overlay.
+    @at-root .timeline-links {
+      position: absolute;
+      inset: 0 calc(#{space(14)} + #{space(3)}) 0 calc(#{space(36)} + #{space(3)});
+      z-index: 1;
+      pointer-events: none;
+
+      &-svg {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        overflow: visible;
+      }
+    }
+
+    @at-root .timeline-link {
+      fill: none;
+      stroke: color(muted-foreground);
+      stroke-width: 1.5;
+
+      &-head {
+        position: absolute;
+        width: 0;
+        height: 0;
+        border-block: space(1.25) solid transparent;
+        border-left: space(2) solid color(muted-foreground);
+        transform: translate(-100%, -50%);
+
+        &--left {
+          border-right: space(2) solid color(muted-foreground);
+          border-left: 0;
+          transform: translate(0, -50%);
+        }
+      }
     }
 
     @at-root .timeline-today {

@@ -4,6 +4,8 @@ import {
 import './Timeline.scss'
 import { classNames } from '@/components/ui'
 import { donePercent, type Scheduled } from '@/data/schedule'
+import { linkSides } from '@/data/dependency'
+import type { DependencyKind } from '@/types'
 
 // Shared by EpicsPage, InitiativesPage, and FolderDetailPage's per-folder
 // Gantt tab — all three are "a title, an optional start/target date, and a
@@ -25,14 +27,26 @@ type Dated = Scheduled & { start_date: string; target_date: string }
 // library — plain CSS percentages against a computed day range.
 export type TimelineMilestone = { id: number; title: string; target_date: string }
 
+// A dependency arrow between two rows, named by row key (Scheduled.key, or
+// the id as a string). Links to rows that aren't drawn are skipped.
+export type TimelineLink = { from: string; to: string; kind: DependencyKind }
+
+// Row geometry in rem, matching .timeline-track (height space(6)) and the
+// .timeline-rows gap (space(3)); the link overlay lays rows out on this pitch.
+const ROW_HEIGHT_REM = 1.5
+const ROW_PITCH_REM = 2.25
+// How far (in % of the track) an arrow leaves its bar before turning.
+const LINK_STUB_PCT = 0.8
+
 // Milestones are diamonds on a marker row above the bars. Ones outside the
 // bars' month range are left off rather than stretching the axis.
 // `range` pins the axis (the roadmap stacks one Timeline per lane and needs
 // their months to line up); without it the axis fits this list's own dates.
-export function Timeline({ items, milestones = [], range }: {
+export function Timeline({ items, milestones = [], range, links = [] }: {
   items: Scheduled[]
   milestones?: TimelineMilestone[]
   range?: { start: Date; end: Date }
+  links?: TimelineLink[]
 }) {
   const dated = items.filter((e): e is Dated => Boolean(e.start_date && e.target_date))
   const undated = items.filter((e) => !e.start_date || !e.target_date)
@@ -55,6 +69,34 @@ export function Timeline({ items, milestones = [], range }: {
     .map((m) => ({ ...m, date: parseISO(m.target_date) }))
     .filter((m) => m.date >= rangeStart && m.date <= rangeEnd)
     .map((m) => ({ ...m, offsetPct: ((differenceInCalendarDays(m.date, rangeStart) + 0.5) / totalDays) * 100 }))
+
+  const bars = dated.map((item) => {
+    const s = parseISO(item.start_date)
+    const e = parseISO(item.target_date)
+    const offsetPct = (differenceInCalendarDays(s, rangeStart) / totalDays) * 100
+    const widthPct = Math.max(((differenceInCalendarDays(e, s) + 1) / totalDays) * 100, 1.5)
+    return { item, offsetPct, widthPct }
+  })
+  const rowIndex = new Map(bars.map((bar, i) => [bar.item.key ?? String(bar.item.id), i]))
+  const arrows = links.flatMap((link) => {
+    const from = rowIndex.get(link.from)
+    const to = rowIndex.get(link.to)
+    if (from === undefined || to === undefined) return []
+    const sides = linkSides(link.kind)
+    const edge = (i: number, side: 'start' | 'end') => bars[i].offsetPct + (side === 'end' ? bars[i].widthPct : 0)
+    const fromX = edge(from, sides.from)
+    const turnX = fromX + (sides.from === 'end' ? LINK_STUB_PCT : -LINK_STUB_PCT)
+    const toX = edge(to, sides.to)
+    const y = (i: number) => i * ROW_PITCH_REM + ROW_HEIGHT_REM / 2
+    return [{
+      key: `${link.from}>${link.to}`,
+      d: `M ${fromX} ${y(from)} H ${turnX} V ${y(to)} H ${toX}`,
+      toX,
+      toY: y(to),
+      pointsLeft: toX < turnX,
+    }]
+  })
+  const linksHeight = bars.length * ROW_PITCH_REM - (ROW_PITCH_REM - ROW_HEIGHT_REM)
 
   const today = new Date()
   const todayPct = today >= rangeStart && today <= rangeEnd
@@ -102,11 +144,21 @@ export function Timeline({ items, milestones = [], range }: {
               <span className="timeline-today" style={{ left: `${todayPct}%` }} title="Today" />
             </div>
           )}
-          {dated.map((item) => {
-            const s = parseISO(item.start_date)
-            const e = parseISO(item.target_date)
-            const offsetPct = (differenceInCalendarDays(s, rangeStart) / totalDays) * 100
-            const widthPct = Math.max(((differenceInCalendarDays(e, s) + 1) / totalDays) * 100, 1.5)
+          {arrows.length > 0 && (
+            <div className="timeline-links" aria-hidden="true">
+              <svg viewBox={`0 0 100 ${linksHeight}`} preserveAspectRatio="none" className="timeline-links-svg">
+                {arrows.map((a) => <path key={a.key} d={a.d} className="timeline-link" vectorEffect="non-scaling-stroke" />)}
+              </svg>
+              {arrows.map((a) => (
+                <span
+                  key={a.key}
+                  className={classNames('timeline-link-head', a.pointsLeft && 'timeline-link-head--left')}
+                  style={{ left: `${a.toX}%`, top: `${a.toY}rem` }}
+                />
+              ))}
+            </div>
+          )}
+          {bars.map(({ item, offsetPct, widthPct }) => {
             const percent = donePercent(item)
             return (
               <div key={item.key ?? item.id} className="timeline-row">
@@ -119,7 +171,7 @@ export function Timeline({ items, milestones = [], range }: {
                 </span>
                 <div className="timeline-track">
                   <div
-                    className={classNames('timeline-bar', item.health && `timeline-bar--${item.health}`)}
+                    className={classNames('timeline-bar', item.health && `timeline-bar--${item.health}`, item.critical && 'timeline-bar--critical')}
                     style={{ left: `${offsetPct}%`, width: `${widthPct}%` }}
                     title={`${item.start_date} → ${item.target_date}`}
                   >

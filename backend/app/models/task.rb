@@ -15,6 +15,9 @@ class Task < ApplicationRecord
   # meaning floating around detached from the task they broke down.
   belongs_to :parent, class_name: "Task", optional: true
   has_many :subtasks, class_name: "Task", foreign_key: :parent_id, dependent: :destroy, inverse_of: :parent
+  # Gantt links (PM-13), removed with either end.
+  has_many :successor_links, class_name: "TaskDependency", foreign_key: :predecessor_id, dependent: :destroy, inverse_of: :predecessor
+  has_many :predecessor_links, class_name: "TaskDependency", foreign_key: :successor_id, dependent: :destroy, inverse_of: :successor
 
   enum :status, { todo: 0, in_progress: 1, in_review: 2, done: 3, backlog: 4 }
 

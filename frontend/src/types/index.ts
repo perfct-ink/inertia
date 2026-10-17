@@ -68,6 +68,17 @@ export interface Task {
   document?: Document
 }
 
+// Gantt link (PM-13): the successor waits on the predecessor.
+export type DependencyKind = 'finish_to_start' | 'start_to_start' | 'finish_to_finish' | 'start_to_finish'
+
+export interface TaskDependency {
+  id: number
+  predecessor_id: number
+  successor_id: number
+  kind: DependencyKind
+  created_at: string
+}
+
 export interface QuipImport {
   id: number
   status: 'pending' | 'running' | 'completed' | 'failed'

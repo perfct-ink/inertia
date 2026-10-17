@@ -11,10 +11,12 @@
       padding: space(6);
     }
 
+    // Same max width as the Timeline chart, so the header ends with the axis.
     @at-root .roadmap-lane {
       display: flex;
       flex-direction: column;
       gap: space(3);
+      max-width: 56rem;
 
       &-header {
         display: flex;

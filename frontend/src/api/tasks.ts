@@ -43,6 +43,10 @@ export function useDeleteTask() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: (id: number) => api.delete(`/api/v1/tasks/${id}`),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['tasks'] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['tasks'] })
+      // The server drops a deleted task's Gantt links with it.
+      qc.invalidateQueries({ queryKey: ['task_dependencies'] })
+    },
   })
 }

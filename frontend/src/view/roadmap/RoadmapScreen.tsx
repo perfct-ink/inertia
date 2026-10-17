@@ -186,6 +186,8 @@ function BoardCardView({ card, onPlace }: { card: BoardCard; onPlace: (card: Boa
       className={classNames('roadmap-card', isDragging && 'roadmap-card--dragging')}
       {...attributes}
       {...listeners}
+      // A group, not dnd-kit's default button: the card holds its own select.
+      role="group"
       aria-label={`${item.title}, ${card.kind}`}
     >
       <div className="roadmap-card-top">

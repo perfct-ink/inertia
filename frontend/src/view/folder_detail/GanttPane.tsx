@@ -1,0 +1,108 @@
+import { useMemo, useState } from 'react'
+import { X } from 'lucide-react'
+import { Button, FormError, Input, Select } from '@/components/ui'
+import { Timeline, type TimelineMilestone } from '@/components/Timeline'
+import { useCreateTaskDependency, useDeleteTaskDependency, useTaskDependencies } from '@/api/taskDependencies'
+import { ganttTaskKey, groupGanttRows } from '@/data/schedule'
+import { DEPENDENCY_KINDS, DEPENDENCY_LABEL, drivingPath } from '@/data/dependency'
+import { errorMessage } from '@/util/errorMessage'
+import type { DependencyKind, Epic, Task, TaskDependency } from '@/types'
+import './GanttPane.scss'
+
+// The folder's Gantt tab: epics and dated tasks, dependency arrows between
+// this folder's tasks (PM-13), the driving path highlighted (PM-15), and a
+// small editor for the links underneath.
+export default function GanttPane({ epics, tasks, milestones }: {
+  epics: Epic[]
+  tasks: Task[]
+  milestones: TimelineMilestone[]
+}) {
+  const { data: allDependencies = [] } = useTaskDependencies()
+  const [showCritical, setShowCritical] = useState(true)
+
+  const taskIds = useMemo(() => new Set(tasks.map((t) => t.id)), [tasks])
+  // Only links with both ends in this folder; the rest belong to other charts.
+  const dependencies = useMemo(
+    () => allDependencies.filter((d) => taskIds.has(d.predecessor_id) && taskIds.has(d.successor_id)),
+    [allDependencies, taskIds],
+  )
+  const critical = useMemo(
+    () => (showCritical ? drivingPath(tasks, dependencies) : new Set<number>()),
+    [showCritical, tasks, dependencies],
+  )
+  const links = dependencies.map((d) => ({ from: ganttTaskKey(d.predecessor_id), to: ganttTaskKey(d.successor_id), kind: d.kind }))
+
+  return (
+    <div className="view-gantt_pane">
+      <div className="gantt_pane-toolbar">
+        <label className="gantt_pane-toggle">
+          <Input type="checkbox" checked={showCritical} onChange={(e) => setShowCritical(e.target.checked)} />
+          Highlight critical path
+        </label>
+      </div>
+      <Timeline milestones={milestones} items={groupGanttRows(epics, tasks, critical)} links={links} />
+      <DependencyEditor tasks={tasks} dependencies={dependencies} />
+    </div>
+  )
+}
+
+function DependencyEditor({ tasks, dependencies }: { tasks: Task[]; dependencies: TaskDependency[] }) {
+  const createDependency = useCreateTaskDependency()
+  const deleteDependency = useDeleteTaskDependency()
+  const [predecessorId, setPredecessorId] = useState('')
+  const [successorId, setSuccessorId] = useState('')
+  const [kind, setKind] = useState<DependencyKind>('finish_to_start')
+  const titles = new Map(tasks.map((t) => [t.id, t.title]))
+
+  function add() {
+    if (!predecessorId || !successorId) return
+    createDependency.mutate(
+      { predecessor_id: Number(predecessorId), successor_id: Number(successorId), kind },
+      { onSuccess: () => { setPredecessorId(''); setSuccessorId('') } },
+    )
+  }
+
+  if (tasks.length < 2) return null
+
+  return (
+    <section className="gantt_pane-deps" aria-labelledby="gantt-deps-heading">
+      <h2 id="gantt-deps-heading" className="gantt_pane-heading">Dependencies</h2>
+      {dependencies.length === 0 && <p className="gantt_pane-muted">No dependencies yet.</p>}
+      <ul className="gantt_pane-list">
+        {dependencies.map((d) => (
+          <li key={d.id} className="gantt_pane-item">
+            <span className="gantt_pane-item-text">
+              <strong>{titles.get(d.successor_id)}</strong> waits on <strong>{titles.get(d.predecessor_id)}</strong>
+              <span className="gantt_pane-muted"> · {DEPENDENCY_LABEL[d.kind]}</span>
+            </span>
+            <Button
+              onClick={() => deleteDependency.mutate(d.id)}
+              aria-label={`Remove dependency of ${titles.get(d.successor_id)} on ${titles.get(d.predecessor_id)}`}
+              className="gantt_pane-remove"
+            >
+              <X className="gantt_pane-icon" aria-hidden="true" />
+            </Button>
+          </li>
+        ))}
+      </ul>
+      <div className="gantt_pane-form">
+        <Select aria-label="Task that waits" value={successorId} onChange={(e) => setSuccessorId(e.target.value)} className="gantt_pane-select">
+          <option value="">Task…</option>
+          {tasks.map((t) => <option key={t.id} value={t.id}>{t.title}</option>)}
+        </Select>
+        <span className="gantt_pane-muted">waits on</span>
+        <Select aria-label="Task it waits on" value={predecessorId} onChange={(e) => setPredecessorId(e.target.value)} className="gantt_pane-select">
+          <option value="">Task…</option>
+          {tasks.filter((t) => String(t.id) !== successorId).map((t) => <option key={t.id} value={t.id}>{t.title}</option>)}
+        </Select>
+        <Select aria-label="Link type" value={kind} onChange={(e) => setKind(e.target.value as DependencyKind)} className="gantt_pane-select">
+          {DEPENDENCY_KINDS.map((k) => <option key={k} value={k}>{DEPENDENCY_LABEL[k]}</option>)}
+        </Select>
+        <Button variant="primary" onClick={add} disabled={!predecessorId || !successorId || createDependency.isPending}>
+          Add
+        </Button>
+      </div>
+      <FormError message={createDependency.isError ? errorMessage(createDependency.error) : null} />
+    </section>
+  )
+}

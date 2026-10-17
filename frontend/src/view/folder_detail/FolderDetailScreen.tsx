@@ -14,14 +14,15 @@ import {
 } from 'date-fns'
 import CreateItem from '@/components/CreateItem'
 import WorkspaceLayout from '@/components/WorkspaceLayout'
-import { ProgressBar, Timeline } from '@/components/Timeline'
+import { ProgressBar } from '@/components/Timeline'
 import { useFolderContents, useUpdateFolder } from '@/api/workspace'
 import { useUpdateTask } from '@/api/tasks'
 import { useMilestones } from '@/api/milestones'
 import type { Task, WorkspaceEvent, Epic } from '@/types'
 import './FolderDetailScreen.scss'
 import { usePageTitle } from '@/hooks/usePageTitle'
-import { donePercent, groupGanttRows } from '@/data/schedule'
+import { donePercent } from '@/data/schedule'
+import GanttPane from './GanttPane'
 import { buildTaskTree, type TaskNode } from '@/data/task'
 
 const KANBAN_STATUSES: { key: Task['status']; label: string; dot: string }[] = [
@@ -250,9 +251,8 @@ function CalendarView({ events }: { events: WorkspaceEvent[] }) {
 // ── Overview — the landing view when you click into a folder: a dashboard
 // (a few high-level epics, upcoming events) plus the folder's documents
 // shown as a proper primary section rather than the thin chip row the other
-// four views get. The Gantt tab (below, in the main component) renders
-// epics and dated tasks through the same shared Timeline this page used to
-// define locally — see components/Timeline.tsx. ──────────────────────────
+// four views get. The Gantt tab renders through GanttPane.tsx (shared
+// Timeline plus dependency links). ─────────────────────────────────────────
 
 // A small header-row link to a sibling view — always shown regardless of
 // whether this section has any data, since Overview doubles as the
@@ -479,7 +479,7 @@ export default function FolderDetailScreen() {
         {view === 'calendar' && <CalendarView events={events} />}
         {view === 'gantt' && (
           <div className="folder_detail-pane">
-            <Timeline milestones={milestones} items={groupGanttRows(epics, tasks)} />
+            <GanttPane milestones={milestones} epics={epics} tasks={tasks} />
           </div>
         )}
       </div>
