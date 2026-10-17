@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_10_17_000002) do
+ActiveRecord::Schema[7.2].define(version: 2026_10_17_000003) do
   create_table "documents", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.string "title", null: false
     t.json "content"
@@ -105,6 +105,21 @@ ActiveRecord::Schema[7.2].define(version: 2026_10_17_000002) do
     t.index ["jti"], name: "index_jwt_denylists_on_jti", unique: true
   end
 
+  create_table "key_results", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+    t.bigint "objective_id", null: false
+    t.string "title", null: false
+    t.bigint "initiative_id"
+    t.decimal "start_value", precision: 15, scale: 2, default: "0.0", null: false
+    t.decimal "target_value", precision: 15, scale: 2
+    t.decimal "current_value", precision: 15, scale: 2, default: "0.0", null: false
+    t.string "unit"
+    t.integer "position", default: 0, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["initiative_id"], name: "index_key_results_on_initiative_id"
+    t.index ["objective_id"], name: "index_key_results_on_objective_id"
+  end
+
   create_table "milestones", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.bigint "workspace_id", null: false
     t.bigint "folder_id"
@@ -118,6 +133,20 @@ ActiveRecord::Schema[7.2].define(version: 2026_10_17_000002) do
     t.index ["folder_id"], name: "index_milestones_on_folder_id"
     t.index ["owner_id"], name: "index_milestones_on_owner_id"
     t.index ["workspace_id"], name: "index_milestones_on_workspace_id"
+  end
+
+  create_table "objectives", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+    t.string "title", null: false
+    t.text "description"
+    t.bigint "workspace_id", null: false
+    t.bigint "owner_id"
+    t.integer "status", default: 0, null: false
+    t.date "start_date"
+    t.date "target_date"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["owner_id"], name: "index_objectives_on_owner_id"
+    t.index ["workspace_id"], name: "index_objectives_on_workspace_id"
   end
 
   create_table "quip_imports", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
@@ -317,9 +346,13 @@ ActiveRecord::Schema[7.2].define(version: 2026_10_17_000002) do
   add_foreign_key "initiatives", "milestones"
   add_foreign_key "initiatives", "users", column: "owner_id", on_delete: :nullify
   add_foreign_key "initiatives", "workspaces"
+  add_foreign_key "key_results", "initiatives", on_delete: :nullify
+  add_foreign_key "key_results", "objectives"
   add_foreign_key "milestones", "folders"
   add_foreign_key "milestones", "users", column: "owner_id", on_delete: :nullify
   add_foreign_key "milestones", "workspaces"
+  add_foreign_key "objectives", "users", column: "owner_id", on_delete: :nullify
+  add_foreign_key "objectives", "workspaces"
   add_foreign_key "quip_imports", "folders", column: "destination_folder_id"
   add_foreign_key "quip_imports", "workspaces"
   add_foreign_key "shares", "users", column: "created_by_id"

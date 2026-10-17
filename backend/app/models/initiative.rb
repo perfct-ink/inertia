@@ -6,6 +6,7 @@ class Initiative < ApplicationRecord
 
   belongs_to :workspace
   has_many :epics, dependent: :nullify
+  has_many :key_results, dependent: :nullify
 
   validates :title, presence: true
   validate :target_date_not_before_start_date

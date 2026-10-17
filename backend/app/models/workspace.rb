@@ -13,6 +13,7 @@ class Workspace < ApplicationRecord
   has_many :initiatives, dependent: :destroy
   has_many :milestones, dependent: :destroy
   has_many :sprints, dependent: :destroy
+  has_many :objectives, dependent: :destroy
   has_many :quip_imports, dependent: :destroy
 
   validates :name, presence: true

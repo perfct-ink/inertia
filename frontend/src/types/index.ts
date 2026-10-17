@@ -150,6 +150,40 @@ export interface Initiative {
   updated_at: string
 }
 
+// OKRs (PM-31). A key result with initiative_id takes its percent from that
+// initiative's tasks; otherwise it measures current_value from start_value
+// toward target_value. The server computes every percent.
+export interface KeyResult {
+  id: number
+  objective_id: number
+  title: string
+  initiative_id: number | null
+  start_value: number
+  target_value: number | null
+  current_value: number
+  unit: string | null
+  position: number
+  percent: number
+  created_at: string
+  updated_at: string
+}
+
+export interface Objective {
+  id: number
+  title: string
+  description: string | null
+  status: PlanningStatus
+  owner_id: number | null
+  start_date: string | null
+  target_date: string | null
+  percent: number
+  score: number
+  health: MilestoneHealth
+  key_results: KeyResult[]
+  created_at: string
+  updated_at: string
+}
+
 // Orthogonal to Milestone/Initiative/Epic: a time-boxed slice of work, not
 // a rollup level — start_date/end_date (not target_date), since a sprint
 // genuinely ends on that date rather than aiming for it.

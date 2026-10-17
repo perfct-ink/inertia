@@ -60,6 +60,8 @@ Rails.application.routes.draw do
 
       resources :sprints, only: [ :index, :create, :update, :destroy ]
       resources :task_dependencies, only: [ :index, :create, :destroy ]
+      resources :objectives, only: [ :index, :create, :update, :destroy ]
+      resources :key_results, only: [ :create, :update, :destroy ]
 
       resources :uploads, only: [ :create ]
 
