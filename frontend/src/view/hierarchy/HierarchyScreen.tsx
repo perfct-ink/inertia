@@ -45,7 +45,9 @@ function HierarchyRow({ node, depth, expanded, onToggle }: {
         )}
         <Icon className="hierarchy-icon" aria-hidden="true" />
         <span className="hierarchy-title" title={node.title}>{node.title}</span>
-        <div className="hierarchy-progress"><ProgressBar percent={donePercent(node)} /></div>
+        <div className="hierarchy-progress">
+          <ProgressBar percent={donePercent({ tasks_count: node.tasksCount, done_tasks_count: node.doneTasksCount })} />
+        </div>
         <span className="hierarchy-count">{node.doneTasksCount}/{node.tasksCount}</span>
       </div>
       {hasChildren && isOpen && node.children.map((child) => (

@@ -100,10 +100,7 @@
     // (width 36) and count (width 14) columns plus their gaps.
     @at-root .timeline-today_area {
       position: absolute;
-      top: 0;
-      right: calc(#{space(14)} + #{space(3)});
-      bottom: 0;
-      left: calc(#{space(36)} + #{space(3)});
+      inset: 0 calc(#{space(14)} + #{space(3)}) 0 calc(#{space(36)} + #{space(3)});
       pointer-events: none;
     }
 
