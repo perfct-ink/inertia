@@ -1,3 +1,4 @@
+import { addDays, format, parseISO } from 'date-fns'
 import type { MilestoneHealth } from '@/types'
 
 // "A title, an optional start/target date, and a tasks_count/done_tasks_count
@@ -67,4 +68,23 @@ export function groupGanttRows(epics: Epicish[], tasks: TaskLike[], critical: Se
   }
   dated.filter((t) => t.epic_id === null || !drawnEpics.has(t.epic_id)).forEach((t) => rows.push(toRow(t, 0)))
   return rows
+}
+
+export type DragMode = 'move' | 'start' | 'end'
+
+// New start/end dates (yyyy-MM-dd) after dragging a bar by `deltaDays`: `move`
+// shifts both ends, `start`/`end` resize one edge. An edge can reach but not
+// cross the other (a one-day bar stays one day), so the end never lands
+// before the start.
+export function shiftedRange(startDate: string, endDate: string, mode: DragMode, deltaDays: number): { start: string; end: string } {
+  const start = parseISO(startDate)
+  const end = parseISO(endDate)
+  const fmt = (d: Date) => format(d, 'yyyy-MM-dd')
+  if (mode === 'move') return { start: fmt(addDays(start, deltaDays)), end: fmt(addDays(end, deltaDays)) }
+  if (mode === 'start') {
+    const moved = addDays(start, deltaDays)
+    return { start: fmt(moved > end ? end : moved), end: endDate }
+  }
+  const moved = addDays(end, deltaDays)
+  return { start: startDate, end: fmt(moved < start ? start : moved) }
 }

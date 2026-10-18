@@ -97,6 +97,37 @@
         background: color(primary, 0.5);
       }
 
+      &--editable {
+        cursor: grab;
+        touch-action: none;
+        user-select: none;
+      }
+
+      &--dragging {
+        cursor: grabbing;
+        box-shadow: 0 2px 8px color(foreground, 0.2);
+      }
+
+      &-handle {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        width: space(2);
+        cursor: ew-resize;
+
+        &--start {
+          left: 0;
+        }
+
+        &--end {
+          right: 0;
+        }
+
+        &:hover {
+          background: color(primary, 0.4);
+        }
+      }
+
       // Roadmap colors bars by health; on track keeps the default primary.
       &--at_risk {
         border-color: palette('yellow-500');

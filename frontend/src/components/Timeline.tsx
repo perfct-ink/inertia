@@ -1,9 +1,10 @@
+import { useRef, useState, type PointerEvent as ReactPointerEvent } from 'react'
 import {
   format, parseISO, startOfMonth, endOfMonth, eachMonthOfInterval, differenceInCalendarDays,
 } from 'date-fns'
 import './Timeline.scss'
 import { classNames } from '@/components/ui'
-import { donePercent, type Scheduled } from '@/data/schedule'
+import { donePercent, shiftedRange, type DragMode, type Scheduled } from '@/data/schedule'
 import { linkSides } from '@/data/dependency'
 import type { DependencyKind } from '@/types'
 
@@ -21,7 +22,8 @@ export function ProgressBar({ percent }: { percent: number }) {
 
 type Dated = Scheduled & { start_date: string; target_date: string }
 
-// Read-only: dates are edited from each page's own List view inputs. Only
+// Read-only unless `onReschedule` is passed (see TimelineBar); otherwise dates
+// are edited from each page's own List view inputs. Only
 // items with both a start and target date can be placed on the month grid;
 // the rest are named below it instead of silently dropped. No charting
 // library — plain CSS percentages against a computed day range.
@@ -38,15 +40,86 @@ const ROW_PITCH_REM = 2.25
 // How far (in % of the track) an arrow leaves its bar before turning.
 const LINK_STUB_PCT = 0.8
 
+export type TimelineReschedule = (item: Scheduled, startDate: string, targetDate: string) => void
+
+// One bar. When `onReschedule` is given it can be dragged to move, or by its
+// left/right edge to resize, snapping to whole days; the dates are committed
+// on release. Pointer-based, so it needs no library.
+function TimelineBar({ item, offsetPct, widthPct, totalDays, onReschedule }: {
+  item: Dated
+  offsetPct: number
+  widthPct: number
+  totalDays: number
+  onReschedule?: TimelineReschedule
+}) {
+  const barRef = useRef<HTMLDivElement>(null)
+  const origin = useRef({ x: 0, trackWidth: 1 })
+  const [drag, setDrag] = useState<{ mode: DragMode; delta: number } | null>(null)
+
+  const preview = drag ? shiftedRange(item.start_date, item.target_date, drag.mode, drag.delta) : null
+  const startShift = preview ? differenceInCalendarDays(parseISO(preview.start), parseISO(item.start_date)) : 0
+  const endShift = preview ? differenceInCalendarDays(parseISO(preview.end), parseISO(item.target_date)) : 0
+  const left = offsetPct + (startShift / totalDays) * 100
+  const width = Math.max(widthPct + ((endShift - startShift) / totalDays) * 100, 1.5)
+
+  function begin(e: ReactPointerEvent, mode: DragMode) {
+    if (!onReschedule) return
+    e.stopPropagation()
+    barRef.current?.setPointerCapture(e.pointerId)
+    origin.current = { x: e.clientX, trackWidth: barRef.current?.parentElement?.clientWidth || 1 }
+    setDrag({ mode, delta: 0 })
+  }
+
+  function move(e: ReactPointerEvent) {
+    if (!drag) return
+    const delta = Math.round(((e.clientX - origin.current.x) / origin.current.trackWidth) * totalDays)
+    if (delta !== drag.delta) setDrag({ mode: drag.mode, delta })
+  }
+
+  function end() {
+    if (drag && preview && drag.delta !== 0) onReschedule?.(item, preview.start, preview.end)
+    setDrag(null)
+  }
+
+  return (
+    <div
+      ref={barRef}
+      className={classNames(
+        'timeline-bar',
+        item.health && `timeline-bar--${item.health}`,
+        item.critical && 'timeline-bar--critical',
+        onReschedule && 'timeline-bar--editable',
+        drag && 'timeline-bar--dragging',
+      )}
+      style={{ left: `${left}%`, width: `${width}%` }}
+      title={preview ? `${preview.start} → ${preview.end}` : `${item.start_date} → ${item.target_date}`}
+      onPointerDown={(e) => begin(e, 'move')}
+      onPointerMove={move}
+      onPointerUp={end}
+      onPointerCancel={() => setDrag(null)}
+    >
+      <div className="timeline-bar-fill" style={{ width: `${donePercent(item)}%` }} />
+      {onReschedule && (
+        <>
+          <span className="timeline-bar-handle timeline-bar-handle--start" onPointerDown={(e) => begin(e, 'start')} />
+          <span className="timeline-bar-handle timeline-bar-handle--end" onPointerDown={(e) => begin(e, 'end')} />
+        </>
+      )}
+    </div>
+  )
+}
+
 // Milestones are diamonds on a marker row above the bars. Ones outside the
 // bars' month range are left off rather than stretching the axis.
 // `range` pins the axis (the roadmap stacks one Timeline per lane and needs
 // their months to line up); without it the axis fits this list's own dates.
-export function Timeline({ items, milestones = [], range, links = [] }: {
+export function Timeline({ items, milestones = [], range, links = [], onReschedule }: {
   items: Scheduled[]
   milestones?: TimelineMilestone[]
   range?: { start: Date; end: Date }
   links?: TimelineLink[]
+  // Makes bars draggable (move / resize); absent keeps the chart read-only.
+  onReschedule?: TimelineReschedule
 }) {
   const dated = items.filter((e): e is Dated => Boolean(e.start_date && e.target_date))
   const undated = items.filter((e) => !e.start_date || !e.target_date)
@@ -159,7 +232,6 @@ export function Timeline({ items, milestones = [], range, links = [] }: {
             </div>
           )}
           {bars.map(({ item, offsetPct, widthPct }) => {
-            const percent = donePercent(item)
             return (
               <div key={item.key ?? item.id} className="timeline-row">
                 <span
@@ -170,13 +242,7 @@ export function Timeline({ items, milestones = [], range, links = [] }: {
                   {item.title}
                 </span>
                 <div className="timeline-track">
-                  <div
-                    className={classNames('timeline-bar', item.health && `timeline-bar--${item.health}`, item.critical && 'timeline-bar--critical')}
-                    style={{ left: `${offsetPct}%`, width: `${widthPct}%` }}
-                    title={`${item.start_date} → ${item.target_date}`}
-                  >
-                    <div className="timeline-bar-fill" style={{ width: `${percent}%` }} />
-                  </div>
+                  <TimelineBar item={item} offsetPct={offsetPct} widthPct={widthPct} totalDays={totalDays} onReschedule={onReschedule} />
                 </div>
                 <span className="timeline-count">
                   {item.done_tasks_count}/{item.tasks_count}

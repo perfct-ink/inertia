@@ -1,4 +1,4 @@
-import { donePercent, groupGanttRows, type Scheduled } from './schedule'
+import { donePercent, groupGanttRows, shiftedRange, type Scheduled } from './schedule'
 
 const item = (tasks_count: number, done_tasks_count: number) =>
   ({ id: 1, title: 'x', start_date: null, target_date: null, tasks_count, done_tasks_count }) as Scheduled
@@ -23,4 +23,12 @@ test('groupGanttRows nests dated tasks under a drawn epic and leaves the rest to
     [task(10, 1, '2026-01-10'), task(11, 2, '2026-01-11'), task(12, null, '2026-01-12'), task(13, 1, null)],
   )
   expect(rows.map((r) => [r.id, r.depth])).toEqual([[1, 0], [-10, 1], [2, 0], [-11, 0], [-12, 0]])
+})
+
+test('shiftedRange moves both ends or resizes one edge without crossing', () => {
+  expect(shiftedRange('2026-01-30', '2026-02-02', 'move', 3)).toEqual({ start: '2026-02-02', end: '2026-02-05' })
+  expect(shiftedRange('2026-01-10', '2026-01-20', 'end', -4)).toEqual({ start: '2026-01-10', end: '2026-01-16' })
+  expect(shiftedRange('2026-01-10', '2026-01-20', 'end', -30)).toEqual({ start: '2026-01-10', end: '2026-01-10' })
+  expect(shiftedRange('2026-01-10', '2026-01-20', 'start', 30)).toEqual({ start: '2026-01-20', end: '2026-01-20' })
+  expect(shiftedRange('2026-01-10', '2026-01-20', 'start', -2)).toEqual({ start: '2026-01-08', end: '2026-01-20' })
 })

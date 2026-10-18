@@ -1,9 +1,12 @@
 import { useMemo, useState } from 'react'
+import { useQueryClient } from '@tanstack/react-query'
 import { X } from 'lucide-react'
 import { Button, FormError, Input, Select } from '@/components/ui'
 import { Timeline, type TimelineMilestone } from '@/components/Timeline'
+import { useUpdateTask } from '@/api/tasks'
+import { useUpdateEpic } from '@/api/epics'
 import { useCreateTaskDependency, useDeleteTaskDependency, useTaskDependencies } from '@/api/taskDependencies'
-import { ganttTaskKey, groupGanttRows } from '@/data/schedule'
+import { ganttTaskKey, groupGanttRows, type Scheduled } from '@/data/schedule'
 import { DEPENDENCY_KINDS, DEPENDENCY_LABEL, drivingPath } from '@/data/dependency'
 import { errorMessage } from '@/util/errorMessage'
 import type { DependencyKind, Epic, Task, TaskDependency } from '@/types'
@@ -19,6 +22,18 @@ export default function GanttPane({ epics, tasks, milestones }: {
 }) {
   const { data: allDependencies = [] } = useTaskDependencies()
   const [showCritical, setShowCritical] = useState(true)
+  const qc = useQueryClient()
+  const updateTask = useUpdateTask()
+  const updateEpic = useUpdateEpic()
+
+  // Rows are keyed `task-<id>` / `epic-<id>`; a task's end is due_date, an epic's is target_date.
+  function reschedule(item: Scheduled, startDate: string, endDate: string) {
+    const id = Number(item.key?.split('-')[1])
+    // The chart reads from the folder's contents, which the update hooks don't refresh.
+    const options = { onSettled: () => qc.invalidateQueries({ queryKey: ['folder-contents'] }) }
+    if (item.key?.startsWith('task-')) updateTask.mutate({ id, start_date: startDate, due_date: endDate }, options)
+    else if (item.key?.startsWith('epic-')) updateEpic.mutate({ id, start_date: startDate, target_date: endDate }, options)
+  }
 
   const taskIds = useMemo(() => new Set(tasks.map((t) => t.id)), [tasks])
   // Only links with both ends in this folder; the rest belong to other charts.
@@ -40,7 +55,7 @@ export default function GanttPane({ epics, tasks, milestones }: {
           Highlight critical path
         </label>
       </div>
-      <Timeline milestones={milestones} items={groupGanttRows(epics, tasks, critical)} links={links} />
+      <Timeline milestones={milestones} items={groupGanttRows(epics, tasks, critical)} links={links} onReschedule={reschedule} />
       <DependencyEditor tasks={tasks} dependencies={dependencies} />
     </div>
   )
