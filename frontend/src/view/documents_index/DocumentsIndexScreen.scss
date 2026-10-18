@@ -19,6 +19,11 @@
     }
 
     @at-root .documents_index-create {
+      margin-bottom: space(4);
+    }
+
+    .documents_index-search {
+      width: 100%;
       margin-bottom: space(6);
     }
 
@@ -136,16 +141,23 @@
     }
 
     .documents_index-location {
+      display: flex;
       flex-shrink: 0;
+      align-items: center;
+      gap: space(1);
       width: space(32);
       color: color(muted-foreground);
       text-align: left;
       @include text('xs');
-      @include truncate;
 
       &:hover {
         text-decoration: underline;
       }
+    }
+
+    @at-root .documents_index-location_text {
+      min-width: 0;
+      @include truncate;
     }
 
     @at-root .documents_index-modified {

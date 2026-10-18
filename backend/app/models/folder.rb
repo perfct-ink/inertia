@@ -8,6 +8,9 @@ class Folder < ApplicationRecord
   has_many :epics, dependent: :nullify
   has_many :shares, as: :shareable, dependent: :destroy
 
+  # A project is a folder of docs shown on the Projects screen.
+  enum :kind, { folder: 0, project: 1 }, scopes: false
+
   validates :name, presence: true
   before_validation :attach_to_root
   validate :validate_parent
@@ -72,6 +75,7 @@ class Folder < ApplicationRecord
     return unless root?
     errors.add(:parent, "cannot move the document root") if parent_id.present?
     errors.add(:archived_at, "cannot archive the document root") if archived_at.present?
+    errors.add(:kind, "cannot make the document root a project") if project?
   end
 
   def protect_root_deletion

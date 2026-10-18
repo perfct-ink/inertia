@@ -46,4 +46,17 @@ class FolderTest < ActiveSupport::TestCase
     assert_nil task.reload.folder_id
     assert_nil epic.reload.folder_id
   end
+
+  test "a folder can be a project, but the document root cannot" do
+    user = User.create!(name: "Ada", email: "ada@example.com", password: "password123")
+    project = user.workspace.folders.create!(name: "Messages", kind: :project)
+
+    assert project.project?
+    assert_equal user.workspace.root_folder_id, project.parent_id
+
+    root = user.workspace.root_folder
+    root.kind = :project
+    assert_not root.valid?
+    assert_includes root.errors[:kind], "cannot make the document root a project"
+  end
 end

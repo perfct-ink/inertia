@@ -10,9 +10,13 @@ export interface Document {
   content?: Record<string, unknown> | null
 }
 
+export type FolderKind = 'folder' | 'project'
+
 export interface Folder {
   id: number
   name: string
+  // A project is a folder of docs listed on the Projects screen.
+  kind: FolderKind
   parent_id: number | null
   root?: boolean
   position: number

@@ -2,7 +2,12 @@
 
 The product calls them **Spaces**; the code, API, routes under `/api/v1` and database still call them workspaces (`Workspace`, `workspaces`, `workspace_id`, `X-Workspace-Id`). The web app's page is `/space`, and the old `/workspace` link redirects there.
 
-A space is a project: its own folders (under one permanent Root), documents, tasks, epics, initiatives and events, shared by the people who belong to it. Every user also has one **personal** space, created at signup and named "<name>'s Space", that cannot be shared or deleted.
+A space holds its own folders (under one permanent Root), documents, tasks, epics, initiatives and events, shared by the people who belong to it. Every user also has one **personal** space, created at signup and named "<name>'s Space", that cannot be shared or deleted.
+
+## Files and projects
+
+- **All files** (`/documents`, `view/documents_index/`) lists every document, sheet and table in the current Space, however deeply nested, with its folder path. It searches by title or folder name and sorts by name, location or last modified. The list comes from the folder tree in `GET /api/v1/workspace` (`spaceFiles` in `frontend/src/data/folder.ts`).
+- **Projects** (`/projects`, `view/projects/`) are folders with `folders.kind = project` (`folder` is the default). A project lists the docs inside it and its subfolders, and new docs can be made in it from that page. Because a project is a folder, it keeps nesting, pinning, sharing and archiving, opens on the folder page, and shows in the sidebar tree with its own icon. Any folder except Root can be switched with "Make Project" / "Make Folder" in its menu; Root cannot be a project.
 
 ## Model
 

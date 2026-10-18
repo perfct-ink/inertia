@@ -285,6 +285,17 @@ Requested by Alex on 2026-10-18.
 | PM-181 | **Dropdown to change Spaces, with "New Space…" in it** | Partly there: clicking the Space name opens a modal listing Spaces, with "New space" and "Members" buttons under the list. | Replace the modal with a real dropdown menu anchored to the Space name: Spaces with a check on the current one, then "New Space…" (opens the name prompt) and "Members…", all keyboard navigable. |
 | PM-182 | **Choose which features a Space uses** when creating or editing it, e.g. Sprints, Milestones, Initiatives, OKRs, Roadmap, Events | Not present. `workspaces` has only name, owner, root folder and `personal`; the sidebar rail shows every section to everyone. | Default: a `features` JSON column on `workspaces` (all on for existing Spaces), a checklist in the New Space dialog and in Space settings, and the rail, quick add and screens hide what's off. Turning a feature off hides it; no data is deleted. Owners/managers edit it. |
 
+## 19. Space files and projects (P0)
+
+Requested by Alex on 2026-10-18: in each Space, see all the files in that Space, and make projects with docs inside.
+
+| ID | Item | Today | Notes |
+| --- | --- | --- | --- |
+| PM-190 | **All files in a Space**: one list of every doc, sheet and table, wherever it is nested, with its folder path and search | Built: the Documents page is now "All files" with search and full folder paths (`view/documents_index/`). | Uploaded files join this list once PM-130 lands. |
+| PM-191 | **Projects that hold docs**: create a project, see its docs (including subfolders), add docs to it | Built: `folders.kind` (`folder` / `project`), a Projects page (`view/projects/`), a project icon in the sidebar tree, and "Make Project" / "Make Folder" on any folder but Root. | PM-120's `feature` folder type can be another `kind` value. |
+| PM-192 | Project details: owner, status, dates and a description | Not present | Feeds the portfolio view (PM-30). |
+| PM-193 | Filter All files by project, type and owner | Not present | |
+
 ## Out of scope for parity
 
 Monday sells separate CRM, Service (ticketing), Campaigns and "vibe" app-builder products on the same platform. They are not project management and are left out unless someone asks.

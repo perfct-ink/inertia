@@ -1,40 +1,44 @@
-import { Button } from '@/components/ui'
-import { Database } from 'lucide-react'
+import { Button, Input } from '@/components/ui'
 import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { format, parseISO } from 'date-fns'
-import { FileText, Table as TableIcon, Loader2, ArrowUp, ArrowDown } from 'lucide-react'
+import { Loader2, ArrowUp, ArrowDown, FolderKanban } from 'lucide-react'
+import DocTypeIcon from '@/components/DocTypeIcon'
 import { useWorkspace } from '@/api/workspace'
 import WorkspaceLayout from '@/components/WorkspaceLayout'
 import CreateItem from '@/components/CreateItem'
-import { flattenFolders } from '@/data/folder'
+import { spaceFiles, searchSpaceFiles } from '@/data/folder'
 import './DocumentsIndexScreen.scss'
 import type { Document } from '@/types'
 import { usePageTitle } from '@/hooks/usePageTitle'
 import { lastModified } from '@/data/document'
 
-type Row = Document & { folderId: number; folderName: string }
+type Row = Document & { folderId: number; location: string; inProject: boolean }
 type SortKey = 'name' | 'location' | 'modified'
 
-// A file manager's list view: sortable Name/Location/Last Modified columns,
-// full width instead of a centered single-item-per-row list.
+// Every file in the current Space, wherever it is nested: a file manager's
+// list view with search and sortable Name/Location/Last Modified columns.
 export default function DocumentsIndexScreen() {
-  usePageTitle('Documents')
+  usePageTitle('All files')
   const navigate = useNavigate()
   const { data: workspace, isLoading } = useWorkspace()
   const [sortKey, setSortKey] = useState<SortKey>('name')
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc')
+  const [query, setQuery] = useState('')
 
-  const allDocs: Row[] =
-    flattenFolders(workspace?.folders ?? []).flatMap((f) =>
-      (f.documents ?? []).map((d) => ({ ...d, folderId: f.id, folderName: f.name }))
-    )
+  const files = spaceFiles(workspace?.folders ?? [])
+  const allDocs: Row[] = searchSpaceFiles(files, query).map((f) => ({
+    ...f.document,
+    folderId: f.folder.id,
+    location: f.path.length ? f.path.join(' / ') : f.folder.name,
+    inProject: f.project != null,
+  }))
 
   const sortedDocs = useMemo(() => {
     const factor = sortDir === 'asc' ? 1 : -1
     return [ ...allDocs ].sort((a, b) => {
       if (sortKey === 'name') return a.title.localeCompare(b.title) * factor
-      if (sortKey === 'location') return a.folderName.localeCompare(b.folderName) * factor
+      if (sortKey === 'location') return a.location.localeCompare(b.location) * factor
       return (new Date(lastModified(a)).getTime() - new Date(lastModified(b)).getTime()) * factor
     })
   }, [allDocs, sortKey, sortDir])
@@ -65,8 +69,16 @@ export default function DocumentsIndexScreen() {
     <WorkspaceLayout>
       <div className="view-documents_index">
         <div className="documents_index-content">
-          <h1 className="documents_index-title">Documents, Sheets & Tables</h1>
+          <h1 className="documents_index-title">All files</h1>
           <div className="documents_index-create"><CreateItem /></div>
+          <Input
+            type="search"
+            aria-label="Search files"
+            placeholder="Search by name or folder"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            className="documents_index-search"
+          />
 
           {isLoading && (
             <div className="documents_index-loading">
@@ -75,7 +87,7 @@ export default function DocumentsIndexScreen() {
           )}
 
           {!isLoading && allDocs.length === 0 && (
-            <p className="documents_index-empty">No documents yet.</p>
+            <p className="documents_index-empty">{files.length ? 'No files match your search.' : 'No files in this Space yet.'}</p>
           )}
 
           {!isLoading && allDocs.length > 0 && (
@@ -89,12 +101,7 @@ export default function DocumentsIndexScreen() {
               <div className="documents_index-rows">
                 {sortedDocs.map((doc) => (
                   <div key={doc.id} className="documents_index-row">
-                    {doc.doc_type === 'table'
-                      ? <Database className="documents_index-icon" />
-                      : doc.doc_type === 'spreadsheet'
-                      ? <TableIcon className="documents_index-icon" />
-                      : <FileText className="documents_index-icon" />
-                    }
+                    <DocTypeIcon type={doc.doc_type} className="documents_index-icon" />
                     <Button
                       onClick={() => navigate(`/documents/${doc.id}`)}
                       className="documents_index-link"
@@ -103,9 +110,11 @@ export default function DocumentsIndexScreen() {
                     </Button>
                     <Button
                       onClick={() => navigate(`/folders/${doc.folderId}`)}
+                      title={doc.location}
                       className="documents_index-location"
                     >
-                      {doc.folderName}
+                      {doc.inProject && <FolderKanban className="documents_index-sort_icon" aria-label="Project" />}
+                      <span className="documents_index-location_text">{doc.location}</span>
                     </Button>
                     <span className="documents_index-modified">
                       {format(parseISO(lastModified(doc)), 'MMM d, yyyy h:mm a')}

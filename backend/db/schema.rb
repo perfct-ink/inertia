@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_10_17_000003) do
+ActiveRecord::Schema[7.2].define(version: 2026_10_18_000001) do
   create_table "documents", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.string "title", null: false
     t.json "content"
@@ -78,6 +78,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_10_17_000003) do
     t.datetime "updated_at", null: false
     t.boolean "pinned", default: false, null: false
     t.datetime "archived_at"
+    t.integer "kind", default: 0, null: false
     t.index ["parent_id"], name: "index_folders_on_parent_id"
     t.index ["workspace_id"], name: "index_folders_on_workspace_id"
   end

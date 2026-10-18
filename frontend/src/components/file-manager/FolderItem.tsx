@@ -2,7 +2,7 @@ import { Button, Input } from '@/components/ui'
 import { Database } from 'lucide-react'
 import { useState, useRef, useEffect } from 'react'
 import { useNavigate, useLocation, Link } from 'react-router-dom'
-import { ChevronRight, Folder, FileText, TableIcon, Pin, CheckSquare, CalendarDays, MoreVertical } from 'lucide-react'
+import { ChevronRight, Folder, FolderKanban, FileText, TableIcon, Pin, CheckSquare, CalendarDays, MoreVertical } from 'lucide-react'
 import {
   useCreateFolder, useCreateDocument, useDeleteFolder, useDeleteDocument,
   usePinFolder, usePinDocument, useUpdateFolder,
@@ -111,6 +111,8 @@ export function FolderItem({ folder, depth = 0 }: { folder: FolderType; depth?: 
   const updateDocument = useUpdateDocument()
 
   const indent = depth * 12
+  const isProject = folder.kind === 'project'
+  const FolderIcon = isProject ? FolderKanban : Folder
 
   async function createItem(type: Document['doc_type']) {
     setOpen(true)
@@ -129,6 +131,7 @@ export function FolderItem({ folder, depth = 0 }: { folder: FolderType; depth?: 
     { label: folder.pinned ? 'Unpin' : 'Pin', action: () => pinFolder.mutate({ id: folder.id, pinned: !folder.pinned }) },
     { label: 'Rename', action: () => setRenamingFolder(true) },
     ...(folder.root ? [] : [
+      { label: isProject ? 'Make Folder' : 'Make Project', action: () => updateFolder.mutate({ id: folder.id, kind: isProject ? 'folder' : 'project' }) },
       { label: 'Archive', action: () => updateFolder.mutate({ id: folder.id, archived: true }) },
       { label: 'Delete', action: () => deleteFolder.mutate(folder.id, { onError: e => setActionError(errorMessage(e)) }), danger: true },
     ]),
@@ -146,7 +149,7 @@ export function FolderItem({ folder, depth = 0 }: { folder: FolderType; depth?: 
         <Button onClick={() => setOpen((o) => !o)} className="folder_item-toggle">
           <ChevronRight className={`folder_item-chevron${open ? ' folder_item-chevron--open' : ''}`} />
         </Button>
-        <Folder className="folder_item-icon folder_item-icon--sm" />
+        <FolderIcon className="folder_item-icon folder_item-icon--sm" aria-label={isProject ? 'Project' : undefined} />
         {renamingFolder ? (
           <InlineInput
             defaultValue={folder.name}
