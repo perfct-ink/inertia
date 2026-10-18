@@ -72,6 +72,25 @@
       border-bottom-width: 1px;
     }
 
+    @at-root .hierarchy-row {
+      &--dragging {
+        opacity: 0.5;
+      }
+
+      &--over {
+        background: color(primary, 0.1);
+      }
+    }
+
+    @at-root .hierarchy-unassigned {
+      min-height: space(10);
+      border-radius: radius('md');
+
+      &--over {
+        background: color(primary, 0.1);
+      }
+    }
+
     @at-root .hierarchy-toggle {
       display: flex;
       flex-shrink: 0;

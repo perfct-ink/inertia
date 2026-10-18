@@ -111,3 +111,54 @@ export function buildHierarchy(
 
   return { tree, unassigned }
 }
+
+// Where a drag can end: a node, or the "Unassigned" section (null target).
+export type DropTarget = Pick<HierarchyNode, 'kind' | 'id'> | null
+
+export type Reparent =
+  | { kind: 'initiative'; id: number; changes: { milestone_id: number | null } }
+  | { kind: 'epic'; id: number; changes: { initiative_id: number | null; milestone_id: number | null } }
+  | { kind: 'task'; id: number; changes: { epic_id?: number | null; parent_id: number | null; milestone_id?: number | null } }
+
+function containsNode(node: HierarchyNode, kind: HierarchyKind, id: number): boolean {
+  return node.children.some((c) => (c.kind === kind && c.id === id) || containsNode(c, kind, id))
+}
+
+// The update that moves `dragged` under `target`, or null when the drop isn't
+// allowed (milestones never move; each level only accepts the level above it,
+// except tasks, which also nest under tasks; a task can't land in its own
+// subtree). Dropping on Unassigned detaches the item from every parent. The
+// server re-checks cycles and Space membership (Task#parent_is_not_self_or_a_descendant,
+// SameWorkspace), so this only decides what the UI offers.
+export function reparentChanges(dragged: HierarchyNode, target: DropTarget): Reparent | null {
+  const to = target?.kind
+  switch (dragged.kind) {
+    case 'initiative':
+      if (target && to !== 'milestone') return null
+      return { kind: 'initiative', id: dragged.id, changes: { milestone_id: target?.id ?? null } }
+    case 'epic':
+      if (target && to !== 'initiative' && to !== 'milestone') return null
+      return {
+        kind: 'epic',
+        id: dragged.id,
+        changes: { initiative_id: to === 'initiative' ? target!.id : null, milestone_id: to === 'milestone' ? target!.id : null },
+      }
+    case 'task':
+      if (target && to === 'initiative') return null
+      if (to === 'task' && (target!.id === dragged.id || containsNode(dragged, 'task', target!.id))) return null
+      // Nesting under another task only sets parent_id: the subtask keeps its
+      // own epic_id so the epic's task counts don't change underneath it.
+      if (to === 'task') return { kind: 'task', id: dragged.id, changes: { parent_id: target!.id } }
+      return {
+        kind: 'task',
+        id: dragged.id,
+        changes: {
+          epic_id: to === 'epic' ? target!.id : null,
+          parent_id: null,
+          milestone_id: to === 'milestone' ? target!.id : null,
+        },
+      }
+    default:
+      return null
+  }
+}

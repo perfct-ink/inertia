@@ -1,5 +1,5 @@
 import type { Milestone, Initiative, Epic, Task } from '@/types'
-import { buildHierarchy } from './hierarchy'
+import { buildHierarchy, reparentChanges, type HierarchyNode } from './hierarchy'
 
 const milestone = (id: number) => ({ id, title: `M${id}`, tasks_count: 0, done_tasks_count: 0 }) as unknown as Milestone
 const initiative = (id: number, milestone_id: number | null = null) =>
@@ -45,4 +45,30 @@ test("a task's rollup counts itself plus every descendant subtask", () => {
     [task(1, { status: 'done' }), task(2, { parent_id: 1, status: 'done' }), task(3, { parent_id: 2, status: 'todo' })],
   )
   expect(unassigned[0]).toMatchObject({ tasksCount: 3, doneTasksCount: 2 })
+})
+
+const node = (kind: HierarchyNode['kind'], id: number, children: HierarchyNode[] = []): HierarchyNode =>
+  ({ key: `${kind}-${id}`, kind, id, title: '', tasksCount: 0, doneTasksCount: 0, children })
+
+test('reparentChanges only offers the level above, plus task-in-task', () => {
+  expect(reparentChanges(node('initiative', 1), { kind: 'milestone', id: 2 })?.changes).toEqual({ milestone_id: 2 })
+  expect(reparentChanges(node('initiative', 1), { kind: 'epic', id: 2 })).toBeNull()
+  expect(reparentChanges(node('epic', 1), { kind: 'initiative', id: 2 })?.changes).toEqual({ initiative_id: 2, milestone_id: null })
+  expect(reparentChanges(node('epic', 1), { kind: 'milestone', id: 2 })?.changes).toEqual({ initiative_id: null, milestone_id: 2 })
+  expect(reparentChanges(node('task', 1), { kind: 'epic', id: 2 })?.changes).toEqual({ epic_id: 2, parent_id: null, milestone_id: null })
+  expect(reparentChanges(node('task', 1), { kind: 'initiative', id: 2 })).toBeNull()
+  expect(reparentChanges(node('milestone', 1), { kind: 'milestone', id: 2 })).toBeNull()
+})
+
+test('reparentChanges blocks a task dropped into itself or its own subtree', () => {
+  const parent = node('task', 1, [node('task', 2, [node('task', 3)])])
+  expect(reparentChanges(parent, { kind: 'task', id: 1 })).toBeNull()
+  expect(reparentChanges(parent, { kind: 'task', id: 3 })).toBeNull()
+  expect(reparentChanges(node('task', 3), { kind: 'task', id: 1 })?.changes).toEqual({ parent_id: 1 })
+})
+
+test('reparentChanges detaches on the Unassigned section', () => {
+  expect(reparentChanges(node('initiative', 1), null)?.changes).toEqual({ milestone_id: null })
+  expect(reparentChanges(node('epic', 1), null)?.changes).toEqual({ initiative_id: null, milestone_id: null })
+  expect(reparentChanges(node('task', 1), null)?.changes).toEqual({ epic_id: null, parent_id: null, milestone_id: null })
 })
