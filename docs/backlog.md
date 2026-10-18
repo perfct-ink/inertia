@@ -246,6 +246,7 @@ Today: the editor has a plain Link extension (any URL) but no picker for interna
 | PM-155 | **Hierarchical URLs** that mirror the folder tree, e.g. `/acme/product/feature-folders/requirements` | Default: slugs on folders and documents, unique within their parent, with the numeric id kept as a fallback so links don't break when something is renamed or moved (old paths redirect). |
 | PM-156 | **Folder home document**: a folder can have one document set as its home page, shown when the folder is opened | Default: `folders.home_document_id`. |
 | PM-157 | Folders without a home document show the files and folders directly inside them (one level, not everything nested) | Today's folder view also lists nested content for some views (`Folder#self_and_descendant_ids`); the default listing should be direct children only. |
+| PM-158 | **Breadcrumb path above the document name** (Alex, 2026-10-18): Space › folder › sub-folder › document, each part a link | Today the document screen (`view/document/DocumentScreen.tsx`) opens straight on the toolbar and title with no path. The data is there: documents have `folder_id` and folders chain up through `parent_id` to the Space's Root. Pairs with PM-155 (URLs that follow the same path). |
 
 ## 16. Frontend conventions follow-up (P1)
 
@@ -273,6 +274,16 @@ Alex asked (2026-10-18) for suggestions after signing up: create a Space and lea
 | --- | --- | --- |
 | PM-171 | Store checklist progress on the server | Today it lives in `localStorage`, so it doesn't follow the user to another device or the Mac app. |
 | PM-172 | A way to reopen the checklist after hiding it | For example from the account menu. |
+
+## 18. Spaces: switcher and features (P1)
+
+Requested by Alex on 2026-10-18.
+
+| ID | Item | Today | Notes |
+| --- | --- | --- | --- |
+| PM-180 | **Current Space always visible at the top left** | Partly there: the sidebar header shows "Inertia" with the Space name under it (`components/workspace/WorkspaceSwitcher.tsx` inside `file-manager/Sidebar.tsx`). It is easy to miss (small secondary text) and isn't visible where the sidebar is hidden, such as on phones. | Make the Space name the prominent line in that corner, on every screen and in the Mac app. |
+| PM-181 | **Dropdown to change Spaces, with "New Space…" in it** | Partly there: clicking the Space name opens a modal listing Spaces, with "New space" and "Members" buttons under the list. | Replace the modal with a real dropdown menu anchored to the Space name: Spaces with a check on the current one, then "New Space…" (opens the name prompt) and "Members…", all keyboard navigable. |
+| PM-182 | **Choose which features a Space uses** when creating or editing it, e.g. Sprints, Milestones, Initiatives, OKRs, Roadmap, Events | Not present. `workspaces` has only name, owner, root folder and `personal`; the sidebar rail shows every section to everyone. | Default: a `features` JSON column on `workspaces` (all on for existing Spaces), a checklist in the New Space dialog and in Space settings, and the rail, quick add and screens hide what's off. Turning a feature off hides it; no data is deleted. Owners/managers edit it. |
 
 ## Out of scope for parity
 
