@@ -1,4 +1,34 @@
-# Backlog: Monday.com feature parity
+# Backlog
+
+## How this document works
+
+This is the single list of planned and partly built work. Any agent or person can use it; it assumes no particular tool. Read `AGENTS.md` first for repo rules (linting, DRY, UI components, docs).
+
+### Adding work
+- Add new ideas here instead of in chat, issues or code comments, so the next agent finds them.
+- Give each item a stable ID with the section's prefix and the next free number (`PM-197`). Never renumber or reuse an ID; reference it in commits and PRs.
+- One table row per item: ID, item, what exists today, notes. Say what "done" means, in a sentence a stranger could check. Larger initiatives get their own section with a goal, status and open questions.
+- Record where the ask came from and when (for example "Alex, 2026-10-13") when a person requested it, and keep any priority they gave.
+
+### Picking up work
+1. Take the highest-priority item that isn't built. P0 comes before P1, and so on. If the user named an item, do that one. If an item says "Needs PM-nn", do that first or say why you're skipping it.
+2. Check the "Today" text against the code (`backend/db/schema.rb`, models, routes, `frontend/src`) before starting. It can be stale. Fix the row if it is.
+3. Make the smallest slice that is usable end to end (model, API, UI, tests, docs), not a half-built layer. Follow `AGENTS.md`.
+4. Run what the environment allows (`npm run lint`, frontend and backend tests). If something can't run, for example because there's no network or dependencies aren't installed, say so in your report. Don't claim it passed.
+5. Don't commit or push unless the user asks.
+
+### Finishing work
+- **Fully built**: remove the row from this file and add a short entry to `docs/features.md` (create it if missing) with the ID, what it does, and where it lives in the code. Keep the ID so old commits still resolve.
+- **Partly built**: leave the row here. Start the "Today" text with **Partly built** and the date, then say what works and what remains. Put the remainder in the notes column so the next agent can pick it up cold.
+- **Dropped or blocked**: leave the row, mark it **Blocked** or **Dropped** with the reason and date. Don't delete it silently.
+- Update the "Suggested first slice" and "Open questions" sections when your work answers them. Record any new gaps you find as new rows.
+- Update `docs/` for anything you change in architecture, services or configuration (see `AGENTS.md`).
+
+### Reporting back
+Say which IDs you worked on, what changed, what you couldn't verify, and what you'd do next.
+
+
+## : Monday.com feature parity
 
 Date: 2026-10-11  
 Status: backlog, not a commitment or a sequence of sprints. Nothing below is built unless the "Today" note says so.
@@ -36,7 +66,7 @@ Default chosen for this backlog: Milestone is the top-level container, and each 
 | --- | --- | --- | --- |
 | PM-01 | **Milestone as a first-class model** (built 2026-10-15) | Done: `milestones` table (title, description, target date, status, owner, folder), `Milestone` model, `/api/v1/milestones`, Milestones page. Flat, no nesting. Not done: existing `events.event_type = milestone` rows are **not** migrated (events keep working for the calendar); "Space" has no equivalent here. |
 | PM-02 | **Milestone rollup** (built 2026-10-15) | Done: `MilestoneRollup` computes task/done/epic/initiative counts and percent in four queries; `Milestone#health` returns on track / at risk / off track (overdue = off track; due within 14 days and under 75% = at risk). Shown on the Milestones page. |
-| PM-03 | **Initiative model and initiative list** (mostly built) | Done: description, status (planned/active/done), owner and `milestone_id` on the API and model; milestone selector on the Initiatives page. Remaining: UI for description, status and owner. |
+| PM-03 | **Initiative model and initiative list** (built 2026-10-18) | Done: description, status (planned/active/done), owner and `milestone_id` on the API and model; milestone selector on the Initiatives page. Initiatives page edits description (on blur), status and owner inline. Remaining: nothing known. |
 | PM-04 | `epics.initiative_id`, `epics.milestone_id`, `tasks.milestone_id` (built 2026-10-15) | Done: all three columns, inheritance (task → epic → initiative) in `MilestoneRollup`, same-workspace validation, API params. Task quick-add has a milestone selector (epics and initiatives have one on their pages). Remaining: editing a task's milestone after creation (no task detail view yet). |
 | PM-05 | **Hierarchy tree view**: Milestone → Initiative → Epic → Task → Subtask, expand/collapse, inline progress bars at each level (built 2026-10-16) | Done: `/hierarchy` page; `data/hierarchy.ts` normalizes all four levels into one tree (structural parent first — `epic_id`/`parent_id` — falling back to the item's own `milestone_id`, same inheritance `MilestoneRollup` uses server-side; anything with neither lands in an "Unassigned" section instead of being dropped); expand/collapse per node; a progress bar at every level (task-level rollup computed client-side from the subtask tree, since only Milestone/Initiative/Epic get one from the API). | Read-only — no drag-and-drop reparenting across levels (that's PM-06). |
 | PM-06 | Move/reparent anywhere in the tree by drag-and-drop | Task reparenting validated in `Task#parent_is_not_self_or_a_descendant` | Extend the same cycle check to epic↔initiative↔milestone moves. |
