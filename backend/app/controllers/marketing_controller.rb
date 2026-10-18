@@ -15,13 +15,13 @@ class MarketingController < ActionController::Base
     home: {
       path: "/",
       title: "Inertia — Docs, tasks, and files in one space",
-      description: "Inertia is a document editor, file manager, and task tracker for teams who'd rather have one space than five separate apps.",
+      description: "Inertia brings docs, spreadsheets, files and tasks together with roadmaps, Gantt charts and OKRs, for teams who'd rather have one space than five separate apps.",
       redirect_authenticated_to: "/workspace"
     },
     features: {
       path: "/features",
       title: "Features — Inertia",
-      description: "Real-time collaborative docs, a full file manager, task tracking with epics and a calendar, and shareable links — all in one space."
+      description: "Real-time docs, spreadsheets and tables, tasks with epics and sprints, milestones, roadmaps, Gantt charts and OKRs — all in one space."
     },
     pricing: {
       path: "/pricing",

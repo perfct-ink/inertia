@@ -39,6 +39,19 @@ inertia/
 └── docker-compose.yml
 ```
 
+### Marketing pages
+
+`/`, `/features`, `/pricing` and `/about` are server-rendered by `MarketingController`
+(`backend/app/views/marketing/`, layout `layouts/marketing.html.erb`); nginx forwards only
+those exact paths to Rails. Their CSS and the theme script are inline in the layout because
+nginx serves every other `.css`/`.js` from the SPA build with a one-year immutable cache, so
+an unhashed stylesheet there could never be updated.
+
+Dark mode follows the system setting through CSS `light-dark()` colors. The header toggle
+pins light or dark with `data-theme` on `<html>` and remembers it in `localStorage`
+(`inertia-marketing-theme`). When the app ships something new, update `features.html.erb`
+and the home page grid to match.
+
 ## API endpoints
 
 ```

@@ -23,6 +23,7 @@
       </script>
     <% end %>
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="light dark">
     <title><%= @page[:title] %></title>
     <meta name="description" content="<%= @page[:description] %>">
     <link rel="canonical" href="<%= canonical_url %>">
@@ -48,14 +49,66 @@
 }.to_json) %>
     </script>
 
+    <script>
+      // Theme: follows the system setting until the visitor picks one with the
+      // header toggle; the choice is kept in localStorage. Inline and in <head>
+      // so the stored theme applies before first paint (no light flash).
+      // Without JavaScript the page still follows the system setting through
+      // the CSS light-dark() colors, and the toggle stays hidden.
+      (function () {
+        var KEY = 'inertia-marketing-theme'
+        var root = document.documentElement
+        var system = window.matchMedia('(prefers-color-scheme: dark)')
+        var stored = null
+        try { stored = localStorage.getItem(KEY) } catch (e) {}
+        if (stored === 'light' || stored === 'dark') root.setAttribute('data-theme', stored)
+
+        function current() {
+          return root.getAttribute('data-theme') || (system.matches ? 'dark' : 'light')
+        }
+
+        function sync(button) {
+          var dark = current() === 'dark'
+          button.setAttribute('aria-pressed', String(dark))
+          // SVG elements have no `hidden` property, so toggle the attribute.
+          button.querySelector('.theme_toggle-sun').toggleAttribute('hidden', !dark)
+          button.querySelector('.theme_toggle-moon').toggleAttribute('hidden', dark)
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+          var button = document.querySelector('.theme_toggle')
+          if (!button) return
+          button.hidden = false
+          sync(button)
+          system.addEventListener('change', function () { sync(button) })
+          button.addEventListener('click', function () {
+            var next = current() === 'dark' ? 'light' : 'dark'
+            root.setAttribute('data-theme', next)
+            try { localStorage.setItem(KEY, next) } catch (e) {}
+            sync(button)
+          })
+        })
+      })()
+    </script>
+
     <style>
+      /* light-dark() keeps each color in one declaration: color-scheme
+         "light dark" follows the system, and data-theme (set by the toggle)
+         pins one. */
       :root {
-        --fg: #16181d;
-        --muted: #5b616e;
-        --bg: #ffffff;
-        --accent: #4f46e5;
-        --border: #e5e7eb;
+        color-scheme: light dark;
+        --fg: light-dark(#16181d, #eceef2);
+        --muted: light-dark(#5b616e, #9aa1ad);
+        --bg: light-dark(#ffffff, #111318);
+        --surface: light-dark(#f7f8fa, #181b21);
+        --accent: light-dark(#4f46e5, #818cf8);
+        --accent_fg: light-dark(#ffffff, #0d0f14);
+        --border: light-dark(#e5e7eb, #2a2e37);
+        --hover: light-dark(#f1f2f5, #20242c);
       }
+      :root[data-theme="light"] { color-scheme: light; }
+      :root[data-theme="dark"] { color-scheme: dark; }
+
       * { box-sizing: border-box; }
       body {
         margin: 0;
@@ -65,31 +118,47 @@
         line-height: 1.5;
       }
       a { color: inherit; text-decoration: none; }
+      a:hover { color: var(--accent); }
+      a:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
       .wrap { max-width: 1080px; margin: 0 auto; padding: 0 24px; }
 
-      .btn { display: inline-block; background: var(--accent); color: #fff; padding: 10px 18px; border-radius: 8px; font-weight: 600; font-size: 14px; }
+      .btn { display: inline-block; background: var(--accent); color: var(--accent_fg); padding: 10px 18px; border-radius: 8px; font-weight: 600; font-size: 14px; }
+      .btn:hover { color: var(--accent_fg); filter: brightness(1.08); }
       .btn.secondary { background: transparent; color: var(--fg); border: 1px solid var(--border); }
+      .btn.secondary:hover { background: var(--hover); filter: none; }
 
       .site-header { border-bottom: 1px solid var(--border); }
       .site-header .wrap { display: flex; align-items: center; justify-content: space-between; height: 64px; }
       .brand { font-weight: 700; font-size: 18px; }
       .site-header nav { display: flex; align-items: center; gap: 20px; font-size: 14px; }
 
+      .theme_toggle {
+        display: inline-flex; align-items: center; justify-content: center;
+        width: 36px; height: 36px; padding: 0;
+        border: 1px solid var(--border); border-radius: 8px;
+        background: transparent; color: var(--fg); cursor: pointer;
+      }
+      .theme_toggle:hover { background: var(--hover); }
+      .theme_toggle[hidden], .theme_toggle svg[hidden] { display: none; }
+
       .hero { padding: 96px 0 72px; text-align: center; }
       .hero h1 { font-size: 44px; line-height: 1.15; margin: 0 0 16px; letter-spacing: -0.02em; }
-      .hero .lead { font-size: 19px; color: var(--muted); max-width: 560px; margin: 0 auto 32px; }
-      .cta-row { display: flex; gap: 12px; justify-content: center; }
+      .hero .lead { font-size: 19px; color: var(--muted); max-width: 600px; margin: 0 auto 32px; }
+      .cta-row { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
 
       .features-section { padding: 8px 0 96px; }
-      .feature-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 32px; }
+      .feature-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+      .feature-grid > div { padding: 20px; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); }
       .feature-grid h3 { font-size: 17px; margin: 0 0 8px; }
       .feature-grid p { color: var(--muted); font-size: 14px; margin: 0; }
 
       .page-header { padding: 72px 0 40px; text-align: center; }
       .page-header h1 { font-size: 34px; margin: 0 0 12px; }
-      .page-header p { color: var(--muted); font-size: 17px; max-width: 560px; margin: 0 auto; }
+      .page-header p { color: var(--muted); font-size: 17px; max-width: 600px; margin: 0 auto; }
 
       .feature-list-section { padding: 0 0 64px; }
+      .feature-group + .feature-group { margin-top: 56px; }
+      .feature-group > h2 { font-size: 13px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--accent); margin: 0 0 8px; }
       .feature-list { display: grid; gap: 32px; }
       .feature-list .row { display: grid; grid-template-columns: 1fr 2fr; gap: 24px; padding-top: 32px; border-top: 1px solid var(--border); }
       .feature-list .row h3 { margin: 0; font-size: 20px; }
@@ -106,9 +175,16 @@
       .footer-row nav { display: flex; gap: 16px; }
 
       @media (max-width: 680px) {
+        .wrap { padding: 0 16px; }
+        .site-header nav { gap: 12px; }
+        .site-header .nav_secondary { display: none; }
+        .hero { padding: 64px 0 48px; }
         .hero h1 { font-size: 32px; }
         .feature-grid { grid-template-columns: 1fr; }
-        .feature-list .row { grid-template-columns: 1fr; }
+        .feature-list .row { grid-template-columns: 1fr; gap: 8px; }
+      }
+      @media (min-width: 681px) and (max-width: 960px) {
+        .feature-grid { grid-template-columns: repeat(2, 1fr); }
       }
     </style>
   </head>
@@ -117,10 +193,14 @@
       <div class="wrap">
         <a class="brand" href="/">Inertia</a>
         <nav>
-          <a href="/features">Features</a>
-          <a href="/pricing">Pricing</a>
+          <a class="nav_secondary" href="/features">Features</a>
+          <a class="nav_secondary" href="/pricing">Pricing</a>
           <a href="/login">Sign in</a>
           <a class="btn" href="/signup">Sign up</a>
+          <button type="button" class="theme_toggle" aria-label="Dark mode" title="Toggle dark mode" aria-pressed="false" hidden>
+            <svg class="theme_toggle-moon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+            <svg class="theme_toggle-sun" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" hidden><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+          </button>
         </nav>
       </div>
     </header>
