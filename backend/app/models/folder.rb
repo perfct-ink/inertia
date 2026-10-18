@@ -11,6 +11,9 @@ class Folder < ApplicationRecord
   # A project is a folder of docs shown on the Projects screen.
   enum :kind, { folder: 0, project: 1 }, scopes: false
 
+  # How the folder's Gantt reacts to dependency links on reschedule (PM-14).
+  enum :dependency_mode, { none: 0, strict: 1, flexible: 2 }, prefix: :dependencies, scopes: false
+
   validates :name, presence: true
   before_validation :attach_to_root
   validate :validate_parent

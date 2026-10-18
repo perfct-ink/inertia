@@ -11,12 +11,15 @@ export interface Document {
 }
 
 export type FolderKind = 'folder' | 'project'
+// How a folder's Gantt reacts to dependency links when a task is rescheduled.
+export type DependencyMode = 'none' | 'strict' | 'flexible'
 
 export interface Folder {
   id: number
   name: string
   // A project is a folder of docs listed on the Projects screen.
   kind: FolderKind
+  dependency_mode?: DependencyMode
   parent_id: number | null
   root?: boolean
   position: number

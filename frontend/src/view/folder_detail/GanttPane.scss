@@ -8,7 +8,9 @@
 
     @at-root .gantt_pane-toolbar {
       display: flex;
+      align-items: center;
       justify-content: flex-end;
+      gap: space(4);
     }
 
     @at-root .gantt_pane-toggle {

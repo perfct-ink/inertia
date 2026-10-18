@@ -5,17 +5,20 @@ import { Button, FormError, Input, Select } from '@/components/ui'
 import { Timeline, type TimelineMilestone } from '@/components/Timeline'
 import { useUpdateTask } from '@/api/tasks'
 import { useUpdateEpic } from '@/api/epics'
+import { useUpdateFolder } from '@/api/workspace'
 import { useCreateTaskDependency, useDeleteTaskDependency, useTaskDependencies } from '@/api/taskDependencies'
 import { ganttTaskKey, groupGanttRows, type Scheduled } from '@/data/schedule'
-import { DEPENDENCY_KINDS, DEPENDENCY_LABEL, drivingPath } from '@/data/dependency'
+import { DEPENDENCY_KINDS, DEPENDENCY_LABEL, DEPENDENCY_MODES, DEPENDENCY_MODE_LABEL, drivingPath, planReschedule } from '@/data/dependency'
 import { errorMessage } from '@/util/errorMessage'
-import type { DependencyKind, Epic, Task, TaskDependency } from '@/types'
+import type { DependencyKind, DependencyMode, Epic, Task, TaskDependency } from '@/types'
 import './GanttPane.scss'
 
 // The folder's Gantt tab: epics and dated tasks, dependency arrows between
 // this folder's tasks (PM-13), the driving path highlighted (PM-15), and a
 // small editor for the links underneath.
-export default function GanttPane({ epics, tasks, milestones }: {
+export default function GanttPane({ folderId, dependencyMode, epics, tasks, milestones }: {
+  folderId: number
+  dependencyMode: DependencyMode
   epics: Epic[]
   tasks: Task[]
   milestones: TimelineMilestone[]
@@ -25,14 +28,27 @@ export default function GanttPane({ epics, tasks, milestones }: {
   const qc = useQueryClient()
   const updateTask = useUpdateTask()
   const updateEpic = useUpdateEpic()
+  const updateFolder = useUpdateFolder()
+  const [moveError, setMoveError] = useState<string | null>(null)
 
   // Rows are keyed `task-<id>` / `epic-<id>`; a task's end is due_date, an epic's is target_date.
+  // Task moves go through the folder's dependency mode (PM-14), which may block
+  // the move or add the tasks that have to shift with it.
   function reschedule(item: Scheduled, startDate: string, endDate: string) {
     const id = Number(item.key?.split('-')[1])
     // The chart reads from the folder's contents, which the update hooks don't refresh.
     const options = { onSettled: () => qc.invalidateQueries({ queryKey: ['folder-contents'] }) }
-    if (item.key?.startsWith('task-')) updateTask.mutate({ id, start_date: startDate, due_date: endDate }, options)
-    else if (item.key?.startsWith('epic-')) updateEpic.mutate({ id, start_date: startDate, target_date: endDate }, options)
+    setMoveError(null)
+    if (item.key?.startsWith('task-')) {
+      const plan = planReschedule(tasks, dependencies, id, startDate, endDate, dependencyMode)
+      if ('error' in plan) {
+        setMoveError(plan.error)
+        return
+      }
+      plan.updates.forEach((u) => updateTask.mutate(u, options))
+    } else if (item.key?.startsWith('epic-')) {
+      updateEpic.mutate({ id, start_date: startDate, target_date: endDate }, options)
+    }
   }
 
   const taskIds = useMemo(() => new Set(tasks.map((t) => t.id)), [tasks])
@@ -54,7 +70,19 @@ export default function GanttPane({ epics, tasks, milestones }: {
           <Input type="checkbox" checked={showCritical} onChange={(e) => setShowCritical(e.target.checked)} />
           Highlight critical path
         </label>
+        <Select
+          aria-label="When a task moves"
+          value={dependencyMode}
+          onChange={(e) => updateFolder.mutate(
+            { id: folderId, dependency_mode: e.target.value as DependencyMode },
+            { onSuccess: () => qc.invalidateQueries({ queryKey: ['folder-contents'] }) },
+          )}
+          className="gantt_pane-select"
+        >
+          {DEPENDENCY_MODES.map((m) => <option key={m} value={m}>{DEPENDENCY_MODE_LABEL[m]}</option>)}
+        </Select>
       </div>
+      <FormError message={moveError} />
       <Timeline milestones={milestones} items={groupGanttRows(epics, tasks, critical)} links={links} onReschedule={reschedule} />
       <DependencyEditor tasks={tasks} dependencies={dependencies} />
     </div>

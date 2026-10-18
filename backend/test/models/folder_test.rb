@@ -59,4 +59,14 @@ class FolderTest < ActiveSupport::TestCase
     assert_not root.valid?
     assert_includes root.errors[:kind], "cannot make the document root a project"
   end
+
+  test "dependency_mode defaults to none and accepts strict and flexible" do
+    user = User.create!(name: "Ada", email: "ada@example.com", password: "password123")
+    folder = user.workspace.folders.create!(name: "Plan")
+
+    assert folder.dependencies_none?
+    folder.update!(dependency_mode: :flexible)
+    assert folder.reload.dependencies_flexible?
+    assert_raises(ArgumentError) { folder.dependency_mode = "bogus" }
+  end
 end

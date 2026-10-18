@@ -479,7 +479,7 @@ export default function FolderDetailScreen() {
         {view === 'calendar' && <CalendarView events={events} />}
         {view === 'gantt' && (
           <div className="folder_detail-pane">
-            <GanttPane milestones={milestones} epics={epics} tasks={tasks} />
+            <GanttPane folderId={folderId} dependencyMode={folder.dependency_mode ?? 'none'} milestones={milestones} epics={epics} tasks={tasks} />
           </div>
         )}
       </div>
