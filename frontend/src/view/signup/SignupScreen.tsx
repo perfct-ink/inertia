@@ -4,6 +4,7 @@ import { useNavigate, Link } from 'react-router-dom'
 import { useMutation } from '@tanstack/react-query'
 import api from '@/lib/api'
 import { useAuthStore } from '@/store/auth'
+import { useOnboardingStore } from '@/store/onboarding'
 import AuthLayout from '@/components/auth/AuthLayout'
 import { usePageTitle } from '@/hooks/usePageTitle'
 
@@ -20,6 +21,7 @@ export default function SignupScreen() {
     onSuccess: (res) => {
       const token = res.headers['authorization']?.replace('Bearer ', '')
       setAuth(token, res.data.user)
+      useOnboardingStore.getState().start(res.data.user.id)
       navigate('/space')
     },
     onError: (err: { response?: { data?: { errors?: string[] } } }) => setErrors(err.response?.data?.errors ?? ['Something went wrong']),

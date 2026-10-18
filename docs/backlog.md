@@ -265,6 +265,15 @@ Tailwind has been removed; the frontend uses SCSS (`frontend/src/styles/` for ap
 | PM-169 | Invite people without an account (email invitation, pending membership) | Today members are added by the email of an existing user. |
 | PM-170 | Move or copy content between Spaces | A document stays in its Space today. |
 
+## 17. Onboarding (P1)
+
+Alex asked (2026-10-18) for suggestions after signing up: create a Space and learn what Spaces are for, create a document and a Sheet, create tasks, and anything else useful. Done: a getting-started checklist on the Space home for new accounts, which also suggests inviting a teammate and opening the roadmap (see `docs/onboarding.md`).
+
+| ID | Item | Notes |
+| --- | --- | --- |
+| PM-171 | Store checklist progress on the server | Today it lives in `localStorage`, so it doesn't follow the user to another device or the Mac app. |
+| PM-172 | A way to reopen the checklist after hiding it | For example from the account menu. |
+
 ## Out of scope for parity
 
 Monday sells separate CRM, Service (ticketing), Campaigns and "vibe" app-builder products on the same platform. They are not project management and are left out unless someone asks.

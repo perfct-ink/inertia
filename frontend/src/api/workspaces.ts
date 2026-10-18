@@ -36,6 +36,7 @@ export function useWorkspaceMembers(workspaceId: number) {
   return useQuery<WorkspaceMember[]>({
     queryKey: ['workspace-members', workspaceId],
     queryFn: () => api.get(`/api/v1/workspaces/${workspaceId}/members`).then((r) => r.data),
+    enabled: !!workspaceId,
   })
 }
 

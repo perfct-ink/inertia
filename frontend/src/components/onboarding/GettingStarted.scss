@@ -1,0 +1,125 @@
+@use 'tokens' as *;
+
+@layer app.components {
+  .getting_started {
+    width: 100%;
+    max-width: space(160);
+    padding: space(4);
+    border: 1px solid color(border);
+    border-radius: radius('lg');
+    background: color(card);
+    color: color(card-foreground);
+
+    > * + * {
+      margin-top: space(4);
+    }
+
+    &-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: space(3);
+    }
+
+    &-title {
+      font-weight: 600;
+      @include text('lg');
+    }
+
+    &-progress {
+      color: color(muted-foreground);
+      @include text('sm');
+    }
+
+    &-icon {
+      width: space(4);
+      height: space(4);
+    }
+
+    &-bar {
+      overflow: hidden;
+      height: space(1.5);
+      border-radius: radius('full');
+      background: color(muted);
+
+      &_fill {
+        height: 100%;
+        border-radius: inherit;
+        background: color(primary);
+        transition: width 0.3s ease;
+      }
+    }
+
+    &-steps {
+      display: flex;
+      flex-direction: column;
+      gap: space(1);
+    }
+
+    &-step {
+      display: flex;
+      align-items: flex-start;
+      gap: space(3);
+      flex-wrap: wrap;
+      padding: space(3);
+      border-radius: radius('md');
+
+      &--done {
+        color: color(muted-foreground);
+
+        .getting_started-check {
+          color: color(primary);
+        }
+
+        .getting_started-step_title {
+          text-decoration: line-through;
+        }
+      }
+    }
+
+    &-check {
+      flex-shrink: 0;
+      width: space(5);
+      height: space(5);
+      margin-top: space(0.5);
+      color: color(muted-foreground);
+    }
+
+    &-text {
+      flex: 1 1 0%;
+      min-width: 0;
+    }
+
+    &-step_title {
+      font-weight: 500;
+      @include text('sm');
+    }
+
+    &-description {
+      margin-top: space(1);
+      color: color(muted-foreground);
+      @include text('sm');
+    }
+
+    // On phones the action sits under the text so nothing scrolls sideways.
+    &-action {
+      flex: 0 0 auto;
+      width: calc(100% - #{space(8)});
+      margin-left: space(8);
+      white-space: nowrap;
+    }
+
+    @include up('sm') {
+      padding: space(6);
+
+      &-step {
+        flex-wrap: nowrap;
+      }
+
+      &-action {
+        width: auto;
+        margin-left: 0;
+      }
+    }
+  }
+}

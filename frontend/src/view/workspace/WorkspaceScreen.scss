@@ -7,6 +7,17 @@
     align-items: center;
     justify-content: center;
 
+    // The checklist can be taller than the screen, so it scrolls from the top.
+    &--onboarding {
+      align-items: flex-start;
+      overflow-y: auto;
+      padding: space(4);
+
+      @include up('md') {
+        padding: space(8);
+      }
+    }
+
     @at-root .workspace-empty {
       text-align: center;
 

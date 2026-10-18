@@ -1,12 +1,9 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { useQueryClient } from '@tanstack/react-query'
 import { Check, ChevronsUpDown, Plus, Users } from 'lucide-react'
 import { Button, Modal, PromptDialog } from '@/components/ui'
 import { useWorkspace } from '@/api/workspace'
 import { useCreateWorkspace, useWorkspaces } from '@/api/workspaces'
-import { useWorkspaceStore } from '@/store/workspaces'
-import { useTabsStore } from '@/store/tabs'
+import { useSwitchWorkspace } from '@/hooks/useSwitchWorkspace'
 import type { WorkspaceSummary } from '@/types'
 import { WorkspaceMembers } from './WorkspaceMembers'
 import './WorkspaceSwitcher.scss'
@@ -14,8 +11,7 @@ import './WorkspaceSwitcher.scss'
 // The sidebar header's workspace name, which opens a list to switch between
 // workspaces (projects with their own people), create one, or manage members.
 export function WorkspaceSwitcher() {
-  const navigate = useNavigate()
-  const qc = useQueryClient()
+  const switchWorkspace = useSwitchWorkspace()
   const { data: current } = useWorkspace()
   const { data: workspaces = [] } = useWorkspaces()
   const createWorkspace = useCreateWorkspace()
@@ -23,14 +19,9 @@ export function WorkspaceSwitcher() {
   const [creating, setCreating] = useState(false)
   const [membersOpen, setMembersOpen] = useState(false)
 
-  // The personal workspace is the server default, so it is stored as "none".
   function switchTo(workspace: WorkspaceSummary) {
-    if (workspace.id === current?.id) return setListOpen(false)
-    useWorkspaceStore.getState().setActive(workspace.personal ? null : workspace.id)
-    useTabsStore.getState().reset()
-    qc.clear()
     setListOpen(false)
-    navigate('/space')
+    if (workspace.id !== current?.id) switchWorkspace(workspace)
   }
 
   function create(name: string) {

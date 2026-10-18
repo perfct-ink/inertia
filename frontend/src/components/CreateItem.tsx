@@ -1,16 +1,16 @@
 import { Button, Select, FormError } from '@/components/ui'
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { useCreateDocument, useWorkspace } from '@/api/workspace'
+import { useWorkspace } from '@/api/workspace'
 import { errorMessage } from '@/api/tables'
 import { flattenFolders } from '@/data/folder'
+import { DOC_TYPE_LABELS } from '@/data/document'
+import { useNewDocument } from '@/hooks/useNewDocument'
 import type { Document } from '@/types'
 import './CreateItem.scss'
 
 export default function CreateItem({ folderId }: { folderId?: number }) {
-  const navigate = useNavigate()
   const { data: workspace } = useWorkspace()
-  const create = useCreateDocument()
+  const newDocument = useNewDocument()
   const [destination, setDestination] = useState('')
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
@@ -20,10 +20,7 @@ export default function CreateItem({ folderId }: { folderId?: number }) {
   async function make(type: Document['doc_type']) {
     setBusy(true); setError('')
     try {
-      const target = folderId ?? (Number(destination) || rootId)
-      if (!target) throw new Error('The space root is unavailable. Please try again.')
-      const doc = await create.mutateAsync({ folderId: target, title: `Untitled ${type === 'spreadsheet' ? 'Sheet' : type === 'table' ? 'Table' : 'Document'}`, doc_type: type })
-      navigate(`/documents/${doc.id}`)
+      await newDocument(type, folderId ?? (Number(destination) || undefined))
     } catch (e) { setError(errorMessage(e)) } finally { setBusy(false) }
   }
   return <div className="view-create_item">
@@ -31,7 +28,7 @@ export default function CreateItem({ folderId }: { folderId?: number }) {
       <option value="">{rootName}</option>
       {folders.filter(f => f.id !== rootId).map(f => <option key={f.id} value={f.id}>{f.name}</option>)}
     </Select>}
-    {(['document', 'spreadsheet', 'table'] as const).map(type => <Button variant="secondary" key={type} disabled={busy || !workspace} onClick={() => make(type)} className="create_item-button">New {type === 'spreadsheet' ? 'Sheet' : type === 'table' ? 'Table' : 'Document'}</Button>)}
+    {(['document', 'spreadsheet', 'table'] as const).map(type => <Button variant="secondary" key={type} disabled={busy || !workspace} onClick={() => make(type)} className="create_item-button">New {DOC_TYPE_LABELS[type]}</Button>)}
     <FormError message={error} />
   </div>
 }

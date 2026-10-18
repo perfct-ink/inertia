@@ -30,3 +30,14 @@ export function buildInitialContent(title: string): Record<string, unknown> {
 export function lastModified(doc: Document): string {
   return doc.content_updated_at ?? doc.updated_at
 }
+
+// What people call each kind of document in labels and new titles.
+export const DOC_TYPE_LABELS: Record<Document['doc_type'], string> = {
+  document: 'Document',
+  spreadsheet: 'Sheet',
+  table: 'Table',
+}
+
+export function untitledTitle(type: Document['doc_type']): string {
+  return `Untitled ${DOC_TYPE_LABELS[type]}`
+}
