@@ -1,4 +1,5 @@
 class Epic < ApplicationRecord
+  include SameWorkspace
   include BelongsToMilestone
   include RoadmapHorizon
 
@@ -8,6 +9,7 @@ class Epic < ApplicationRecord
   has_many :tasks, dependent: :nullify
 
   validates :title, presence: true
+  validates_same_workspace :initiative
   validate :target_date_not_before_start_date
 
   # EpicsController#index preloads these via a grouped join (see there) so

@@ -29,4 +29,15 @@ class EpicTest < ActiveSupport::TestCase
 
     assert_nil task.reload.epic_id
   end
+
+  test "rejects an initiative from another workspace" do
+    ada = User.create!(name: "Ada", email: "ada@example.com", password: "password123")
+    bob = User.create!(name: "Bob", email: "bob@example.com", password: "password123")
+    foreign = bob.workspace.initiatives.create!(title: "Elsewhere")
+
+    epic = ada.workspace.epics.new(title: "Launch", initiative: foreign)
+
+    assert_not epic.valid?
+    assert_includes epic.errors[:initiative], "must belong to the same workspace"
+  end
 end

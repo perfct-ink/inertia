@@ -55,4 +55,17 @@ class TaskTest < ActiveSupport::TestCase
     assert_not top.valid?
     assert_includes top.errors[:parent_id], "can't be one of this task's own subtasks"
   end
+
+  test "rejects an epic or parent from another workspace" do
+    ada = User.create!(name: "Ada", email: "ada@example.com", password: "password123")
+    bob = User.create!(name: "Bob", email: "bob@example.com", password: "password123")
+
+    by_epic = ada.workspace.tasks.new(title: "One", epic: bob.workspace.epics.create!(title: "Elsewhere"))
+    by_parent = ada.workspace.tasks.new(title: "Two", parent: bob.workspace.tasks.create!(title: "Elsewhere"))
+
+    assert_not by_epic.valid?
+    assert_includes by_epic.errors[:epic], "must belong to the same workspace"
+    assert_not by_parent.valid?
+    assert_includes by_parent.errors[:parent], "must belong to the same workspace"
+  end
 end

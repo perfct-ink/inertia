@@ -1,4 +1,5 @@
 class Task < ApplicationRecord
+  include SameWorkspace
   include BelongsToMilestone
 
   belongs_to :workspace
@@ -23,6 +24,7 @@ class Task < ApplicationRecord
 
   validates :title, presence: true
   validates :status, presence: true
+  validates_same_workspace :epic, :parent
   validate :parent_is_not_self_or_a_descendant
   validate :due_date_not_before_start_date
 
