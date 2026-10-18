@@ -1,0 +1,48 @@
+// Volta design tokens, copied from Volta's styles/_colors.scss and
+// styles/_variables.scss (github.com/kriogenx0/volta @ 5b6faa1).
+// Volta is the design system; _theme.scss maps Inertia's semantic colors onto
+// these tokens. Keep the names and values in sync with Volta rather than
+// editing them here (see docs/ui-components.md, "Design system: Volta").
+
+:root {
+  --v-accent: #4a90e2;
+  --v-accent-hover: #2f90fb;
+  --v-accent-subtle: #e5f0fc;
+  --v-color-base: #fff;
+  --v-color-base-subtle: #e6e6e6;
+  --v-color-base-less-subtle: #ccc;
+  --v-color-base-more-subtle: #f2f2f2;
+  --v-color-trim: #111;
+  --v-color-trim-subtle: #4d4d4d;
+  --v-color-trim-less-subtle: #808080;
+  --v-color-trim-more-subtle: #1a1a1a;
+  --v-color-inactive: #a1a5a9;
+  --v-color-danger: #e30000;
+  --v-color-success: #03a10e;
+  --v-anim-speed: 150ms;
+  --v-anim-ease: ease-in-out;
+}
+
+@mixin dark-palette {
+  --v-color-base: #050505;
+  --v-color-base-subtle: #292929;
+  --v-color-base-less-subtle: #404040;
+  --v-color-base-more-subtle: #1c1c1c;
+  --v-color-trim: #f1f1f1;
+  --v-color-trim-subtle: #c2c2c2;
+  --v-color-trim-less-subtle: #999;
+  --v-color-trim-more-subtle: #e6e6e6;
+  --v-accent-subtle: #234a78;
+  --v-color-inactive: #7c7f82;
+}
+
+// Follows the OS preference until an explicit [data-theme] is set, as Volta does.
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) {
+    @include dark-palette;
+  }
+}
+
+:root[data-theme='dark'] {
+  @include dark-palette;
+}

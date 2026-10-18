@@ -1,7 +1,10 @@
 @use 'tokens' as *;
 
+// Volta button: 1px border, 4px corners, and a hover that steps one shade.
 @layer app.ui {
   .ui-button {
+    @include transition(background-color, border-color, color, opacity);
+
     &:focus-visible {
       @include focus-ring;
     }
@@ -16,6 +19,7 @@
     &--destructive {
       min-height: space(10);
       padding: space(2) space(3);
+      border: 1px solid transparent;
       border-radius: radius('md');
       @include text('sm');
 
@@ -27,16 +31,19 @@
       color: color(primary-foreground);
 
       &:hover:not(:disabled) {
-        opacity: 0.9;
+        background: color(primary-hover);
       }
     }
 
     &--secondary {
-      border-width: 1px;
+      border-color: color(border);
       background: color(card);
+      color: color(muted-foreground);
 
       &:hover:not(:disabled) {
+        border-color: color(input);
         background: color(accent);
+        color: color(foreground);
       }
     }
 
@@ -51,11 +58,11 @@
     }
 
     &--destructive {
-      background: palette('red-600');
+      background: color(danger);
       color: palette('white');
 
       &:hover:not(:disabled) {
-        background: palette('red-700');
+        background: color-mix(in srgb, var(--danger), black 15%);
       }
     }
   }

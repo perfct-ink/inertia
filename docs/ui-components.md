@@ -30,9 +30,20 @@ The React frontend uses SCSS (compiled by webpack's `sass-loader`); Tailwind is 
 - Each screen or component has a SCSS file beside it. Only the **root element** carries a lowercase `view-` class (`view-tasks`, `view-document`); a root state uses `--` (`view-document--centered`). Descendants use the view's name without the `view-` prefix: a single dash for relationships (`tasks-card`), `--` for states (`tasks-card--dragging`), underscores inside one multi-word term (`tasks-quick_add`). In SCSS, nest descendants inside the root rule with `@at-root .tasks-card { ... }` so they keep their source order without the `view-` prefix.
 - Cascade order is explicit through CSS layers declared in `styles/app.scss` (and `main.tsx` imports it first): `libraries` (reset and third-party CSS such as Fortune Sheet), then `app` (`app.base` theme/typography/spacing, `app.ui` for `components/ui`, `app.components` for other shared components), then `view` (everything under `src/view/`). Wrap the rules of a new stylesheet in the matching `@layer`; a later layer wins regardless of selector specificity or import order.
 - Classes passed to a `ui-` component do not override its base styles on their own. Views are in a later cascade layer, so a single view class is enough to override it.
-- Light and dark mode come from the CSS variables in `_theme.scss` (`prefers-color-scheme`). Use `color()` tokens rather than hardcoded colors. Add a `dark` mixin block only for fixed palette colors.
+- Light and dark mode come from the Volta tokens in `_volta.scss` (`prefers-color-scheme`, or `data-theme="dark"` on `<html>`), which `_theme.scss` maps to Inertia's semantic colors. Use `color()` tokens rather than hardcoded colors. Add a `dark` mixin block only for fixed palette colors.
 - Inline `style` is reserved for computed values (percent widths, nesting depth, drag transforms).
 - Use the `Modal`, `ConfirmDialog` and `PromptDialog` components instead of `window.alert`, `confirm` or `prompt`.
+
+## Design system: Volta
+
+Inertia uses [Volta](https://github.com/kriogenx0/volta), Alex's React UI library, as its design system. The frontend adopts Volta's design tokens and control styling; its React components are not imported.
+
+- `frontend/src/styles/_volta.scss` is a copy of Volta's color tokens (`--v-accent`, `--v-color-base*`, `--v-color-trim*`, `--v-color-danger`, `--v-anim-speed`) and its dark palette, with the Volta commit it came from. Update it from Volta's `styles/_colors.scss` rather than editing values here.
+- `_theme.scss` maps Inertia's semantic colors (`background`, `foreground`, `muted`, `border`, `input`, `primary`, `accent`, `card`, `danger`) onto those tokens, so `color(primary)` is Volta's accent blue. `color(name, 0.5)` mixes the token with transparency through `color-mix()`.
+- `_tokens.scss` uses Volta's single 4px corner radius for `radius('default' | 'md' | 'lg' | 'xl')`, its eased `transition` timing, and `field-states` (Volta's text field: quiet border, firmer on hover, accent on focus) for `Input`, `Select` and `Textarea`. `_typography.scss` uses Volta's SF Pro Text/Display font stack.
+- `Button` follows Volta's button: 1px border, accent primary with a darker hover, bordered secondary that steps one shade on hover, and Volta's danger red.
+
+Volta's components are not used directly because the library isn't published to a registry, ships plain JavaScript without types, injects its CSS from JavaScript (Inertia loads cached CSS files in cascade layers), and brings dependencies Inertia doesn't need (TinyMCE, Quill, moment). Changing Inertia's look means changing Volta and copying the tokens across.
 
 ## API error handling
 

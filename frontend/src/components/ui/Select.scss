@@ -9,10 +9,7 @@
     background: color(card);
     outline: none;
     @include field-text;
-
-    &:focus {
-      @include focus-ring;
-    }
+    @include field-states;
 
     &:disabled {
       opacity: 0.5;

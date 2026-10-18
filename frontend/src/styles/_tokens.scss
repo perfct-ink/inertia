@@ -5,14 +5,14 @@
 @use 'sass:map';
 @use 'sass:math';
 
-// Theme colors are CSS variables (see _theme.scss) so light/dark switches at
-// runtime. color(primary) / color(primary, 0.5).
+// Theme colors are CSS variables (see _theme.scss, built on the Volta tokens in
+// _volta.scss) so light/dark switches at runtime. color(primary) / color(primary, 0.5).
 @function color($name, $alpha: null) {
   @if $alpha {
-    @return hsl(var(--#{$name}) / #{$alpha});
+    @return color-mix(in srgb, var(--#{$name}) #{$alpha * 100%}, transparent);
   }
 
-  @return hsl(var(--#{$name}));
+  @return var(--#{$name});
 }
 
 // Fixed palette for status/semantic colors that don't change with the theme.
@@ -86,12 +86,15 @@ $font-sizes: (
   }
 }
 
+// Volta uses one corner radius ($border_radius: 4px) for controls, cards and
+// panels; only small marks and pills differ.
+$volta-radius: 4px;
 $radii: (
   'sm': 0.125rem,
-  'default': 0.25rem,
-  'md': 0.375rem,
-  'lg': 0.5rem,
-  'xl': 0.75rem,
+  'default': $volta-radius,
+  'md': $volta-radius,
+  'lg': $volta-radius,
+  'xl': $volta-radius,
   'full': 9999px,
 );
 
@@ -115,6 +118,30 @@ $breakpoints: (
 @mixin dark {
   @media (prefers-color-scheme: dark) {
     @content;
+  }
+}
+
+// Volta's motion: every control eases between states at --v-anim-speed.
+@mixin transition($properties...) {
+  transition-duration: var(--v-anim-speed);
+  transition-property: $properties;
+  transition-timing-function: var(--v-anim-ease);
+}
+
+// Volta text field states, shared by inputs, selects and text areas: a quiet
+// border that firms up on hover and takes the accent color on focus.
+@mixin field-states {
+  border-color: color(border);
+  @include transition(background-color, border-color, color);
+
+  &:hover:not(:disabled) {
+    border-color: color(input);
+    background-color: color(muted);
+  }
+
+  &:focus {
+    border-color: color(primary);
+    @include focus-ring;
   }
 }
 
