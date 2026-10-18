@@ -10,6 +10,7 @@ Related: `docs/project-management-features.md` (gap analysis vs. Jira) already c
 ## How to read this
 
 - **Terminology**: workspaces are called Spaces in the product (all UI, copy and docs). Code, API paths, X-Workspace-Id and DB keep 'workspace'. See `docs/spaces.md`.
+- **Terminology**: tables are called Collections in the product (Alex, 2026-10-18). Code and DB keep `table` (`doc_type: table`, `TableField`, `TableCell`), like Spaces/workspace.
 - IDs are stable (`PM-03`); reference them in PRs and commits.
 - **Priority**: P0 = the headline ask (milestone, hierarchy, Gantt, roadmap), P1 = needed for the headline items to be useful day to day, P2 = Monday parity beyond that, P3 = large or speculative.
 - **Today** says what already exists in this repo, checked against `backend/db/schema.rb` and the models on 2026-10-11.
@@ -199,7 +200,7 @@ Today: folders already nest to any depth (`folders.parent_id`, `Folder#self_and_
 
 Requested by Alex on 2026-10-13: collections should let you upload files or images and keep them there.
 
-"Collection" isn't a term in the codebase yet. This assumes it means a folder (project or feature folder) and the documents inside it. If it turns out to be a separate concept, these items move to it.
+Update 2026-10-18: Alex confirmed a collection is what the app calls a table today (see section 23). Files and images as a collection *field* are PM-232; the items below still cover uploading files into folders.
 
 Today: `UploadsController` already stores images and video in ActiveStorage (100 MB cap, images/video only), but only so they can be embedded in a document. An uploaded file isn't an item of its own: it doesn't show in the folder, and nothing lists it.
 
@@ -343,6 +344,22 @@ Requested by Alex on 2026-10-18: write product requirement documents that turn i
 | PM-225 | Song document template | Not present | Lyrics, credits (writers, producers, performers), key/BPM, versions and stems, metadata (ISRC), and a task list for that song. |
 | PM-226 | **Recurring tasks**: repeat on a schedule or a set time after completion | Not present (listed as PM-74 under automations; this replaces it). No recurrence field on `tasks`. | Default: store an RRULE-style rule on the task and create the next occurrence when one is done. |
 | PM-227 | **Ongoing tasks with check-ins**: a task that stays open and asks its owner for an update on a schedule | Not present | The check-in arrives as a notification (needs PM-102, the notifications inbox; email/push later). The answer is saved as an update on the task, so its history reads like a log. Overdue check-ins show on the task as stale. |
+
+## 23. Collections: field types, relationships, import (P0)
+
+Requested by Alex on 2026-10-18: tables should be called **Collections**; collections need many field types (see Alex's [kriogenx0/jandi](https://github.com/kriogenx0/jandi)); multiple images should be an option; collections should show one-to-many relationships; and you should be able to import YAML or JSON into a collection.
+
+**Today**: a table document (`doc_type: table`) has fields with `data_type` in `TableField::DATA_TYPES` = text, integer, number, boolean, date, datetime, relation. Each type is validated in `TableCell`. A relation cell points at one record in another table in the same Space (many-to-one); nothing shows the other direction. Import exists only for Quip.
+
+**What jandi has** (`jandi.js`, `jandi-form.js`, checked 2026-10-18): validators for required, empty, person name, alphanumeric, email, phone, password, strict password, credit card (Visa, Mastercard, Amex, Discover, Diners Club, JCB) and CVV; formatters for number, number with commas, money, mileage, phone (plain and with parentheses), VIN and credit card; form field types name, username, email, month, year, card year and CVV. Each type pairs validation with formatting, which matches how Inertia already checks each `data_type`.
+
+| ID | Item | Today | Notes |
+| --- | --- | --- | --- |
+| PM-230 | **Rename Tables to Collections** everywhere users see it: "New collection", "Documents, Sheets & Collections", "Untitled Collection", the type label in the editor, docs | UI says Table (`FolderItem.tsx`, `FolderDetailScreen.tsx`, `TableEditor.tsx`) | Decision, same rule as Spaces: the code, API and DB keep `table`. |
+| PM-231 | **More field types**, each with its own validation and display format. From jandi: email, phone, person name, username, alphanumeric (IDs/codes), money, number with commas, mileage, VIN, month, year. Also: long text, URL, percent, rating, single select, multi select/tags, person (Space member), color, created/updated time, auto-number | 7 types | Validation and formatting rules live in one place per type (data file plus model), so the editor, import and API all share them. Credit card, CVV and password from jandi are left out: a collection shouldn't store card numbers or passwords. |
+| PM-232 | **Image field with multiple images**, and a file field (one or many) | Not present | Thumbnails in the cell, a gallery when opened. Uses the upload storage from section 13. |
+| PM-233 | **One-to-many relationships**: a relation field can hold many records, and the related collection shows the reverse list automatically (an Album shows its Songs when each Song links to the Album) | Relation is one record per cell; no reverse view | Default: a `many` option on relation fields plus an automatic, read-only back-reference column. Later: lookup and rollup fields (count, sum) across the link. |
+| PM-234 | **Import YAML or JSON into a collection**: an array of objects becomes records; keys become fields, with types guessed from the values and editable before import | Not present (Quip import only) | Nested objects or arrays can become a related collection (PM-233). Can import into a new collection or append to an existing one, matching keys to field names. Pairs with CSV import and JSON/YAML export later. |
 
 ## Suggested first slice
 
