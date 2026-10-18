@@ -329,15 +329,18 @@ Requested by Alex on 2026-10-18: in each Space, see all the files in that Space,
 
 ## 20. Design system: Volta (P1)
 
-Alex asked (2026-10-18) to use Volta (github.com/kriogenx0/volta) as the design system. Done: the React frontend uses Volta's tokens themed with Inertia's teal palette, 4px radius, motion, SF Pro type, and button/text field styling (`frontend/src/styles/_volta.scss`, see `docs/ui-components.md`).
+Alex asked (2026-10-17, reiterated 2026-10-18) to use [Volta](https://github.com/kriogenx0/volta) for frontend components and as the design system. For the macOS version, create iOS-style native UI components that match the React versions as closely as possible. Done: the React frontend uses Volta's tokens themed with Inertia's teal palette, 4px radius, motion, SF Pro type, and button/text field styling (`frontend/src/styles/_volta.scss`, see `docs/ui-components.md`).
 
 | ID | Item | Notes |
 | --- | --- | --- |
+| PM-173 | **Adopt Volta for React frontend components** | Token styling is already in place; adoption of the actual Volta components remains.  Use Volta as the shared component foundation through `frontend/src/components/ui`, migrating existing controls and recurring patterns centrally. Preserve HTML props, refs, accessibility, responsive layouts, light/dark themes and the 40-pixel minimum for text fields. Reuse the existing React layout and sidebar across web and the Mac WKWebView shell. |
+| PM-174 | **Native macOS components with iOS styling and React parity** | Create reusable SwiftUI controls in `macos/Sources/Inertia/Components/` that match the Volta-backed React components as closely as possible: typography, colors, spacing, sizing, icons, control variants, focus/disabled/error states and light/dark themes. Preserve native keyboard and accessibility behavior and the 40-point minimum for text fields. Apply them to native screens and editors; retain the shared React online layout/sidebar. |
+| PM-175 | **Document component mappings and validate parity** | Maintain a React-to-native component inventory and visual examples in both themes. Check keyboard interaction, accessibility and narrow layouts. Document the chosen Volta version, installation/build integration and any required configuration. Volta currently requires a source/local dependency and a build before consumption; resolve reproducible CI packaging and incomplete theme coverage during adoption (see its README). |
 | PM-194 | Native macOS SwiftUI screens (login, local task files) use Volta's colors | They use system colors today. |
 | PM-195 | Move the fixed status palette (blue/green/red/purple in `_tokens.scss`) onto Volta tokens | Volta has `--v-color-danger` and `--v-color-success` only; add the rest to Volta first. |
 | PM-196 | Appearance settings: light/dark/system and accent color, as Volta's `Theme` API does | The tokens already support `data-theme` on `<html>` and a runtime `--v-accent`. |
 
-
+## Out of scope for parity
 
 Monday sells separate CRM, Service (ticketing), Campaigns and "vibe" app-builder products on the same platform. They are not project management and are left out unless someone asks.
 
