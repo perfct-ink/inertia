@@ -5,7 +5,11 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    min-height: 100vh;
+
+    /* dvh is the visible viewport; 100vh is taller than the screen on phones
+       while the browser toolbar shows, so the page scrolled. */
+    min-height: 100dvh;
+    padding: space(4);
     background: color(muted);
 
     @at-root .auth-card {
