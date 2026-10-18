@@ -296,7 +296,17 @@ Requested by Alex on 2026-10-18: in each Space, see all the files in that Space,
 | PM-192 | Project details: owner, status, dates and a description | Not present | Feeds the portfolio view (PM-30). |
 | PM-193 | Filter All files by project, type and owner | Not present | |
 
-## Out of scope for parity
+## 20. Design system: Volta (P1)
+
+Alex asked (2026-10-18) to use Volta (github.com/kriogenx0/volta) as the design system. Done: the React frontend uses Volta's color tokens, dark palette, 4px radius, motion, SF Pro type, and button/text field styling (`frontend/src/styles/_volta.scss`, see `docs/ui-components.md`).
+
+| ID | Item | Notes |
+| --- | --- | --- |
+| PM-194 | Native macOS SwiftUI screens (login, local task files) use Volta's colors | They use system colors today. |
+| PM-195 | Move the fixed status palette (blue/green/red/purple in `_tokens.scss`) onto Volta tokens | Volta has `--v-color-danger` and `--v-color-success` only; add the rest to Volta first. |
+| PM-196 | Appearance settings: light/dark/system and accent color, as Volta's `Theme` API does | The tokens already support `data-theme` on `<html>` and a runtime `--v-accent`. |
+
+
 
 Monday sells separate CRM, Service (ticketing), Campaigns and "vibe" app-builder products on the same platform. They are not project management and are left out unless someone asks.
 
