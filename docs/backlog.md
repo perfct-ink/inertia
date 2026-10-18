@@ -310,6 +310,17 @@ Alex asked (2026-10-18) to use Volta (github.com/kriogenx0/volta) as the design 
 
 Monday sells separate CRM, Service (ticketing), Campaigns and "vibe" app-builder products on the same platform. They are not project management and are left out unless someone asks.
 
+## 21. Plan from a single document (P0)
+
+Requested by Alex on 2026-10-18, marked as one of the most important things to them: from one document, create tasks, add dates or events, and set an initiative with its start and end date, all without leaving the document.
+
+| ID | Item | Today | Notes |
+| --- | --- | --- | --- |
+| PM-210 | **Create tasks from the document** | Built: a checklist item in a document becomes a Space task on save (`syncTaskNodes` in `view/document/DocumentScreen.tsx`, `tasks.document_id`). | Remaining: set a task's dates, assignee and status from the line itself (no task detail view yet, see PM-04/PM-11). |
+| PM-211 | **Create dates and events from the document**: type or pick a date inline (e.g. `@date` or `/event`), and it becomes a calendar event linked back to that spot | Not present. `events` has `folder_id` but no `document_id`, so an event can't point at a document. | Default: add `events.document_id` and an inline event node like the task item. Editing either side updates the other. |
+| PM-212 | **Set the document's initiative, with start and end date**, from the document itself (a header field or a block at the top) | Not present. `initiatives` has `start_date` and `target_date` but no link to documents; initiatives are only made on the Initiatives page. | Default: a document can create or pick one initiative. Its tasks and events roll up to it, and its dates show on the Roadmap and Gantt. Pairs with feature folders (section 12), where a feature document plays the same role. |
+| PM-213 | Planning summary at the top of the document: initiative, dates, task progress and upcoming events | Not present | Reuses `HealthBadge` and the progress bar. |
+
 ## Suggested first slice
 
 1. PM-01, PM-02, PM-03, PM-04: Milestone + Initiative models and rollups.
