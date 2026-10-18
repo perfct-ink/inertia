@@ -4,11 +4,16 @@ import { useNavigate, useSearchParams } from 'react-router-dom'
 import { Plus, X, Flag, Loader2 } from 'lucide-react'
 import WorkspaceLayout from '@/components/WorkspaceLayout'
 import { useMilestones } from '@/api/milestones'
+import { useWorkspace } from '@/api/workspace'
+import { useWorkspaceMembers } from '@/api/workspaces'
 import { useInitiatives, useCreateInitiative, useUpdateInitiative, useDeleteInitiative } from '@/api/initiatives'
 import '../planning/PlanningScreen.scss'
 import { ProgressBar, Timeline } from '@/components/Timeline'
 import { usePageTitle } from '@/hooks/usePageTitle'
 import { donePercent } from '@/data/schedule'
+import type { PlanningStatus } from '@/types'
+
+const STATUS_LABEL: Record<PlanningStatus, string> = { planned: 'Planned', active: 'Active', done: 'Done' }
 
 export default function InitiativesScreen() {
   usePageTitle('Initiatives')
@@ -17,6 +22,8 @@ export default function InitiativesScreen() {
   const view = searchParams.get('view') === 'timeline' ? 'timeline' : 'list'
   const { data: initiatives = [], isLoading } = useInitiatives()
   const { data: milestones = [] } = useMilestones()
+  const { data: workspace } = useWorkspace()
+  const { data: members = [] } = useWorkspaceMembers(workspace?.id ?? 0)
   const createInitiative = useCreateInitiative()
   const updateInitiative = useUpdateInitiative()
   const deleteInitiative = useDeleteInitiative()
@@ -124,6 +131,29 @@ export default function InitiativesScreen() {
                     onChange={(e) => updateInitiative.mutate({ id: initiative.id, target_date: e.target.value || null })}
                     className="planning-date"
                   />
+                  <Select
+                    aria-label="Status"
+                    value={initiative.status}
+                    onChange={(e) => updateInitiative.mutate({ id: initiative.id, status: e.target.value as PlanningStatus })}
+                    className="planning-initiative"
+                  >
+                    {Object.entries(STATUS_LABEL).map(([value, label]) => (
+                      <option key={value} value={value}>{label}</option>
+                    ))}
+                  </Select>
+                  {members.length > 0 && (
+                    <Select
+                      aria-label="Owner"
+                      value={initiative.owner_id ?? ''}
+                      onChange={(e) => updateInitiative.mutate({ id: initiative.id, owner_id: e.target.value ? Number(e.target.value) : null })}
+                      className="planning-initiative"
+                    >
+                      <option value="">No owner</option>
+                      {members.map((member) => (
+                        <option key={member.user_id} value={member.user_id}>{member.user.name}</option>
+                      ))}
+                    </Select>
+                  )}
                   {milestones.length > 0 && (
                     <Select
                       aria-label="Milestone"
@@ -138,6 +168,17 @@ export default function InitiativesScreen() {
                     </Select>
                   )}
                 </div>
+                <Input
+                  aria-label="Description"
+                  placeholder="Add a description…"
+                  defaultValue={initiative.description ?? ''}
+                  onClick={(e) => e.stopPropagation()}
+                  onBlur={(e) => {
+                    const description = e.target.value.trim() || null
+                    if (description !== initiative.description) updateInitiative.mutate({ id: initiative.id, description })
+                  }}
+                  className="planning-description"
+                />
                 <ProgressBar percent={donePercent(initiative)} />
               </div>
             ))}

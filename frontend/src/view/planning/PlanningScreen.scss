@@ -209,6 +209,7 @@
     }
 
     .planning-date,
+    .planning-description,
     .planning-initiative {
       width: auto;
       min-height: 0;
@@ -220,6 +221,10 @@
       outline: none;
       cursor: pointer;
       @include text('xs');
+    }
+
+    .planning-description {
+      width: 100%;
     }
 
     .planning-initiative {
