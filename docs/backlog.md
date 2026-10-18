@@ -298,7 +298,7 @@ Requested by Alex on 2026-10-18: in each Space, see all the files in that Space,
 
 ## 20. Design system: Volta (P1)
 
-Alex asked (2026-10-18) to use Volta (github.com/kriogenx0/volta) as the design system. Done: the React frontend uses Volta's color tokens, dark palette, 4px radius, motion, SF Pro type, and button/text field styling (`frontend/src/styles/_volta.scss`, see `docs/ui-components.md`).
+Alex asked (2026-10-18) to use Volta (github.com/kriogenx0/volta) as the design system. Done: the React frontend uses Volta's tokens themed with Inertia's teal palette, 4px radius, motion, SF Pro type, and button/text field styling (`frontend/src/styles/_volta.scss`, see `docs/ui-components.md`).
 
 | ID | Item | Notes |
 | --- | --- | --- |

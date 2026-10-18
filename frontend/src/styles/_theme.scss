@@ -1,22 +1,53 @@
-// App-wide theme: Inertia's semantic colors, mapped onto Volta's tokens
-// (_volta.scss). Light/dark switching happens in the Volta tokens, so nothing
-// here changes per scheme.
+// App-wide theme, built on the Volta design system (_volta.scss).
 @use 'volta';
 
+// Inertia theme: Volta's tokens set to Inertia's teal palette. A different
+// theme only needs to override these tokens.
+:root {
+  --v-accent: hsl(174deg 72% 32%);
+  --v-accent-hover: hsl(174deg 72% 27%);
+  --v-accent-subtle: hsl(174deg 30% 90%);
+  --v-color-base: hsl(0deg 0% 100%);
+  --v-color-base-subtle: hsl(174deg 20% 88%);
+  --v-color-base-less-subtle: hsl(174deg 20% 78%);
+  --v-color-base-more-subtle: hsl(174deg 20% 94%);
+  --v-color-trim: hsl(240deg 10% 3.9%);
+  --v-color-trim-subtle: hsl(174deg 10% 45%);
+  --v-color-danger: hsl(0deg 72% 51%);
+
+  // Inertia colors Volta has no token for.
+  --accent-foreground: hsl(174deg 72% 20%);
+  --card: var(--v-color-base);
+}
+
+@include volta.dark-scheme {
+  --v-accent: hsl(174deg 72% 42%);
+  --v-accent-hover: hsl(174deg 72% 36%);
+  --v-accent-subtle: hsl(174deg 15% 18%);
+  --v-color-base: hsl(220deg 13% 9%);
+  --v-color-base-subtle: hsl(174deg 10% 22%);
+  --v-color-base-less-subtle: hsl(174deg 10% 32%);
+  --v-color-base-more-subtle: hsl(174deg 10% 16%);
+  --v-color-trim: hsl(0deg 0% 95%);
+  --v-color-trim-subtle: hsl(174deg 10% 58%);
+  --accent-foreground: hsl(174deg 60% 75%);
+  --card: hsl(220deg 13% 11%);
+}
+
+// Inertia's semantic colors, mapped onto the Volta tokens.
 :root {
   --background: var(--v-color-base);
   --foreground: var(--v-color-trim);
   --muted: var(--v-color-base-more-subtle);
   --muted-foreground: var(--v-color-trim-subtle);
   --border: var(--v-color-base-subtle);
-  --input: var(--v-color-base-less-subtle);
+  --border-strong: var(--v-color-base-less-subtle);
+  --input: var(--v-color-base-subtle);
   --primary: var(--v-accent);
   --primary-hover: var(--v-accent-hover);
   --primary-foreground: var(--v-color-base);
-  --accent: var(--v-color-base-more-subtle);
-  --accent-foreground: var(--v-color-trim);
+  --accent: var(--v-accent-subtle);
   --canvas: var(--v-color-base);
-  --card: var(--v-color-base);
   --card-foreground: var(--v-color-trim);
   --danger: var(--v-color-danger);
 }

@@ -135,7 +135,7 @@ $breakpoints: (
   @include transition(background-color, border-color, color);
 
   &:hover:not(:disabled) {
-    border-color: color(input);
+    border-color: color(border-strong);
     background-color: color(muted);
   }
 

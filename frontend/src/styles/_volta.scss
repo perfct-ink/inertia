@@ -1,7 +1,7 @@
 // Volta design tokens, copied from Volta's styles/_colors.scss and
 // styles/_variables.scss (github.com/kriogenx0/volta @ 5b6faa1).
-// Volta is the design system; _theme.scss maps Inertia's semantic colors onto
-// these tokens. Keep the names and values in sync with Volta rather than
+// Volta is the design system; _theme.scss sets Inertia's theme by overriding
+// these tokens and maps Inertia's semantic colors onto them. Keep the names and values in sync with Volta rather than
 // editing them here (see docs/ui-components.md, "Design system: Volta").
 
 :root {
@@ -36,13 +36,21 @@
   --v-color-inactive: #7c7f82;
 }
 
-// Follows the OS preference until an explicit [data-theme] is set, as Volta does.
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme]) {
-    @include dark-palette;
+// Dark-scheme token values: follows the OS preference until an explicit
+// [data-theme] is set, as Volta does. Themes use the same mixin so their dark
+// values win over Volta's defaults.
+@mixin dark-scheme {
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme]) {
+      @content;
+    }
+  }
+
+  :root[data-theme='dark'] {
+    @content;
   }
 }
 
-:root[data-theme='dark'] {
+@include dark-scheme {
   @include dark-palette;
 }
