@@ -9,7 +9,7 @@
     border-radius: radius('md');
     background: transparent;
     outline: none;
-    @include text('sm');
+    @include field-text;
 
     &:focus {
       @include focus-ring;

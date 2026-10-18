@@ -76,6 +76,16 @@ $font-sizes: (
   line-height: list.nth($pair, 2);
 }
 
+// Text in form fields. Touch screens get 16px: iOS Safari zooms in on any field
+// smaller than that when it gains focus, which leaves the page scrolling sideways.
+@mixin field-text {
+  @include text('sm');
+
+  @media (pointer: coarse) {
+    @include text('base');
+  }
+}
+
 $radii: (
   'sm': 0.125rem,
   'default': 0.25rem,
