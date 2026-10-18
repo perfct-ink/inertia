@@ -399,6 +399,7 @@ Proposed map (Mac keys; `⌘` is `Ctrl` elsewhere). Both apps' bindings are from
 | PM-242 | Dashed list block | Notes' third list style; not in the editor today. |
 | PM-243 | Same bindings in the Mac app, plus Format menu items showing each shortcut | The Mac app loads the web editor, so the bindings carry over. Menu items let people find them. |
 | PM-244 | Windows/Linux equivalents | `Ctrl` for `⌘`; check each against browser-reserved keys (e.g. `Ctrl+Shift+N`, `Ctrl+Shift+T`). |
+| PM-245 | **Assign a paragraph style to a keystroke** (Alex, 2026-10-18): any built-in or custom paragraph style (section 14, PM-140–146) can get a shortcut, set by the user | Default: per-user, saved with the user's styles, editable from the style's menu and the `⌘/` sheet. Warn on clash with a built-in key and let the user's choice win inside the editor. Suggested free range: `⌃⌘1`–`⌃⌘9`. |
 
 ## Suggested first slice
 
