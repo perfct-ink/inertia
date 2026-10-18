@@ -124,7 +124,7 @@ Monday board views: Table, Kanban, Gantt, Timeline, Calendar, Workload, Chart, C
 | PM-71 | Triggers: status change, field change, item created, date arrives, subtask done, moved | |
 | PM-72 | Actions: notify, assign, change status, move, create item, set date, create subtask | |
 | PM-73 | Recipe templates (e.g. "when all subtasks done, mark parent done"; "when epic done, update milestone health") | Rollup recipes tie into PM-02. |
-| PM-74 | Recurring tasks | |
+| PM-74 | Recurring tasks | | Moved to PM-226. |
 | PM-75 | Automation run log and per-Space limits | |
 
 ## 8. Dashboards and reporting (P2)
@@ -321,6 +321,28 @@ Requested by Alex on 2026-10-18, marked as one of the most important things to t
 | PM-212 | **Set the document's initiative, with start and end date**, from the document itself (a header field or a block at the top) | Not present. `initiatives` has `start_date` and `target_date` but no link to documents; initiatives are only made on the Initiatives page. | Default: a document can create or pick one initiative. Its tasks and events roll up to it, and its dates show on the Roadmap and Gantt. Pairs with feature folders (section 12), where a feature document plays the same role. |
 | PM-213 | Planning summary at the top of the document: initiative, dates, task progress and upcoming events | Not present | Reuses `HealthBadge` and the progress bar. |
 
+## 22. Requirement docs, project types, releases and recurring work (P0)
+
+Requested by Alex on 2026-10-18: write product requirement documents that turn into tasks and stay in sync both ways; support every kind of project, not only software (Alex often writes a document per song and tracks the work for a release: a song, an album, a music video); tasks can be recurring or ongoing, and those should notify the person and ask for an update.
+
+### How other tools handle this (light research, 2026-10-18)
+
+- **Doc to tasks, both ways**: Jira + Confluence (create issues from requirement text; issue status shows inline in the page), Notion (a page embeds a synced task database), Linear (project documents next to the project's issues), Quip (live checklists). The common pattern is that the document holds a live reference to the task, so status shown in the doc is always the task's real status.
+- **Project types as templates**: Monday, Asana and ClickUp start projects from templates per kind of work (software launch, marketing campaign, event, content calendar). A template is a document skeleton plus default task lists, fields and views.
+- **Music releases**: release plans are usually worked back from the release date: writing, recording, mixing and mastering, artwork, credits and metadata (ISRC per track, UPC per release), distributor upload, streaming-editorial pitch (Spotify for Artists asks for at least 7 days before release, and earlier is better), music video, promo and social posts, then post-release follow-up. One song can belong to several releases (single, then album).
+- **Recurring and ongoing work**: Asana and Todoist repeat a task on a schedule (every week, the 1st of the month, N days after completion). Basecamp's automatic check-ins ask a person a question on a schedule ("What did you work on this week?"); Monday's update requests ask an owner for a status. An ongoing task never completes; it is checked in on.
+
+| ID | Item | Today | Notes |
+| --- | --- | --- | --- |
+| PM-220 | **Requirement doc ↔ tasks, synced both ways** | Partly built: a checklist line becomes a task on save (PM-210); the line shows the task's live status and due date and can set the due date (`components/editors/WorkspaceTaskItemView.tsx`). Not synced: renaming the task elsewhere doesn't update the line, deleting either side doesn't affect the other, and the checkbox and task status are not tied together. | Rule: the task is the source of truth; the line is a live reference to it. Edits on either side update both. Deleting the line asks whether to delete or keep the task. |
+| PM-221 | **Product Requirements Document template** that creates its tasks | Not present (PM-122 covers a feature doc template). | Sections: problem, goals, users, requirements (each a task line), acceptance criteria, out of scope, milestones. Uses PM-212 to set the initiative and dates. |
+| PM-222 | **Project types**: software, music release, video, event, marketing campaign, writing/content, personal, and blank | Not present. Folders have `kind` (`folder`/`project`) only. | A type sets the starting template, the default task lists and fields, and the features the Space or project uses (ties to PM-182 and PM-191). Users can save their own project as a type. |
+| PM-223 | **Releases**: a release (single, EP, album, music video) with a release date, its songs, and its tasks | Not present | A release is a milestone-like item; a song document can belong to more than one release. Release view shows every task for that release, from every song document. |
+| PM-224 | **Release plan worked back from the date**: pick a release date and get the standard tasks with due dates counted back from it | Not present | Default music checklist from the research above. Moving the release date moves the tasks. Same mechanism works for any dated project type (an event, a launch). |
+| PM-225 | Song document template | Not present | Lyrics, credits (writers, producers, performers), key/BPM, versions and stems, metadata (ISRC), and a task list for that song. |
+| PM-226 | **Recurring tasks**: repeat on a schedule or a set time after completion | Not present (listed as PM-74 under automations; this replaces it). No recurrence field on `tasks`. | Default: store an RRULE-style rule on the task and create the next occurrence when one is done. |
+| PM-227 | **Ongoing tasks with check-ins**: a task that stays open and asks its owner for an update on a schedule | Not present | The check-in arrives as a notification (needs PM-102, the notifications inbox; email/push later). The answer is saved as an update on the task, so its history reads like a log. Overdue check-ins show on the task as stale. |
+
 ## Suggested first slice
 
 1. PM-01, PM-02, PM-03, PM-04: Milestone + Initiative models and rollups.
@@ -340,3 +362,6 @@ Requested by Alex on 2026-10-18, marked as one of the most important things to t
 - [monday.com Features: A Complete Breakdown in 2026 (ZoomInfo)](https://pipeline.zoominfo.com/sales/monday-com-features)
 - [monday.com blog: free Gantt chart software](https://monday.com/blog/project-management/free-gantt-chart-software/)
 - Column-type and dependency-mode details are from training knowledge (cutoff mid-2026), not re-checked live.
+- [Spotify for Artists: pitching music to playlist editors](https://support.spotify.com/us/artists/article/pitching-music-to-playlist-editors/)
+- [Basecamp: automatic check-ins](https://basecamp.com/features/checkins)
+- Section 22 tool comparisons (Jira/Confluence, Notion, Linear, Asana, Todoist, Monday update requests) are from training knowledge, not re-checked live.
