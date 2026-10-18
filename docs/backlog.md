@@ -361,6 +361,45 @@ Requested by Alex on 2026-10-18: tables should be called **Collections**; collec
 | PM-233 | **One-to-many relationships**: a relation field can hold many records, and the related collection shows the reverse list automatically (an Album shows its Songs when each Song links to the Album) | Relation is one record per cell; no reverse view | Default: a `many` option on relation fields plus an automatic, read-only back-reference column. Later: lookup and rollup fields (count, sum) across the link. |
 | PM-234 | **Import YAML or JSON into a collection**: an array of objects becomes records; keys become fields, with types guessed from the values and editable before import | Not present (Quip import only) | Nested objects or arrays can become a related collection (PM-233). Can import into a new collection or append to an existing one, matching keys to field names. Pairs with CSV import and JSON/YAML export later. |
 
+## 24. Document shortcuts match Apple Notes and Google Docs (P1)
+
+Requested by Alex on 2026-10-18: document formatting uses the same keystrokes as Google Docs and Apple Notes; where they conflict, Apple Notes wins.
+
+**Today** the editor uses TipTap's default bindings (see `docs/keyboard-shortcuts.md`). Bold, italic, underline, undo/redo and `⌘⌥1`–`6` headings already match Google Docs. The rest don't match either app.
+
+Proposed map (Mac keys; `⌘` is `Ctrl` elsewhere). Both apps' bindings are from training knowledge (mid-2026) and need checking against each app's menus before building.
+
+| Action | Apple Notes | Google Docs | Inertia should use | Today |
+| --- | --- | --- | --- | --- |
+| Bold / italic / underline | `⌘B` `⌘I` `⌘U` | same | same | matches |
+| Strikethrough | `⌘⇧X` | `⌘⇧X` | `⌘⇧X` | `⌘⇧S` |
+| Title / Heading / Subheading / Body | `⌘⇧T` / `⌘⇧H` / `⌘⇧J` / `⌘⇧B` | (none) | Notes keys → H1 / H2 / H3 / paragraph | not bound |
+| Heading 1–6, normal text | (none) | `⌘⌥1`–`6`, `⌘⌥0` | Docs keys | `⌘⌥1`–`6` match; `⌘⌥0` missing |
+| Monospaced / code block | `⌘⇧M` | (none) | `⌘⇧M` | `⌘⌥C` |
+| Bulleted list | `⌘⇧7` | `⌘⇧8` | **`⌘⇧7`** (Notes wins) | `⌘⇧8` |
+| Dashed list | `⌘⇧8` | (bullets) | **`⌘⇧8`** dashed list (Notes wins) | bulleted list |
+| Numbered list | `⌘⇧9` | `⌘⇧7` | **`⌘⇧9`** (Notes wins) | `⌘⇧7` |
+| Checklist (task item) | `⌘⇧L` | `⌘⇧9` | **`⌘⇧L`** (Notes wins) | not bound |
+| Mark checklist item done | `⌘⇧U` | (none) | `⌘⇧U` | not bound |
+| Insert link | `⌘K` | `⌘K` | `⌘K` inside the editor | `⌘K` is the global quick-add |
+| Indent / outdent | `⌘]` / `⌘[` | `⌘]` / `⌘[` | same, plus Tab / Shift+Tab in lists | Tab only in task lists |
+| Move list item up / down | `⌃⌘↑` / `⌃⌘↓` | (none) | Notes keys | not bound |
+| Table | `⌥⌘T` | (none) | `⌥⌘T` | not bound |
+| Align left / center / right / justify | (none) | `⌘⇧L` / `⌘⇧E` / `⌘⇧R` / `⌘⇧J` | center/right/justify from Docs; left can't use `⌘⇧L` (checklist) or `⌘⇧J` (Subheading), so left is menu-only | not present |
+| Clear formatting | (none) | `⌘\` | `⌘\` | not bound |
+| Comment | (none) | `⌘⌥M` | `⌘⌥M` (with PM-109) | n/a |
+| Paste without formatting | `⌥⇧⌘V` | `⌘⇧V` | both | browser default |
+| Superscript / subscript | (none) | `⌘.` / `⌘,` | Docs keys | not present |
+| Markdown-style typing (`- `, `1. `, `# `, `[] `) | partial | partial | keep TipTap's input rules | works |
+
+| ID | Item | Notes |
+| --- | --- | --- |
+| PM-240 | **Rebind the editor to the map above**, Apple Notes first | One shortcut table in code that the editor, the `⌘/` cheat sheet and `docs/keyboard-shortcuts.md` all read, so they can't drift. |
+| PM-241 | **Resolve clashes with global shortcuts**: `⌘K` (quick-add) and `⌘E` (new event; also inline code today) | Default: inside the document editor the formatting meaning wins (`⌘K` = link). Quick-add moves to another key or works from outside the editor only. |
+| PM-242 | Dashed list block | Notes' third list style; not in the editor today. |
+| PM-243 | Same bindings in the Mac app, plus Format menu items showing each shortcut | The Mac app loads the web editor, so the bindings carry over. Menu items let people find them. |
+| PM-244 | Windows/Linux equivalents | `Ctrl` for `⌘`; check each against browser-reserved keys (e.g. `Ctrl+Shift+N`, `Ctrl+Shift+T`). |
+
 ## Suggested first slice
 
 1. PM-01, PM-02, PM-03, PM-04: Milestone + Initiative models and rollups.
