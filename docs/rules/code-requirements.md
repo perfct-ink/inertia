@@ -13,7 +13,7 @@ the React and React Hooks sets; stylelint-config-standard-scss). The original pa
 and the views' stylesheets are checked for mistakes only, and API findings that would mean
 editing working code are warnings: fix those deliberately, never as tidying.
 
-### Frontend Requirements### Frontend Requirements
+### Frontend Requirements
 
 #### Responsive Design
 All pages should consider different widths and fit the content appropriately without having to scroll horizontally unless intended. Dark mode should always exist for shared components.
