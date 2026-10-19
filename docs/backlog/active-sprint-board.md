@@ -1,4 +1,5 @@
 ---
+branch: backlog/active-sprint-board
 priority: p2
 depends_on: []
 components: [frontend]
@@ -21,3 +22,6 @@ Sprints exist (`docs/features/sprints.md`), tasks have `sprint_id`, and `/tasks`
 - Dragging a card changes its status and persists it.
 - A Space with no active sprint shows a prompt to pick or start one, not an empty board.
 - A failed update shows an error.
+
+## Blocked
+Implemented on the branch with tests (the board is the Workboard filtered to the sprint, with a header). It touches `docs/features/sprints.md` like `backlog/sprint-start-close-carry-over`; merge both and reconcile that file. To verify: `cd frontend && npm install && npm run lint && npm test`, then open a sprint's board and drag a card in a browser. None of that could run here. Then remove this file and merge.

@@ -1,0 +1,49 @@
+@use 'tokens' as *;
+
+@layer app.components {
+  .sprint_header {
+    display: flex;
+    flex-direction: column;
+    gap: space(2);
+    padding: space(3) space(6);
+    border-bottom-width: 1px;
+
+    @at-root .sprint_header-top {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: baseline;
+      gap: space(3);
+    }
+
+    @at-root .sprint_header-title {
+      font-weight: 600;
+      @include text('lg');
+    }
+
+    @at-root .sprint_header-status {
+      text-transform: capitalize;
+      @include text('xs');
+    }
+
+    @at-root .sprint_header-dates,
+    @at-root .sprint_header-goal,
+    @at-root .sprint_header-progress {
+      color: color(muted-foreground);
+      @include text('sm');
+    }
+
+    @at-root .sprint_header-link {
+      margin-left: auto;
+
+      &:hover {
+        text-decoration: underline;
+      }
+    }
+
+    @at-root .sprint_header-progress {
+      display: flex;
+      align-items: center;
+      gap: space(3);
+    }
+  }
+}

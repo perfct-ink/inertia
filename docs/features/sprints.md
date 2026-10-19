@@ -2,6 +2,7 @@
 
 ## What it does
 - **Sprints page** (`/sprints`, also a Sprints button in the sidebar rail): create a sprint by title, then edit goal, start date, end date and status (Planned, Active, Done). Each card shows a progress bar and "done/total tasks done". Sprints can be deleted; their tasks are kept and lose the sprint.
+- **Sprint board**: each sprint card has an "Open board" link to the Workboard filtered to that sprint (`/tasks?view=kanban&sprint_id=<id>`), which shows a header with the sprint title, status, dates, goal and progress above the usual status columns (drag between columns still works). `/sprint-board` opens the Space's active sprint's board, or, with no active sprint, a prompt to go to the Sprints page instead of an empty board.
 - **Tasks page** (`/tasks`): a Sprint filter in the filter bar (also read from a `?sprint_id=` query parameter), and a sprint picker in the new-task row when the Space has sprints.
 
 ## API and models
@@ -17,7 +18,7 @@ Scoped to the current Space. I did not check role limits.
 None. There is no sprint model or controller test, and no `SprintsScreen` test, in the repo.
 
 ## Known limits
-- No active-sprint board; the Tasks kanban is by status across all tasks. See `docs/backlog/active-sprint-board.md`.
+- The sprint board is the Workboard with a sprint filter and header, not a separate screen; there is no sidebar entry for `/sprint-board` (reach it from the Sprints page).
 - Nothing starts or closes a sprint or carries unfinished tasks over; status is a plain dropdown. See `docs/backlog/sprint-start-close-carry-over.md`.
 - A task's sprint can be set only when it is created; the original claim of "assignment on TasksScreen" is true only for the new-task row. See `docs/backlog/task-detail-edit-milestone.md`.
 - The Sprints page has no owner field, though the API accepts `owner_id`. Goal and dates save on every keystroke or change.
@@ -26,3 +27,4 @@ None. There is no sprint model or controller test, and no `SprintsScreen` test, 
 - Implemented 2026-10-15 (model, API, page, `tasks.sprint_id`, filter). Deployment not checked.
 - Not implemented: active-sprint board, start/close/carry-over.
 - Not verified: nothing was run; read from code only.
+- Active sprint board added 2026-10-19 on branch `backlog/active-sprint-board`, not merged. Tests: `data/sprint.test.ts`, `components/SprintHeader.test.tsx`, `view/sprint_board/SprintBoardScreen.test.tsx`. Not verified: lint, type-check, tests and the browser did not run (no node_modules).
