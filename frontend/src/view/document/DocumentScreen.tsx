@@ -46,6 +46,7 @@ import {
   List,
   ListOrdered,
   ListChecks,
+  ListFilter,
   Code2,
   Minus,
   Table as TableIcon,
@@ -119,6 +120,8 @@ export default function DocumentScreen() {
   const { data: workspace } = useWorkspace()
   const user = useAuthStore((s) => s.user)
   const [linkDialogOpen, setLinkDialogOpen] = useState(false)
+  // Folds everything except headings and task lines, in place (see ProseMirror.scss).
+  const [tasksOnly, setTasksOnly] = useState(false)
   const [saveStatus, setSaveStatus] = useState<'saved' | 'saving' | 'unsaved'>('saved')
   const pendingRef = useRef<{ title?: string; content?: Record<string, unknown> }>({})
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
@@ -490,6 +493,12 @@ export default function DocumentScreen() {
             title="Numbered list"
           />
           <ToolbarBtn
+            icon={<ListFilter className="document-toolbar_icon" />}
+            onClick={() => setTasksOnly((v) => !v)}
+            active={tasksOnly}
+            title={tasksOnly ? 'Show the whole document' : 'Show only tasks'}
+          />
+          <ToolbarBtn
             icon={<ListChecks className="document-toolbar_icon" />}
             onClick={() => {
               const { state, dispatch } = editor.view
@@ -561,7 +570,7 @@ export default function DocumentScreen() {
             }
           }}
         >
-          <div className="document-page">
+          <div className={`document-page${tasksOnly ? ' document-page--tasks_only' : ''}`}>
             <EditorContent editor={editor} />
           </div>
         </div>

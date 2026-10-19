@@ -1,6 +1,7 @@
 ---
 priority: p0
 depends_on: []
+branch: backlog/document-tasks-only-toggle
 components: [frontend, backend]
 ---
 # Collapse any document to just its tasks
@@ -29,3 +30,7 @@ Requested by Alex on 2026-10-18, marked as one of the most important things to t
 - Anything stated in Requirements / notes (including any named default) is implemented or deliberately changed with the reason recorded.
 - Failed API calls show an error to the user.
 - Tests cover the new behaviour; a feature doc in `docs/features/` is written (or the existing one updated) and this file is removed.
+
+## Blocked
+
+Implemented on `backlog/document-tasks-only-toggle` (toolbar toggle, CSS fold of non-heading, non-task top-level blocks, feature doc updated) but not run or tried in a browser here (no `node_modules`, no network), and there is no automated test: the editor is not covered by any existing test and jsdom does not apply the stylesheet. Before merging, run `npm run lint` and try it in a document with prose, headings, a task list and a bulleted list. Known gap: a non-task list that contains a task line is hidden. Then delete this file.

@@ -84,6 +84,12 @@
       cursor: pointer;
     }
 
+    // "Tasks only": hide every top-level block except headings and task lists
+    // (the page carries the --tasks_only state; the nodes stay editable).
+    @at-root .document-page--tasks_only .ProseMirror > :not(h1, h2, h3, h4, h5, h6, ul[data-type='workspaceTaskList']) {
+      display: none;
+    }
+
     ul[data-type='workspaceTaskList'] {
       margin: 0;
       padding: 0;
