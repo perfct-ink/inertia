@@ -43,6 +43,8 @@ export interface WorkspaceSummary {
   name: string
   personal: boolean
   role: WorkspaceRole | null
+  // The optional sections this Space shows (all of them unless it chose).
+  features?: string[]
 }
 
 export interface Workspace extends WorkspaceSummary {

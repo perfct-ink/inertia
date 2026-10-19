@@ -19,8 +19,24 @@ export function useWorkspaces() {
 export function useCreateWorkspace() {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: (name: string) => api.post('/api/v1/workspaces', { workspace: { name } }).then((r) => r.data as WorkspaceSummary),
+    // A name alone, or a name with the features the Space should start with.
+    mutationFn: (input: string | { name: string; features?: string[] }) => {
+      const workspace = typeof input === 'string' ? { name: input } : input
+      return api.post('/api/v1/workspaces', { workspace }).then((r) => r.data as WorkspaceSummary)
+    },
     onSuccess: () => qc.invalidateQueries({ queryKey: ['workspaces'] }),
+  })
+}
+
+// Owners and admins choose which optional sections the active Space shows.
+export function useUpdateWorkspaceFeatures() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (features: string[]) => api.patch('/api/v1/workspace', { workspace: { features } }).then((r) => r.data as WorkspaceSummary),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['workspace'] })
+      qc.invalidateQueries({ queryKey: ['workspaces'] })
+    },
   })
 }
 

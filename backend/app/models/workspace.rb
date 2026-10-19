@@ -18,10 +18,23 @@ class Workspace < ApplicationRecord
   has_many :objectives, dependent: :destroy
   has_many :quip_imports, dependent: :destroy
 
+  # The optional sections a Space can turn off (docs/features/space_features.md).
+  FEATURES = %w[events epics initiatives milestones sprints okrs roadmap hierarchy].freeze
+
   validates :name, presence: true
+  validate :features_are_known
   after_create :add_creator_as_owner
   after_create :ensure_document_root!
   before_destroy :prepare_destroy, prepend: true
+
+  # The sections this Space shows; a Space that never chose shows all of them.
+  def enabled_features
+    features.nil? ? FEATURES : FEATURES & Array(features)
+  end
+
+  def feature_enabled?(name)
+    enabled_features.include?(name.to_s)
+  end
 
   def ensure_document_root!
     return root_folder if root_folder_id.present?
@@ -37,6 +50,13 @@ class Workspace < ApplicationRecord
   end
 
   private
+
+  def features_are_known
+    return if features.nil?
+    unless features.is_a?(Array) && (features - FEATURES).empty?
+      errors.add(:features, "can only be #{FEATURES.join(', ')}")
+    end
+  end
 
   def prepare_destroy
     protect_personal

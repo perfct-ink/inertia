@@ -1,11 +1,13 @@
 import { useState } from 'react'
-import { Check, ChevronsUpDown, Plus, Users } from 'lucide-react'
-import { Button, Modal, PromptDialog } from '@/components/ui'
+import { Check, ChevronsUpDown, Plus, SlidersHorizontal, Users } from 'lucide-react'
+import { Button, Modal } from '@/components/ui'
 import { useWorkspace } from '@/api/workspace'
 import { useCreateWorkspace, useWorkspaces } from '@/api/workspaces'
 import { useSwitchWorkspace } from '@/hooks/useSwitchWorkspace'
 import type { WorkspaceSummary } from '@/types'
 import { WorkspaceMembers } from './WorkspaceMembers'
+import { WorkspaceFeatures } from './WorkspaceFeatures'
+import { NewWorkspaceDialog } from './NewWorkspaceDialog'
 import './WorkspaceSwitcher.scss'
 
 // The sidebar header's workspace name, which opens a list to switch between
@@ -18,15 +20,16 @@ export function WorkspaceSwitcher() {
   const [listOpen, setListOpen] = useState(false)
   const [creating, setCreating] = useState(false)
   const [membersOpen, setMembersOpen] = useState(false)
+  const [featuresOpen, setFeaturesOpen] = useState(false)
 
   function switchTo(workspace: WorkspaceSummary) {
     setListOpen(false)
     if (workspace.id !== current?.id) switchWorkspace(workspace)
   }
 
-  function create(name: string) {
-    if (!name) return
-    createWorkspace.mutate(name, { onSuccess: switchTo })
+  function create(input: { name: string; features: string[] }) {
+    setCreating(false)
+    createWorkspace.mutate(input, { onSuccess: switchTo })
   }
 
   return (
@@ -63,10 +66,16 @@ export function WorkspaceSwitcher() {
               <Users className="workspace_switcher-icon" /> Members
             </Button>
           )}
+          {current && (
+            <Button variant="secondary" onClick={() => { setListOpen(false); setFeaturesOpen(true) }}>
+              <SlidersHorizontal className="workspace_switcher-icon" /> Features
+            </Button>
+          )}
         </div>
       </Modal>
 
-      <PromptDialog open={creating} title="New space" label="Space name" placeholder="e.g. Website relaunch" submitLabel="Create" onSubmit={create} onClose={() => setCreating(false)} />
+      <NewWorkspaceDialog open={creating} onSubmit={create} onClose={() => setCreating(false)} />
+      {current && <WorkspaceFeatures workspace={current} open={featuresOpen} onClose={() => setFeaturesOpen(false)} />}
       {current && <WorkspaceMembers workspace={current} open={membersOpen} onClose={() => setMembersOpen(false)} />}
     </>
   )

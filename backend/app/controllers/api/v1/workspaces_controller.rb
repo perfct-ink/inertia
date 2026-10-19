@@ -71,7 +71,7 @@ module Api
       end
 
       def workspace_params
-        params.require(:workspace).permit(:name)
+        params.require(:workspace).permit(:name, features: [])
       end
     end
   end
