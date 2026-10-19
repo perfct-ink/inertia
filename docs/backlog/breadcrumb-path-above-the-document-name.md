@@ -1,4 +1,5 @@
 ---
+branch: backlog/breadcrumb-path-above-the-document-name
 priority: p1
 depends_on: []
 components: [frontend]
@@ -27,3 +28,6 @@ Today: the editor has a plain Link extension (any URL) but no picker for interna
 - Anything stated in Requirements / notes (including any named default) is implemented or deliberately changed with the reason recorded.
 - Failed API calls show an error to the user.
 - Tests cover the new behaviour; a feature doc in `docs/features/` is written (or the existing one updated) and this file is removed.
+
+## Blocked
+Implemented on the branch with tests. To verify: `cd frontend && npm install && npm run lint && npm test`, then open a nested document in a browser, including a narrow viewport and dark mode. None of that could run here (no node_modules). Then remove this file and merge.

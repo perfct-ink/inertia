@@ -18,6 +18,25 @@ export function projectsOf(folders: Folder[]): Folder[] {
     .sort((a, b) => a.name.localeCompare(b.name))
 }
 
+// The folders from the top of the Space down to `folderId`, without the Root,
+// or [] when the folder is not found (or is the Root itself).
+export function folderTrail(folders: Folder[], folderId: number): Folder[] {
+  const walk = (folder: Folder, path: Folder[]): Folder[] | null => {
+    const here = folder.root ? path : [...path, folder]
+    if (folder.id === folderId) return here
+    for (const child of folder.children ?? []) {
+      const found = walk(child, here)
+      if (found) return found
+    }
+    return null
+  }
+  for (const folder of folders) {
+    const found = walk(folder, [])
+    if (found) return found
+  }
+  return []
+}
+
 // One document in a Space: where it lives and which project holds it.
 export interface SpaceFile {
   document: Document

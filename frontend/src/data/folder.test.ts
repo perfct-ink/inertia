@@ -1,5 +1,5 @@
 import type { Document, Folder } from '@/types'
-import { documentsIn, flattenFolders, projectLastModified, projectsOf, searchSpaceFiles, spaceFiles } from './folder'
+import { documentsIn, flattenFolders, folderTrail, projectLastModified, projectsOf, searchSpaceFiles, spaceFiles } from './folder'
 
 const folder = (id: number, children: Folder[] = []) => ({ id, name: `F${id}`, children }) as unknown as Folder
 
@@ -48,4 +48,11 @@ test('documentsIn and projectLastModified cover nested folders', () => {
   expect(documentsIn(messages).map((d) => d.title)).toEqual(['Spec', 'Mockups'])
   expect(projectLastModified(messages)).toBe('2026-10-09T00:00:00Z')
   expect(projectLastModified(tree()[0].children[2])).toBeNull()
+})
+
+test('folderTrail lists the folders from the top down, without Root', () => {
+  expect(folderTrail(tree(), 3).map((f) => f.name)).toEqual(['Messages', 'Design'])
+  expect(folderTrail(tree(), 2).map((f) => f.name)).toEqual(['Messages'])
+  expect(folderTrail(tree(), 1)).toEqual([])
+  expect(folderTrail(tree(), 99)).toEqual([])
 })
