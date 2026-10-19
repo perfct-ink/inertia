@@ -2,9 +2,9 @@
 
 Document editor, file manager, and task tracker. Rails API + React frontend.
 
-Docs index: [spaces](spaces.md), [services and configuration](services.md), [UI components](ui-components.md), [keyboard shortcuts](keyboard-shortcuts.md), [getting started checklist](onboarding.md), [backlog](backlog.md).
+Docs index: [spaces](spaces.md), [services and configuration](services.md), [UI components](ui-components.md), [keyboard shortcuts](keyboard-shortcuts.md), [getting started checklist](onboarding.md), [rules](rules/), [features](features/README.md), [backlog](backlog/) (one file per task; [legacy list](backlog.md)).
 
-Create Documents, Sheets, or Tables from the file list, folder overview, or sidebar. Tables have named fields with text, integer, number, boolean, date, datetime, or relation datatypes. Relation fields link to one record in another workspace table using a database foreign key; multiple records can reference the same record. Table records are saved individually, and dates/times are entered in UTC. Clear a field's values before changing its datatype. Referenced records and tables must be unlinked before deletion.
+Create Documents, Sheets, or Collections from the file list, folder overview, or sidebar. Collections have named fields with text, integer, number, boolean, date, datetime, or relation datatypes. Relation fields link to one record in another Space collection using a database foreign key; multiple records can reference the same record. Collection records are saved individually, and dates/times are entered in UTC. Clear a field's values before changing its datatype. Referenced records and collections must be unlinked before deletion.
 
 ## Linting and tests
 

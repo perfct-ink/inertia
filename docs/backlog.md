@@ -2,31 +2,9 @@
 
 ## How this document works
 
-This is the single list of planned and partly built work. Any agent or person can use it; it assumes no particular tool. Read `AGENTS.md` first for repo rules (linting, DRY, UI components, docs).
+This file is the **legacy** list of planned work, kept as it was until its rows are split up. New work does not go here: follow `docs/rules/backlog.md`. Each task is its own file in `docs/backlog/`, finished work is documented in `docs/features/`, and execution is tracked in Git branches and pull requests, not in this file. Do not track task status here.
 
-### Adding work
-- Add new ideas here instead of in chat, issues or code comments, so the next agent finds them.
-- Give each item a stable ID with the section's prefix and the next free number (`PM-197`). Never renumber or reuse an ID; reference it in commits and PRs.
-- One table row per item: ID, item, what exists today, notes. Say what "done" means, in a sentence a stranger could check. Larger initiatives get their own section with a goal, status and open questions.
-- Record where the ask came from and when (for example "Alex, 2026-10-13") when a person requested it, and keep any priority they gave.
-
-### Picking up work
-1. Take the highest-priority item that isn't built. P0 comes before P1, and so on. If the user named an item, do that one. If an item says "Needs PM-nn", do that first or say why you're skipping it.
-2. Check the "Today" text against the code (`backend/db/schema.rb`, models, routes, `frontend/src`) before starting. It can be stale. Fix the row if it is.
-3. Make the smallest slice that is usable end to end (model, API, UI, tests, docs), not a half-built layer. Follow `AGENTS.md`.
-4. Run what the environment allows (`npm run lint`, frontend and backend tests). If something can't run, for example because there's no network or dependencies aren't installed, say so in your report. Don't claim it passed.
-5. Don't commit or push unless the user asks.
-
-### Finishing work
-- **Fully built**: remove the row from this file and add a short entry to `docs/features.md` (create it if missing) with the ID, what it does, and where it lives in the code. Keep the ID so old commits still resolve.
-- **Partly built**: leave the row here. Start the "Today" text with **Partly built** and the date, then say what works and what remains. Put the remainder in the notes column so the next agent can pick it up cold.
-- **Dropped or blocked**: leave the row, mark it **Blocked** or **Dropped** with the reason and date. Don't delete it silently.
-- Update the "Suggested first slice" and "Open questions" sections when your work answers them. Record any new gaps you find as new rows.
-- Update `docs/` for anything you change in architecture, services or configuration (see `AGENTS.md`).
-
-### Reporting back
-Say which IDs you worked on, what changed, what you couldn't verify, and what you'd do next.
-
+Rows that were built or partly built on 2026-10-18 (PM-03, PM-04, PM-06, PM-10, PM-12, PM-14, PM-17) have been removed from this file: see `docs/features/` for what exists and `docs/backlog/` for what remains. Their IDs may still be referenced elsewhere in this file.
 
 ## : Monday.com feature parity
 
@@ -83,24 +61,17 @@ Default chosen for this backlog: Milestone is the top-level container, and each 
 | --- | --- | --- | --- |
 | PM-01 | **Milestone as a first-class model** (built 2026-10-15) | Done: `milestones` table (title, description, target date, status, owner, folder), `Milestone` model, `/api/v1/milestones`, Milestones page. Flat, no nesting. Not done: existing `events.event_type = milestone` rows are **not** migrated (events keep working for the calendar); "Space" has no equivalent here. |
 | PM-02 | **Milestone rollup** (built 2026-10-15) | Done: `MilestoneRollup` computes task/done/epic/initiative counts and percent in four queries; `Milestone#health` returns on track / at risk / off track (overdue = off track; due within 14 days and under 75% = at risk). Shown on the Milestones page. |
-| PM-03 | **Initiative model and initiative list** (built 2026-10-18) | Done: description, status (planned/active/done), owner and `milestone_id` on the API and model; milestone selector on the Initiatives page. Initiatives page edits description (on blur), status and owner inline. Remaining: nothing known. |
-| PM-04 | `epics.initiative_id`, `epics.milestone_id`, `tasks.milestone_id` (built 2026-10-15) | Done: all three columns, inheritance (task → epic → initiative) in `MilestoneRollup`, same-workspace validation, API params. Task quick-add has a milestone selector (epics and initiatives have one on their pages). Remaining: editing a task's milestone after creation (no task detail view yet). |
 | PM-05 | **Hierarchy tree view**: Milestone → Initiative → Epic → Task → Subtask, expand/collapse, inline progress bars at each level (built 2026-10-16) | Done: `/hierarchy` page; `data/hierarchy.ts` normalizes all four levels into one tree (structural parent first — `epic_id`/`parent_id` — falling back to the item's own `milestone_id`, same inheritance `MilestoneRollup` uses server-side; anything with neither lands in an "Unassigned" section instead of being dropped); expand/collapse per node; a progress bar at every level (task-level rollup computed client-side from the subtask tree, since only Milestone/Initiative/Epic get one from the API). | Moves are PM-06. |
-| PM-06 | Move/reparent anywhere in the tree by drag-and-drop | Task reparenting validated in `Task#parent_is_not_self_or_a_descendant` | **Partly built** 2026-10-18: epic↔initiative↔milestone can't form cycles (separate tables, one-way keys), so no cycle check is needed there. Added the real gap instead: `SameWorkspace` validation so an epic's initiative and a task's epic/parent must be in the same Space (milestones already were). Drag-and-drop on `/hierarchy` (dnd-kit; rules in `reparentChanges`, `data/hierarchy.ts`): initiative→milestone, epic→initiative/milestone, task→epic/task/milestone, and a drop on Unassigned detaches. Nesting a task under another task keeps its `epic_id`. Remaining: not tried in a browser; no keyboard-accessible move; no drop-position ordering; no toast when the server rejects a move beyond the global API error. |
 | PM-07 | Local `.inertia-tasks` file format gains Initiative + Milestone levels | File format has Epics, Sprints, Milestones (via Events) | Open question carried over from `project-management-features.md`. Default: hosted first, file format follows. |
 
 ## 2. Gantt chart (P0)
 
 | ID | Item | Today | Notes |
 | --- | --- | --- | --- |
-| PM-10 | **Gantt view** for tasks, epics, initiatives: bars from start to end date, grouped by hierarchy, milestone diamonds on the axis | **Partly built** (2026-10-16): the per-folder Gantt tab now also plots that folder's tasks (`start_date`→`due_date`) alongside its epics, combined on one shared `components/Timeline.tsx` axis. Milestones with a target date in that folder now show as diamonds on a marker row above the bars. Dated tasks are now nested under their epic (indented; `groupGanttRows`). Still missing: initiative/milestone grouping above epics, and this hasn't reached the global Epics/Initiatives Timeline pages, only the folder Gantt tab. | Needs PM-11 first for task bars — done. |
 | PM-11 | `tasks.start_date` (keep `due_date` as end) (built 2026-10-16) | Done: `tasks.start_date` column, `due_date`-not-before-`start_date` validation (same pattern as Epic/Sprint), permitted on the API, shown as a Start→Due pair in the task quick-add row (`AddTaskInput`). | Still write-only like `due_date` already was — no task detail view exists yet to edit dates after creation (pre-existing gap, not new). |
-| PM-12 | Drag a bar to reschedule, drag an edge to resize (**partly built** 2026-10-18) | Folder Gantt only: `Timeline` takes `onReschedule`; dragging a bar moves it, its edges resize, snapping to days (`shiftedRange`, `data/schedule.ts`), and `GanttPane` saves task `start_date`/`due_date` or epic `start_date`/`target_date`. | Not tried in a browser. Mouse/touch only (no keyboard way to reschedule). Successors aren't shifted (that's PM-14). Epics/Initiatives timeline pages and the roadmap are still read-only. |
 | PM-13 | **Dependencies**: finish-to-start, start-to-start, finish-to-finish, start-to-finish, drawn as arrows (built 2026-10-17) | Done: `task_dependencies` table and `TaskDependency` model (same-space, no self links, no duplicates, no loops), `/api/v1/task_dependencies`, arrows on the shared `Timeline` (`links` prop), and a Dependencies editor under the folder Gantt (`view/folder_detail/GanttPane.tsx`). Links are removed with either task. Not done: drawing a link by dragging between bars. | New `task_dependencies` join table. Also Jira-doc sequence step 5. |
-| PM-14 | Dependency scheduling modes: strict (block invalid dates), flexible (auto-shift successors), none (**built 2026-10-18**, untested in a browser) | Done: `folders.dependency_mode` (none/strict/flexible, per folder), a mode picker on the folder Gantt, and `planReschedule` (`data/dependency.ts`) deciding a drag: strict shows an error and refuses a move that breaks a link, flexible pushes dependants later by the shortfall keeping their length. | Only reacts to Gantt drags (PM-12), not edits elsewhere or the server API; the server doesn't enforce the mode. Dependants shift later only, never earlier. |
 | PM-15 | **Critical path** highlight (built 2026-10-17) | Done: `drivingPath` in `data/dependency.ts` walks back from the task that finishes last through whichever predecessor's linked date is latest; those bars get a red outline, toggled by "Highlight critical path". Uses dates as entered (no re-scheduling), so it shows what drives the finish today. | Slack/float per task would need PM-14's scheduling. |
 | PM-16 | **Baselines**: snapshot planned dates, show planned vs. actual bars | n/a | |
-| PM-17 | Zoom: days / weeks / months / quarters / years; "today" line; weekends shaded or skipped | **Partly built**: a "today" line on the shared `Timeline` (when today is in range). | Zoom levels and weekend shading remain. |
 | PM-18 | Export Gantt to PNG / PDF | n/a | |
 | PM-19 | Native macOS online Gantt | Named a future stage in `macos/README.md` | Same API as web. |
 
@@ -450,24 +421,6 @@ Proposed map (Mac keys; `⌘` is `Ctrl` elsewhere). Both apps' bindings are from
 | PM-243 | Same bindings in the Mac app, plus Format menu items showing each shortcut | The Mac app loads the web editor, so the bindings carry over. Menu items let people find them. |
 | PM-244 | Windows/Linux equivalents | `Ctrl` for `⌘`; check each against browser-reserved keys (e.g. `Ctrl+Shift+N`, `Ctrl+Shift+T`). |
 | PM-245 | **Assign a paragraph style to a keystroke** (Alex, 2026-10-18): any built-in or custom paragraph style (section 14, PM-140–146) can get a shortcut, set by the user | Default: per-user, saved with the user's styles, editable from the style's menu and the `⌘/` sheet. Warn on clash with a built-in key and let the user's choice win inside the editor. Suggested free range: `⌃⌘1`–`⌃⌘9`. |
-
-## 25. AI workers: AI doing backlog tasks (P1)
-
-Alex asked (2026-10-18) for an "AI worker piece": AI that picks up tasks from the backlog and works them. The goal is that a person hands a task to a named worker, the worker produces a result, and the person reviews it. Nothing a worker does changes the Space until a person accepts it.
-
-| ID | Item | Today | Notes |
-| --- | --- | --- | --- |
-| PM-256 | **Workers and runs** (built 2026-10-18, untested: no gems or network here) | Done: `ai_workers` (name, instructions, model, enabled) and `ai_runs` (task, worker, status queued/running/succeeded/failed, output, error, timestamps); `/api/v1/ai_workers` CRUD and `/api/v1/ai_runs` (list, queue); `AiWorkerRunJob` and `AiWorkers::Runner`; one active run per task and worker; same-Space checks. A run stores text only. | The model call is behind `AiWorkers.client`, **unset by default**, so every run fails with "No AI client is configured" until PM-257. |
-| PM-257 | **Anthropic adapter** for `AiWorkers.client` | Not present | Add the official `anthropic` gem (needs `bundle install` online to update `Gemfile.lock`; do it before merging), read `ANTHROPIC_API_KEY`, default model `claude-opus-5-5`. Stream the reply (large outputs), handle refusals and rate limits as failed runs with a readable message. Update `docs/services.md`. |
-| PM-258 | **Run UI**: a worker picker on a task, run history with status, the output shown and copyable, and a Workers settings page (create, edit instructions, enable/disable) | Not present | The API exists. Tasks have no detail view yet, so start from the task row or the Kanban card. |
-| PM-259 | **Accept a result**: turn a run's output into a task description, a comment, or a new document, with one click and an undo | Not present | Keep a person in the loop. This is the first step that lets a worker's text change data. |
-| PM-260 | **Context beyond the task**: include the task's epic, parent, linked document and sub-tasks in the prompt | Prompt carries title, status, due date and description only (`AiWorkers::Prompt`) | Mind prompt size and what leaves the Space. |
-| PM-261 | **Assign a task to a worker** (AI as an assignee), optionally auto-run when a task enters a status | Not present | Today `assignee_id` is a user. Default: a separate `ai_worker_id` on tasks rather than fake users. Pairs with PM-70 automations. |
-| PM-262 | **Worker tools**: let a worker read the Space and propose edits (create sub-tasks, set dates) through a narrow, permissioned tool set | Not present | Needs PM-259 first, an approval step, and an audit log. Tool runner or manual loop per the Claude API guidance. |
-| PM-263 | **Limits and cost**: per-Space monthly token or run cap, per-run timeout, a visible usage total | Not present | Runs can be long and cost real money. Also decide retention for stored output and what to tell users about task text going to Anthropic. |
-| PM-264 | **Retry and cancel** a run; mark runs stuck in `running` after a restart as failed | Not present | The in-process queue loses jobs on restart (same as Quip import). |
-
-Open question: should workers be one per Space, or shareable across a user's Spaces? Default: per Space.
 
 ## Suggested first slice
 
