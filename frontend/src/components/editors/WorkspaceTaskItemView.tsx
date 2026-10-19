@@ -3,7 +3,10 @@ import { NodeViewWrapper, NodeViewContent, type NodeViewProps } from '@tiptap/re
 import { format, parseISO } from 'date-fns'
 import { CalendarDays } from 'lucide-react'
 import { useTasks, useUpdateTask } from '@/api/tasks'
-import { Button, Input } from '@/components/ui'
+import { useWorkspaceMembers } from '@/api/workspaces'
+import { useWorkspaceStore } from '@/store/workspaces'
+import { Button, Input, Select } from '@/components/ui'
+import type { Task } from '@/types'
 import './WorkspaceTaskItemView.scss'
 
 const STATUS_DOT: Record<string, string> = {
@@ -48,6 +51,47 @@ function DueDateControl({ taskId, dueDate }: { taskId: number; dueDate: string |
   )
 }
 
+const STATUS_OPTIONS: Task['status'][] = ['backlog', 'todo', 'in_progress', 'in_review', 'done']
+
+// Status, assignee and start date for a synced line; saves through the same
+// task update call as the due date. Failed saves surface via the api interceptor.
+function TaskFieldControls({ task }: { task: Task }) {
+  const updateTask = useUpdateTask()
+  const workspaceId = useWorkspaceStore((s) => s.activeWorkspaceId) ?? 0
+  const { data: members = [] } = useWorkspaceMembers(workspaceId)
+  const save = (data: Partial<Task>) => updateTask.mutate({ id: task.id, ...data })
+
+  return (
+    <div className="task_item-fields" contentEditable={false}>
+      <Select
+        aria-label="Status"
+        value={task.status}
+        onChange={(e) => save({ status: e.target.value as Task['status'] })}
+      >
+        {STATUS_OPTIONS.map((s) => (
+          <option key={s} value={s}>{s.replace('_', ' ')}</option>
+        ))}
+      </Select>
+      <Select
+        aria-label="Assignee"
+        value={task.assignee_id ?? ''}
+        onChange={(e) => save({ assignee_id: e.target.value ? Number(e.target.value) : null })}
+      >
+        <option value="">Unassigned</option>
+        {members.map((m) => (
+          <option key={m.user_id} value={m.user_id}>{m.user.name}</option>
+        ))}
+      </Select>
+      <Input
+        type="date"
+        aria-label="Start date"
+        value={task.start_date ?? ''}
+        onChange={(e) => save({ start_date: e.target.value || null })}
+      />
+    </div>
+  )
+}
+
 export default function WorkspaceTaskItemView({ node }: NodeViewProps) {
   const { data: tasks = [] } = useTasks()
   const taskId = node.attrs.taskId as number | null
@@ -69,6 +113,7 @@ export default function WorkspaceTaskItemView({ node }: NodeViewProps) {
             (not a sibling of it) so it sits right under the task instead of
             at the far right edge of the whole editor. */}
         {taskId && <DueDateControl taskId={taskId} dueDate={task?.due_date ?? null} />}
+        {task && <TaskFieldControls task={task} />}
       </div>
     </NodeViewWrapper>
   )
