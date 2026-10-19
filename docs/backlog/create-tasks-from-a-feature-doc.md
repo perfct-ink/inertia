@@ -1,4 +1,5 @@
 ---
+branch: backlog/create-tasks-from-a-feature-doc
 priority: p0
 depends_on: []
 ---
@@ -34,3 +35,6 @@ Today: folders already nest to any depth (`folders.parent_id`, `Folder#self_and_
 - Anything stated in Requirements / notes (including any named default) is implemented or deliberately changed with the reason recorded.
 - Failed API calls show an error to the user.
 - Tests cover the new behaviour; a feature doc in `docs/features/` is written (or the existing one updated) and this file is removed.
+
+## Blocked
+Implemented on the branch for any document (selected text becomes a task line linked via the normal sync). It does not need feature folders. To verify: `cd frontend && npm install && npm run lint && npm test`, then select text in a document and press the toolbar button in a browser (the button's enabled state follows the selection and was never seen). Then remove this file and merge.

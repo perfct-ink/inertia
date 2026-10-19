@@ -1,5 +1,5 @@
 import type { Document } from '@/types'
-import { buildInitialContent, extractTitle, lastModified, DOC_TYPE_LABELS } from './document'
+import { buildInitialContent, extractTitle, lastModified, selectionTaskTitle, taskListContent, DOC_TYPE_LABELS } from './document'
 
 test('extractTitle reads the leading heading', () => {
   expect(extractTitle(buildInitialContent('Launch plan'))).toBe('Launch plan')
@@ -18,4 +18,16 @@ test('lastModified prefers the content timestamp', () => {
 
 test('users see tables as Collections', () => {
   expect(DOC_TYPE_LABELS.table).toBe('Collection')
+})
+
+test('selectionTaskTitle collapses whitespace and rejects an empty selection', () => {
+  expect(selectionTaskTitle('  Users can\n  export   a report ')).toBe('Users can export a report')
+  expect(selectionTaskTitle('   \n ')).toBeNull()
+})
+
+test('taskListContent is a task list with one task line holding the text', () => {
+  expect(taskListContent('Export a report')).toEqual({
+    type: 'workspaceTaskList',
+    content: [{ type: 'workspaceTaskItem', content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Export a report' }] }] }],
+  })
 })
