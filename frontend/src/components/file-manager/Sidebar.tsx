@@ -6,6 +6,7 @@ import { Database } from 'lucide-react'
 import { useState, useRef, useEffect, type ComponentType } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useSidebarStore } from '@/store/sidebar'
+import { useActiveOnboarding, useOnboardingStore } from '@/store/onboarding'
 import {
   FolderPlus, CheckSquare, FilePlus, FileText,
   Table as TableIcon, Pin, Folder, Loader2, CalendarDays,
@@ -88,6 +89,7 @@ export default function Sidebar() {
   const [showArchived, setShowArchived] = useState(false)
   const { data: archivedFolders = [] } = useArchivedFolders()
   const [accountOpen, setAccountOpen] = useState(false)
+  const onboardingVisible = useActiveOnboarding(user?.id) !== null
   const [shortcutsOpen, setShortcutsOpen] = useState(false)
   const [quipImportOpen, setQuipImportOpen] = useState(false)
   const [quipToken, setQuipToken] = useState('')
@@ -524,6 +526,14 @@ export default function Sidebar() {
                 <Download className="sidebar-icon--sm" />
                 Import from Quip
               </Button>
+              {user && !onboardingVisible && (
+                <Button variant="secondary"
+                  onClick={() => { useOnboardingStore.getState().reopen(user.id); setAccountOpen(false); navigate('/space') }}
+                  className="sidebar-wide_button"
+                >
+                  Show getting started
+                </Button>
+              )}
               <Button variant="secondary"
                 onClick={handleLogout}
                 className="sidebar-wide_button sidebar-signout"
