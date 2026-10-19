@@ -451,6 +451,24 @@ Proposed map (Mac keys; `⌘` is `Ctrl` elsewhere). Both apps' bindings are from
 | PM-244 | Windows/Linux equivalents | `Ctrl` for `⌘`; check each against browser-reserved keys (e.g. `Ctrl+Shift+N`, `Ctrl+Shift+T`). |
 | PM-245 | **Assign a paragraph style to a keystroke** (Alex, 2026-10-18): any built-in or custom paragraph style (section 14, PM-140–146) can get a shortcut, set by the user | Default: per-user, saved with the user's styles, editable from the style's menu and the `⌘/` sheet. Warn on clash with a built-in key and let the user's choice win inside the editor. Suggested free range: `⌃⌘1`–`⌃⌘9`. |
 
+## 25. AI workers: AI doing backlog tasks (P1)
+
+Alex asked (2026-10-18) for an "AI worker piece": AI that picks up tasks from the backlog and works them. The goal is that a person hands a task to a named worker, the worker produces a result, and the person reviews it. Nothing a worker does changes the Space until a person accepts it.
+
+| ID | Item | Today | Notes |
+| --- | --- | --- | --- |
+| PM-256 | **Workers and runs** (built 2026-10-18, untested: no gems or network here) | Done: `ai_workers` (name, instructions, model, enabled) and `ai_runs` (task, worker, status queued/running/succeeded/failed, output, error, timestamps); `/api/v1/ai_workers` CRUD and `/api/v1/ai_runs` (list, queue); `AiWorkerRunJob` and `AiWorkers::Runner`; one active run per task and worker; same-Space checks. A run stores text only. | The model call is behind `AiWorkers.client`, **unset by default**, so every run fails with "No AI client is configured" until PM-257. |
+| PM-257 | **Anthropic adapter** for `AiWorkers.client` | Not present | Add the official `anthropic` gem (needs `bundle install` online to update `Gemfile.lock`; do it before merging), read `ANTHROPIC_API_KEY`, default model `claude-opus-5-5`. Stream the reply (large outputs), handle refusals and rate limits as failed runs with a readable message. Update `docs/services.md`. |
+| PM-258 | **Run UI**: a worker picker on a task, run history with status, the output shown and copyable, and a Workers settings page (create, edit instructions, enable/disable) | Not present | The API exists. Tasks have no detail view yet, so start from the task row or the Kanban card. |
+| PM-259 | **Accept a result**: turn a run's output into a task description, a comment, or a new document, with one click and an undo | Not present | Keep a person in the loop. This is the first step that lets a worker's text change data. |
+| PM-260 | **Context beyond the task**: include the task's epic, parent, linked document and sub-tasks in the prompt | Prompt carries title, status, due date and description only (`AiWorkers::Prompt`) | Mind prompt size and what leaves the Space. |
+| PM-261 | **Assign a task to a worker** (AI as an assignee), optionally auto-run when a task enters a status | Not present | Today `assignee_id` is a user. Default: a separate `ai_worker_id` on tasks rather than fake users. Pairs with PM-70 automations. |
+| PM-262 | **Worker tools**: let a worker read the Space and propose edits (create sub-tasks, set dates) through a narrow, permissioned tool set | Not present | Needs PM-259 first, an approval step, and an audit log. Tool runner or manual loop per the Claude API guidance. |
+| PM-263 | **Limits and cost**: per-Space monthly token or run cap, per-run timeout, a visible usage total | Not present | Runs can be long and cost real money. Also decide retention for stored output and what to tell users about task text going to Anthropic. |
+| PM-264 | **Retry and cancel** a run; mark runs stuck in `running` after a restart as failed | Not present | The in-process queue loses jobs on restart (same as Quip import). |
+
+Open question: should workers be one per Space, or shareable across a user's Spaces? Default: per Space.
+
 ## Suggested first slice
 
 1. PM-01, PM-02, PM-03, PM-04: Milestone + Initiative models and rollups.
