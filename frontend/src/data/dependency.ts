@@ -19,6 +19,11 @@ export function linkSides(kind: DependencyKind): { from: BarSide; to: BarSide } 
   return { from: from === 'start' ? 'start' : 'end', to: to === 'start' ? 'start' : 'end' }
 }
 
+// The reverse of linkSides: the kind for a link drawn from one bar side to another.
+export function kindFromSides(from: BarSide, to: BarSide): DependencyKind {
+  return `${from === 'start' ? 'start' : 'finish'}_to_${to === 'start' ? 'start' : 'finish'}` as DependencyKind
+}
+
 type DatedTask = { id: number; start_date?: string | null; due_date: string | null }
 
 // The chain of tasks that drives the latest finish date (PM-15). Starting

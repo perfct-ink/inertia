@@ -1,4 +1,5 @@
 ---
+branch: backlog/gantt-drag-to-link-dependencies
 priority: p0
 depends_on: []
 components: [frontend]
@@ -23,3 +24,6 @@ Folder Gantt (`view/folder_detail/GanttPane.tsx`, `components/Timeline.tsx`) dra
 - Each of the four side combinations maps to the matching kind.
 - Dropping on empty space, the same task, or an existing pair creates nothing; a loop attempt shows the server error.
 - Moving or resizing a bar still works as before.
+
+## Blocked
+Implemented on the branch with tests. To verify: `cd frontend && npm install && npm run lint && npm test`, then in a browser on a folder's Gantt tab drag between bar-side dots, check that bar move and resize still work, and check a loop shows the server error. None of that could run here (no node_modules, no network). Then remove this file and merge.

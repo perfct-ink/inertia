@@ -56,6 +56,21 @@
       color: color(muted-foreground);
     }
 
+    @at-root .timeline-linking {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      overflow: visible;
+      pointer-events: none;
+
+      &-line {
+        stroke: color(primary);
+        stroke-width: 2;
+        stroke-dasharray: 4 3;
+      }
+    }
+
     @at-root .timeline-rows {
       position: relative;
       display: flex;
@@ -126,6 +141,39 @@
         &:hover {
           background: color(primary, 0.4);
         }
+      }
+
+      // Dots on each side that start a dependency link when dragged.
+      &-link {
+        position: absolute;
+        top: 50%;
+        width: space(2.5);
+        height: space(2.5);
+        transform: translateY(-50%);
+        border: 1px solid color(primary);
+        border-radius: radius('full');
+        background: color(background);
+        cursor: crosshair;
+        opacity: 0;
+        transition: opacity 0.15s;
+
+        &--start {
+          left: calc(-1 * #{space(3)});
+        }
+
+        &--end {
+          right: calc(-1 * #{space(3)});
+        }
+
+        &:hover,
+        &:focus-visible {
+          background: color(primary);
+        }
+      }
+
+      &:hover > .timeline-bar-link,
+      &--dragging > .timeline-bar-link {
+        opacity: 1;
       }
 
       // Roadmap colors bars by health; on track keeps the default primary.

@@ -1,5 +1,5 @@
 import type { TaskDependency } from '@/types'
-import { drivingPath, linkSides, planReschedule } from './dependency'
+import { DEPENDENCY_KINDS, drivingPath, kindFromSides, linkSides, planReschedule } from './dependency'
 
 const dep = (predecessor_id: number, successor_id: number, kind: TaskDependency['kind'] = 'finish_to_start') =>
   ({ id: predecessor_id * 100 + successor_id, predecessor_id, successor_id, kind, created_at: '' })
@@ -67,4 +67,12 @@ describe('planReschedule', () => {
       ],
     })
   })
+})
+
+test('kindFromSides is the reverse of linkSides for all four kinds', () => {
+  for (const kind of DEPENDENCY_KINDS) {
+    const { from, to } = linkSides(kind)
+    expect(kindFromSides(from, to)).toBe(kind)
+  }
+  expect(kindFromSides('end', 'start')).toBe('finish_to_start')
 })

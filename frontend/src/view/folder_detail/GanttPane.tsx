@@ -8,7 +8,7 @@ import { useUpdateEpic } from '@/api/epics'
 import { useUpdateFolder } from '@/api/workspace'
 import { useCreateTaskDependency, useDeleteTaskDependency, useTaskDependencies } from '@/api/taskDependencies'
 import { ganttTaskKey, groupGanttRows, type Scheduled } from '@/data/schedule'
-import { DEPENDENCY_KINDS, DEPENDENCY_LABEL, DEPENDENCY_MODES, DEPENDENCY_MODE_LABEL, drivingPath, planReschedule } from '@/data/dependency'
+import { DEPENDENCY_KINDS, DEPENDENCY_LABEL, DEPENDENCY_MODES, DEPENDENCY_MODE_LABEL, drivingPath, kindFromSides, planReschedule, type BarSide } from '@/data/dependency'
 import { errorMessage } from '@/util/errorMessage'
 import type { DependencyKind, DependencyMode, Epic, Task, TaskDependency } from '@/types'
 import './GanttPane.scss'
@@ -51,6 +51,17 @@ export default function GanttPane({ folderId, dependencyMode, epics, tasks, mile
     }
   }
 
+  // Dragging between bar sides: the predecessor is where the drag began. A failed
+  // create (loop, duplicate) is reported by the API client's error notice.
+  const createDependency = useCreateTaskDependency()
+  function linkTasks(from: { key: string; side: BarSide }, to: { key: string; side: BarSide }) {
+    if (!from.key.startsWith('task-') || !to.key.startsWith('task-')) return
+    const predecessorId = Number(from.key.split('-')[1])
+    const successorId = Number(to.key.split('-')[1])
+    if (dependencies.some((d) => d.predecessor_id === predecessorId && d.successor_id === successorId)) return
+    createDependency.mutate({ predecessor_id: predecessorId, successor_id: successorId, kind: kindFromSides(from.side, to.side) })
+  }
+
   const taskIds = useMemo(() => new Set(tasks.map((t) => t.id)), [tasks])
   // Only links with both ends in this folder; the rest belong to other charts.
   const dependencies = useMemo(
@@ -83,7 +94,14 @@ export default function GanttPane({ folderId, dependencyMode, epics, tasks, mile
         </Select>
       </div>
       <FormError message={moveError} />
-      <Timeline milestones={milestones} items={groupGanttRows(epics, tasks, critical)} links={links} onReschedule={reschedule} />
+      <Timeline
+        milestones={milestones}
+        items={groupGanttRows(epics, tasks, critical)}
+        links={links}
+        onReschedule={reschedule}
+        onLink={linkTasks}
+        canLink={(item) => Boolean(item.key?.startsWith('task-'))}
+      />
       <DependencyEditor tasks={tasks} dependencies={dependencies} />
     </div>
   )
