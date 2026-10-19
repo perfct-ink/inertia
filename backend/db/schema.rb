@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_10_18_000003) do
+ActiveRecord::Schema[7.2].define(version: 2026_10_19_000006) do
   create_table "ai_runs", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.bigint "workspace_id", null: false
     t.bigint "ai_worker_id", null: false
@@ -193,6 +193,24 @@ ActiveRecord::Schema[7.2].define(version: 2026_10_18_000003) do
     t.datetime "updated_at", null: false
     t.index ["destination_folder_id"], name: "index_quip_imports_on_destination_folder_id"
     t.index ["workspace_id"], name: "index_quip_imports_on_workspace_id"
+  end
+
+  create_table "release_documents", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+    t.bigint "release_id", null: false
+    t.bigint "document_id", null: false
+    t.index ["document_id"], name: "index_release_documents_on_document_id"
+    t.index ["release_id", "document_id"], name: "index_release_documents_on_release_id_and_document_id", unique: true
+    t.index ["release_id"], name: "index_release_documents_on_release_id"
+  end
+
+  create_table "releases", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+    t.bigint "workspace_id", null: false
+    t.string "title", null: false
+    t.integer "kind", default: 0, null: false
+    t.date "release_date"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["workspace_id"], name: "index_releases_on_workspace_id"
   end
 
   create_table "shares", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
@@ -388,6 +406,9 @@ ActiveRecord::Schema[7.2].define(version: 2026_10_18_000003) do
   add_foreign_key "objectives", "workspaces"
   add_foreign_key "quip_imports", "folders", column: "destination_folder_id"
   add_foreign_key "quip_imports", "workspaces"
+  add_foreign_key "release_documents", "documents"
+  add_foreign_key "release_documents", "releases"
+  add_foreign_key "releases", "workspaces"
   add_foreign_key "shares", "users", column: "created_by_id"
   add_foreign_key "social_identities", "users"
   add_foreign_key "social_login_attempts", "users"

@@ -231,3 +231,17 @@ export interface FolderContents {
   events: WorkspaceEvent[]
   epics: Epic[]
 }
+
+// A release (single, EP, album, music video) and the documents (songs) in it.
+export type ReleaseKind = 'single' | 'ep' | 'album' | 'music_video'
+export interface Release {
+  id: number
+  title: string
+  kind: ReleaseKind
+  release_date: string | null
+  document_ids: number[]
+  tasks_count: number
+  done_tasks_count: number
+  created_at: string
+  updated_at: string
+}

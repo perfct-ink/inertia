@@ -9,6 +9,7 @@ class Document < ApplicationRecord
   belongs_to :created_by, class_name: "User"
   has_many :tasks, dependent: :destroy
   has_many :shares, as: :shareable, dependent: :destroy
+  has_many :release_documents, dependent: :destroy
 
   has_many :table_fields, dependent: :destroy
   has_many :table_records, dependent: :destroy
