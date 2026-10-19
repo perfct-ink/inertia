@@ -1,0 +1,38 @@
+@use 'tokens' as *;
+
+@layer app.components {
+  .ui-backlinks {
+    max-width: 48rem;
+    margin: 0 auto;
+    padding: space(4) space(8) space(12);
+    color: color(muted-foreground);
+    @include text('sm');
+
+    @at-root .ui-backlinks-title {
+      display: flex;
+      align-items: center;
+      gap: space(1.5);
+      margin-bottom: space(2);
+      font-weight: 600;
+    }
+
+    @at-root .ui-backlinks-icon {
+      width: space(4);
+      height: space(4);
+    }
+
+    @at-root .ui-backlinks-list {
+      display: flex;
+      flex-direction: column;
+      gap: space(1);
+    }
+
+    @at-root .ui-backlinks-link {
+      color: color(primary);
+
+      &:hover {
+        text-decoration: underline;
+      }
+    }
+  }
+}

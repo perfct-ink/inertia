@@ -21,3 +21,12 @@ export function useUpdateDocument() {
     },
   })
 }
+
+// The documents that link to this one.
+export function useBacklinks(id: number) {
+  return useQuery<Document[]>({
+    queryKey: ['backlinks', id],
+    queryFn: () => api.get(`/api/v1/documents/${id}/backlinks`).then((r) => r.data),
+    enabled: !!id,
+  })
+}

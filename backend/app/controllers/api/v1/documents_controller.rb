@@ -7,7 +7,7 @@ module Api
       # checked against the document's own workspace instead.
       skip_before_action :require_current_workspace_write!
       before_action :set_folder, only: [ :index, :create ]
-      before_action :set_document, only: [ :show, :update, :destroy ]
+      before_action :set_document, only: [ :show, :update, :destroy, :backlinks ]
 
       def index
         documents = @folder.documents.order(:title)
@@ -16,6 +16,12 @@ module Api
 
       def show
         render json: DocumentBlueprint.render(@document, view: :with_content)
+      end
+
+      # The documents that link to this one (readable only if the caller can
+      # read this document; linking documents are in the same Space).
+      def backlinks
+        render json: DocumentBlueprint.render(@document.linking_documents.order(:title))
       end
 
       def create

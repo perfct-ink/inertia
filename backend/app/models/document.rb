@@ -8,6 +8,9 @@ class Document < ApplicationRecord
   belongs_to :folder
   belongs_to :created_by, class_name: "User"
   has_many :tasks, dependent: :destroy
+  has_many :outgoing_links, class_name: "DocumentLink", foreign_key: :source_document_id, dependent: :delete_all, inverse_of: :source_document
+  has_many :incoming_links, class_name: "DocumentLink", foreign_key: :target_document_id, dependent: :delete_all, inverse_of: :target_document
+  has_many :linking_documents, through: :incoming_links, source: :source_document
   has_many :shares, as: :shareable, dependent: :destroy
 
   has_many :table_fields, dependent: :destroy
@@ -20,6 +23,7 @@ class Document < ApplicationRecord
   validates :doc_type, presence: true
 
   before_save :update_content_updated_at, if: :content_changed?
+  after_save { DocumentLink.refresh!(self) if saved_change_to_content? || saved_change_to_id? }
 
   private
 

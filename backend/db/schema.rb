@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_10_18_000003) do
+ActiveRecord::Schema[7.2].define(version: 2026_10_19_000014) do
   create_table "ai_runs", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.bigint "workspace_id", null: false
     t.bigint "ai_worker_id", null: false
@@ -36,6 +36,14 @@ ActiveRecord::Schema[7.2].define(version: 2026_10_18_000003) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["workspace_id"], name: "index_ai_workers_on_workspace_id"
+  end
+
+  create_table "document_links", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+    t.bigint "source_document_id", null: false
+    t.bigint "target_document_id", null: false
+    t.index ["source_document_id", "target_document_id"], name: "index_document_links_on_source_and_target", unique: true
+    t.index ["source_document_id"], name: "index_document_links_on_source_document_id"
+    t.index ["target_document_id"], name: "index_document_links_on_target_document_id"
   end
 
   create_table "documents", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
@@ -364,6 +372,8 @@ ActiveRecord::Schema[7.2].define(version: 2026_10_18_000003) do
   add_foreign_key "ai_runs", "tasks"
   add_foreign_key "ai_runs", "workspaces"
   add_foreign_key "ai_workers", "workspaces"
+  add_foreign_key "document_links", "documents", column: "source_document_id"
+  add_foreign_key "document_links", "documents", column: "target_document_id"
   add_foreign_key "documents", "folders"
   add_foreign_key "documents", "users", column: "created_by_id"
   add_foreign_key "epics", "folders"

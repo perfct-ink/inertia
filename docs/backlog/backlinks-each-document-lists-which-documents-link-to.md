@@ -1,4 +1,5 @@
 ---
+branch: backlog/backlinks-each-document-lists-which-documents-link-to
 priority: p1
 depends_on: []
 components: [backend]
@@ -27,3 +28,6 @@ Today: the editor has a plain Link extension (any URL) but no picker for interna
 - Anything stated in Requirements / notes (including any named default) is implemented or deliberately changed with the reason recorded.
 - Failed API calls show an error to the user.
 - Tests cover the new behaviour; a feature doc in `docs/features/` is written (or the existing one updated) and this file is removed.
+
+## Blocked
+Implemented on the branch with tests; it recognises `documentLink` nodes from `backlog/link-to-another-document` and plain `/documents/<id>` links, so it works on its own for ordinary links. A one-off backfill (`Document.find_each { DocumentLink.refresh!(_1) }`) is needed after deploy. To verify: `cd backend && bundle install && rails db:migrate && rails test` (diff `schema.rb`, edited by hand), `cd frontend && npm install && npm run lint && npm test`, then link two documents in a browser. None of that could run here. Then remove this file and merge.
