@@ -1,5 +1,6 @@
 import '@testing-library/jest-dom'
 import { fireEvent, render, screen } from '@testing-library/react'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import GanttPane from './GanttPane'
 import type { Task } from '@/types'
 
@@ -22,7 +23,11 @@ const task = (id: number, title: string, start_date: string, due_date: string) =
 const tasks = [task(1, 'Design', '2026-11-01', '2026-11-05'), task(2, 'Build', '2026-11-06', '2026-11-20')]
 
 test('draws links between this folder\'s tasks, flags the driving path, and edits links', () => {
-  const { container } = render(<GanttPane epics={[]} tasks={tasks} milestones={[]} />)
+  const { container } = render(
+    <QueryClientProvider client={new QueryClient()}>
+      <GanttPane folderId={1} dependencyMode="strict" epics={[]} tasks={tasks} milestones={[]} />
+    </QueryClientProvider>,
+  )
   expect(container.querySelectorAll('.timeline-link')).toHaveLength(1)
   expect(container.querySelectorAll('.timeline-bar--critical')).toHaveLength(2)
   expect(screen.getByText(/waits on/, { selector: 'span.gantt_pane-item-text' })).toHaveTextContent('Build waits on Design')

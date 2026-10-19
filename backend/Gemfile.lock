@@ -117,6 +117,7 @@ GEM
     faker (3.8.0)
       i18n (>= 1.8.11, < 2)
     ffi (1.17.4-aarch64-linux-gnu)
+    ffi (1.17.4-arm64-darwin)
     ffi (1.17.4-x86_64-linux-gnu)
     globalid (1.4.0)
       activesupport (>= 6.1)
@@ -165,6 +166,7 @@ GEM
     minitest (6.0.6)
       drb (~> 2.0)
       prism (~> 1.5)
+    minitest-mock (5.27.0)
     msgpack (1.8.0)
     mysql2 (0.5.7)
       bigdecimal
@@ -179,6 +181,8 @@ GEM
       net-protocol
     nio4r (2.7.5)
     nokogiri (1.19.3-aarch64-linux-gnu)
+      racc (~> 1.4)
+    nokogiri (1.19.3-arm64-darwin)
       racc (~> 1.4)
     nokogiri (1.19.3-x86_64-linux-gnu)
       racc (~> 1.4)
@@ -312,6 +316,7 @@ GEM
 
 PLATFORMS
   aarch64-linux-gnu
+  arm64-darwin-25
   x86_64-linux
 
 DEPENDENCIES
@@ -324,6 +329,7 @@ DEPENDENCIES
   faker
   image_processing (~> 1.2)
   kaminari
+  minitest-mock
   mysql2 (~> 0.5)
   nokogiri
   puma (>= 5.0)
@@ -334,4 +340,4 @@ DEPENDENCIES
   tzinfo-data
 
 BUNDLED WITH
-   2.5.22
+  4.0.16

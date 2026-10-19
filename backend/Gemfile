@@ -29,6 +29,9 @@ gem "blueprinter"
 gem "nokogiri"
 
 group :development, :test do
+  # minitest 6 split minitest/mock into its own gem
+  gem "minitest-mock"
+
   # See https://guides.rubyonrails.org/debugging_rails_applications.html#debugging-with-the-debug-gem
   gem "debug", platforms: %i[ mri windows ], require: "debug/prelude"
 
