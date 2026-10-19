@@ -15,13 +15,15 @@ import { format, parseISO } from 'date-fns'
 import { Flag, Loader2, Map as MapIcon, Target } from 'lucide-react'
 import { Button, HealthBadge, Select, classNames } from '@/components/ui'
 import WorkspaceLayout from '@/components/WorkspaceLayout'
-import { ProgressBar, Timeline } from '@/components/Timeline'
+import { ProgressBar } from '@/components/Timeline'
+import RoadmapTimeline from '@/components/RoadmapTimeline'
+import RoadmapShare from '@/components/RoadmapShare'
 import { useMilestones } from '@/api/milestones'
 import { useInitiatives, useUpdateInitiative } from '@/api/initiatives'
 import { useEpics, useUpdateEpic } from '@/api/epics'
 import { donePercent } from '@/data/schedule'
 import {
-  HORIZONS, HORIZON_LABEL, boardColumns, effectiveHorizon, roadmapLanes, roadmapRange, type BoardCard,
+  HORIZONS, HORIZON_LABEL, boardColumns, effectiveHorizon, type BoardCard,
 } from '@/data/roadmap'
 import { usePageTitle } from '@/hooks/usePageTitle'
 import type { Epic, Initiative, Milestone, RoadmapHorizon } from '@/types'
@@ -45,6 +47,7 @@ export default function RoadmapScreen() {
       <div className="view-planning view-roadmap">
         <div className="planning-header">
           <h1 className="planning-title">Roadmap</h1>
+          <RoadmapShare />
           <div className="planning-tabs">
             {(['timeline', 'board'] as View[]).map((v) => (
               <Button
@@ -81,42 +84,6 @@ export default function RoadmapScreen() {
         </div>
       </div>
     </WorkspaceLayout>
-  )
-}
-
-function RoadmapTimeline({ milestones, initiatives, epics }: { milestones: Milestone[]; initiatives: Initiative[]; epics: Epic[] }) {
-  const lanes = useMemo(() => roadmapLanes(milestones, initiatives, epics), [milestones, initiatives, epics])
-  const range = useMemo(() => roadmapRange(lanes) ?? undefined, [lanes])
-
-  return (
-    <div className="roadmap-lanes">
-      {lanes.map((lane) => (
-        <section key={lane.key} className="roadmap-lane" aria-label={lane.milestone?.title ?? 'No milestone'}>
-          <header className="roadmap-lane-header">
-            <h2 className="roadmap-lane-title">{lane.milestone?.title ?? 'No milestone'}</h2>
-            {lane.milestone?.target_date && (
-              <span className="roadmap-lane-date">{format(parseISO(lane.milestone.target_date), 'MMM d, yyyy')}</span>
-            )}
-            {lane.milestone && <HealthBadge health={lane.milestone.health} />}
-            {lane.milestone && (
-              <div className="roadmap-lane-progress">
-                <ProgressBar percent={lane.milestone.percent} />
-                <span className="roadmap-lane-percent">{lane.milestone.percent}%</span>
-              </div>
-            )}
-          </header>
-          {lane.rows.length === 0
-            ? <p className="roadmap-lane-empty">Nothing planned under this milestone yet.</p>
-            : (
-              <Timeline
-                items={lane.rows}
-                range={range}
-                milestones={lane.milestone?.target_date ? [{ id: lane.milestone.id, title: lane.milestone.title, target_date: lane.milestone.target_date }] : []}
-              />
-            )}
-        </section>
-      ))}
-    </div>
   )
 }
 

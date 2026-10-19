@@ -12,6 +12,18 @@ class Epic < ApplicationRecord
   validates_same_workspace :initiative
   validate :target_date_not_before_start_date
 
+  # One grouped query for every epic's task counts (the CASE/SUM, not FILTER,
+  # is MySQL-compatible), instead of a COUNT per epic.
+  scope :with_task_counts, lambda {
+    left_joins(:tasks)
+      .group("epics.id")
+      .select(
+        "epics.*",
+        "COUNT(tasks.id) AS tasks_count",
+        ActiveRecord::Base.sanitize_sql_array([ "SUM(CASE WHEN tasks.status = ? THEN 1 ELSE 0 END) AS done_tasks_count", Task.statuses[:done] ])
+      )
+  }
+
   # EpicsController#index preloads these via a grouped join (see there) so
   # listing epics doesn't run one COUNT query per epic. Falls back to a
   # real query so the model still works standalone (e.g. right after

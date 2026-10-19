@@ -13,6 +13,7 @@ class Workspace < ApplicationRecord
   has_many :events, dependent: :destroy
   has_many :epics, dependent: :destroy
   has_many :initiatives, dependent: :destroy
+  has_many :shares, as: :shareable, dependent: :destroy
   has_many :milestones, dependent: :destroy
   has_many :sprints, dependent: :destroy
   has_many :objectives, dependent: :destroy
@@ -34,6 +35,11 @@ class Workspace < ApplicationRecord
       end
       root_folder
     end
+  end
+
+  # The public read-only roadmap link, if one has been made.
+  def roadmap_share
+    shares.first
   end
 
   private

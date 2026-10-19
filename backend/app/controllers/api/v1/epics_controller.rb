@@ -5,21 +5,9 @@ module Api
       before_action :set_epic, only: [ :update, :destroy ]
 
       def index
-        # Grouped left join computes each epic's task counts in one query
-        # instead of N+1'ing tasks.count/tasks.done.count per epic. The
-        # CASE/SUM (not FILTER — that's Postgres-only) is MySQL-compatible.
         epics = current_workspace.epics
         epics = epics.where(folder_id: params[:folder_id]) if params[:folder_id]
-        epics = epics
-          .left_joins(:tasks)
-          .group("epics.id")
-          .select(
-            "epics.*",
-            "COUNT(tasks.id) AS tasks_count",
-            ActiveRecord::Base.sanitize_sql_array(
-              [ "SUM(CASE WHEN tasks.status = ? THEN 1 ELSE 0 END) AS done_tasks_count", Task.statuses[:done] ]
-            )
-          )
+        epics = epics.with_task_counts
         render json: EpicBlueprint.render(epics)
       end
 

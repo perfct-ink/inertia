@@ -74,6 +74,7 @@ Rails.application.routes.draw do
       resources :quip_imports, only: [ :index, :create, :show ]
 
       resources :shares, only: [ :create, :show, :destroy ]
+      resource :roadmap_share, only: [ :show, :create, :destroy ]
       get "shared/:token", to: "shares#access", as: :shared_access
     end
   end

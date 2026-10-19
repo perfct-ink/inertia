@@ -10,6 +10,8 @@ class ShareBlueprint < Blueprinter::Base
       case share.shareable_type
       when "Folder"
         FolderBlueprint.render_as_hash(share.shareable, view: :with_children)
+      when "Workspace"
+        { roadmap: RoadmapSnapshot.for(share.shareable) }
       when "Document"
         DocumentBlueprint.render_as_hash(share.shareable, view: :with_content)
       end
