@@ -49,3 +49,25 @@ export function useDeleteSprint() {
     },
   })
 }
+
+// Starts a planned sprint (a missing start date becomes today).
+export function useStartSprint() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (id: number) => api.post(`/api/v1/sprints/${id}/start`).then((r) => r.data as Sprint),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['sprints'] }),
+  })
+}
+
+// Closes an active sprint; unfinished tasks move to `carryToSprintId` or lose their sprint.
+export function useCloseSprint() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, carryToSprintId }: { id: number; carryToSprintId: number | null }) =>
+      api.post(`/api/v1/sprints/${id}/close`, { carry_to_sprint_id: carryToSprintId }).then((r) => r.data as { sprint: Sprint; completed: number; carried_over: number }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['sprints'] })
+      qc.invalidateQueries({ queryKey: ['tasks'] })
+    },
+  })
+}

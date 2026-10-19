@@ -1,4 +1,5 @@
 ---
+branch: backlog/sprint-start-close-carry-over
 priority: p2
 depends_on: []
 components: [frontend, backend]
@@ -20,3 +21,6 @@ Starting and closing a sprint are actions with consequences, and unfinished task
 - Closing moves every non-done task of the sprint to the chosen sprint (or clears `sprint_id`) in one request; done tasks stay.
 - A closed sprint cannot be started again.
 - Behaviour is covered by a backend test, and failures show an error in the UI.
+
+## Blocked
+Implemented on the branch with tests. To verify: `cd backend && bundle install && rails test`, `cd frontend && npm install && npm run lint && npm test`, then start and close a sprint with unfinished tasks in a browser. None of that could run here. Then remove this file and merge.

@@ -137,5 +137,16 @@
       text-transform: capitalize;
       @include text('sm');
     }
+
+    @at-root .sprints-status_text {
+      text-transform: capitalize;
+      @include text('sm');
+    }
+
+    @at-root .sprints-summary {
+      padding: space(2) space(6);
+      color: color(muted-foreground);
+      @include text('sm');
+    }
   }
 }
