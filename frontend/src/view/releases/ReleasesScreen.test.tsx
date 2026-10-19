@@ -7,6 +7,7 @@ const mockCreate = { mutate: jest.fn(), isPending: false }
 const mockUpdate = { mutate: jest.fn() }
 const mockAdd = { mutate: jest.fn() }
 const mockRemove = { mutate: jest.fn() }
+const mockPlan = { mutate: jest.fn(), isPending: false }
 jest.mock('@/api/releases', () => ({
   useReleases: () => ({
     data: [{ id: 1, title: 'Debut EP', kind: 'ep', release_date: '2026-12-01', document_ids: [10], tasks_count: 4, done_tasks_count: 1 }],
@@ -17,6 +18,7 @@ jest.mock('@/api/releases', () => ({
   useDeleteRelease: () => ({ mutate: jest.fn() }),
   useAddReleaseDocument: () => mockAdd,
   useRemoveReleaseDocument: () => mockRemove,
+  usePlanRelease: () => mockPlan,
   useReleaseTasks: () => ({ data: [{ id: 5, title: 'Mix', status: 'in_progress', document: { title: 'Song A' } }] }),
 }))
 jest.mock('@/api/workspace', () => ({
@@ -53,4 +55,12 @@ test('lists every task from the release songs', () => {
   fireEvent.click(screen.getByRole('button', { name: 'Show tasks' }))
   expect(screen.getByText(/Mix/)).toBeInTheDocument()
   expect(screen.getByText(/in progress · Song A/)).toBeInTheDocument()
+})
+
+test('creating the release plan reports how many tasks were added', () => {
+  mockPlan.mutate.mockImplementation((_id, { onSuccess }) => onSuccess({ created: 12 }))
+  render(<ReleasesScreen />)
+  fireEvent.click(screen.getByRole('button', { name: 'Create release plan' }))
+  expect(mockPlan.mutate).toHaveBeenCalledWith(1, expect.anything())
+  expect(screen.getByRole('status')).toHaveTextContent('Added 12 tasks, dated back from the release date.')
 })

@@ -65,6 +65,7 @@ Rails.application.routes.draw do
       resources :releases, only: [ :index, :create, :update, :destroy ] do
         member do
           get :tasks
+          post :plan
           post :documents, action: :add_document
           delete "documents/:document_id", action: :remove_document
         end

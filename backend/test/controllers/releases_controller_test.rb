@@ -54,4 +54,23 @@ class ReleasesControllerTest < ActionDispatch::IntegrationTest
     post "/api/v1/releases/#{mine.id}/documents", params: { document_id: foreign.id }, headers: @headers, as: :json
     assert_response :not_found
   end
+
+  test "creating the plan adds the checklist tasks, needs a date, and is safe to repeat" do
+    undated = @user.workspace.releases.create!(title: "Someday", kind: :single)
+    post "/api/v1/releases/#{undated.id}/plan", headers: @headers, as: :json
+    assert_response :unprocessable_entity
+
+    release = @user.workspace.releases.create!(title: "Single", kind: :single, release_date: Date.new(2026, 12, 1))
+    post "/api/v1/releases/#{release.id}/plan", headers: @headers, as: :json
+    assert_response :created
+    assert_equal ReleasePlan::MUSIC.size, response.parsed_body["created"]
+    assert_equal ReleasePlan::MUSIC.size, response.parsed_body["release"]["tasks_count"]
+
+    post "/api/v1/releases/#{release.id}/plan", headers: @headers, as: :json
+    assert_equal 0, response.parsed_body["created"]
+
+    patch "/api/v1/releases/#{release.id}", params: { release: { release_date: "2027-01-01" } }, headers: @headers, as: :json
+    get "/api/v1/releases/#{release.id}/tasks", headers: @headers
+    assert_equal "2027-01-01", response.parsed_body.find { |t| t["title"] == "Release day" }["due_date"]
+  end
 end

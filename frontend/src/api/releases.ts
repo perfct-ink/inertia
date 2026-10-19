@@ -36,3 +36,16 @@ export function useReleaseTasks(id: number, enabled: boolean) {
     enabled,
   })
 }
+
+// Creates the standard checklist for the release's kind, due dates counted back from its date.
+export function usePlanRelease() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (id: number) => api.post(`/api/v1/releases/${id}/plan`).then((r) => r.data as { created: number; release: Release }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['releases'] })
+      qc.invalidateQueries({ queryKey: ['release_tasks'] })
+      qc.invalidateQueries({ queryKey: ['tasks'] })
+    },
+  })
+}

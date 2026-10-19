@@ -2,7 +2,7 @@ module Api
   module V1
     class ReleasesController < ApplicationController
       include WorkspaceScoped
-      before_action :set_release, only: [ :update, :destroy, :tasks, :add_document, :remove_document ]
+      before_action :set_release, only: [ :update, :destroy, :tasks, :add_document, :remove_document, :plan ]
 
       def index
         releases = current_workspace.releases.includes(:release_documents).order(Arel.sql("release_date IS NULL"), :release_date, :title)
@@ -27,6 +27,15 @@ module Api
       # Every task in the release's documents.
       def tasks
         render json: TaskBlueprint.render(@release.tasks.includes(:document), view: :with_document)
+      end
+
+      # Creates the standard checklist for the release's kind, due dates counted
+      # back from the release date. Safe to run again: existing steps are kept.
+      def plan
+        created = ReleasePlan.apply!(@release)
+        render json: { created: created.size, release: ReleaseBlueprint.render_as_hash(@release.reload) }, status: :created
+      rescue ArgumentError => e
+        render json: { errors: [ e.message ] }, status: :unprocessable_entity
       end
 
       def add_document

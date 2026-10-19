@@ -5,7 +5,7 @@ import WorkspaceLayout from '@/components/WorkspaceLayout'
 import { ProgressBar } from '@/components/Timeline'
 import {
   useAddReleaseDocument, useCreateRelease, useDeleteRelease, useReleases, useReleaseTasks,
-  useRemoveReleaseDocument, useUpdateRelease,
+  usePlanRelease, useRemoveReleaseDocument, useUpdateRelease,
 } from '@/api/releases'
 import { useWorkspace } from '@/api/workspace'
 import { RELEASE_KINDS, songCandidates, sortReleases } from '@/data/release'
@@ -73,6 +73,8 @@ function ReleaseCard({ release, songs }: { release: Release; songs: Document[] }
   const remove = useDeleteRelease()
   const addSong = useAddReleaseDocument()
   const removeSong = useRemoveReleaseDocument()
+  const plan = usePlanRelease()
+  const [planMessage, setPlanMessage] = useState('')
   const [showTasks, setShowTasks] = useState(false)
   const { data: tasks = [] } = useReleaseTasks(release.id, showTasks)
   const inRelease = songs.filter((s) => release.document_ids.includes(s.id))
@@ -96,6 +98,17 @@ function ReleaseCard({ release, songs }: { release: Release; songs: Document[] }
           value={release.release_date ?? ''}
           onChange={(e) => update.mutate({ id: release.id, release_date: e.target.value || null })}
         />
+      </div>
+      <div className="planning-card-dates">
+        <Button
+          variant="secondary"
+          disabled={!release.release_date || plan.isPending}
+          title={release.release_date ? undefined : 'Set a release date first'}
+          onClick={() => plan.mutate(release.id, { onSuccess: (result) => setPlanMessage(result.created === 0 ? 'The plan is already in place.' : `Added ${result.created} tasks, dated back from the release date.`) })}
+        >
+          Create release plan
+        </Button>
+        {planMessage && <span className="planning-date" role="status">{planMessage}</span>}
       </div>
       <ProgressBar percent={donePercent(release)} />
       <p className="planning-description">{release.done_tasks_count}/{release.tasks_count} tasks done</p>

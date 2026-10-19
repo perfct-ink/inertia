@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_10_19_000006) do
+ActiveRecord::Schema[7.2].define(version: 2026_10_19_000018) do
   create_table "ai_runs", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.bigint "workspace_id", null: false
     t.bigint "ai_worker_id", null: false
@@ -332,12 +332,15 @@ ActiveRecord::Schema[7.2].define(version: 2026_10_19_000006) do
     t.bigint "parent_id"
     t.bigint "milestone_id"
     t.bigint "sprint_id"
+    t.bigint "release_id"
+    t.integer "release_offset_days"
     t.index ["assignee_id"], name: "index_tasks_on_assignee_id"
     t.index ["document_id"], name: "index_tasks_on_document_id"
     t.index ["epic_id"], name: "index_tasks_on_epic_id"
     t.index ["folder_id"], name: "index_tasks_on_folder_id"
     t.index ["milestone_id"], name: "index_tasks_on_milestone_id"
     t.index ["parent_id"], name: "index_tasks_on_parent_id"
+    t.index ["release_id"], name: "index_tasks_on_release_id"
     t.index ["sprint_id"], name: "index_tasks_on_sprint_id"
     t.index ["status"], name: "index_tasks_on_status"
     t.index ["workspace_id"], name: "index_tasks_on_workspace_id"
@@ -426,6 +429,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_10_19_000006) do
   add_foreign_key "tasks", "documents"
   add_foreign_key "tasks", "epics"
   add_foreign_key "tasks", "folders"
+  add_foreign_key "tasks", "releases", on_delete: :nullify
   add_foreign_key "tasks", "milestones"
   add_foreign_key "tasks", "sprints"
   add_foreign_key "tasks", "tasks", column: "parent_id"
