@@ -9,7 +9,7 @@ Every internal and external service Inertia uses, why it is used, and the config
 | Rails API | `backend/` (port 3000) | JSON API for workspaces, folders, documents, tasks, epics, events, shares and imports. Authenticates with Devise + JWT. |
 | React frontend | `frontend/` (port 5174 in dev) | The workspace UI for the browser, Electron, the Capacitor iOS shell and the Mac app's WKWebView. Built with webpack and SCSS. |
 | Collab server | `collab-server/` (port 1234) | Real-time collaborative document editing (Yjs/Hocuspocus). Holds no secrets: it asks Rails (`GET /api/v1/documents/:id`) to authenticate and authorize each connection. |
-| AI workers | `backend/app/services/ai_workers/`, `AiWorkerRunJob` | Runs a task through a language model and stores the reply on an `ai_runs` row (backlog section 25). The model call goes through `AiWorkers.client`, which is unset by default, so runs fail with "No AI client is configured" until the Anthropic adapter is added. A run only stores text; it cannot edit tasks or documents. Jobs use the in-process queue, like the Quip import. |
+| AI workers | `backend/app/services/ai_workers/`, `AiWorkerRunJob` | Runs a task through a language model and stores the reply on an `ai_runs` row (see `docs/features/ai_workers.md`). The model call goes through `AiWorkers.client`, which is unset by default, so runs fail with "No AI client is configured" until the Anthropic adapter is added. A run only stores text; it cannot edit tasks or documents. Jobs use the in-process queue, like the Quip import. |
 | Native Mac app | `macos/` | SwiftUI shell for native sign-in and local `.inertia-tasks` files; loads the React workspace in WKWebView. |
 
 ## Data stores

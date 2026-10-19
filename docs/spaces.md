@@ -58,4 +58,4 @@ DELETE /api/v1/workspaces/:id/members/:member  # admin/owner removes anyone; any
 
 ## Not built yet
 
-Teams (groups of users granted access together), invitations for people without an account, per-folder permissions, and moving content between workspaces. See `docs/backlog.md`.
+Teams (groups of users granted access together), invitations for people without an account, per-folder permissions, and moving content between workspaces. See `docs/backlog/teams-with-space-roles.md`, `docs/backlog/invite-people-without-an-account.md` `docs/backlog/guests-and-per-folder-permissions.md` and `docs/backlog/move-or-copy-content-between-spaces.md`.

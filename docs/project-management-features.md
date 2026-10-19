@@ -70,3 +70,25 @@ Each step ships independently and none of them require revisiting the file-sync 
 - Does "Gantt chart" mean the web app, the native macOS online mode, or both? ("Native online Workboard/Gantt views" is already on the macOS roadmap in its own README — this might just mean prioritizing that.)
 - Is "Initiatives" meant for the hosted workspace only, or should the local `.inertia-tasks` format grow a matching level too (another `docs/task-file-format.md` revision)?
 - Is there real appetite for Sprints becoming an actual Rails model, given `storage-options.md` named their absence as a deliberate gap rather than an oversight?
+
+## Monday.com parity
+
+Date: 2026-10-11. Goal: cover what Monday.com Work Management offers, with Gantt charts, Initiatives, product roadmaps and a task hierarchy as the headline items, all rolling up under a Milestone. This is a direction, not a commitment or a sequence of sprints. This document's Jira analysis already covers Initiatives, Timeline/Gantt, Sprints, dependencies and reporting; the Monday-wide surface is split into one task per file in `docs/backlog/`, and what has been built is described in `docs/features/`. Priorities live in each task's frontmatter: p0 is the headline ask (milestone, hierarchy, Gantt, roadmap), p1 is needed to make those useful day to day, p2 is Monday parity beyond that, p3 is large or speculative. Monday plan tiers (which plan ships what) are not tracked.
+
+The planning hierarchy chosen: Milestone is the top-level container, and each lower level (Initiative, Epic, Task, Subtask) carries an optional `milestone_id`. A task with no milestone of its own inherits its epic's, an epic inherits its initiative's, so a single loose task can belong to a milestone without forcing an initiative and epic around it. A roadmap is a view over initiatives and epics, grouped by milestone and laid out on a time axis.
+
+Note: the "Nothing here is built" status line at the top of this document is out of date. Milestones, initiatives, a Gantt with dependencies, a roadmap and sprints now exist; see `docs/features/README.md`.
+
+## Out of scope for parity
+
+Monday sells separate CRM, Service (ticketing), Campaigns and "vibe" app-builder products on the same platform. They are not project management and are left out unless someone asks.
+
+## Sources
+
+- [monday.com: The Board Views](https://support.monday.com/hc/en-us/articles/360001267945-The-Board-Views)
+- [monday.com Features: A Complete Breakdown in 2026 (ZoomInfo)](https://pipeline.zoominfo.com/sales/monday-com-features)
+- [monday.com blog: free Gantt chart software](https://monday.com/blog/project-management/free-gantt-chart-software/)
+- [Spotify for Artists: pitching music to playlist editors](https://support.spotify.com/us/artists/article/pitching-music-to-playlist-editors/)
+- [Basecamp: automatic check-ins](https://basecamp.com/features/checkins)
+- Column-type and dependency-mode details, and the tool comparisons (Jira/Confluence, Notion, Linear, Asana, Todoist, Monday update requests) behind the requirement-doc, project-type and recurring-task tasks, are from training knowledge (cutoff mid-2026), not re-checked live.
+

@@ -17,4 +17,4 @@ New accounts land on their Space home (`/space`) after signing up and see a chec
 - `frontend/src/store/onboarding.ts`: per-account progress in `localStorage` (`inertia-onboarding`). `SignupScreen` calls `start(userId)`, so accounts that existed before never see the checklist. Detected steps are recorded so they stay ticked after switching Spaces. Hiding it (the X, or Done once everything is ticked) is permanent.
 - `frontend/src/components/onboarding/GettingStarted.tsx`: the checklist, rendered by `view/workspace/WorkspaceScreen.tsx`.
 
-Progress is per device: signing up on the web and then opening the Mac app shows nothing there. Moving it to the server is backlog item PM-171.
+Progress is per device: signing up on the web and then opening the Mac app shows nothing there. Moving it to the server is backlog item `docs/backlog/checklist-progress-on-server.md`.

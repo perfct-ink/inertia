@@ -23,6 +23,8 @@ Scoped to the current Space; I did not check role-based limits.
 `backend/test/models/ai_run_test.rb`, `test/services/ai_workers_runner_test.rb` (fake client), `test/controllers/ai_runs_controller_test.rb`.
 
 ## Known limits
+The foundation supports multiple named workers per Space. The product spec (Alex, 2026-10-19) defaults to one AI worker per Space shown as an assignee with an AI badge; which to follow is pending Alex's confirmation (see `docs/backlog/ai-worker-assign-and-auto-run.md`).
+
 No model adapter, no UI, no cost limits, no retry or cancel, and runs stuck in `running` after a restart are not cleaned up. Task text would be sent to Anthropic once connected.
 
 ## History

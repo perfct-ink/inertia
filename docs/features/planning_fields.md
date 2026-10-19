@@ -19,3 +19,8 @@ A task's milestone cannot be changed after creation (there is no task detail vie
 ## History
 - Implemented 2026-10-18. Committed locally; not pushed or deployed.
 - Not verified: lint, type-check and the screens were not run (no dependencies installed, no network).
+
+## Task start date
+- `tasks.start_date` exists and is permitted on `POST/PATCH /api/v1/tasks`. `Task#due_date_not_before_start_date` rejects a due date before the start date. The `/tasks` new-task row (`AddTaskInput`) has a Start date field next to the due date. The Gantt (`gantt_scheduling.md`) saves both when a bar is dragged.
+- Limits: there is no task-level test for the validation (`backend/test/models/task_test.rb` has no `start_date` case), and dates cannot be edited after creation outside the Gantt; see `docs/backlog/task-detail-edit-milestone.md`.
+- Implemented 2026-10-16. Not verified: nothing was run.

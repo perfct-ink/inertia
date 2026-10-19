@@ -7,7 +7,7 @@ The Gantt tab of a folder (`/folders/:id?view=gantt`) draws the folder's epics a
 - **Milestones**: milestones in this folder with a target date appear as diamonds on a row above the bars, if inside the chart's month range.
 - **Today line**: a red line when today is inside the range.
 - **Drag to reschedule**: drag a bar to move it, or its left or right edge to resize. Dates snap to whole days and are saved on release (`shiftedRange`). Task bars save `start_date` and `due_date`; epic bars save `start_date` and `target_date`.
-- **Dependencies**: arrows between task bars, a critical-path highlight, and an editor for links (built earlier; see `data/dependency.ts`, `view/folder_detail/GanttPane.tsx`).
+- **Dependencies**: arrows between task bars, a critical-path highlight, and an editor for links (see [task_dependencies.md](task_dependencies.md)).
 - **Dependency mode**: a picker per folder. *Ignore* moves only the dragged task. *Block invalid dates* refuses a move that breaks a link touching that task and shows an error. *Shift dependent tasks* pushes tasks that wait on it later, keeping their length, only as far as needed (`planReschedule`).
 
 ## API and models
