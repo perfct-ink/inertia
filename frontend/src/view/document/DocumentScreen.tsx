@@ -55,16 +55,19 @@ import {
   Link as LinkIcon,
   Loader2,
   FileX,
+  FileSymlink,
   Image as ImageIcon,
 } from 'lucide-react'
 import WorkspaceLayout from '@/components/WorkspaceLayout'
 import { useDocument, useUpdateDocument } from '@/api/documents'
 import { useCreateTask } from '@/api/tasks'
 import { useWorkspace } from '@/api/workspace'
+import DocumentLinkPicker from '@/components/DocumentLinkPicker'
 import TableEditor from '@/components/editors/TableEditor'
 import SpreadsheetEditor from '@/components/editors/SpreadsheetEditor'
 import Video from '@/extensions/Video'
 import { WorkspaceTaskList } from '@/extensions/WorkspaceTaskList'
+import { DocumentLink } from '@/extensions/DocumentLink'
 import { WorkspaceTaskItem } from '@/extensions/WorkspaceTaskItem'
 import './ProseMirror.scss'
 import './DocumentScreen.scss'
@@ -120,6 +123,7 @@ export default function DocumentScreen() {
   const { data: workspace } = useWorkspace()
   const user = useAuthStore((s) => s.user)
   const [linkDialogOpen, setLinkDialogOpen] = useState(false)
+  const [docLinkOpen, setDocLinkOpen] = useState(false)
   const [tasksOnly, setTasksOnly] = useState(false)
   const [saveStatus, setSaveStatus] = useState<'saved' | 'saving' | 'unsaved'>('saved')
   const pendingRef = useRef<{ title?: string; content?: Record<string, unknown> }>({})
@@ -180,6 +184,7 @@ export default function DocumentScreen() {
       ListItem,
       WorkspaceTaskList,
       WorkspaceTaskItem,
+      DocumentLink.configure({ onTrigger: () => setDocLinkOpen(true) }),
       CodeBlock,
       HorizontalRule.extend({
         addCommands() {
@@ -534,6 +539,11 @@ export default function DocumentScreen() {
             title="Insert table"
           />
           <ToolbarBtn
+            icon={<FileSymlink className="document-toolbar_icon" />}
+            onClick={() => setDocLinkOpen(true)}
+            title="Link to a document ([[)"
+          />
+          <ToolbarBtn
             icon={<LinkIcon className="document-toolbar_icon" />}
             onClick={() => setLinkDialogOpen(true)}
             active={editor.isActive('link')}
@@ -574,6 +584,12 @@ export default function DocumentScreen() {
           </div>
         </div>
       </div>
+      <DocumentLinkPicker
+        open={docLinkOpen}
+        excludeId={docId}
+        onClose={() => { setDocLinkOpen(false); editor.commands.focus() }}
+        onPick={(id) => { setDocLinkOpen(false); editor.chain().focus().insertDocumentLink(id).run() }}
+      />
       <PromptDialog
         open={linkDialogOpen}
         title="Link"

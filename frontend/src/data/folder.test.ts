@@ -1,5 +1,5 @@
 import type { Document, Folder } from '@/types'
-import { documentsIn, flattenFolders, projectLastModified, projectsOf, searchSpaceFiles, spaceFiles } from './folder'
+import { documentsIn, findDocument, flattenFolders, projectLastModified, projectsOf, searchSpaceFiles, spaceFiles } from './folder'
 
 const folder = (id: number, children: Folder[] = []) => ({ id, name: `F${id}`, children }) as unknown as Folder
 
@@ -48,4 +48,10 @@ test('documentsIn and projectLastModified cover nested folders', () => {
   expect(documentsIn(messages).map((d) => d.title)).toEqual(['Spec', 'Mockups'])
   expect(projectLastModified(messages)).toBe('2026-10-09T00:00:00Z')
   expect(projectLastModified(tree()[0].children[2])).toBeNull()
+})
+
+test('findDocument finds a document anywhere in the Space, or nothing', () => {
+  expect(findDocument(tree(), 3)?.title).toBe('Mockups')
+  expect(findDocument(tree(), 1)?.title).toBe('Readme')
+  expect(findDocument(tree(), 99)).toBeUndefined()
 })

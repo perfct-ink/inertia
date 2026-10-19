@@ -1,4 +1,5 @@
 ---
+branch: backlog/link-to-another-document
 priority: p1
 depends_on: []
 components: [frontend]
@@ -27,3 +28,6 @@ Today: the editor has a plain Link extension (any URL) but no picker for interna
 - Anything stated in Requirements / notes (including any named default) is implemented or deliberately changed with the reason recorded.
 - Failed API calls show an error to the user.
 - Tests cover the new behaviour; a feature doc in `docs/features/` is written (or the existing one updated) and this file is removed.
+
+## Blocked
+Implemented on the branch (`[[` and a toolbar button; `@` is not wired). To verify: `cd frontend && npm install && npm run lint && npm test`, `cd collab-server && npm install && npm test`, then in a browser type `[[` in a document, pick a file, rename the target and check the link updates, and open the document in two sessions to check collaboration keeps the node. None of that could run here. Deploy the collab server with the schema change before merging. Then remove this file.

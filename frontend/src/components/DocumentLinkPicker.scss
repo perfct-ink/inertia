@@ -1,0 +1,35 @@
+@use 'tokens' as *;
+
+@layer app.components {
+  .document_link_picker {
+    &-list {
+      display: flex;
+      flex-direction: column;
+      gap: space(1);
+      max-height: 50vh;
+      margin-top: space(3);
+      overflow-y: auto;
+    }
+
+    &-item {
+      display: flex;
+      align-items: center;
+      gap: space(2);
+      width: 100%;
+      padding: space(2);
+      border-radius: radius('md');
+      text-align: left;
+
+      &:hover {
+        background: color(accent);
+      }
+    }
+
+    &-path {
+      margin-left: auto;
+      color: color(muted-foreground);
+      @include text('xs');
+      @include truncate;
+    }
+  }
+}

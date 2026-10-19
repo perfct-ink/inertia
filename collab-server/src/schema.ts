@@ -6,7 +6,7 @@
 // concerns and are deliberately omitted here. That's why this list is
 // shorter than the frontend's: standard nodes are the exact same versioned
 // @tiptap/extension-* packages in both places (can't drift), so only the
-// three app-specific custom nodes need hand-copying.
+// four app-specific custom nodes need hand-copying.
 //
 // KEEP IN SYNC with DocumentPage.tsx's extensions array whenever a node/mark
 // is added, removed, or gets a new attribute — schema.test.ts asserts the
@@ -65,11 +65,22 @@ const Video = Node.create({
   },
 });
 
+// Matches frontend/src/extensions/DocumentLink.tsx exactly (shape only).
+const DocumentLink = Node.create({
+  name: "documentLink",
+  group: "inline",
+  inline: true,
+  atom: true,
+  addAttributes() {
+    return { documentId: { default: null } };
+  },
+});
+
 export const schemaExtensions = [
   CustomDocument, Paragraph, Text, HardBreak,
   Bold, Italic, Underline, Strike, Code,
   Heading, BulletList, OrderedList, ListItem,
-  WorkspaceTaskList, WorkspaceTaskItem,
+  WorkspaceTaskList, WorkspaceTaskItem, DocumentLink,
   CodeBlock, HorizontalRule, Image, Link, Video,
   Table, TableRow, TableCell, TableHeader,
 ];

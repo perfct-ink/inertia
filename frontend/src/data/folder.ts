@@ -18,6 +18,11 @@ export function projectsOf(folders: Folder[]): Folder[] {
     .sort((a, b) => a.name.localeCompare(b.name))
 }
 
+// The document with this id anywhere in the Space, or undefined.
+export function findDocument(folders: Folder[], documentId: number): Document | undefined {
+  return flattenFolders(folders).flatMap((f) => f.documents ?? []).find((d) => d.id === documentId)
+}
+
 // One document in a Space: where it lives and which project holds it.
 export interface SpaceFile {
   document: Document

@@ -1,0 +1,24 @@
+@use 'tokens' as *;
+
+@layer app.components {
+  .document_link {
+    @at-root .document_link-anchor {
+      display: inline-flex;
+      align-items: center;
+      gap: space(1);
+      color: color(primary);
+      text-decoration: underline;
+      text-underline-offset: 2px;
+    }
+
+    @at-root .document_link-icon {
+      width: space(3.5);
+      height: space(3.5);
+    }
+
+    @at-root .document_link-missing {
+      color: color(muted-foreground);
+      font-style: italic;
+    }
+  }
+}
