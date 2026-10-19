@@ -41,3 +41,15 @@ export const DOC_TYPE_LABELS: Record<Document['doc_type'], string> = {
 export function untitledTitle(type: Document['doc_type']): string {
   return `Untitled ${DOC_TYPE_LABELS[type]}`
 }
+
+// A heading in a document, for the outline: its level (1-6), text and position in the editor.
+export interface OutlineHeading { level: number; text: string; pos: number }
+
+// The heading the cursor is under: the last one at or before `selectionPos`, or
+// the first when the cursor is above them all; -1 when there are none.
+export function activeHeadingIndex(headings: OutlineHeading[], selectionPos: number): number {
+  if (headings.length === 0) return -1
+  let active = 0
+  headings.forEach((h, i) => { if (h.pos <= selectionPos) active = i })
+  return active
+}

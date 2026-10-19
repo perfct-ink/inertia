@@ -1,4 +1,5 @@
 ---
+branch: backlog/table-of-contents-as-a-minimap
 priority: p1
 depends_on: []
 components: [frontend, backend]
@@ -27,3 +28,6 @@ Today: the editor has a plain Link extension (any URL) but no picker for interna
 - Anything stated in Requirements / notes (including any named default) is implemented or deliberately changed with the reason recorded.
 - Failed API calls show an error to the user.
 - Tests cover the new behaviour; a feature doc in `docs/features/` is written (or the existing one updated) and this file is removed.
+
+## Blocked
+Implemented on the branch with tests. To verify: `cd frontend && npm install && npm run lint && npm test`, then open a long document in a browser: the sticky position, overlap with the page at mid widths, and the narrow tick-mark collapse were never seen. Then remove this file and merge.

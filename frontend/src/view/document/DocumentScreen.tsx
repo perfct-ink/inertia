@@ -61,6 +61,7 @@ import WorkspaceLayout from '@/components/WorkspaceLayout'
 import { useDocument, useUpdateDocument } from '@/api/documents'
 import { useCreateTask } from '@/api/tasks'
 import { useWorkspace } from '@/api/workspace'
+import DocumentOutline from '@/components/DocumentOutline'
 import TableEditor from '@/components/editors/TableEditor'
 import SpreadsheetEditor from '@/components/editors/SpreadsheetEditor'
 import Video from '@/extensions/Video'
@@ -569,6 +570,7 @@ export default function DocumentScreen() {
             }
           }}
         >
+          <DocumentOutline editor={editor} />
           <div className={`document-page ${tasksOnly ? 'document-page--tasks_only' : ''}`}>
             <EditorContent editor={editor} />
           </div>

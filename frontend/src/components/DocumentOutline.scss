@@ -1,0 +1,88 @@
+@use 'tokens' as *;
+
+@layer app.components {
+  .ui-outline {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    height: 0;
+    overflow: visible;
+
+    @at-root .ui-outline-list {
+      position: absolute;
+      top: space(4);
+      right: space(3);
+      display: flex;
+      flex-direction: column;
+      gap: space(0.5);
+      max-width: 12rem;
+      max-height: 60vh;
+      overflow-y: auto;
+    }
+
+    @at-root .ui-outline-item {
+      display: flex;
+      align-items: center;
+      gap: space(2);
+      width: 100%;
+      padding: space(0.5) space(1);
+      border-radius: radius('sm');
+      color: color(muted-foreground);
+      text-align: left;
+      @include text('xs');
+
+      &:hover {
+        background: color(accent);
+        color: color(foreground);
+      }
+
+      &--level_2 {
+        padding-left: space(3);
+      }
+
+      &--level_3 {
+        padding-left: space(5);
+      }
+
+      &--level_4 {
+        padding-left: space(7);
+      }
+
+      &--active {
+        color: color(foreground);
+        font-weight: 600;
+
+        .ui-outline-tick {
+          background: color(primary);
+        }
+      }
+    }
+
+    @at-root .ui-outline-tick {
+      flex-shrink: 0;
+      width: space(3);
+      height: 2px;
+      border-radius: radius('full');
+      background: color(muted-foreground, 0.5);
+    }
+
+    @at-root .ui-outline-text {
+      @include truncate;
+    }
+
+    // Narrow: collapse to tick marks, like a code-editor minimap; the full text stays in the title tooltip.
+    @media (max-width: 1100px) {
+      .ui-outline-list {
+        max-width: space(6);
+      }
+
+      .ui-outline-text {
+        display: none;
+      }
+
+      .ui-outline-item {
+        padding-left: space(1);
+      }
+    }
+  }
+}
