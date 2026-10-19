@@ -46,6 +46,23 @@ Related: `docs/project-management-features.md` (gap analysis vs. Jira) already c
 - **Today** says what already exists in this repo, checked against `backend/db/schema.rb` and the models on 2026-10-11.
 - Monday feature names come from Monday's own support docs and a 2026 feature breakdown (sources at the bottom). Plan tiers (which Monday plan ships what) are not tracked here.
 
+## 0. AI worker (P0, top priority)
+
+Alex, 2026-10-19: "I want to prioritize AI worker." This is the first thing to pick up, ahead of every other P0.
+
+Working definition, pending Alex's confirmation: an **AI teammate** you assign work to the same way you assign a person. It reads the Space (documents, collections, tasks), does the task, and hands the result back for review. The writing-assistant features (PM-112) and background triage come after it and reuse it.
+
+**Today**: nothing. No AI service is configured, and tasks can only be assigned to Space members.
+
+| ID | Item | Today | Notes |
+| --- | --- | --- | --- |
+| PM-250 | **AI worker as an assignee**: it appears in the assignee picker and on boards like a member | Not present | Default: one AI worker per Space, shown with an AI badge. Done when a task can be assigned to it from the task row, board and document task line. |
+| PM-251 | **Worker runs the task**: reads the task, its document and linked items, and produces the result (edits a document, fills a collection, creates subtasks, writes a summary) | Not present | Runs as a background job. Every change it makes is attributed to it and can be undone. It can only touch the Space it belongs to. |
+| PM-252 | **Review before it lands**: the worker's changes arrive as a proposal (suggested edits or a draft) that a person accepts or rejects | Not present | Pairs with comments (PM-109). Nothing the worker does is final until someone accepts it. |
+| PM-253 | **Progress and questions**: the worker posts status updates and asks questions on the task, and the assignee is notified | Not present | Needs the notifications inbox (PM-102). Uses the same check-in mechanism as ongoing tasks (PM-227). |
+| PM-254 | **Permissions and limits** per Space: which features the worker may change, a monthly usage cap, and who may assign work to it | Not present | Owners and managers set these. Ties to per-Space features (PM-182). |
+| PM-255 | **AI provider configuration**: model provider, API key and per-Space usage tracking, documented in `docs/services.md` | Not present | Default: Anthropic's Claude API, with the key as a server-side environment variable, never sent to the browser. |
+
 ## 1. Planning hierarchy (P0)
 
 The model Alex asked for: a hierarchy of work, with every level able to sit under a Milestone.
@@ -198,7 +215,7 @@ Monday board views: Table, Kanban, Gantt, Timeline, Calendar, Workload, Chart, C
 | --- | --- | --- |
 | PM-110 | Public API (REST today; Monday uses GraphQL) and webhooks | |
 | PM-111 | Integrations: Slack, GitHub/GitLab, Google Calendar, email-to-task | |
-| PM-112 | AI: summarize a milestone/initiative, generate tasks from a description, AI fields (categorize, extract, summarize) | Monday sidekick / AI columns. |
+| PM-112 | (Builds on the AI worker, section 0.) AI: summarize a milestone/initiative, generate tasks from a description, AI fields (categorize, extract, summarize) | Monday sidekick / AI columns. |
 | PM-113 | Audit log, SSO, MFA, data export | |
 | PM-114 | Mobile apps | macOS app exists; iOS/Android do not. |
 
