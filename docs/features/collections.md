@@ -19,3 +19,8 @@ Field types, one-to-many relationships, multiple images and YAML or JSON import 
 ## History
 - Implemented 2026-10-19.
 - Not verified: lint, type-check, the Jest and Rails tests and the screens were not run (no dependencies installed, no network). Only Ruby syntax was checked.
+
+## Field types (branch `backlog/collection-field-types`, not merged)
+Beyond text, integer, number, boolean, date, datetime and relation, a field can be long text, email, phone, URL, username, person name, alphanumeric code, VIN, color, money, mileage, percent, rating (1 to 5), month (1 to 12) or year. The rule for each lives in `FieldType` (`backend/app/models/field_type.rb`); `TableField::DATA_TYPES` and `TableCell` use it, so the API and the editor agree. The frontend mirror is `frontend/src/data/fieldType.ts` (label, input kind, min/max, display format). Tests: `field_type_test.rb`, `fieldType.test.ts`.
+- Not built: single select, multi select/tags, person (Space member), created/updated time and auto-number (they need options or system values), and the display formatters are not yet used in the grid (inputs show the raw value). Credit card, CVV and password are left out on purpose.
+- Not verified: Rails tests, migration (none needed), lint, type-check, frontend tests and the browser did not run (no database, no node_modules); only `ruby -c` passed.

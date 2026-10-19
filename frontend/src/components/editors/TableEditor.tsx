@@ -11,8 +11,9 @@ import { useTabsStore } from '@/store/tabs'
 import './TableEditor.scss'
 import { usePageTitle } from '@/hooks/usePageTitle'
 import { flattenFolders } from '@/data/folder'
+import { DATA_TYPES, FIELD_TYPES, isNumericType } from '@/data/fieldType'
 
-const types: DataType[] = ['text', 'integer', 'number', 'boolean', 'date', 'datetime', 'relation']
+const types = DATA_TYPES
 const inputClass = 'table_editor-input'
 const fieldInputClass = `${inputClass} table_editor-input--field`
 
@@ -47,12 +48,14 @@ function RecordRow({ record, fields, relations, busy, onSave, onDelete }: {
             return <option key={row.id} value={row.id}>#{row.id}{label ? ` · ${label}` : ''}</option>
           })}
         </Select> : <Input aria-label={field.name} className={inputClass}
-          type={field.data_type === 'integer' || field.data_type === 'number' ? 'number' : field.data_type === 'datetime' ? 'datetime-local' : field.data_type === 'date' ? 'date' : 'text'}
-          step={field.data_type === 'integer' ? '1' : field.data_type === 'number' ? 'any' : undefined}
+          type={FIELD_TYPES[field.data_type].input === 'textarea' ? 'text' : FIELD_TYPES[field.data_type].input}
+          step={FIELD_TYPES[field.data_type].step}
+          min={FIELD_TYPES[field.data_type].min}
+          max={FIELD_TYPES[field.data_type].max}
           value={value == null ? '' : field.data_type === 'datetime' ? new Date(String(value)).toISOString().slice(0, 16) : String(value)}
           onChange={e => {
             const raw = e.target.value
-            set(field, !raw ? null : field.data_type === 'number' || field.data_type === 'integer' ? Number(raw) : field.data_type === 'datetime' ? `${raw}:00Z` : raw)
+            set(field, !raw ? null : isNumericType(field.data_type) ? Number(raw) : field.data_type === 'datetime' ? `${raw}:00Z` : raw)
           }} />}
       </td>
     })}
@@ -123,7 +126,7 @@ export default function TableEditor({ doc }: { doc: Document }) {
       <FormError message={error || (loadError ? errorMessage(loadError) : null)} className="table_editor-error" />
       {showForm && <form onSubmit={saveField} className="table_editor-field_form">
         <label className="table_editor-field_form_label">Field name<Input required maxLength={255} autoFocus className={`${fieldInputClass}`} value={name} onChange={e => setName(e.target.value)} /></label>
-        <label className="table_editor-field_form_label">Data type<Select className={`${fieldInputClass}`} value={type} onChange={e => setType(e.target.value as DataType)}>{types.map(t => <option key={t} value={t}>{t[0].toUpperCase() + t.slice(1)}</option>)}</Select></label>
+        <label className="table_editor-field_form_label">Data type<Select className={`${fieldInputClass}`} value={type} onChange={e => setType(e.target.value as DataType)}>{types.map(t => <option key={t} value={t}>{FIELD_TYPES[t].label}</option>)}</Select></label>
         {type === 'relation' && <label className="table_editor-field_form_label">Related collection<Select required className={`${fieldInputClass}`} value={relationTable} onChange={e => setRelationTable(e.target.value)}><option value="">Choose a collection</option>{tables.map(t => <option key={t.id} value={t.id}>{t.title}</option>)}</Select></label>}
         <Button variant="primary" disabled={busy || !name.trim()} className="table_editor-field_form_button">{editingField ? 'Save field' : 'Create field'}</Button>
         <Button type="button" onClick={() => setShowForm(false)} className="table_editor-cancel_button">Cancel</Button>

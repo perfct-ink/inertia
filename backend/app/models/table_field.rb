@@ -1,5 +1,5 @@
 class TableField < ApplicationRecord
-  DATA_TYPES = %w[text integer number boolean date datetime relation].freeze
+  DATA_TYPES = (%w[text integer number boolean date datetime relation] + FieldType::TYPES).freeze
   belongs_to :document
   belongs_to :relation_table, class_name: "Document", optional: true
   has_many :table_cells, dependent: :destroy

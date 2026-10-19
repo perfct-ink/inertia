@@ -1,4 +1,5 @@
 ---
+branch: backlog/collection-field-types
 priority: p0
 depends_on: []
 components: [frontend, backend]
@@ -33,3 +34,6 @@ Requested by Alex on 2026-10-18: tables should be called **Collections**; collec
 - Anything stated in Requirements / notes (including any named default) is implemented or deliberately changed with the reason recorded.
 - Failed API calls show an error to the user.
 - Tests cover the new behaviour; a feature doc in `docs/features/` is written (or the existing one updated) and this file is removed.
+
+## Blocked
+Done on the branch: 15 value-validated types (see `docs/features/collections.md`). Still to do: single select, multi select/tags, person, created/updated time, auto-number, and using `formatValue` to display values in the grid. To verify: `cd backend && bundle install && rails test`, then `cd frontend && npm install && npm run lint && npm test` and check the field type picker in a browser. None of that ran here (no database, no node_modules, no network). Remove this file only after the remaining types ship.

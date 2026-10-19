@@ -18,7 +18,7 @@ class TableCell < ApplicationRecord
     when "date" then valid_date?(value)
     when "datetime" then value.is_a?(String) && valid_datetime?(value)
     when "relation" then value.nil? && related_record&.document_id == table_field.relation_table_id
-    else false
+    else FieldType::TYPES.include?(table_field.data_type) && FieldType.valid?(table_field.data_type, value)
     end
     valid &&= related_record_id.nil? unless table_field.data_type == "relation"
     errors.add(:value, "must match #{table_field.name}'s #{table_field.data_type} type") unless valid
