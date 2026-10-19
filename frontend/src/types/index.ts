@@ -72,6 +72,8 @@ export interface Task {
   sprint_id?: number | null
   parent_id: number | null
   folder_id: number | null
+  recurrence?: string | null
+  recurrence_from?: 'schedule' | 'completion'
   document?: Document
 }
 

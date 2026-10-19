@@ -9,6 +9,8 @@ class TaskBlueprint < Blueprinter::Base
   field :milestone_id
   field :folder_id
   field :parent_id
+  field :recurrence
+  field :recurrence_from
 
   view :with_document do
     association :document, blueprint: DocumentBlueprint do |task, _options|

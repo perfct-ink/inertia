@@ -297,6 +297,14 @@
       margin-top: space(2);
     }
 
+    @at-root .tasks-repeat {
+      display: flex;
+      align-items: center;
+      gap: space(1);
+      color: color(muted-foreground);
+      @include text('xs');
+    }
+
     @at-root .tasks-doc_link {
       @include text('xs');
       @include truncate;

@@ -23,11 +23,17 @@ class Task < ApplicationRecord
 
   enum :status, { todo: 0, in_progress: 1, in_review: 2, done: 3, backlog: 4 }
 
+  # Counted from the due date ("schedule") or from the day it is completed.
+  enum :recurrence_from, { schedule: 0, completion: 1 }, prefix: :recurs_from
+
   validates :title, presence: true
+  validate :recurrence_is_valid
   validates :status, presence: true
   validates_same_workspace :epic, :parent
   validate :parent_is_not_self_or_a_descendant
   validate :due_date_not_before_start_date
+
+  after_update :create_next_occurrence, if: :repeats_after_completion?
 
   default_scope { order(:position) }
 
@@ -46,7 +52,36 @@ class Task < ApplicationRecord
     d
   end
 
+  def recurrence_rule
+    Recurrence.parse(recurrence)
+  end
+
   private
+
+  def repeats_after_completion?
+    saved_change_to_status? && done? && recurrence_rule.present?
+  end
+
+  # Completing a repeating task creates the next one and hands the rule to it,
+  # so reopening and completing the old one again cannot duplicate it.
+  def create_next_occurrence
+    rule = recurrence_rule
+    next_task = dup
+    next_task.status = :todo
+    if recurs_from_completion?
+      next_task.due_date = rule.next_date(Date.current)
+      next_task.start_date = start_date && due_date ? next_task.due_date - (due_date - start_date).to_i : nil
+    else
+      next_task.due_date = due_date && rule.next_date(due_date)
+      next_task.start_date = start_date && rule.next_date(start_date)
+    end
+    next_task.save!
+    update_column(:recurrence, nil)
+  end
+
+  def recurrence_is_valid
+    errors.add(:recurrence, "isn't a supported repeat rule") if recurrence.present? && recurrence_rule.nil?
+  end
 
   def parent_is_not_self_or_a_descendant
     return unless parent_id

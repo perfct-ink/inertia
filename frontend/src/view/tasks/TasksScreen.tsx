@@ -24,6 +24,7 @@ import {
 } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import WorkspaceLayout from '@/components/WorkspaceLayout'
+import { RECURRENCE_OPTIONS, recurrenceLabel } from '@/data/recurrence'
 import { useTasks, useCreateTask, useUpdateTask, useDeleteTask, type TaskFilters } from '@/api/tasks'
 import { useWorkspace } from '@/api/workspace'
 import { useEpics } from '@/api/epics'
@@ -86,6 +87,12 @@ function TaskCard({ task, onNext, onNavigate, epicTitle, overlay }: Omit<CardPro
         </div>
       )}
       <div className="tasks-card_footer">
+        {recurrenceLabel(task.recurrence) && (
+          <span className="tasks-repeat" title={`Repeats: ${recurrenceLabel(task.recurrence)}`}>
+            <Repeat className="tasks-icon tasks-icon--sm" aria-hidden="true" />
+            {recurrenceLabel(task.recurrence)}
+          </span>
+        )}
         {task.document && (
           <Button
             onClick={onNavigate}
@@ -156,6 +163,7 @@ interface NewTaskFields {
   epicId?: number
   sprintId?: number
   milestoneId?: number
+  recurrence?: string
 }
 
 interface AddTaskInputProps {
@@ -173,6 +181,7 @@ function AddTaskInput({ onAdd, onCancel, epics, sprints, milestones }: AddTaskIn
   const [epicId, setEpicId] = useState('')
   const [sprintId, setSprintId] = useState('')
   const [milestoneId, setMilestoneId] = useState('')
+  const [recurrence, setRecurrence] = useState('')
   const titleRef = useRef('')
   const containerRef = useRef<HTMLDivElement>(null)
 
@@ -185,6 +194,7 @@ function AddTaskInput({ onAdd, onCancel, epics, sprints, milestones }: AddTaskIn
         epicId: epicId ? Number(epicId) : undefined,
         sprintId: sprintId ? Number(sprintId) : undefined,
         milestoneId: milestoneId ? Number(milestoneId) : undefined,
+        recurrence: recurrence || undefined,
       })
     } else onCancel()
   }
@@ -227,6 +237,15 @@ function AddTaskInput({ onAdd, onCancel, epics, sprints, milestones }: AddTaskIn
         onChange={(e) => setDueDate(e.target.value)}
         onBlur={handleBlur}
       />
+      <Select
+        aria-label="Repeat"
+        value={recurrence}
+        onChange={(e) => setRecurrence(e.target.value)}
+        onBlur={handleBlur}
+        className="tasks-add_field tasks-add_field--select"
+      >
+        {RECURRENCE_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+      </Select>
       {epics.length > 0 && (
         <Select
           value={epicId}
