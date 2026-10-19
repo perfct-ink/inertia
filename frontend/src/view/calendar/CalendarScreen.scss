@@ -1,0 +1,138 @@
+@use 'tokens' as *;
+
+@layer view {
+  .view-calendar {
+    display: flex;
+    flex: 1 1 0%;
+    flex-direction: column;
+    gap: space(3);
+    overflow: auto;
+    padding: space(4) space(6);
+
+    @at-root .calendar-header {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: space(4);
+    }
+
+    @at-root .calendar-title {
+      display: flex;
+      flex: 1 1 0%;
+      align-items: center;
+      gap: space(2);
+      font-size: 1.25rem;
+      font-weight: 600;
+    }
+
+    @at-root .calendar-icon {
+      width: space(4);
+      height: space(4);
+    }
+
+    @at-root .calendar-toggle {
+      display: flex;
+      align-items: center;
+      gap: space(1.5);
+      @include text('sm');
+    }
+
+    @at-root .calendar-nav {
+      display: flex;
+      align-items: center;
+      gap: space(2);
+    }
+
+    @at-root .calendar-month {
+      min-width: space(36);
+      font-weight: 600;
+      text-align: center;
+    }
+
+    @at-root .calendar-grid {
+      display: none;
+      grid-template-columns: repeat(7, minmax(0, 1fr));
+      border-top-width: 1px;
+      border-left-width: 1px;
+
+      @media (min-width: 768px) {
+        display: grid;
+      }
+    }
+
+    @at-root .calendar-weekday {
+      padding: space(1);
+      border-right-width: 1px;
+      border-bottom-width: 1px;
+      color: color(muted-foreground);
+      text-align: center;
+      @include text('xs');
+    }
+
+    @at-root .calendar-cell {
+      display: flex;
+      flex-direction: column;
+      gap: space(0.5);
+      min-height: space(24);
+      padding: space(1);
+      border-right-width: 1px;
+      border-bottom-width: 1px;
+
+      &--outside {
+        background: color(muted, 0.4);
+        color: color(muted-foreground);
+      }
+    }
+
+    @at-root .calendar-day {
+      @include text('xs');
+    }
+
+    @at-root .calendar-today {
+      color: color(primary);
+      font-weight: 700;
+    }
+
+    @at-root .calendar-chip {
+      @include truncate;
+      @include text('xs');
+
+      padding: 0 space(1);
+      border-radius: radius('sm');
+
+      &--task {
+        background: color(primary, 0.15);
+      }
+
+      &--event {
+        background: palette('yellow-500', 0.25);
+      }
+
+      &--done {
+        opacity: 0.5;
+        text-decoration: line-through;
+      }
+    }
+
+    @at-root .calendar-agenda {
+      display: flex;
+      flex-direction: column;
+      gap: space(2);
+
+      @media (min-width: 768px) {
+        display: none;
+      }
+    }
+
+    @at-root .calendar-agenda-day {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: space(2);
+    }
+
+    @at-root .calendar-empty {
+      color: color(muted-foreground);
+    }
+  }
+}
