@@ -24,12 +24,13 @@ import {
 } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import WorkspaceLayout from '@/components/WorkspaceLayout'
+import { TASK_PRIORITIES, estimateLabel, pointsLabel, priorityLabel } from '@/data/task'
 import { useTasks, useCreateTask, useUpdateTask, useDeleteTask, type TaskFilters } from '@/api/tasks'
 import { useWorkspace } from '@/api/workspace'
 import { useEpics } from '@/api/epics'
 import { useSprints } from '@/api/sprints'
 import { useMilestones } from '@/api/milestones'
-import type { Task, Epic, Sprint, Milestone } from '@/types'
+import type { Task, Epic, Sprint, Milestone, TaskPriority } from '@/types'
 import './TasksScreen.scss'
 import { usePageTitle } from '@/hooks/usePageTitle'
 
@@ -86,6 +87,9 @@ function TaskCard({ task, onNext, onNavigate, epicTitle, overlay }: Omit<CardPro
         </div>
       )}
       <div className="tasks-card_footer">
+        {priorityLabel(task.priority) && <span className={`tasks-priority tasks-priority--${task.priority}`}>{priorityLabel(task.priority)}</span>}
+        {pointsLabel(task) && <span className="tasks-meta">{pointsLabel(task)}</span>}
+        {estimateLabel(task.estimate_hours) && <span className="tasks-meta">{estimateLabel(task.estimate_hours)}</span>}
         {task.document && (
           <Button
             onClick={onNavigate}
@@ -156,6 +160,9 @@ interface NewTaskFields {
   epicId?: number
   sprintId?: number
   milestoneId?: number
+  priority?: TaskPriority
+  estimateHours?: number
+  storyPoints?: number
 }
 
 interface AddTaskInputProps {
@@ -173,6 +180,9 @@ function AddTaskInput({ onAdd, onCancel, epics, sprints, milestones }: AddTaskIn
   const [epicId, setEpicId] = useState('')
   const [sprintId, setSprintId] = useState('')
   const [milestoneId, setMilestoneId] = useState('')
+  const [priority, setPriority] = useState<TaskPriority>('none')
+  const [estimate, setEstimate] = useState('')
+  const [points, setPoints] = useState('')
   const titleRef = useRef('')
   const containerRef = useRef<HTMLDivElement>(null)
 
@@ -185,6 +195,9 @@ function AddTaskInput({ onAdd, onCancel, epics, sprints, milestones }: AddTaskIn
         epicId: epicId ? Number(epicId) : undefined,
         sprintId: sprintId ? Number(sprintId) : undefined,
         milestoneId: milestoneId ? Number(milestoneId) : undefined,
+        priority: priority === 'none' ? undefined : priority,
+        estimateHours: estimate === '' ? undefined : Number(estimate),
+        storyPoints: points === '' ? undefined : Number(points),
       })
     } else onCancel()
   }
@@ -226,6 +239,37 @@ function AddTaskInput({ onAdd, onCancel, epics, sprints, milestones }: AddTaskIn
         value={dueDate}
         onChange={(e) => setDueDate(e.target.value)}
         onBlur={handleBlur}
+      />
+      <Select
+        aria-label="Priority"
+        value={priority}
+        onChange={(e) => setPriority(e.target.value as TaskPriority)}
+        onBlur={handleBlur}
+        className="tasks-add_field tasks-add_field--select"
+      >
+        {TASK_PRIORITIES.map((p) => <option key={p.value} value={p.value}>{p.label}</option>)}
+      </Select>
+      <Input
+        type="number"
+        min={0}
+        step="0.25"
+        aria-label="Estimate in hours"
+        placeholder="Hours"
+        value={estimate}
+        onChange={(e) => setEstimate(e.target.value)}
+        onBlur={handleBlur}
+        className="tasks-add_field"
+      />
+      <Input
+        type="number"
+        min={0}
+        step={1}
+        aria-label="Story points"
+        placeholder="Points"
+        value={points}
+        onChange={(e) => setPoints(e.target.value)}
+        onBlur={handleBlur}
+        className="tasks-add_field"
       />
       {epics.length > 0 && (
         <Select
@@ -417,7 +461,8 @@ export default function TasksScreen() {
   }
 
   function createTaskWith(status: Task['status'], fields: NewTaskFields) {
-    createTask.mutate({ ...fields, status, folder_id: filters.folder_id })
+    const { estimateHours, storyPoints, ...rest } = fields
+    createTask.mutate({ ...rest, estimate_hours: estimateHours, story_points: storyPoints, status, folder_id: filters.folder_id })
   }
 
   return (

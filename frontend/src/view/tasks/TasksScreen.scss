@@ -297,6 +297,26 @@
       margin-top: space(2);
     }
 
+    @at-root .tasks-priority {
+      padding: 0 space(1.5);
+      border-radius: radius('full');
+      background: color(muted);
+      @include text('xs');
+
+      &--high {
+        background: palette('yellow-500', 0.25);
+      }
+
+      &--urgent {
+        background: palette('red-500', 0.25);
+      }
+    }
+
+    @at-root .tasks-meta {
+      color: color(muted-foreground);
+      @include text('xs');
+    }
+
     @at-root .tasks-doc_link {
       @include text('xs');
       @include truncate;

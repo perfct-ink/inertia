@@ -23,7 +23,12 @@ class Task < ApplicationRecord
 
   enum :status, { todo: 0, in_progress: 1, in_review: 2, done: 3, backlog: 4 }
 
+  # How urgent it is; none means nobody has said.
+  enum :priority, { none: 0, low: 1, medium: 2, high: 3, urgent: 4 }, prefix: :priority, validate: true
+
   validates :title, presence: true
+  validates :estimate_hours, numericality: { greater_than_or_equal_to: 0, allow_nil: true }
+  validates :story_points, :actual_story_points, numericality: { only_integer: true, greater_than_or_equal_to: 0, allow_nil: true }
   validates :status, presence: true
   validates_same_workspace :epic, :parent
   validate :parent_is_not_self_or_a_descendant
