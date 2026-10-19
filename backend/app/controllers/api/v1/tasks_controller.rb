@@ -41,6 +41,22 @@ module Api
         end
       end
 
+      # The task's updates, oldest first.
+      def check_ins
+        render json: TaskCheckInBlueprint.render(current_workspace.tasks.find(params[:id]).check_ins.includes(:author))
+      end
+
+      # POST { check_in: { body } } answers a check-in request.
+      def create_check_in
+        task = current_workspace.tasks.find(params[:id])
+        check_in = task.check_ins.build(body: params.require(:check_in)[:body], author: current_user)
+        if check_in.save
+          render json: TaskCheckInBlueprint.render(check_in), status: :created
+        else
+          render json: { errors: check_in.errors.full_messages }, status: :unprocessable_entity
+        end
+      end
+
       def destroy
         @task.destroy
         head :no_content
@@ -53,7 +69,7 @@ module Api
       end
 
       def task_params
-        params.require(:task).permit(:title, :description, :status, :start_date, :due_date, :position, :assignee_id, :epic_id, :sprint_id, :milestone_id, :folder_id, :parent_id)
+        params.require(:task).permit(:title, :description, :status, :start_date, :due_date, :position, :assignee_id, :epic_id, :sprint_id, :milestone_id, :folder_id, :parent_id, :ongoing, :check_in_every_days)
       end
     end
   end

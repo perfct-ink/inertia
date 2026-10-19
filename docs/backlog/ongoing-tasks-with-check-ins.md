@@ -1,4 +1,5 @@
 ---
+branch: backlog/ongoing-tasks-with-check-ins
 priority: p0
 depends_on: [notifications-inbox]
 ---
@@ -35,3 +36,6 @@ Requested by Alex on 2026-10-18: write product requirement documents that turn i
 - Anything stated in Requirements / notes (including any named default) is implemented or deliberately changed with the reason recorded.
 - Failed API calls show an error to the user.
 - Tests cover the new behaviour; a feature doc in `docs/features/` is written (or the existing one updated) and this file is removed.
+
+## Blocked
+Implemented on the branch with tests, stacked on `backlog/notifications-inbox` (merge it first). **Needs infrastructure:** something must run `rails check_ins:request` daily (cron, a scheduler container, or a job queue); until then no check-in requests are sent. To verify: `cd backend && bundle install && rails db:migrate && rails test` (diff `schema.rb`, edited by hand), `cd frontend && npm install && npm run lint && npm test`, then create an ongoing task, run the rake task and look at the assignee's inbox. None of that could run here. Then remove this file and merge.

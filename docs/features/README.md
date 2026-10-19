@@ -20,3 +20,4 @@ One file per implemented feature, written from the code (see `docs/rules/feature
 | Switching Spaces from the sidebar | [space_switcher.md](space_switcher.md) |
 | Collections naming (tables are called Collections in the UI) | [collections.md](collections.md) |
 | Notifications inbox: per-person inbox, unread badge, task assignment | [notifications_inbox.md](notifications_inbox.md) |
+| Ongoing tasks: scheduled check-ins asked via the inbox | [ongoing_tasks.md](ongoing_tasks.md) |

@@ -297,6 +297,16 @@
       margin-top: space(2);
     }
 
+    @at-root .tasks-meta {
+      color: color(muted-foreground);
+      @include text('xs');
+
+      &--stale {
+        color: palette('red-500');
+        font-weight: 600;
+      }
+    }
+
     @at-root .tasks-doc_link {
       @include text('xs');
       @include truncate;

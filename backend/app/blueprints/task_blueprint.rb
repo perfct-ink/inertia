@@ -9,6 +9,10 @@ class TaskBlueprint < Blueprinter::Base
   field :milestone_id
   field :folder_id
   field :parent_id
+  field :ongoing
+  field :check_in_every_days
+  field(:check_in_due_at) { |task| task.check_in_due_at }
+  field(:check_in_stale) { |task| task.check_in_stale? }
 
   view :with_document do
     association :document, blueprint: DocumentBlueprint do |task, _options|

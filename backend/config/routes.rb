@@ -50,7 +50,12 @@ Rails.application.routes.draw do
       patch "tables/:id/records/:record_id", to: "tables#update_record"
       delete "tables/:id/records/:record_id", to: "tables#destroy_record"
 
-      resources :tasks, only: [ :index, :create, :update, :destroy ]
+      resources :tasks, only: [ :index, :create, :update, :destroy ] do
+        member do
+          get :check_ins
+          post :check_ins, action: :create_check_in
+        end
+      end
 
       resources :epics, only: [ :index, :create, :update, :destroy ]
 

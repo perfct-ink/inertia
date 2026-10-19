@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_10_19_000012) do
+ActiveRecord::Schema[7.2].define(version: 2026_10_19_000019) do
   create_table "ai_runs", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.bigint "workspace_id", null: false
     t.bigint "ai_worker_id", null: false
@@ -313,6 +313,16 @@ ActiveRecord::Schema[7.2].define(version: 2026_10_19_000012) do
     t.index ["workspace_id"], name: "index_task_dependencies_on_workspace_id"
   end
 
+  create_table "task_check_ins", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+    t.bigint "task_id", null: false
+    t.bigint "author_id"
+    t.text "body", null: false
+    t.datetime "created_at", null: false
+    t.index ["author_id"], name: "index_task_check_ins_on_author_id"
+    t.index ["task_id", "created_at"], name: "index_task_check_ins_on_task_id_and_created_at"
+    t.index ["task_id"], name: "index_task_check_ins_on_task_id"
+  end
+
   create_table "tasks", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.string "title", null: false
     t.text "description"
@@ -330,6 +340,9 @@ ActiveRecord::Schema[7.2].define(version: 2026_10_19_000012) do
     t.bigint "parent_id"
     t.bigint "milestone_id"
     t.bigint "sprint_id"
+    t.boolean "ongoing", default: false, null: false
+    t.integer "check_in_every_days"
+    t.datetime "check_in_requested_at"
     t.index ["assignee_id"], name: "index_tasks_on_assignee_id"
     t.index ["document_id"], name: "index_tasks_on_document_id"
     t.index ["epic_id"], name: "index_tasks_on_epic_id"
@@ -420,6 +433,8 @@ ActiveRecord::Schema[7.2].define(version: 2026_10_19_000012) do
   add_foreign_key "task_dependencies", "tasks", column: "predecessor_id"
   add_foreign_key "task_dependencies", "tasks", column: "successor_id"
   add_foreign_key "task_dependencies", "workspaces"
+  add_foreign_key "task_check_ins", "tasks"
+  add_foreign_key "task_check_ins", "users", column: "author_id", on_delete: :nullify
   add_foreign_key "tasks", "documents"
   add_foreign_key "tasks", "epics"
   add_foreign_key "tasks", "folders"

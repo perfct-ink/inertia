@@ -72,6 +72,10 @@ export interface Task {
   sprint_id?: number | null
   parent_id: number | null
   folder_id: number | null
+  ongoing?: boolean
+  check_in_every_days?: number | null
+  check_in_due_at?: string | null
+  check_in_stale?: boolean
   document?: Document
 }
 
@@ -242,5 +246,13 @@ export interface AppNotification {
   subject_id: number | null
   workspace_id: number
   read_at: string | null
+  created_at: string
+}
+
+// One answer to an ongoing task's "what's the update?".
+export interface TaskCheckIn {
+  id: number
+  body: string
+  author_name: string | null
   created_at: string
 }

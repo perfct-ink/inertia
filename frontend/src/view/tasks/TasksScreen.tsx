@@ -24,6 +24,7 @@ import {
 } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import WorkspaceLayout from '@/components/WorkspaceLayout'
+import TaskCheckInDialog from '@/components/TaskCheckInDialog'
 import { useTasks, useCreateTask, useUpdateTask, useDeleteTask, type TaskFilters } from '@/api/tasks'
 import { useWorkspace } from '@/api/workspace'
 import { useEpics } from '@/api/epics'
@@ -71,9 +72,10 @@ interface CardProps {
   onNavigate: () => void
   epicTitle?: string
   overlay?: boolean
+  onCheckIn?: () => void
 }
 
-function TaskCard({ task, onNext, onNavigate, epicTitle, overlay }: Omit<CardProps, 'onDelete'>) {
+function TaskCard({ task, onNext, onNavigate, epicTitle, overlay, onCheckIn }: Omit<CardProps, 'onDelete'>) {
   return (
     <div className={classNames('tasks-card', overlay && 'tasks-card--overlay')}>
       <div className="tasks-card_title_row">
@@ -86,6 +88,14 @@ function TaskCard({ task, onNext, onNavigate, epicTitle, overlay }: Omit<CardPro
         </div>
       )}
       <div className="tasks-card_footer">
+        {task.ongoing && (
+          <span className={classNames('tasks-meta', task.check_in_stale && 'tasks-meta--stale')}>
+            {task.check_in_stale ? 'Update overdue' : `Ongoing · every ${task.check_in_every_days} days`}
+          </span>
+        )}
+        {task.ongoing && onCheckIn && !overlay && (
+          <Button onClick={onCheckIn} className="tasks-next" aria-label={`Add an update to ${task.title}`}>Update</Button>
+        )}
         {task.document && (
           <Button
             onClick={onNavigate}
@@ -156,6 +166,7 @@ interface NewTaskFields {
   epicId?: number
   sprintId?: number
   milestoneId?: number
+  checkInEveryDays?: number
 }
 
 interface AddTaskInputProps {
@@ -173,6 +184,7 @@ function AddTaskInput({ onAdd, onCancel, epics, sprints, milestones }: AddTaskIn
   const [epicId, setEpicId] = useState('')
   const [sprintId, setSprintId] = useState('')
   const [milestoneId, setMilestoneId] = useState('')
+  const [checkInEvery, setCheckInEvery] = useState('')
   const titleRef = useRef('')
   const containerRef = useRef<HTMLDivElement>(null)
 
@@ -185,6 +197,7 @@ function AddTaskInput({ onAdd, onCancel, epics, sprints, milestones }: AddTaskIn
         epicId: epicId ? Number(epicId) : undefined,
         sprintId: sprintId ? Number(sprintId) : undefined,
         milestoneId: milestoneId ? Number(milestoneId) : undefined,
+        checkInEveryDays: checkInEvery ? Number(checkInEvery) : undefined,
       })
     } else onCancel()
   }
@@ -226,6 +239,17 @@ function AddTaskInput({ onAdd, onCancel, epics, sprints, milestones }: AddTaskIn
         value={dueDate}
         onChange={(e) => setDueDate(e.target.value)}
         onBlur={handleBlur}
+      />
+      <Input
+        type="number"
+        min={1}
+        step={1}
+        aria-label="Ongoing: check in every N days"
+        placeholder="Ongoing: every N days"
+        value={checkInEvery}
+        onChange={(e) => setCheckInEvery(e.target.value)}
+        onBlur={handleBlur}
+        className="tasks-add_field"
       />
       {epics.length > 0 && (
         <Select
@@ -320,6 +344,7 @@ export default function TasksScreen() {
   const deleteTask = useDeleteTask()
 
   const [addingTo, setAddingTo] = useState<Task['status'] | null>(null)
+  const [checkInTask, setCheckInTask] = useState<Task | null>(null)
 
   useEffect(() => {
     if (searchParams.get('new') === '1') setAddingTo('backlog')
@@ -417,7 +442,8 @@ export default function TasksScreen() {
   }
 
   function createTaskWith(status: Task['status'], fields: NewTaskFields) {
-    createTask.mutate({ ...fields, status, folder_id: filters.folder_id })
+    const { checkInEveryDays, ...rest } = fields
+    createTask.mutate({ ...rest, status, folder_id: filters.folder_id, ...(checkInEveryDays ? { ongoing: true, check_in_every_days: checkInEveryDays } : {}) })
   }
 
   return (
@@ -547,6 +573,8 @@ export default function TasksScreen() {
                           onNext={NEXT_STATUS[task.status] ? () => updateTask.mutate({ id: task.id, status: NEXT_STATUS[task.status]! }) : null}
                           onNavigate={() => navigate(`/documents/${task.document_id}`)}
                           epicTitle={task.epic_id ? epicById.get(task.epic_id)?.title : undefined}
+                          onCheckIn={() => setCheckInTask(task)}
+                          onCheckIn={() => setCheckInTask(task)}
                         />
                       ))}
                       {addingTo === key ? (
@@ -662,6 +690,7 @@ export default function TasksScreen() {
           </div>
         )}
       </div>
+      <TaskCheckInDialog task={checkInTask} onClose={() => setCheckInTask(null)} />
     </WorkspaceLayout>
   )
 }
