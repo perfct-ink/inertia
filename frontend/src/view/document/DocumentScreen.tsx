@@ -46,6 +46,7 @@ import {
   List,
   ListOrdered,
   ListChecks,
+  ListFilter,
   Code2,
   Minus,
   Table as TableIcon,
@@ -119,6 +120,7 @@ export default function DocumentScreen() {
   const { data: workspace } = useWorkspace()
   const user = useAuthStore((s) => s.user)
   const [linkDialogOpen, setLinkDialogOpen] = useState(false)
+  const [tasksOnly, setTasksOnly] = useState(false)
   const [saveStatus, setSaveStatus] = useState<'saved' | 'saving' | 'unsaved'>('saved')
   const pendingRef = useRef<{ title?: string; content?: Record<string, unknown> }>({})
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
@@ -504,6 +506,12 @@ export default function DocumentScreen() {
             active={editor.isActive('workspaceTaskList')}
             title="Task list"
           />
+          <ToolbarBtn
+            icon={<ListFilter className="document-toolbar_icon" />}
+            onClick={() => setTasksOnly((v) => !v)}
+            active={tasksOnly}
+            title="Tasks only"
+          />
           <Divider />
           <ToolbarBtn
             icon={<Code2 className="document-toolbar_icon" />}
@@ -561,7 +569,7 @@ export default function DocumentScreen() {
             }
           }}
         >
-          <div className="document-page">
+          <div className={`document-page ${tasksOnly ? 'document-page--tasks_only' : ''}`}>
             <EditorContent editor={editor} />
           </div>
         </div>

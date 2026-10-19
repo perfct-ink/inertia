@@ -106,5 +106,12 @@
       margin: 0 auto;
       padding: space(12) space(8);
     }
+
+    // Tasks only: fold every top-level block except headings and task lists in place.
+    @at-root .document-page--tasks_only
+      .ProseMirror
+      > :not(h1, h2, h3, h4, h5, h6, [data-type='workspaceTaskList']) {
+      display: none;
+    }
   }
 }

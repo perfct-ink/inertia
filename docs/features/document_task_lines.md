@@ -6,6 +6,8 @@ A checklist item in a document (a `workspaceTaskItem` node in the editor) become
 - The line shows a status dot (backlog, todo, in progress, in review, done) read live from the task list, and a calendar button. Once the line has a task, the button sets or clears the task's `due_date` (shown as "MMM d").
 - Tasks are listed for a document by `GET /api/v1/tasks?document_id=`; tasks are also created via `POST /api/v1/documents/:id/tasks`.
 
+- A "Tasks only" toggle in the document toolbar (`aria-pressed`) folds every top-level block except headings and task lists in place, via the `document-page--tasks_only` class (`DocumentScreen.scss`). It is a CSS fold, so checking lines, dates and collaboration work as normal; toggling back restores the prose. The setting is per page view and is not saved.
+
 ## API and models
 `tasks.document_id` (nullable, indexed); `Document has_many :tasks, dependent: :destroy`. Frontend: `syncTaskNodes` in `frontend/src/view/document/DocumentScreen.tsx`, `frontend/src/extensions/WorkspaceTaskItem.tsx`, `frontend/src/components/editors/WorkspaceTaskItemView.tsx`.
 
@@ -23,5 +25,6 @@ None for the sync, the node view or the `document_id` filter.
 
 ## History
 - Implemented 2026-10-15 to 2026-10-18 (creation, status dot, due date). Committed locally; not pushed or deployed.
+- Tasks only toggle added 2026-10-19. Not verified: no dependencies installed, so lint, type-check and the browser were not run; no automated test (a CSS-only fold). Not pushed through CI.
 - Not implemented: two-way sync, assignee/status/start date from the line.
 - Not verified: lint, type-check, tests and the editor were not run (no dependencies installed, no network).
