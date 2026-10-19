@@ -574,7 +574,6 @@ export default function TasksScreen() {
                           onNavigate={() => navigate(`/documents/${task.document_id}`)}
                           epicTitle={task.epic_id ? epicById.get(task.epic_id)?.title : undefined}
                           onCheckIn={() => setCheckInTask(task)}
-                          onCheckIn={() => setCheckInTask(task)}
                         />
                       ))}
                       {addingTo === key ? (
