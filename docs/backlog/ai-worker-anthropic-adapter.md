@@ -2,6 +2,7 @@
 priority: p0
 depends_on: []
 components: [backend]
+branch: backlog/ai-worker-anthropic-adapter
 ---
 # AI worker: Anthropic model adapter
 
@@ -32,3 +33,13 @@ Original row: **AI provider configuration**: model provider, API key and per-Spa
 ## Acceptance criteria
 - With a key set, a queued run ends `succeeded` with output; with no key it fails with the existing message.
 - A test covers success and an API error using a stubbed SDK client.
+
+## Blocked
+
+Done on branch `backlog/ai-worker-anthropic-adapter`: `AiWorkers::AnthropicClient` (refusals and API errors become failed runs), `AiWorkers::Reply`, the initializer that enables it when the key and gem are present, per-run token usage (`input_tokens`, `output_tokens`, migration `20261019000001`) and `Workspace#ai_tokens_used`, a stubbed-SDK test, and the `docs/services.md` and `docs/features/ai_workers.md` updates.
+
+Still to do, and why it is blocked:
+- Add the gem: run `bundle add anthropic` where there is network, so `Gemfile.lock` is updated (a Gemfile change without the lock breaks installs). Without it the initializer leaves AI workers off.
+- Run the tests and the migration, and make one real call with a key. Nothing here has been run.
+- Streaming and server-side refusal fallbacks (`fallbacks` with the `server-side-fallback` beta) are not done; the Ruby SDK binding for them still needs checking.
+- Then remove this file and finish the `docs/features/ai_workers.md` History.

@@ -20,13 +20,14 @@ Scoped to the current Space; I did not check role-based limits.
 `ANTHROPIC_API_KEY` (server-side only) and the `anthropic` gem, which is **not yet in the Gemfile** because `Gemfile.lock` needs a networked `bundle add anthropic`. See `docs/services.md`. Jobs use the in-process queue, so queued runs are lost on restart.
 
 ## Tests
-`backend/test/models/ai_run_test.rb`, `test/services/ai_workers_runner_test.rb` (fake client), `test/controllers/ai_runs_controller_test.rb`.
+`backend/test/models/ai_run_test.rb`, `test/services/ai_workers_runner_test.rb` (fake client), `test/controllers/ai_runs_controller_test.rb`, `test/services/ai_workers_anthropic_client_test.rb` (stubbed SDK client: text and usage, refusal, runner integration).
 
 ## Known limits
 The foundation supports multiple named workers per Space. The product spec (Alex, 2026-10-19) defaults to one AI worker per Space shown as an assignee with an AI badge; which to follow is pending Alex's confirmation (see `docs/backlog/ai-worker-assign-and-auto-run.md`).
 
-No model adapter, no UI, no cost limits, no retry or cancel, and runs stuck in `running` after a restart are not cleaned up. Task text would be sent to Anthropic once connected.
+The adapter is not streaming and does not yet request server-side refusal fallbacks (the Ruby binding for those was not available to check). No UI, no cost limits, no retry or cancel, and runs stuck in `running` after a restart are not cleaned up. Task text would be sent to Anthropic once connected.
 
 ## History
 - Implemented 2026-10-18 (foundation only). Committed locally; not pushed or deployed.
 - Not verified: the tests were not run (no gems installed), the migration was not run, and no real model call was made.
+- Adapter added 2026-10-19 on branch `backlog/ai-worker-anthropic-adapter`, not merged to `main` because the gem could not be added offline. Not verified: nothing was run (tests, migration), and no real API call was made, so the SDK calls follow the documented Ruby examples only.
