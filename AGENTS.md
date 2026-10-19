@@ -2,7 +2,9 @@
 
 Inertia is an app for documents, spreadsheets, and tasks.
 
-See docs/rules for rules to follow.
+AGENTS.md should remain minimal. It should load:
+- rules from docs/rules
+- features from docs/features
 
 ### Documents
 Documents have common formatting much like Quip or Google Docs.
