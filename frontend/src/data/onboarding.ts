@@ -74,3 +74,18 @@ export function completedSteps(facts: OnboardingFacts, recorded: OnboardingStepI
     .map((s) => s.id)
     .filter((id) => recorded.includes(id) || !!DETECTORS[id]?.(facts))
 }
+
+export interface OnboardingProgress { dismissed: boolean; done: OnboardingStepId[] }
+
+// Combines this device's progress with the server's: the server's hidden/shown
+// choice wins (it is the latest saved), and a step ticked on either side stays ticked.
+export function mergeOnboarding(local: OnboardingProgress | undefined, server: OnboardingProgress | null): OnboardingProgress | null {
+  if (!server) return local ?? null
+  const done = [...new Set([...server.done, ...(local?.done ?? [])])]
+  return { dismissed: server.dismissed, done }
+}
+
+export function sameOnboarding(a: OnboardingProgress | undefined | null, b: OnboardingProgress | undefined | null): boolean {
+  if (!a || !b) return a === b
+  return a.dismissed === b.dismissed && a.done.length === b.done.length && a.done.every((id) => b.done.includes(id))
+}

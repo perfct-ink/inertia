@@ -18,6 +18,7 @@ import OkrsScreen from '@/view/okrs/OkrsScreen'
 import ProjectsScreen from '@/view/projects/ProjectsScreen'
 import FolderDetailScreen from '@/view/folder_detail/FolderDetailScreen'
 import SharedScreen from '@/view/shared/SharedScreen'
+import OnboardingSync from '@/components/onboarding/OnboardingSync'
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
   const token = useAuthStore((s) => s.token)
@@ -37,6 +38,7 @@ function DocumentRoute() {
 export default function App() {
   return (
     <>
+      <OnboardingSync />
       <Routes>
         <Route path="/login" element={<LoginScreen />} />
         <Route path="/signup" element={<SignupScreen />} />

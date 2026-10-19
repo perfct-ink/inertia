@@ -14,6 +14,8 @@ interface OnboardingStore {
   start: (userId: number) => void
   record: (userId: number, steps: OnboardingStepId[]) => void
   dismiss: (userId: number) => void
+  // Sets this account's progress to exactly `progress` (used when the server's copy arrives).
+  replace: (userId: number, progress: Progress) => void
 }
 
 export const useOnboardingStore = create<OnboardingStore>()(
@@ -32,6 +34,7 @@ export const useOnboardingStore = create<OnboardingStore>()(
         const current = s.users[userId]
         return current ? { users: { ...s.users, [userId]: { ...current, dismissed: true } } } : s
       }),
+      replace: (userId, progress) => set((s) => ({ users: { ...s.users, [userId]: progress } })),
     }),
     { name: 'inertia-onboarding' }
   )
