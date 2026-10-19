@@ -18,6 +18,12 @@ export function projectsOf(folders: Folder[]): Folder[] {
     .sort((a, b) => a.name.localeCompare(b.name))
 }
 
+// The document to open instead of the folder page: the folder's home document,
+// unless the visit asked for a specific view of the folder (any query string).
+export function homeDocumentToOpen(folder: Pick<Folder, 'home_document_id'>, search: string): number | null {
+  return folder.home_document_id && search === '' ? folder.home_document_id : null
+}
+
 // One document in a Space: where it lives and which project holds it.
 export interface SpaceFile {
   document: Document

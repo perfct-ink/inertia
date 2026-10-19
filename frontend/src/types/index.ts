@@ -21,6 +21,8 @@ export interface Folder {
   kind: FolderKind
   dependency_mode?: DependencyMode
   parent_id: number | null
+  // A document in this folder shown when the folder is opened.
+  home_document_id?: number | null
   root?: boolean
   position: number
   pinned: boolean

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_10_18_000003) do
+ActiveRecord::Schema[7.2].define(version: 2026_10_19_000013) do
   create_table "ai_runs", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.bigint "workspace_id", null: false
     t.bigint "ai_worker_id", null: false
@@ -107,6 +107,8 @@ ActiveRecord::Schema[7.2].define(version: 2026_10_18_000003) do
     t.datetime "archived_at"
     t.integer "kind", default: 0, null: false
     t.integer "dependency_mode", default: 0, null: false
+    t.bigint "home_document_id"
+    t.index ["home_document_id"], name: "index_folders_on_home_document_id"
     t.index ["parent_id"], name: "index_folders_on_parent_id"
     t.index ["workspace_id"], name: "index_folders_on_workspace_id"
   end
@@ -375,6 +377,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_10_18_000003) do
   add_foreign_key "events", "folders"
   add_foreign_key "events", "workspaces"
   add_foreign_key "folders", "folders", column: "parent_id"
+  add_foreign_key "folders", "documents", column: "home_document_id", on_delete: :nullify
   add_foreign_key "folders", "workspaces"
   add_foreign_key "initiatives", "milestones"
   add_foreign_key "initiatives", "users", column: "owner_id", on_delete: :nullify

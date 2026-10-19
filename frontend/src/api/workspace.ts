@@ -33,7 +33,7 @@ export function useCreateFolder() {
 export function useUpdateFolder() {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: ({ id, ...data }: { id: number; name?: string; pinned?: boolean; parent_id?: number; archived?: boolean; kind?: FolderKind; dependency_mode?: DependencyMode }) =>
+    mutationFn: ({ id, ...data }: { id: number; name?: string; pinned?: boolean; parent_id?: number; archived?: boolean; kind?: FolderKind; home_document_id?: number | null; dependency_mode?: DependencyMode }) =>
       api.patch(`/api/v1/folders/${id}`, { folder: data }).then((r) => r.data as Folder),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['workspace'] })

@@ -1,7 +1,7 @@
-import { Button, classNames } from '@/components/ui'
+import { Button, Select, classNames } from '@/components/ui'
 import { Database } from 'lucide-react'
 import { useState, useMemo } from 'react'
-import { useParams, useNavigate, useSearchParams, Link } from 'react-router-dom'
+import { useParams, useNavigate, useSearchParams, useLocation, Link, Navigate } from 'react-router-dom'
 import {
   Loader2, ArrowLeft, ArrowRight, Archive, ArchiveRestore,
   LayoutList, Kanban as KanbanIcon, Calendar as CalendarIcon, GanttChart,
@@ -24,6 +24,7 @@ import { usePageTitle } from '@/hooks/usePageTitle'
 import { donePercent } from '@/data/schedule'
 import GanttPane from './GanttPane'
 import { buildTaskTree, type TaskNode } from '@/data/task'
+import { homeDocumentToOpen } from '@/data/folder'
 
 const KANBAN_STATUSES: { key: Task['status']; label: string; dot: string }[] = [
   { key: 'todo', label: 'To Do', dot: 'muted' },
@@ -390,6 +391,7 @@ export default function FolderDetailScreen() {
   const folderId = Number(id)
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
+  const location = useLocation()
   const view = VIEWS.find((v) => v.key === searchParams.get('view'))?.key ?? 'overview'
 
   const { data, isLoading } = useFolderContents(folderId)
@@ -409,6 +411,9 @@ export default function FolderDetailScreen() {
   }
 
   const { folder, documents, tasks, events, epics } = data
+  // Opening the folder lands on its home document; ?view=overview (or any view) shows the contents.
+  const homeId = homeDocumentToOpen(folder, location.search)
+  if (homeId) return <Navigate to={`/documents/${homeId}`} replace />
   const milestones = allMilestones
     .filter((m) => m.folder_id === folderId && m.target_date)
     .map((m) => ({ id: m.id, title: m.title, target_date: m.target_date! }))
@@ -433,6 +438,14 @@ export default function FolderDetailScreen() {
               </Button>
             ))}
           </div>
+          <Select
+            aria-label="Home document"
+            value={folder.home_document_id ?? ''}
+            onChange={(e) => updateFolder.mutate({ id: folderId, home_document_id: e.target.value ? Number(e.target.value) : null })}
+          >
+            <option value="">No home document</option>
+            {documents.filter((d) => d.folder_id === folderId).map((d) => <option key={d.id} value={d.id}>{d.title}</option>)}
+          </Select>
           <Button
             onClick={() => updateFolder.mutate({ id: folderId, archived: !folder.archived })}
             className="folder_detail-subtle folder_detail-archive"

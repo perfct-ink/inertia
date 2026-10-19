@@ -1,5 +1,5 @@
 import type { Document, Folder } from '@/types'
-import { documentsIn, flattenFolders, projectLastModified, projectsOf, searchSpaceFiles, spaceFiles } from './folder'
+import { homeDocumentToOpen, documentsIn, flattenFolders, projectLastModified, projectsOf, searchSpaceFiles, spaceFiles } from './folder'
 
 const folder = (id: number, children: Folder[] = []) => ({ id, name: `F${id}`, children }) as unknown as Folder
 
@@ -48,4 +48,11 @@ test('documentsIn and projectLastModified cover nested folders', () => {
   expect(documentsIn(messages).map((d) => d.title)).toEqual(['Spec', 'Mockups'])
   expect(projectLastModified(messages)).toBe('2026-10-09T00:00:00Z')
   expect(projectLastModified(tree()[0].children[2])).toBeNull()
+})
+
+test('a folder opens on its home document unless a specific view was asked for', () => {
+  expect(homeDocumentToOpen({ home_document_id: 9 }, '')).toBe(9)
+  expect(homeDocumentToOpen({ home_document_id: 9 }, '?view=board')).toBeNull()
+  expect(homeDocumentToOpen({ home_document_id: null }, '')).toBeNull()
+  expect(homeDocumentToOpen({}, '')).toBeNull()
 })

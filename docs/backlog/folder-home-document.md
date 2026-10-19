@@ -1,4 +1,5 @@
 ---
+branch: backlog/folder-home-document
 priority: p1
 depends_on: []
 components: [frontend]
@@ -27,3 +28,6 @@ Today: the editor has a plain Link extension (any URL) but no picker for interna
 - Anything stated in Requirements / notes (including any named default) is implemented or deliberately changed with the reason recorded.
 - Failed API calls show an error to the user.
 - Tests cover the new behaviour; a feature doc in `docs/features/` is written (or the existing one updated) and this file is removed.
+
+## Blocked
+Implemented on the branch with tests. When `backlog/breadcrumb-path-above-the-document-name` merges, its folder links must point at `/folders/:id?view=overview` or they will bounce back to the home document. To verify: `cd backend && bundle install && rails db:migrate && rails test` (diff `schema.rb`, edited by hand), `cd frontend && npm install && npm run lint && npm test`, then set a home document and open the folder in a browser. None of that could run here. Then remove this file and merge.

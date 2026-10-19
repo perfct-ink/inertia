@@ -1,6 +1,7 @@
 class Folder < ApplicationRecord
   belongs_to :workspace
   belongs_to :parent, class_name: "Folder", optional: true
+  belongs_to :home_document, class_name: "Document", optional: true
   has_many :children, class_name: "Folder", foreign_key: :parent_id, dependent: :destroy
   has_many :documents, dependent: :destroy
   has_many :tasks, dependent: :nullify
@@ -15,6 +16,7 @@ class Folder < ApplicationRecord
   enum :dependency_mode, { none: 0, strict: 1, flexible: 2 }, prefix: :dependencies, scopes: false
 
   validates :name, presence: true
+  validate :home_document_is_in_this_folder
   before_validation :attach_to_root
   validate :validate_parent
   validate :protect_root_location
@@ -51,6 +53,11 @@ class Folder < ApplicationRecord
   end
 
   private
+
+  def home_document_is_in_this_folder
+    return if home_document.nil? || home_document.folder_id == id
+    errors.add(:home_document, "must be a document in this folder")
+  end
 
   def attach_to_root
     self.parent_id = workspace.root_folder_id if workspace && parent_id.nil? && !root?
