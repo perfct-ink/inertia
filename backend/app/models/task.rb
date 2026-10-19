@@ -29,6 +29,12 @@ class Task < ApplicationRecord
   validate :parent_is_not_self_or_a_descendant
   validate :due_date_not_before_start_date
 
+  # Who is making the change being saved (set by the controller), so a person
+  # is not notified about their own action.
+  attr_accessor :actor
+
+  after_save :notify_new_assignee, if: :saved_change_to_assignee_id?
+
   default_scope { order(:position) }
 
   # How many levels below a top-level task this one sits (0 = top-level,
@@ -47,6 +53,10 @@ class Task < ApplicationRecord
   end
 
   private
+
+  def notify_new_assignee
+    Notification.notify(recipient: assignee, workspace: workspace, kind: "task_assigned", title: "You were assigned “#{title}”", subject: self, actor: actor)
+  end
 
   def parent_is_not_self_or_a_descendant
     return unless parent_id

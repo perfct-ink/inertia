@@ -23,6 +23,7 @@ module Api
 
       def create
         task = current_workspace.tasks.build(task_params)
+        task.actor = current_user
         task.document_id = params[:document_id] if params[:document_id].present?
         if task.save
           render json: TaskBlueprint.render(task), status: :created
@@ -32,6 +33,7 @@ module Api
       end
 
       def update
+        @task.actor = current_user
         if @task.update(task_params)
           render json: TaskBlueprint.render(@task)
         else

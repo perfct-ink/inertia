@@ -10,6 +10,7 @@ class User < ApplicationRecord
   has_many :accessible_workspaces, through: :workspace_memberships, source: :workspace
   has_many :created_workspaces, -> { where(personal: false) }, class_name: "Workspace", dependent: :restrict_with_error
   has_many :social_identities, dependent: :destroy
+  has_many :notifications, dependent: :destroy
   has_many :social_login_attempts, dependent: :destroy
   after_create :create_default_workspace
 

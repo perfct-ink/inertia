@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_10_18_000003) do
+ActiveRecord::Schema[7.2].define(version: 2026_10_19_000012) do
   create_table "ai_runs", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.bigint "workspace_id", null: false
     t.bigint "ai_worker_id", null: false
@@ -162,6 +162,22 @@ ActiveRecord::Schema[7.2].define(version: 2026_10_18_000003) do
     t.index ["folder_id"], name: "index_milestones_on_folder_id"
     t.index ["owner_id"], name: "index_milestones_on_owner_id"
     t.index ["workspace_id"], name: "index_milestones_on_workspace_id"
+  end
+
+  create_table "notifications", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.bigint "workspace_id", null: false
+    t.string "kind", null: false
+    t.string "title", null: false
+    t.text "body"
+    t.string "subject_type"
+    t.bigint "subject_id"
+    t.datetime "read_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["user_id", "read_at"], name: "index_notifications_on_user_id_and_read_at"
+    t.index ["user_id"], name: "index_notifications_on_user_id"
+    t.index ["workspace_id"], name: "index_notifications_on_workspace_id"
   end
 
   create_table "objectives", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
@@ -384,6 +400,8 @@ ActiveRecord::Schema[7.2].define(version: 2026_10_18_000003) do
   add_foreign_key "milestones", "folders"
   add_foreign_key "milestones", "users", column: "owner_id", on_delete: :nullify
   add_foreign_key "milestones", "workspaces"
+  add_foreign_key "notifications", "users"
+  add_foreign_key "notifications", "workspaces"
   add_foreign_key "objectives", "users", column: "owner_id", on_delete: :nullify
   add_foreign_key "objectives", "workspaces"
   add_foreign_key "quip_imports", "folders", column: "destination_folder_id"

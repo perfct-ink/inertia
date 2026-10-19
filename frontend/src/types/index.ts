@@ -231,3 +231,16 @@ export interface FolderContents {
   events: WorkspaceEvent[]
   epics: Epic[]
 }
+
+// An item in the signed-in person's inbox.
+export interface AppNotification {
+  id: number
+  kind: string
+  title: string
+  body: string | null
+  subject_type: string | null
+  subject_id: number | null
+  workspace_id: number
+  read_at: string | null
+  created_at: string
+}

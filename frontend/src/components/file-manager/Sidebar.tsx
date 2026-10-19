@@ -6,10 +6,11 @@ import { Database } from 'lucide-react'
 import { useState, useRef, useEffect, type ComponentType } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useSidebarStore } from '@/store/sidebar'
+import { useNotifications } from '@/api/notifications'
 import {
   FolderPlus, CheckSquare, FilePlus, FileText,
   Table as TableIcon, Pin, Folder, Loader2, CalendarDays,
-  Plus, Target, Flag, FolderKanban, Milestone, Rocket, ListTree, Map as MapIcon, Goal, Archive, ArchiveRestore, Keyboard, Download,
+  Plus, Target, Flag, FolderKanban, Milestone, Rocket, ListTree, Map as MapIcon, Goal, Bell, Archive, ArchiveRestore, Keyboard, Download,
 } from 'lucide-react'
 import {
   useWorkspace, useCreateFolder, useCreateDocument, usePinDocument, usePinFolder,
@@ -50,11 +51,13 @@ const isElectron = navigator.userAgent.toLowerCase().includes('electron')
 // Backlog/Workboard and List/Month toggles already live on each page's own
 // header (TasksPage, EventsPage) — the rail only needs to get you to a
 // section, not duplicate its sub-views too.
-function RailButton({ icon: Icon, label, active, onClick }: {
+function RailButton({ icon: Icon, label, active, onClick, badge }: {
   icon: ComponentType<{ className?: string }>
   label: string
   active?: boolean
   onClick: () => void
+  // A small count shown on the button (for example unread notifications).
+  badge?: number
 }) {
   return (
     <Button
@@ -64,6 +67,7 @@ function RailButton({ icon: Icon, label, active, onClick }: {
       className={`sidebar-rail_button${active ? ' sidebar-rail_button--active' : ''}`}
     >
       <Icon className="sidebar-icon--md" />
+      {badge ? <span className="sidebar-rail_badge" aria-hidden="true">{badge > 9 ? '9+' : badge}</span> : null}
     </Button>
   )
 }
@@ -88,6 +92,7 @@ export default function Sidebar() {
   const [showArchived, setShowArchived] = useState(false)
   const { data: archivedFolders = [] } = useArchivedFolders()
   const [accountOpen, setAccountOpen] = useState(false)
+  const unreadCount = useNotifications().data?.unread_count ?? 0
   const [shortcutsOpen, setShortcutsOpen] = useState(false)
   const [quipImportOpen, setQuipImportOpen] = useState(false)
   const [quipToken, setQuipToken] = useState('')
@@ -285,6 +290,7 @@ export default function Sidebar() {
           <RailButton icon={Flag} label="Initiatives" active={location.pathname === '/initiatives'} onClick={() => navigate('/initiatives')} />
           <RailButton icon={Milestone} label="Milestones" active={location.pathname === '/milestones'} onClick={() => navigate('/milestones')} />
           <RailButton icon={Rocket} label="Sprints" active={location.pathname === '/sprints'} onClick={() => navigate('/sprints')} />
+          <RailButton icon={Bell} label={unreadCount ? `Inbox (${unreadCount} unread)` : 'Inbox'} badge={unreadCount} active={location.pathname === '/inbox'} onClick={() => navigate('/inbox')} />
           <RailButton icon={Goal} label="OKRs" active={location.pathname === '/okrs'} onClick={() => navigate('/okrs')} />
           <RailButton icon={MapIcon} label="Roadmap" active={location.pathname === '/roadmap'} onClick={() => navigate('/roadmap')} />
           <RailButton icon={ListTree} label="Hierarchy" active={location.pathname === '/hierarchy'} onClick={() => navigate('/hierarchy')} />
