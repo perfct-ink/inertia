@@ -1,7 +1,7 @@
 import { Button, Input, Select, classNames } from '@/components/ui'
 import { useState, useRef, useEffect } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { Plus, X, ArrowRight, Play, Loader2, Search, Filter, Target } from 'lucide-react'
+import { Plus, X, ArrowRight, Play, Loader2, Search, Filter, History, Target } from 'lucide-react'
 import {
   DndContext,
   DragOverlay,
@@ -24,6 +24,7 @@ import {
 } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import WorkspaceLayout from '@/components/WorkspaceLayout'
+import TaskHistoryDialog from '@/components/TaskHistoryDialog'
 import { useTasks, useCreateTask, useUpdateTask, useDeleteTask, type TaskFilters } from '@/api/tasks'
 import { useWorkspace } from '@/api/workspace'
 import { useEpics } from '@/api/epics'
@@ -71,9 +72,10 @@ interface CardProps {
   onNavigate: () => void
   epicTitle?: string
   overlay?: boolean
+  onHistory?: () => void
 }
 
-function TaskCard({ task, onNext, onNavigate, epicTitle, overlay }: Omit<CardProps, 'onDelete'>) {
+function TaskCard({ task, onNext, onNavigate, epicTitle, overlay, onHistory }: Omit<CardProps, 'onDelete'>) {
   return (
     <div className={classNames('tasks-card', overlay && 'tasks-card--overlay')}>
       <div className="tasks-card_title_row">
@@ -92,6 +94,11 @@ function TaskCard({ task, onNext, onNavigate, epicTitle, overlay }: Omit<CardPro
             className="tasks-doc_link"
           >
             {task.document.title}
+          </Button>
+        )}
+        {onHistory && !overlay && (
+          <Button onClick={onHistory} className="tasks-next" title="Status history" aria-label={`Status history of ${task.title}`}>
+            <History className="tasks-icon" />
           </Button>
         )}
         {onNext && !overlay && (
@@ -320,6 +327,7 @@ export default function TasksScreen() {
   const deleteTask = useDeleteTask()
 
   const [addingTo, setAddingTo] = useState<Task['status'] | null>(null)
+  const [historyTask, setHistoryTask] = useState<Task | null>(null)
 
   useEffect(() => {
     if (searchParams.get('new') === '1') setAddingTo('backlog')
@@ -547,6 +555,7 @@ export default function TasksScreen() {
                           onNext={NEXT_STATUS[task.status] ? () => updateTask.mutate({ id: task.id, status: NEXT_STATUS[task.status]! }) : null}
                           onNavigate={() => navigate(`/documents/${task.document_id}`)}
                           epicTitle={task.epic_id ? epicById.get(task.epic_id)?.title : undefined}
+                          onHistory={() => setHistoryTask(task)}
                         />
                       ))}
                       {addingTo === key ? (
@@ -636,6 +645,9 @@ export default function TasksScreen() {
                       </Button>
                     )}
                     <div className="tasks-row_actions">
+                      <Button onClick={() => setHistoryTask(task)} title="Status history" aria-label={`Status history of ${task.title}`} className="tasks-row_action">
+                        <History className="tasks-icon" />
+                      </Button>
                       <Button
                         onClick={() => updateTask.mutate({ id: task.id, status: 'todo' })}
                         title="Move to To Do"
@@ -662,6 +674,7 @@ export default function TasksScreen() {
           </div>
         )}
       </div>
+      <TaskHistoryDialog task={historyTask} onClose={() => setHistoryTask(null)} />
     </WorkspaceLayout>
   )
 }

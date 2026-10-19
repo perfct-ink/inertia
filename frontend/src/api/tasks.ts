@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import api from '@/lib/api'
-import type { Task } from '@/types'
+import type { Task, TaskStatusChange } from '@/types'
 
 export interface TaskFilters {
   q?: string
@@ -48,5 +48,14 @@ export function useDeleteTask() {
       // The server drops a deleted task's Gantt links with it.
       qc.invalidateQueries({ queryKey: ['task_dependencies'] })
     },
+  })
+}
+
+// A task's status changes, oldest first.
+export function useTaskStatusChanges(taskId: number, enabled: boolean) {
+  return useQuery<TaskStatusChange[]>({
+    queryKey: ['task_status_changes', taskId],
+    queryFn: () => api.get(`/api/v1/tasks/${taskId}/status_changes`).then((r) => r.data),
+    enabled,
   })
 }

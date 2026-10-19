@@ -17,6 +17,7 @@ class Task < ApplicationRecord
   belongs_to :parent, class_name: "Task", optional: true
   has_many :subtasks, class_name: "Task", foreign_key: :parent_id, dependent: :destroy, inverse_of: :parent
   has_many :ai_runs, dependent: :destroy
+  has_many :status_changes, -> { order(:created_at, :id) }, class_name: "TaskStatusChange", dependent: :destroy, inverse_of: :task
   # Gantt links (PM-13), removed with either end.
   has_many :successor_links, class_name: "TaskDependency", foreign_key: :predecessor_id, dependent: :destroy, inverse_of: :predecessor
   has_many :predecessor_links, class_name: "TaskDependency", foreign_key: :successor_id, dependent: :destroy, inverse_of: :successor
@@ -28,6 +29,12 @@ class Task < ApplicationRecord
   validates_same_workspace :epic, :parent
   validate :parent_is_not_self_or_a_descendant
   validate :due_date_not_before_start_date
+
+  # Who made the change being saved, for the status history (set by the controller).
+  attr_accessor :status_changed_by
+
+  after_create { record_status_change(nil) }
+  after_update { record_status_change(status_before_last_save) if saved_change_to_status? }
 
   default_scope { order(:position) }
 
@@ -47,6 +54,10 @@ class Task < ApplicationRecord
   end
 
   private
+
+  def record_status_change(from)
+    status_changes.create!(from_status: from, to_status: status, changed_by: status_changed_by)
+  end
 
   def parent_is_not_self_or_a_descendant
     return unless parent_id

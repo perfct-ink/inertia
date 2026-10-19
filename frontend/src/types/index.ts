@@ -231,3 +231,12 @@ export interface FolderContents {
   events: WorkspaceEvent[]
   epics: Epic[]
 }
+
+// One status transition of a task; from_status is null for the creation row.
+export interface TaskStatusChange {
+  id: number
+  from_status: Task['status'] | null
+  to_status: Task['status']
+  changed_by_name: string | null
+  created_at: string
+}

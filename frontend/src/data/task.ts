@@ -14,3 +14,10 @@ export function buildTaskTree(tasks: Task[]): TaskNode[] {
   })
   return roots
 }
+
+const STATUS_NAME: Record<Task['status'], string> = { backlog: 'Backlog', todo: 'To Do', in_progress: 'In Progress', in_review: 'In Review', done: 'Done' }
+
+// "Created as To Do" or "To Do → Done", for one row of a task's history.
+export function statusChangeLabel(change: { from_status: Task['status'] | null; to_status: Task['status'] }): string {
+  return change.from_status ? `${STATUS_NAME[change.from_status]} → ${STATUS_NAME[change.to_status]}` : `Created as ${STATUS_NAME[change.to_status]}`
+}

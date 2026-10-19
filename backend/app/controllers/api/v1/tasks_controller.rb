@@ -23,6 +23,7 @@ module Api
 
       def create
         task = current_workspace.tasks.build(task_params)
+        task.status_changed_by = current_user
         task.document_id = params[:document_id] if params[:document_id].present?
         if task.save
           render json: TaskBlueprint.render(task), status: :created
@@ -32,11 +33,17 @@ module Api
       end
 
       def update
+        @task.status_changed_by = current_user
         if @task.update(task_params)
           render json: TaskBlueprint.render(@task)
         else
           render json: { errors: @task.errors.full_messages }, status: :unprocessable_entity
         end
+      end
+
+      # The task's status changes, oldest first.
+      def status_changes
+        render json: TaskStatusChangeBlueprint.render(current_workspace.tasks.find(params[:id]).status_changes.includes(:changed_by))
       end
 
       def destroy
