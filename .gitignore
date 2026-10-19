@@ -24,3 +24,4 @@ frontend/dist
 # Native macOS
 macos/.build/
 macos/dist/
+docs/backlog/.stop
