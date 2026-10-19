@@ -1,7 +1,7 @@
 import { Button, Input, Select, classNames } from '@/components/ui'
 import { useState, useRef, useEffect } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { Plus, X, ArrowRight, Play, Loader2, Search, Filter, Target } from 'lucide-react'
+import { Plus, X, ArrowRight, Play, Loader2, Search, Filter, Target, Repeat } from 'lucide-react'
 import {
   DndContext,
   DragOverlay,
