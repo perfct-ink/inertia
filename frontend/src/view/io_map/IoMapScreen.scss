@@ -1,0 +1,131 @@
+@use 'tokens' as *;
+
+@layer view {
+  .view-io_map {
+    display: flex;
+    flex: 1 1 0%;
+    flex-direction: column;
+    gap: space(4);
+    overflow: auto;
+    padding: space(6);
+
+    @at-root .io_map-title {
+      font-size: 1.25rem;
+      line-height: 1.75rem;
+      font-weight: 600;
+    }
+
+    @at-root .io_map-icon {
+      width: space(4);
+      height: space(4);
+    }
+
+    @at-root .io_map-spinner {
+      width: space(5);
+      height: space(5);
+    }
+
+    @at-root .io_map-empty {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: space(3);
+      padding: space(10) 0;
+      color: color(muted-foreground);
+      text-align: center;
+    }
+
+    @at-root .io_map-empty_icon {
+      width: space(8);
+      height: space(8);
+      opacity: 0.5;
+    }
+
+    @at-root .io_map-add {
+      display: flex;
+      gap: space(2);
+    }
+
+    @at-root .io_map-tree {
+      display: flex;
+      justify-content: center;
+    }
+
+    // A branch is a node with its children in a row beneath it; the vertical
+    // and horizontal rules are the arrows' shafts, pointing up to what each
+    // node is necessary for (the head is the ::after on a child).
+    @at-root .io_map-branch {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: space(6);
+    }
+
+    @at-root .io_map-children {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: space(4);
+
+      > .io_map-branch {
+        position: relative;
+
+        &::before {
+          content: '';
+          position: absolute;
+          top: calc(-1 * #{space(6)});
+          left: 50%;
+          height: space(6);
+          border-left: 2px solid color(border);
+        }
+
+        &::after {
+          content: '';
+          position: absolute;
+          top: calc(-1 * #{space(6)});
+          left: 50%;
+          width: 0;
+          height: 0;
+          transform: translateX(-50%);
+          border-right: 5px solid transparent;
+          border-bottom: 7px solid color(border);
+          border-left: 5px solid transparent;
+        }
+      }
+    }
+
+    @at-root .io_map-node {
+      display: flex;
+      flex-direction: column;
+      gap: space(2);
+      width: space(64);
+      max-width: 100%;
+      padding: space(3);
+      border-width: 1px;
+      border-radius: radius('lg');
+      background: color(card);
+
+      &--goal {
+        border-color: color(primary);
+      }
+    }
+
+    @at-root .io_map-kind {
+      color: color(muted-foreground);
+      @include text('xs');
+    }
+
+    @at-root .io_map-progress {
+      display: flex;
+      align-items: center;
+      gap: space(2);
+      @include text('sm');
+    }
+
+    @at-root .io_map-actions {
+      display: flex;
+      justify-content: space-between;
+      gap: space(2);
+    }
+  }
+}

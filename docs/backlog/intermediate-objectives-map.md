@@ -1,4 +1,5 @@
 ---
+branch: backlog/intermediate-objectives-map
 priority: p0
 depends_on: []
 ---
@@ -26,3 +27,6 @@ Section "Portfolio, goals, resources" of the retired shared backlog.
 - Anything stated in Requirements / notes (including any named default) is implemented or deliberately changed with the reason recorded.
 - Failed API calls show an error to the user.
 - Tests cover the new behaviour; a feature doc in `docs/features/` is written (or the existing one updated) and this file is removed.
+
+## Blocked
+Implemented on the branch with tests. To verify: `cd backend && bundle install && rails db:migrate && rails test` (diff `schema.rb`, edited by hand), `cd frontend && npm install && npm run lint && npm test`, then look at /objectives-map in a browser: the arrow styling was never seen. Then remove this file and merge.
