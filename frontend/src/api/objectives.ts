@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import api from '@/lib/api'
-import type { KeyResult, Objective, PlanningStatus } from '@/types'
+import type { KeyResult, KeyResultCheckIn, Objective, PlanningStatus } from '@/types'
 
 // Linked key results move with task progress, so always refetch on visit.
 export function useObjectives() {
@@ -61,7 +61,10 @@ export function useUpdateKeyResult() {
   return useMutation({
     mutationFn: ({ id, ...data }: Partial<KeyResultInput> & { id: number }) =>
       api.patch(`/api/v1/key_results/${id}`, { key_result: data }).then((r) => r.data as KeyResult),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['objectives'] }),
+    onSuccess: (_, { id }) => {
+      qc.invalidateQueries({ queryKey: ['objectives'] })
+      qc.invalidateQueries({ queryKey: ['key_result_check_ins', id] })
+    },
   })
 }
 
@@ -70,5 +73,25 @@ export function useDeleteKeyResult() {
   return useMutation({
     mutationFn: (id: number) => api.delete(`/api/v1/key_results/${id}`),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['objectives'] }),
+  })
+}
+
+export function useKeyResultCheckIns(keyResultId: number, enabled: boolean) {
+  return useQuery<KeyResultCheckIn[]>({
+    queryKey: ['key_result_check_ins', keyResultId],
+    queryFn: () => api.get(`/api/v1/key_results/${keyResultId}/check_ins`).then((r) => r.data),
+    enabled,
+  })
+}
+
+export function useCreateCheckIn(keyResultId: number) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (data: { value: number; note?: string }) =>
+      api.post(`/api/v1/key_results/${keyResultId}/check_ins`, { check_in: data }).then((r) => r.data as KeyResultCheckIn),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['objectives'] })
+      qc.invalidateQueries({ queryKey: ['key_result_check_ins', keyResultId] })
+    },
   })
 }

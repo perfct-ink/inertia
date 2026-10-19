@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_10_18_000003) do
+ActiveRecord::Schema[7.2].define(version: 2026_10_19_000001) do
   create_table "ai_runs", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.bigint "workspace_id", null: false
     t.bigint "ai_worker_id", null: false
@@ -132,6 +132,17 @@ ActiveRecord::Schema[7.2].define(version: 2026_10_18_000003) do
     t.string "jti", null: false
     t.datetime "exp", null: false
     t.index ["jti"], name: "index_jwt_denylists_on_jti", unique: true
+  end
+
+  create_table "key_result_check_ins", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+    t.bigint "key_result_id", null: false
+    t.bigint "author_id"
+    t.decimal "value", precision: 15, scale: 2, null: false
+    t.text "note"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["author_id"], name: "index_key_result_check_ins_on_author_id"
+    t.index ["key_result_id"], name: "index_key_result_check_ins_on_key_result_id"
   end
 
   create_table "key_results", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
@@ -379,6 +390,8 @@ ActiveRecord::Schema[7.2].define(version: 2026_10_18_000003) do
   add_foreign_key "initiatives", "milestones"
   add_foreign_key "initiatives", "users", column: "owner_id", on_delete: :nullify
   add_foreign_key "initiatives", "workspaces"
+  add_foreign_key "key_result_check_ins", "key_results"
+  add_foreign_key "key_result_check_ins", "users", column: "author_id", on_delete: :nullify
   add_foreign_key "key_results", "initiatives", on_delete: :nullify
   add_foreign_key "key_results", "objectives"
   add_foreign_key "milestones", "folders"

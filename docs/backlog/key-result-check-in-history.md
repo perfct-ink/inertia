@@ -2,6 +2,7 @@
 priority: p0
 depends_on: []
 components: [frontend, backend]
+branch: backlog/key-result-check-in-history
 ---
 # Key result check-in history
 
@@ -21,3 +22,6 @@ A number key result stores only `current_value`; updating it on `/okrs` overwrit
 - Deleting a key result deletes its check-ins.
 - Check-ins of another Space's key result are not readable (404).
 - Model and controller tests cover creation, ordering and isolation.
+
+## Blocked
+Implemented on this branch, but nothing could run: the migration (`schema.rb` was edited by hand, run `rails db:migrate` and diff it), the Rails tests, lint, the frontend tests and the browser. Only `ruby -c` syntax checks passed. Verify, then remove this file and merge.

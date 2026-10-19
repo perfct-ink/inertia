@@ -175,6 +175,15 @@ export interface KeyResult {
   updated_at: string
 }
 
+export interface KeyResultCheckIn {
+  id: number
+  key_result_id: number
+  value: number
+  note: string | null
+  author_name: string | null
+  created_at: string
+}
+
 export interface Objective {
   id: number
   title: string

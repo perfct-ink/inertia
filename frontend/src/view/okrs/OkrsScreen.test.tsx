@@ -7,6 +7,7 @@ jest.mock('@/components/WorkspaceLayout', () => function LayoutMock({ children }
 const mockCreateKr = { mutate: jest.fn(), isPending: false, isError: false, error: null }
 const mockUpdateKr = { mutate: jest.fn() }
 const mockMutation = { mutate: jest.fn() }
+const mockCheckIn = { mutate: jest.fn(), isPending: false }
 jest.mock('@/api/objectives', () => ({
   useObjectives: () => ({
     data: [{
@@ -24,6 +25,8 @@ jest.mock('@/api/objectives', () => ({
   useDeleteObjective: () => mockMutation,
   useCreateKeyResult: () => mockCreateKr,
   useUpdateKeyResult: () => mockUpdateKr,
+  useCreateCheckIn: () => mockCheckIn,
+  useKeyResultCheckIns: () => ({ data: [{ id: 1, key_result_id: 11, value: 30, note: 'Launch week', author_name: 'Sam', created_at: '2026-10-05T00:00:00Z' }] }),
   useDeleteKeyResult: () => mockMutation,
 }))
 jest.mock('@/api/initiatives', () => ({
@@ -50,4 +53,14 @@ test('updates a number key result and adds one linked to an initiative', () => {
   fireEvent.change(screen.getByLabelText('Measured by'), { target: { value: '5' } })
   fireEvent.click(screen.getByRole('button', { name: 'Add key result' }))
   expect(mockCreateKr.mutate).toHaveBeenCalledWith({ objective_id: 1, title: 'Launch tour', initiative_id: 5 }, expect.anything())
+})
+
+test('shows check-in history and adds a check-in with a note', () => {
+  render(<OkrsScreen />)
+  fireEvent.click(screen.getByRole('button', { name: 'Check-ins' }))
+  expect(screen.getByText(/Launch week/)).toBeInTheDocument()
+  fireEvent.change(screen.getByLabelText('Check-in value for Activation'), { target: { value: '45' } })
+  fireEvent.change(screen.getByLabelText('Check-in note for Activation'), { target: { value: 'Mid-month' } })
+  fireEvent.click(screen.getByRole('button', { name: 'Add check-in' }))
+  expect(mockCheckIn.mutate).toHaveBeenCalledWith({ value: 45, note: 'Mid-month' }, expect.anything())
 })
