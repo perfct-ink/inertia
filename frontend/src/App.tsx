@@ -16,6 +16,7 @@ import HierarchyScreen from '@/view/hierarchy/HierarchyScreen'
 import RoadmapScreen from '@/view/roadmap/RoadmapScreen'
 import OkrsScreen from '@/view/okrs/OkrsScreen'
 import PivotScreen from '@/view/pivot/PivotScreen'
+import TaskTableScreen from '@/view/task_table/TaskTableScreen'
 import ProjectsScreen from '@/view/projects/ProjectsScreen'
 import FolderDetailScreen from '@/view/folder_detail/FolderDetailScreen'
 import SharedScreen from '@/view/shared/SharedScreen'
@@ -127,6 +128,14 @@ export default function App() {
           element={
             <PrivateRoute>
               <RoadmapScreen />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/task-table"
+          element={
+            <PrivateRoute>
+              <TaskTableScreen />
             </PrivateRoute>
           }
         />

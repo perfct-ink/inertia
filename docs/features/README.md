@@ -20,3 +20,4 @@ One file per implemented feature, written from the code (see `docs/rules/feature
 | Switching Spaces from the sidebar | [space_switcher.md](space_switcher.md) |
 | Collections naming (tables are called Collections in the UI) | [collections.md](collections.md) |
 | Pivot: task counts by two fields | [pivot.md](pivot.md) |
+| Task table: inline editing, sort, group, filter, hide columns | [task_table.md](task_table.md) |

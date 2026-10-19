@@ -1,0 +1,38 @@
+@use 'tokens' as *;
+
+@layer view {
+  .view-task_table {
+    @at-root .task_table-columns {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: space(3);
+      padding: space(2) space(6);
+      @include text('sm');
+    }
+
+    @at-root .task_table-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: space(6);
+      @include text('sm');
+
+      th,
+      td {
+        padding: space(1);
+        border-bottom-width: 1px;
+        text-align: left;
+      }
+    }
+
+    @at-root .task_table-group {
+      margin: space(2) 0;
+      font-weight: 600;
+    }
+
+    @at-root .task_table-sort {
+      width: space(3);
+      height: space(3);
+    }
+  }
+}
