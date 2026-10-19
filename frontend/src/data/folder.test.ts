@@ -1,5 +1,5 @@
 import type { Document, Folder } from '@/types'
-import { documentsIn, flattenFolders, projectLastModified, projectsOf, searchSpaceFiles, spaceFiles } from './folder'
+import { documentsIn, featureFoldersOf, flattenFolders, projectLastModified, projectsOf, searchSpaceFiles, spaceFiles } from './folder'
 
 const folder = (id: number, children: Folder[] = []) => ({ id, name: `F${id}`, children }) as unknown as Folder
 
@@ -48,4 +48,10 @@ test('documentsIn and projectLastModified cover nested folders', () => {
   expect(documentsIn(messages).map((d) => d.title)).toEqual(['Spec', 'Mockups'])
   expect(projectLastModified(messages)).toBe('2026-10-09T00:00:00Z')
   expect(projectLastModified(tree()[0].children[2])).toBeNull()
+})
+
+test('featureFoldersOf lists active feature folders by name', () => {
+  const f = (id: number, name: string, kind: Folder['kind'], archived = false, children: Folder[] = []) => ({ id, name, kind, archived, children, documents: [] }) as unknown as Folder
+  const tree = [f(1, 'Root', 'folder', false, [f(2, 'Zeta', 'feature'), f(3, 'Alpha', 'feature', false, [f(4, 'Old', 'feature', true)]), f(5, 'Plain', 'folder')])]
+  expect(featureFoldersOf(tree).map((x) => x.name)).toEqual(['Alpha', 'Zeta'])
 })

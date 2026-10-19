@@ -8,8 +8,10 @@ class Folder < ApplicationRecord
   has_many :epics, dependent: :nullify
   has_many :shares, as: :shareable, dependent: :destroy
 
-  # A project is a folder of docs shown on the Projects screen.
-  enum :kind, { folder: 0, project: 1 }, scopes: false
+  # A project is a folder of docs shown on the Projects screen; a feature
+  # folder holds feature requirement docs. Same table, so nesting, sharing
+  # and archiving work unchanged.
+  enum :kind, { folder: 0, project: 1, feature: 2 }, scopes: false
 
   # How the folder's Gantt reacts to dependency links on reschedule (PM-14).
   enum :dependency_mode, { none: 0, strict: 1, flexible: 2 }, prefix: :dependencies, scopes: false
@@ -78,7 +80,7 @@ class Folder < ApplicationRecord
     return unless root?
     errors.add(:parent, "cannot move the document root") if parent_id.present?
     errors.add(:archived_at, "cannot archive the document root") if archived_at.present?
-    errors.add(:kind, "cannot make the document root a project") if project?
+    errors.add(:kind, "cannot make the document root a #{kind}") unless folder?
   end
 
   def protect_root_deletion

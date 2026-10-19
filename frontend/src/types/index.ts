@@ -10,7 +10,7 @@ export interface Document {
   content?: Record<string, unknown> | null
 }
 
-export type FolderKind = 'folder' | 'project'
+export type FolderKind = 'folder' | 'project' | 'feature'
 // How a folder's Gantt reacts to dependency links when a task is rescheduled.
 export type DependencyMode = 'none' | 'strict' | 'flexible'
 
