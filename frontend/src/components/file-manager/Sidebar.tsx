@@ -9,7 +9,7 @@ import { useSidebarStore } from '@/store/sidebar'
 import {
   FolderPlus, CheckSquare, FilePlus, FileText,
   Table as TableIcon, Pin, Folder, Loader2, CalendarDays,
-  Plus, Target, Flag, FolderKanban, Milestone, Rocket, ListTree, Map as MapIcon, Goal, Archive, ArchiveRestore, Keyboard, Download,
+  Plus, Target, Flag, FolderKanban, Milestone, Rocket, ListTree, Map as MapIcon, Goal, GanttChart, Archive, ArchiveRestore, Keyboard, Download,
 } from 'lucide-react'
 import {
   useWorkspace, useCreateFolder, useCreateDocument, usePinDocument, usePinFolder,
@@ -283,6 +283,7 @@ export default function Sidebar() {
           <RailButton icon={CalendarDays} label="Events" active={location.pathname === '/events'} onClick={() => navigate('/events?view=list')} />
           <RailButton icon={Target} label="Epics" active={location.pathname === '/epics'} onClick={() => navigate('/epics')} />
           <RailButton icon={Flag} label="Initiatives" active={location.pathname === '/initiatives'} onClick={() => navigate('/initiatives')} />
+          <RailButton icon={GanttChart} label="Timeline" active={location.pathname === '/timeline'} onClick={() => navigate('/timeline')} />
           <RailButton icon={Milestone} label="Milestones" active={location.pathname === '/milestones'} onClick={() => navigate('/milestones')} />
           <RailButton icon={Rocket} label="Sprints" active={location.pathname === '/sprints'} onClick={() => navigate('/sprints')} />
           <RailButton icon={Goal} label="OKRs" active={location.pathname === '/okrs'} onClick={() => navigate('/okrs')} />

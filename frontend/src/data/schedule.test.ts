@@ -1,4 +1,4 @@
-import { donePercent, groupGanttRows, shiftedRange, type Scheduled } from './schedule'
+import { donePercent, flatTaskRows, groupGanttRows, shiftedRange, type Scheduled } from './schedule'
 
 const item = (tasks_count: number, done_tasks_count: number) =>
   ({ id: 1, title: 'x', start_date: null, target_date: null, tasks_count, done_tasks_count }) as Scheduled
@@ -31,4 +31,18 @@ test('shiftedRange moves both ends or resizes one edge without crossing', () => 
   expect(shiftedRange('2026-01-10', '2026-01-20', 'end', -30)).toEqual({ start: '2026-01-10', end: '2026-01-10' })
   expect(shiftedRange('2026-01-10', '2026-01-20', 'start', 30)).toEqual({ start: '2026-01-20', end: '2026-01-20' })
   expect(shiftedRange('2026-01-10', '2026-01-20', 'start', -2)).toEqual({ start: '2026-01-08', end: '2026-01-20' })
+})
+
+test('flatTaskRows lists dated tasks by start date, a task without a start sitting on its due date', () => {
+  const task = (id: number, title: string, start_date: string | null, due_date: string | null, status = 'todo') =>
+    ({ id, title, status, epic_id: null, start_date, due_date })
+  const rows = flatTaskRows([
+    task(1, 'Late', '2026-11-10', '2026-11-12'),
+    task(2, 'Undated', null, null),
+    task(3, 'Early', '2026-11-01', '2026-11-05', 'done'),
+    task(4, 'Milestone-ish', null, '2026-11-07'),
+  ])
+  expect(rows.map((r) => r.title)).toEqual(['Early', 'Milestone-ish', 'Late'])
+  expect(rows[1]).toMatchObject({ start_date: '2026-11-07', target_date: '2026-11-07', key: 'task-4' })
+  expect(rows[0].done_tasks_count).toBe(1)
 })

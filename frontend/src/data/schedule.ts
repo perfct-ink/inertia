@@ -88,3 +88,21 @@ export function shiftedRange(startDate: string, endDate: string, mode: DragMode,
   const moved = addDays(end, deltaDays)
   return { start: startDate, end: fmt(moved < start ? start : moved) }
 }
+
+// Flat rows for a timeline of tasks: every task with a due date, ordered by
+// start (or due date when it has no start), each one level deep.
+export function flatTaskRows(tasks: TaskLike[]): Scheduled[] {
+  const dated = tasks.filter((t) => t.due_date)
+  return dated
+    .map((t) => ({
+      id: -t.id,
+      key: ganttTaskKey(t.id),
+      title: t.title,
+      start_date: t.start_date ?? t.due_date,
+      target_date: t.due_date,
+      tasks_count: 1,
+      done_tasks_count: t.status === 'done' ? 1 : 0,
+      depth: 0,
+    }))
+    .sort((a, b) => (a.start_date ?? '').localeCompare(b.start_date ?? '') || a.title.localeCompare(b.title))
+}
