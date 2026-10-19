@@ -10,6 +10,7 @@ const mockWorkspace = {
   ] }],
 }
 
+jest.mock('@/components/ImportCollection', () => function ImportMock() { return null })
 jest.mock('@/api/workspace', () => ({
   useWorkspace: () => ({ data: mockWorkspace }),
   useCreateDocument: () => ({ mutateAsync: mockCreate }),

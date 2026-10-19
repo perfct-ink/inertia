@@ -42,6 +42,8 @@ Rails.application.routes.draw do
         resources :tasks, only: [ :index, :create ], shallow: true
       end
 
+      post "collection_imports/preview", to: "collection_imports#preview"
+      post "collection_imports", to: "collection_imports#create"
       get "tables/:id", to: "tables#show"
       post "tables/:id/fields", to: "tables#create_field"
       patch "tables/:id/fields/:field_id", to: "tables#update_field"

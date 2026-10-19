@@ -5,6 +5,7 @@ import { errorMessage } from '@/api/tables'
 import { flattenFolders } from '@/data/folder'
 import { DOC_TYPE_LABELS } from '@/data/document'
 import { useNewDocument } from '@/hooks/useNewDocument'
+import ImportCollection from '@/components/ImportCollection'
 import type { Document } from '@/types'
 import './CreateItem.scss'
 
@@ -14,6 +15,7 @@ export default function CreateItem({ folderId }: { folderId?: number }) {
   const [destination, setDestination] = useState('')
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
+  const [importing, setImporting] = useState(false)
   const folders = flattenFolders(workspace?.folders ?? []).filter(f => !f.archived)
   const rootId = workspace?.root_folder_id ?? workspace?.folders?.[0]?.id
   const rootName = folders.find(f => f.id === rootId)?.name ?? 'Root'
@@ -29,6 +31,8 @@ export default function CreateItem({ folderId }: { folderId?: number }) {
       {folders.filter(f => f.id !== rootId).map(f => <option key={f.id} value={f.id}>{f.name}</option>)}
     </Select>}
     {(['document', 'spreadsheet', 'table'] as const).map(type => <Button variant="secondary" key={type} disabled={busy || !workspace} onClick={() => make(type)} className="create_item-button">New {DOC_TYPE_LABELS[type]}</Button>)}
+    <Button variant="secondary" disabled={busy || !workspace} onClick={() => setImporting(true)} className="create_item-button">Import JSON/YAML</Button>
+    <ImportCollection open={importing} folderId={folderId ?? (Number(destination) || rootId || 0)} onClose={() => setImporting(false)} />
     <FormError message={error} />
   </div>
 }
