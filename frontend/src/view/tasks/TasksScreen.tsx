@@ -24,6 +24,7 @@ import {
 } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import WorkspaceLayout from '@/components/WorkspaceLayout'
+import { epicLanes } from '@/data/task'
 import { useTasks, useCreateTask, useUpdateTask, useDeleteTask, type TaskFilters } from '@/api/tasks'
 import { useWorkspace } from '@/api/workspace'
 import { useEpics } from '@/api/epics'
@@ -122,6 +123,21 @@ function SortableCard(props: Omit<CardProps, 'onDelete'>) {
 }
 
 // ── Column ────────────────────────────────────────────────────────────────────
+
+// A column of a swimlane: the same look as KanbanColumn, but with no drag and
+// drop (cards advance with their arrow button), so it needs no dnd context.
+function LaneColumn({ label, dot, count, children }: { label: string; dot: string; count: number; children: React.ReactNode }) {
+  return (
+    <div className="tasks-column">
+      <div className="tasks-column_header">
+        <span className={classNames('tasks-dot', dot && `tasks-dot--${dot}`)} />
+        <span className="tasks-column_label">{label}</span>
+        <span className="tasks-count">{count}</span>
+      </div>
+      <div className="tasks-column_body">{children}</div>
+    </div>
+  )
+}
 
 function KanbanColumn({ status, label, dot, tasks, children }: {
   status: Task['status']
@@ -320,6 +336,8 @@ export default function TasksScreen() {
   const deleteTask = useDeleteTask()
 
   const [addingTo, setAddingTo] = useState<Task['status'] | null>(null)
+  // Workboard layout: one swimlane per epic (plus No epic) instead of one board.
+  const [byEpic, setByEpic] = useState(false)
 
   useEffect(() => {
     if (searchParams.get('new') === '1') setAddingTo('backlog')
@@ -440,6 +458,12 @@ export default function TasksScreen() {
             </Button>
           </div>
           <div className="tasks-tools">
+            {view === 'kanban' && (
+              <label className="tasks-lanes_toggle">
+                <Input type="checkbox" checked={byEpic} onChange={(e) => setByEpic(e.target.checked)} />
+                Organize by epic
+              </label>
+            )}
             <div className="tasks-search">
               <Search className="tasks-search_icon" />
               <Input
@@ -525,7 +549,35 @@ export default function TasksScreen() {
           </div>
         )}
 
-        {!isLoading && view === 'kanban' && (
+        {!isLoading && view === 'kanban' && byEpic && (
+          <div className="tasks-lanes">
+            {epicLanes(tasks, epics).map((lane) => (
+              <section key={lane.key} className="tasks-lane" aria-label={lane.title}>
+                <h2 className="tasks-lane_title">{lane.title} <span className="tasks-count">{lane.tasks.length}</span></h2>
+                <div className="tasks-columns">
+                  {KANBAN_STATUSES.map(({ key, label, dot }) => {
+                    const laneTasks = lane.tasks.filter((t) => t.status === key)
+                    return (
+                      <LaneColumn key={key} label={label} dot={dot} count={laneTasks.length}>
+                        {laneTasks.map((task) => (
+                          <TaskCard
+                            key={task.id}
+                            task={task}
+                            onNext={NEXT_STATUS[task.status] ? () => updateTask.mutate({ id: task.id, status: NEXT_STATUS[task.status]! }) : null}
+                            onNavigate={() => navigate(`/documents/${task.document_id}`)}
+                          />
+                        ))}
+                      </LaneColumn>
+                    )
+                  })}
+                </div>
+              </section>
+            ))}
+            {tasks.length === 0 && <p className="tasks-empty">No tasks</p>}
+          </div>
+        )}
+
+        {!isLoading && view === 'kanban' && !byEpic && (
           <DndContext
             sensors={sensors}
             collisionDetection={closestCorners}

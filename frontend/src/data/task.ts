@@ -14,3 +14,15 @@ export function buildTaskTree(tasks: Task[]): TaskNode[] {
   })
   return roots
 }
+
+export interface EpicLane { key: string; title: string; epicId: number | null; tasks: Task[] }
+
+// Workboard swimlanes: one lane per epic that has tasks (in the epics' order),
+// then a "No epic" lane for tasks whose epic is missing or unset. Empty lanes
+// are left out.
+export function epicLanes(tasks: Task[], epics: { id: number; title: string }[]): EpicLane[] {
+  const known = new Set(epics.map((e) => e.id))
+  const lanes: EpicLane[] = epics.map((e) => ({ key: `epic-${e.id}`, title: e.title, epicId: e.id, tasks: tasks.filter((t) => t.epic_id === e.id) }))
+  lanes.push({ key: 'no-epic', title: 'No epic', epicId: null, tasks: tasks.filter((t) => t.epic_id == null || !known.has(t.epic_id)) })
+  return lanes.filter((lane) => lane.tasks.length > 0)
+}

@@ -1,4 +1,5 @@
 ---
+branch: backlog/kanban-organize-by-epic
 priority: p1
 depends_on: []
 components: [frontend, backend]
@@ -24,3 +25,6 @@ Monday board views: Table, Kanban, Gantt, Timeline, Calendar, Workload, Chart, C
 - Organize by epic works as described in the Objective, for a signed-in member of the Space, in the web app.
 - Failed API calls show an error to the user.
 - Tests cover the new behaviour; a feature doc in `docs/features/` is written (or the existing one updated) and this file is removed.
+
+## Blocked
+Partial, on the branch: the organize-by-epic toggle with a lane per epic and a No epic lane (no drag and drop in lane mode). Still to do: group by any field, WIP limits, configurable columns, drag between lanes, add task in a lane. To verify: `cd frontend && npm install && npm run lint && npm test`, then try the toggle on the Workboard in a browser. None of that could run here. Leave this file on `main` until the rest ships.

@@ -297,6 +297,28 @@
       margin-top: space(2);
     }
 
+    @at-root .tasks-lanes_toggle {
+      display: flex;
+      align-items: center;
+      gap: space(1.5);
+      color: color(muted-foreground);
+      @include text('sm');
+    }
+
+    @at-root .tasks-lanes {
+      display: flex;
+      flex-direction: column;
+      gap: space(6);
+      padding: space(4) space(6);
+      overflow: auto;
+    }
+
+    @at-root .tasks-lane_title {
+      margin-bottom: space(2);
+      font-weight: 600;
+      @include text('sm');
+    }
+
     @at-root .tasks-doc_link {
       @include text('xs');
       @include truncate;
