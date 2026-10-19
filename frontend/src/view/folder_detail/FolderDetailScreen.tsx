@@ -23,7 +23,7 @@ import './FolderDetailScreen.scss'
 import { usePageTitle } from '@/hooks/usePageTitle'
 import { donePercent } from '@/data/schedule'
 import GanttPane from './GanttPane'
-import { buildTaskTree, type TaskNode } from '@/data/task'
+import { buildTaskTree, NEXT_STATUS, STATUS_LABEL, tasksWithStatus, type TaskNode } from '@/data/task'
 
 const KANBAN_STATUSES: { key: Task['status']; label: string; dot: string }[] = [
   { key: 'todo', label: 'To Do', dot: 'muted' },
@@ -31,14 +31,6 @@ const KANBAN_STATUSES: { key: Task['status']; label: string; dot: string }[] = [
   { key: 'in_review', label: 'In Review', dot: 'in_review' },
   { key: 'done', label: 'Done', dot: 'done' },
 ]
-
-const NEXT_STATUS: Record<Task['status'], Task['status'] | null> = {
-  backlog: 'todo', todo: 'in_progress', in_progress: 'in_review', in_review: 'done', done: null,
-}
-
-const STATUS_LABEL: Record<Task['status'], string> = {
-  backlog: 'Backlog', todo: 'To Do', in_progress: 'In Progress', in_review: 'In Review', done: 'Done',
-}
 
 const STATUS_DOT: Record<Task['status'], string> = {
   backlog: 'backlog', todo: 'todo', in_progress: 'in_progress', in_review: 'in_review', done: 'done',
@@ -63,7 +55,7 @@ function BoardView({ tasks, onAdvance }: { tasks: Task[]; onAdvance: (task: Task
     <div className="folder_detail-pane">
       <div className="folder_detail-board">
         {KANBAN_STATUSES.map(({ key, label, dot }) => {
-          const colTasks = tasks.filter((t) => t.status === key)
+          const colTasks = tasksWithStatus(tasks, key)
           return (
             <div key={key} className="folder_detail-column">
               <div className="folder_detail-column-header">

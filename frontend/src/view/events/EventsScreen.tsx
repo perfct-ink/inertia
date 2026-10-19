@@ -6,7 +6,7 @@ import {
   LayoutList, Calendar, Loader2,
 } from 'lucide-react'
 import {
-  format, isPast, isToday, startOfMonth, endOfMonth,
+  format, isToday, startOfMonth, endOfMonth,
   startOfWeek, endOfWeek, eachDayOfInterval, isSameMonth, addMonths, subMonths,
 } from 'date-fns'
 import WorkspaceLayout from '@/components/WorkspaceLayout'
@@ -19,6 +19,7 @@ import type { WorkspaceEvent, Task } from '@/types'
 import './EventsScreen.scss'
 import { usePageTitle } from '@/hooks/usePageTitle'
 import { dateStatus, todayISO } from '@/util/date'
+import { filterTasksByTitle, splitEvents, unlinkedTasks } from '@/data/event'
 
 function StatusDot({ status }: { status: Task['status'] }) {
   return <span className={`events-status events-status--${status}`} />
@@ -49,7 +50,7 @@ function TaskPicker({ availableTasks, onAdd, onClose }: {
   onClose: () => void
 }) {
   const [query, setQuery] = useState('')
-  const filtered = availableTasks.filter((t) => t.title.toLowerCase().includes(query.toLowerCase()))
+  const filtered = filterTasksByTitle(availableTasks, query)
   return (
     <div className="events-picker">
       <div className="events-picker-search">
@@ -243,8 +244,7 @@ function EventSidebar({ state, onClose }: { state: SidebarState; onClose: () => 
 
   // mode === 'event'
   const event = (rendered as { mode: 'event'; event: WorkspaceEvent }).event
-  const linkedIds = new Set(event.tasks.map((t) => t.id))
-  const available = allTasks.filter((t) => !linkedIds.has(t.id))
+  const available = unlinkedTasks(allTasks, event)
 
   return (
     <aside className={sidebarClass}>
@@ -444,8 +444,7 @@ function ListView({ events, onEventClick }: {
   events: WorkspaceEvent[]
   onEventClick: (event: WorkspaceEvent) => void
 }) {
-  const upcoming = events.filter((e) => !isPast(new Date(e.date + 'T00:00:00')) || isToday(new Date(e.date + 'T00:00:00')))
-  const past = events.filter((e) => isPast(new Date(e.date + 'T00:00:00')) && !isToday(new Date(e.date + 'T00:00:00')))
+  const { upcoming, past } = splitEvents(events)
 
   function EventRow({ event, dim }: { event: WorkspaceEvent; dim?: boolean }) {
     return (

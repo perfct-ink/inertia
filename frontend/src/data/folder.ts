@@ -18,6 +18,22 @@ export function projectsOf(folders: Folder[]): Folder[] {
     .sort((a, b) => a.name.localeCompare(b.name))
 }
 
+export type FileSortKey = 'name' | 'location' | 'modified'
+
+// A row of the All files table: a document with its folder and path text.
+export type FileRow = Document & { folderId: number; location: string; inProject: boolean }
+
+// Rows ordered by name, location or last modified, ascending or descending
+// (a stable sort on a copy; the input is not changed).
+export function sortFileRows(rows: FileRow[], key: FileSortKey, dir: 'asc' | 'desc'): FileRow[] {
+  const factor = dir === 'asc' ? 1 : -1
+  return [...rows].sort((a, b) => {
+    if (key === 'name') return a.title.localeCompare(b.title) * factor
+    if (key === 'location') return a.location.localeCompare(b.location) * factor
+    return (new Date(lastModified(a)).getTime() - new Date(lastModified(b)).getTime()) * factor
+  })
+}
+
 // One document in a Space: where it lives and which project holds it.
 export interface SpaceFile {
   document: Document

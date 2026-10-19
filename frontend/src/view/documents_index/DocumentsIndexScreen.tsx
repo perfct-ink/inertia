@@ -7,14 +7,12 @@ import DocTypeIcon from '@/components/DocTypeIcon'
 import { useWorkspace } from '@/api/workspace'
 import WorkspaceLayout from '@/components/WorkspaceLayout'
 import CreateItem from '@/components/CreateItem'
-import { spaceFiles, searchSpaceFiles } from '@/data/folder'
+import { spaceFiles, searchSpaceFiles, sortFileRows, type FileRow, type FileSortKey } from '@/data/folder'
 import './DocumentsIndexScreen.scss'
-import type { Document } from '@/types'
 import { usePageTitle } from '@/hooks/usePageTitle'
 import { lastModified } from '@/data/document'
 
-type Row = Document & { folderId: number; location: string; inProject: boolean }
-type SortKey = 'name' | 'location' | 'modified'
+type SortKey = FileSortKey
 
 // Every file in the current Space, wherever it is nested: a file manager's
 // list view with search and sortable Name/Location/Last Modified columns.
@@ -27,21 +25,14 @@ export default function DocumentsIndexScreen() {
   const [query, setQuery] = useState('')
 
   const files = spaceFiles(workspace?.folders ?? [])
-  const allDocs: Row[] = searchSpaceFiles(files, query).map((f) => ({
+  const allDocs: FileRow[] = searchSpaceFiles(files, query).map((f) => ({
     ...f.document,
     folderId: f.folder.id,
     location: f.path.length ? f.path.join(' / ') : f.folder.name,
     inProject: f.project != null,
   }))
 
-  const sortedDocs = useMemo(() => {
-    const factor = sortDir === 'asc' ? 1 : -1
-    return [ ...allDocs ].sort((a, b) => {
-      if (sortKey === 'name') return a.title.localeCompare(b.title) * factor
-      if (sortKey === 'location') return a.location.localeCompare(b.location) * factor
-      return (new Date(lastModified(a)).getTime() - new Date(lastModified(b)).getTime()) * factor
-    })
-  }, [allDocs, sortKey, sortDir])
+  const sortedDocs = useMemo(() => sortFileRows(allDocs, sortKey, sortDir), [allDocs, sortKey, sortDir])
 
   function toggleSort(key: SortKey) {
     if (key === sortKey) {

@@ -13,10 +13,9 @@ Anyone who can open the Space sees the list. The page changes nothing itself.
 `frontend/src/view/documents_index/DocumentsIndexScreen.tsx`, reached from the Documents link in the sidebar.
 
 ## Tests
-`frontend/src/data/folder.test.ts` covers `spaceFiles` and `searchSpaceFiles`. The screen has no test of its own.
+`frontend/src/data/folder.test.ts` covers `spaceFiles`, `searchSpaceFiles` and `sortFileRows`. The screen has no test of its own.
 
 ## Known limits
-- Sorting still happens inside the screen, not in `data/`.
 - Only documents, spreadsheets and collections are listed; uploaded files of other types do not exist yet.
 - Archived folders are not filtered by `spaceFiles`; I did not check whether the Space payload already omits them.
 

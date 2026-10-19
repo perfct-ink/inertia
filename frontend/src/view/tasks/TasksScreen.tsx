@@ -24,6 +24,7 @@ import {
 } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import WorkspaceLayout from '@/components/WorkspaceLayout'
+import { NEXT_STATUS, STATUS_LABEL, tasksWithStatus } from '@/data/task'
 import { useTasks, useCreateTask, useUpdateTask, useDeleteTask, type TaskFilters } from '@/api/tasks'
 import { useWorkspace } from '@/api/workspace'
 import { useEpics } from '@/api/epics'
@@ -41,22 +42,6 @@ const KANBAN_STATUSES: { key: Task['status']; label: string; dot: string }[] = [
 ]
 
 const KANBAN_KEYS = KANBAN_STATUSES.map((s) => s.key)
-
-const NEXT_STATUS: Record<Task['status'], Task['status'] | null> = {
-  backlog: 'todo',
-  todo: 'in_progress',
-  in_progress: 'in_review',
-  in_review: 'done',
-  done: null,
-}
-
-const STATUS_LABEL: Record<Task['status'], string> = {
-  backlog: 'Backlog',
-  todo: 'To Do',
-  in_progress: 'In Progress',
-  in_review: 'In Review',
-  done: 'Done',
-}
 
 function isColumnId(id: UniqueIdentifier): id is Task['status'] {
   return KANBAN_KEYS.includes(id as Task['status'])
@@ -537,7 +522,7 @@ export default function TasksScreen() {
             <div className="tasks-board">
               <div className="tasks-columns">
                 {KANBAN_STATUSES.map(({ key, label, dot }) => {
-                  const colTasks = localTasks.filter((t) => t.status === key)
+                  const colTasks = tasksWithStatus(localTasks, key)
                   return (
                     <KanbanColumn key={key} status={key} label={label} dot={dot} tasks={colTasks}>
                       {colTasks.map((task) => (
@@ -594,7 +579,7 @@ export default function TasksScreen() {
                 <div className="tasks-backlog_title">
                   <span className="tasks-dot" />
                   <span className="tasks-column_label">Backlog</span>
-                  <span className="tasks-count">{tasks.filter((t) => t.status === 'backlog').length}</span>
+                  <span className="tasks-count">{tasksWithStatus(tasks, 'backlog').length}</span>
                 </div>
                 <Button
                   onClick={() => setAddingTo('backlog')}
@@ -618,7 +603,7 @@ export default function TasksScreen() {
               )}
 
               <div className="tasks-list">
-                {tasks.filter((t) => t.status === 'backlog').map((task) => (
+                {tasksWithStatus(tasks, 'backlog').map((task) => (
                   <div key={task.id} className="tasks-row">
                     <p className="tasks-row_title">{task.title}</p>
                     {task.epic_id && epicById.get(task.epic_id) && (
@@ -654,7 +639,7 @@ export default function TasksScreen() {
                     </div>
                   </div>
                 ))}
-                {tasks.filter((t) => t.status === 'backlog').length === 0 && !addingTo && (
+                {tasksWithStatus(tasks, 'backlog').length === 0 && !addingTo && (
                   <p className="tasks-empty">No backlog items</p>
                 )}
               </div>

@@ -1,5 +1,6 @@
 import type { Document, Folder } from '@/types'
-import { documentsIn, flattenFolders, projectLastModified, projectsOf, searchSpaceFiles, spaceFiles } from './folder'
+import type { FileRow } from './folder'
+import { sortFileRows, documentsIn, flattenFolders, projectLastModified, projectsOf, searchSpaceFiles, spaceFiles } from './folder'
 
 const folder = (id: number, children: Folder[] = []) => ({ id, name: `F${id}`, children }) as unknown as Folder
 
@@ -48,4 +49,15 @@ test('documentsIn and projectLastModified cover nested folders', () => {
   expect(documentsIn(messages).map((d) => d.title)).toEqual(['Spec', 'Mockups'])
   expect(projectLastModified(messages)).toBe('2026-10-09T00:00:00Z')
   expect(projectLastModified(tree()[0].children[2])).toBeNull()
+})
+
+test('sortFileRows sorts by name, location or last modified in either direction without changing the input', () => {
+  const row = (id: number, title: string, location: string, updated: string) =>
+    ({ id, title, location, updated_at: updated, content_updated_at: null, folderId: 1, inProject: false }) as unknown as FileRow
+  const rows = [row(1, 'b', 'Z', '2026-10-02T00:00:00Z'), row(2, 'a', 'Y', '2026-10-03T00:00:00Z'), row(3, 'c', 'X', '2026-10-01T00:00:00Z')]
+  expect(sortFileRows(rows, 'name', 'asc').map((r) => r.id)).toEqual([2, 1, 3])
+  expect(sortFileRows(rows, 'name', 'desc').map((r) => r.id)).toEqual([3, 1, 2])
+  expect(sortFileRows(rows, 'location', 'asc').map((r) => r.id)).toEqual([3, 2, 1])
+  expect(sortFileRows(rows, 'modified', 'desc').map((r) => r.id)).toEqual([2, 1, 3])
+  expect(rows.map((r) => r.id)).toEqual([1, 2, 3])
 })
