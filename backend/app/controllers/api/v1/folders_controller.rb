@@ -98,7 +98,7 @@ module Api
       end
 
       def folder_params
-        params.require(:folder).permit(:name, :kind, :dependency_mode, :parent_id, :position, :pinned, :archived)
+        params.require(:folder).permit(:name, :kind, :dependency_mode, :parent_id, :position, :pinned, :archived, :owner_id, :project_status, :start_date, :target_date, :description)
       end
     end
   end

@@ -11,6 +11,7 @@ export interface Document {
 }
 
 export type FolderKind = 'folder' | 'project'
+export type ProjectStatus = 'planned' | 'active' | 'on_hold' | 'done'
 // How a folder's Gantt reacts to dependency links when a task is rescheduled.
 export type DependencyMode = 'none' | 'strict' | 'flexible'
 
@@ -20,6 +21,12 @@ export interface Folder {
   // A project is a folder of docs listed on the Projects screen.
   kind: FolderKind
   dependency_mode?: DependencyMode
+  // Project details (kind: project)
+  owner_id?: number | null
+  project_status?: ProjectStatus
+  start_date?: string | null
+  target_date?: string | null
+  description?: string | null
   parent_id: number | null
   root?: boolean
   position: number

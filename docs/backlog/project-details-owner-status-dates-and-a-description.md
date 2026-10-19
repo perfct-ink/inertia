@@ -1,4 +1,5 @@
 ---
+branch: backlog/project-details-owner-status-dates-and-a-description
 priority: p0
 depends_on: []
 components: [frontend]
@@ -29,3 +30,6 @@ Requested by Alex on 2026-10-18: in each Space, see all the files in that Space,
 - Anything stated in Requirements / notes (including any named default) is implemented or deliberately changed with the reason recorded.
 - Failed API calls show an error to the user.
 - Tests cover the new behaviour; a feature doc in `docs/features/` is written (or the existing one updated) and this file is removed.
+
+## Blocked
+Implemented on the branch. To verify: `cd backend && bundle install && rails db:migrate && rails test` (diff `schema.rb`, which was edited by hand), then `cd frontend && npm install && npm run lint && npm test`, and check the Projects page in a browser. None of that could run here (no database, no node_modules, no network). Then remove this file and merge.

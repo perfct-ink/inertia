@@ -69,4 +69,24 @@ class FolderTest < ActiveSupport::TestCase
     assert folder.reload.dependencies_flexible?
     assert_raises(ArgumentError) { folder.dependency_mode = "bogus" }
   end
+
+  test "project details: status, dates, description and a member owner" do
+    user = User.create!(name: "Ada", email: "proj-ada@example.com", password: "password123")
+    project = user.workspace.folders.create!(name: "Album", kind: :project)
+    assert project.status_planned?
+
+    project.update!(project_status: :active, start_date: Date.new(2026, 11, 1), target_date: Date.new(2026, 12, 1), description: "Ten songs", owner: user)
+    assert project.reload.status_active?
+    assert_equal user, project.owner
+
+    project.target_date = Date.new(2026, 10, 1)
+    assert_not project.valid?
+    assert_includes project.errors[:target_date], "can't be before the start date"
+
+    stranger = User.create!(name: "Eve", email: "proj-eve@example.com", password: "password123")
+    project.target_date = Date.new(2026, 12, 1)
+    project.owner = stranger
+    assert_not project.valid?
+    assert_includes project.errors[:owner], "must be a member of the space"
+  end
 end
