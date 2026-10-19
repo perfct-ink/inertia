@@ -9,7 +9,7 @@ import { useSidebarStore } from '@/store/sidebar'
 import {
   FolderPlus, CheckSquare, FilePlus, FileText,
   Table as TableIcon, Pin, Folder, Loader2, CalendarDays,
-  Plus, Target, Flag, FolderKanban, Milestone, Rocket, ListTree, Map as MapIcon, Goal, Archive, ArchiveRestore, Keyboard, Download,
+  Plus, Target, Flag, FolderKanban, Milestone, Rocket, ListTree, Map as MapIcon, Goal, Lightbulb, Archive, ArchiveRestore, Keyboard, Download,
 } from 'lucide-react'
 import {
   useWorkspace, useCreateFolder, useCreateDocument, usePinDocument, usePinFolder,
@@ -285,6 +285,7 @@ export default function Sidebar() {
           <RailButton icon={Flag} label="Initiatives" active={location.pathname === '/initiatives'} onClick={() => navigate('/initiatives')} />
           <RailButton icon={Milestone} label="Milestones" active={location.pathname === '/milestones'} onClick={() => navigate('/milestones')} />
           <RailButton icon={Rocket} label="Sprints" active={location.pathname === '/sprints'} onClick={() => navigate('/sprints')} />
+          <RailButton icon={Lightbulb} label="Ideas" active={location.pathname === '/ideas'} onClick={() => navigate('/ideas')} />
           <RailButton icon={Goal} label="OKRs" active={location.pathname === '/okrs'} onClick={() => navigate('/okrs')} />
           <RailButton icon={MapIcon} label="Roadmap" active={location.pathname === '/roadmap'} onClick={() => navigate('/roadmap')} />
           <RailButton icon={ListTree} label="Hierarchy" active={location.pathname === '/hierarchy'} onClick={() => navigate('/hierarchy')} />

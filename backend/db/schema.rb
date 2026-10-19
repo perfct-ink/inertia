@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_10_18_000003) do
+ActiveRecord::Schema[7.2].define(version: 2026_10_19_000007) do
   create_table "ai_runs", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.bigint "workspace_id", null: false
     t.bigint "ai_worker_id", null: false
@@ -109,6 +109,20 @@ ActiveRecord::Schema[7.2].define(version: 2026_10_18_000003) do
     t.integer "dependency_mode", default: 0, null: false
     t.index ["parent_id"], name: "index_folders_on_parent_id"
     t.index ["workspace_id"], name: "index_folders_on_workspace_id"
+  end
+
+  create_table "ideas", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+    t.bigint "workspace_id", null: false
+    t.bigint "submitted_by_id"
+    t.string "title", null: false
+    t.text "description"
+    t.integer "status", default: 0, null: false
+    t.string "promoted_type"
+    t.bigint "promoted_id"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["submitted_by_id"], name: "index_ideas_on_submitted_by_id"
+    t.index ["workspace_id"], name: "index_ideas_on_workspace_id"
   end
 
   create_table "initiatives", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
@@ -379,6 +393,8 @@ ActiveRecord::Schema[7.2].define(version: 2026_10_18_000003) do
   add_foreign_key "initiatives", "milestones"
   add_foreign_key "initiatives", "users", column: "owner_id", on_delete: :nullify
   add_foreign_key "initiatives", "workspaces"
+  add_foreign_key "ideas", "users", column: "submitted_by_id", on_delete: :nullify
+  add_foreign_key "ideas", "workspaces"
   add_foreign_key "key_results", "initiatives", on_delete: :nullify
   add_foreign_key "key_results", "objectives"
   add_foreign_key "milestones", "folders"

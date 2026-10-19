@@ -231,3 +231,18 @@ export interface FolderContents {
   events: WorkspaceEvent[]
   epics: Epic[]
 }
+
+// An idea or feature request; promoting it creates an epic or initiative.
+export type IdeaStatus = 'open' | 'promoted' | 'declined'
+export interface Idea {
+  id: number
+  title: string
+  description: string | null
+  status: IdeaStatus
+  promoted_type: 'Epic' | 'Initiative' | null
+  promoted_id: number | null
+  submitted_by_id: number | null
+  submitted_by_name: string | null
+  created_at: string
+  updated_at: string
+}
