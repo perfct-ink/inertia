@@ -69,4 +69,13 @@ class FolderTest < ActiveSupport::TestCase
     assert folder.reload.dependencies_flexible?
     assert_raises(ArgumentError) { folder.dependency_mode = "bogus" }
   end
+
+  test "project_type defaults to blank and accepts the known types only" do
+    user = User.create!(name: "Ada", email: "ptype-ada@example.com", password: "password123")
+    project = user.workspace.folders.create!(name: "Album", kind: :project)
+    assert project.type_blank?
+    project.update!(project_type: :music_release)
+    assert project.reload.type_music_release?
+    assert_raises(ArgumentError) { project.project_type = "bogus" }
+  end
 end

@@ -15,7 +15,7 @@ const mockWorkspace = {
   folders: [{
     id: 1, name: 'Root', root: true, kind: 'folder', documents: [doc(1, 'Loose notes')],
     children: [{
-      id: 2, name: 'Messages', kind: 'project', documents: [doc(2, 'Background images')],
+      id: 2, name: 'Messages', kind: 'project', project_type: 'software', documents: [doc(2, 'Background images')],
       children: [{ id: 3, name: 'Design', kind: 'folder', documents: [doc(3, 'Mockups')], children: [] }],
     }],
   }],
@@ -32,6 +32,7 @@ test('lists each project with the docs inside it, including subfolders', () => {
   expect(screen.getByRole('link', { name: 'Mockups' })).toBeInTheDocument()
   expect(screen.queryByText('Loose notes')).not.toBeInTheDocument()
   expect(screen.getByText(/2 files/)).toBeInTheDocument()
+  expect(screen.getByText('Software')).toBeInTheDocument()
 })
 
 test('creates a project from the name typed in', () => {
@@ -40,5 +41,16 @@ test('creates a project from the name typed in', () => {
   const input = screen.getByRole('textbox', { name: 'Project name' })
   fireEvent.change(input, { target: { value: 'Billing' } })
   fireEvent.keyDown(input, { key: 'Enter' })
-  expect(mockCreateFolder.mutate).toHaveBeenCalledWith({ name: 'Billing', kind: 'project' }, expect.anything())
+  expect(mockCreateFolder.mutate).toHaveBeenCalledWith({ name: 'Billing', kind: 'project', project_type: 'blank' }, expect.anything())
+})
+
+test('creates a project of the chosen type and shows the type on its card', () => {
+  mockCreateFolder.mutate.mockClear()
+  render(<ProjectsScreen />)
+  fireEvent.click(screen.getByRole('button', { name: 'New project' }))
+  fireEvent.change(screen.getByRole('combobox', { name: 'Project type' }), { target: { value: 'music_release' } })
+  const input = screen.getByRole('textbox', { name: 'Project name' })
+  fireEvent.change(input, { target: { value: 'Debut' } })
+  fireEvent.keyDown(input, { key: 'Enter' })
+  expect(mockCreateFolder.mutate).toHaveBeenCalledWith({ name: 'Debut', kind: 'project', project_type: 'music_release' }, expect.anything())
 })

@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import api from '@/lib/api'
 import { useWorkspaceStore } from '@/store/workspaces'
-import type { Workspace, Folder, FolderKind, DependencyMode, Document, FolderContents } from '@/types'
+import type { Workspace, Folder, FolderKind, ProjectType, DependencyMode, Document, FolderContents } from '@/types'
 
 // ── Workspace ─────────────────────────────────────────────────────────────────
 
@@ -24,7 +24,7 @@ export function useWorkspace() {
 export function useCreateFolder() {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: (data: { name: string; parent_id?: number; kind?: FolderKind }) =>
+    mutationFn: (data: { name: string; parent_id?: number; kind?: FolderKind; project_type?: ProjectType }) =>
       api.post('/api/v1/folders', { folder: data }).then((r) => r.data as Folder),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['workspace'] }),
   })
@@ -33,7 +33,7 @@ export function useCreateFolder() {
 export function useUpdateFolder() {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: ({ id, ...data }: { id: number; name?: string; pinned?: boolean; parent_id?: number; archived?: boolean; kind?: FolderKind; dependency_mode?: DependencyMode }) =>
+    mutationFn: ({ id, ...data }: { id: number; name?: string; pinned?: boolean; parent_id?: number; archived?: boolean; kind?: FolderKind; project_type?: ProjectType; dependency_mode?: DependencyMode }) =>
       api.patch(`/api/v1/folders/${id}`, { folder: data }).then((r) => r.data as Folder),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['workspace'] })

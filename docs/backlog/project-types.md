@@ -1,4 +1,5 @@
 ---
+branch: backlog/project-types
 priority: p0
 depends_on: []
 ---
@@ -35,3 +36,6 @@ Requested by Alex on 2026-10-18: write product requirement documents that turn i
 - Anything stated in Requirements / notes (including any named default) is implemented or deliberately changed with the reason recorded.
 - Failed API calls show an error to the user.
 - Tests cover the new behaviour; a feature doc in `docs/features/` is written (or the existing one updated) and this file is removed.
+
+## Blocked
+Partial, on the branch: the type list, `folders.project_type`, a type picker when creating a project, and a label on the card. Still to do: what each type starts with (a starting template and default task lists/fields; needs the document templates from `backlog/requirements-template` merged first), the features a type turns on (`choose-which-features-a-space-uses`), changing a type later, and saving your own project as a type. To verify what exists: `cd backend && bundle install && rails db:migrate && rails test` (diff `schema.rb`, edited by hand), `cd frontend && npm install && npm run lint && npm test`. None of that could run here. Leave this file on `main` until the remaining parts ship.

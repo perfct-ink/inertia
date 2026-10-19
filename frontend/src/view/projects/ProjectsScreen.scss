@@ -87,6 +87,20 @@
       gap: space(2);
     }
 
+    @at-root .projects-new_row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: space(2);
+    }
+
+    @at-root .projects-card-type {
+      padding: 0 space(2);
+      border-width: 1px;
+      border-radius: radius('full');
+      color: color(muted-foreground);
+      @include text('xs');
+    }
+
     @at-root .projects-card-title {
       flex: 1 1 0%;
       min-width: 0;

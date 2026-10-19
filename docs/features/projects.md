@@ -3,6 +3,7 @@
 ## What it does
 A folder is either a plain folder or a project (`folders.kind`). A project is a folder that groups the docs, sheets and collections for one piece of work, including those in its subfolders.
 - **Projects page** (`/projects`): one card per active project, sorted by name, with its file count, last update, a link to the folder page, the list of files inside (subfolders included) and a create menu that adds items to that project. "New project" asks for a name and creates a folder with `kind: project`.
+- **Project types**: "New project" also asks for a type: blank (default), software, music release, video, event, marketing campaign, writing or content, personal. The type shows as a label on the project's card (not for blank). `folders.project_type` (integer enum, default blank, permitted on folder create and update; `Folder` prefix `type_`). "Make Project" from the sidebar leaves the type blank.
 - **Sidebar tree**: right-click menu on any folder shows "Make Project", or "Make Folder" on a project (`file-manager/FolderItem.tsx`). Projects show a project icon.
 - **All files** shows a project icon next to files that sit inside a project (see `all_files.md`).
 
@@ -19,10 +20,11 @@ Scoped to the current Space. I did not check role-based limits on changing `kind
 `backend/test/models/folder_test.rb` ("a folder can be a project, but the document root cannot"), `frontend/src/data/folder.test.ts`, `frontend/src/view/projects/ProjectsScreen.test.tsx` (lists projects with nested docs; creates a project).
 
 ## Known limits
-- Only two kinds exist; there are no project types or templates.
+- A project type is only a label for now: it does not yet set a starting template, default task lists, fields or the features a project uses (see `docs/backlog/project-types.md` and the document templates in [document_templates.md](document_templates.md) once merged), and users cannot save their own project as a type. The type can be set when creating a project but not changed afterwards in the UI.
 - Nested projects are listed flat (each active project appears on its own).
 - The "Make Project" menu entry has no test.
 
 ## History
 - Implemented 2026-10-15 to 2026-10-18. Committed locally; not pushed or deployed.
 - Not verified: lint, type-check, tests, migration and the screens were not run (no dependencies installed, no network).
+- Project type label added 2026-10-19 on branch `backlog/project-types`, not merged. Not verified: migration, Rails tests, lint, type-check, frontend tests and the browser did not run (no database, no node_modules); `schema.rb` edited by hand.

@@ -2,14 +2,16 @@ import { useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { format, parseISO } from 'date-fns'
 import { FolderKanban, Loader2, Plus } from 'lucide-react'
-import { Button, FormError, Input } from '@/components/ui'
+import { Button, FormError, Input, Select } from '@/components/ui'
 import WorkspaceLayout from '@/components/WorkspaceLayout'
 import CreateItem from '@/components/CreateItem'
 import DocTypeIcon from '@/components/DocTypeIcon'
 import { useCreateFolder, useWorkspace } from '@/api/workspace'
 import { errorMessage } from '@/api/tables'
+import { PROJECT_TYPES, projectTypeLabel } from '@/data/projectType'
 import { documentsIn, projectLastModified, projectsOf } from '@/data/folder'
 import { usePageTitle } from '@/hooks/usePageTitle'
+import type { ProjectType } from '@/types'
 import './ProjectsScreen.scss'
 
 // The Space's projects, each with the docs inside it (including docs in its
@@ -22,6 +24,7 @@ export default function ProjectsScreen() {
   const [adding, setAdding] = useState(false)
   const [error, setError] = useState('')
   const nameRef = useRef('')
+  const [newType, setNewType] = useState<ProjectType>('blank')
   const projects = projectsOf(workspace?.folders ?? [])
 
   function commitAdd() {
@@ -30,7 +33,7 @@ export default function ProjectsScreen() {
     nameRef.current = ''
     if (!name) return
     setError('')
-    createFolder.mutate({ name, kind: 'project' }, { onError: (e) => setError(errorMessage(e)) })
+    createFolder.mutate({ name, kind: 'project', project_type: newType }, { onError: (e) => setError(errorMessage(e)) })
   }
 
   return (
@@ -48,17 +51,24 @@ export default function ProjectsScreen() {
           <div className="projects-list">
             <FormError message={error} />
             {adding && (
-              <Input
-                autoFocus
-                aria-label="Project name"
-                placeholder="Project name"
-                onChange={(e) => { nameRef.current = e.target.value }}
-                onBlur={commitAdd}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') commitAdd()
-                  if (e.key === 'Escape') { nameRef.current = ''; setAdding(false) }
-                }}
-              />
+              <div
+                className="projects-new_row"
+                onBlur={(e) => { if (!e.currentTarget.contains(e.relatedTarget as Node)) commitAdd() }}
+              >
+                <Input
+                  autoFocus
+                  aria-label="Project name"
+                  placeholder="Project name"
+                  onChange={(e) => { nameRef.current = e.target.value }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') commitAdd()
+                    if (e.key === 'Escape') { nameRef.current = ''; setAdding(false) }
+                  }}
+                />
+                <Select aria-label="Project type" value={newType} onChange={(e) => setNewType(e.target.value as ProjectType)}>
+                  {PROJECT_TYPES.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
+                </Select>
+              </div>
             )}
 
             {isLoading && <Loader2 className="projects-icon projects-icon--spin" aria-label="Loading" />}
@@ -80,6 +90,9 @@ export default function ProjectsScreen() {
                     <h2 id={`project-${project.id}`} className="projects-card-title">
                       <Link to={`/folders/${project.id}`} className="projects-card-link">{project.name}</Link>
                     </h2>
+                    {project.project_type && project.project_type !== 'blank' && (
+                      <span className="projects-card-type">{projectTypeLabel(project.project_type)}</span>
+                    )}
                     <span className="projects-card-meta">
                       {docs.length} {docs.length === 1 ? 'file' : 'files'}
                       {modified && ` · updated ${format(parseISO(modified), 'MMM d, yyyy')}`}

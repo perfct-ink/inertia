@@ -11,6 +11,10 @@ class Folder < ApplicationRecord
   # A project is a folder of docs shown on the Projects screen.
   enum :kind, { folder: 0, project: 1 }, scopes: false
 
+  # What kind of work a project is; blank is the default. Only meaningful for projects.
+  enum :project_type, { blank: 0, software: 1, music_release: 2, video: 3, event: 4, marketing_campaign: 5, writing: 6, personal: 7 },
+       prefix: :type, scopes: false
+
   # How the folder's Gantt reacts to dependency links on reschedule (PM-14).
   enum :dependency_mode, { none: 0, strict: 1, flexible: 2 }, prefix: :dependencies, scopes: false
 
