@@ -194,7 +194,7 @@ test-fast: ## Run the short pre-commit suite (models/controllers, frontend, and 
 	@if [ "$$(uname -s)" = Darwin ]; then $(MAKE) test-native-mac; fi
 
 lint-backend: ## Lint Ruby code with RuboCop
-	$(COMPOSE) exec backend bundle exec rubocop --parallel || true
+	$(COMPOSE) exec backend bundle exec rubocop --parallel
 
 # ── Git hooks ─────────────────────────────────────────────────────────────────
 
