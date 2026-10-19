@@ -1,0 +1,27 @@
+@use 'tokens' as *;
+
+@layer view {
+  .view-pivot {
+    @at-root .pivot-table {
+      border-collapse: collapse;
+      @include text('sm');
+
+      th,
+      td {
+        padding: space(1.5) space(3);
+        border-width: 1px;
+        text-align: right;
+        font-variant-numeric: tabular-nums;
+      }
+
+      th[scope='row'],
+      thead th:first-child {
+        text-align: left;
+      }
+
+      tfoot {
+        font-weight: 600;
+      }
+    }
+  }
+}
