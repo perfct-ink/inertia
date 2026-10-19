@@ -7,20 +7,20 @@ class Initiative < ApplicationRecord
   belongs_to :workspace
   has_many :epics, dependent: :nullify
   has_many :key_results, dependent: :nullify
+  has_many :documents, dependent: :nullify
 
   validates :title, presence: true
   validate :target_date_not_before_start_date
 
-  # Mirrors Epic#tasks_count/#done_tasks_count one level up. Initiatives are
-  # few per workspace (unlike epics or tasks), so a couple of plain COUNT
-  # queries here is simpler than EpicsController#index's grouped-join
-  # optimization and not worth the same treatment at this scale.
+  # Mirrors Epic#tasks_count one level up. Tasks count when they sit under one
+  # of its epics or in a document that names it. Initiatives are few per
+  # workspace, so plain COUNT queries are fine here.
   def tasks_count
-    Task.joins(:epic).where(epics: { initiative_id: id }).count
+    rolled_up_tasks.count
   end
 
   def done_tasks_count
-    Task.joins(:epic).where(epics: { initiative_id: id }, status: Task.statuses[:done]).count
+    rolled_up_tasks.where(status: Task.statuses[:done]).count
   end
 
   def percent
@@ -29,6 +29,12 @@ class Initiative < ApplicationRecord
   end
 
   private
+
+  def rolled_up_tasks
+    Task.unscoped.left_joins(:epic, :document)
+        .where("epics.initiative_id = :id OR documents.initiative_id = :id", id: id)
+        .distinct
+  end
 
   def target_date_not_before_start_date
     return unless start_date && target_date

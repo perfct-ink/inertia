@@ -1,0 +1,14 @@
+@use 'tokens' as *;
+
+@layer app.components {
+  .document-initiative {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: space(2);
+    padding: space(2) space(4);
+    border-bottom: 1px solid color(border);
+    color: color(muted-foreground);
+    @include text('sm');
+  }
+}

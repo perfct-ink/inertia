@@ -7,6 +7,7 @@ class Document < ApplicationRecord
 
   belongs_to :folder
   belongs_to :created_by, class_name: "User"
+  belongs_to :initiative, optional: true
   has_many :tasks, dependent: :destroy
   has_many :shares, as: :shareable, dependent: :destroy
 
@@ -18,10 +19,16 @@ class Document < ApplicationRecord
 
   validates :title, presence: true
   validates :doc_type, presence: true
+  validate :initiative_in_same_workspace
 
   before_save :update_content_updated_at, if: :content_changed?
 
   private
+
+  def initiative_in_same_workspace
+    return if initiative.nil? || folder.nil? || initiative.workspace_id == folder.workspace_id
+    errors.add(:initiative, "must belong to the same space")
+  end
 
   def update_content_updated_at
     self.content_updated_at = Time.current

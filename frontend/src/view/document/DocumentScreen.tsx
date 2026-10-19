@@ -61,6 +61,7 @@ import WorkspaceLayout from '@/components/WorkspaceLayout'
 import { useDocument, useUpdateDocument } from '@/api/documents'
 import { useCreateTask } from '@/api/tasks'
 import { useWorkspace } from '@/api/workspace'
+import DocumentInitiativeBar from '@/components/DocumentInitiativeBar'
 import TableEditor from '@/components/editors/TableEditor'
 import SpreadsheetEditor from '@/components/editors/SpreadsheetEditor'
 import Video from '@/extensions/Video'
@@ -557,6 +558,8 @@ export default function DocumentScreen() {
             {saveStatus === 'unsaved' && <div className="document-status_dot" />}
           </div>
         </div>
+
+        <DocumentInitiativeBar doc={doc} />
 
         {/* Editor area — clicking anywhere in the whitespace focuses the editor */}
         <div

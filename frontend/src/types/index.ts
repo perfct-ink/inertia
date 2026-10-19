@@ -3,6 +3,7 @@ export interface Document {
   title: string
   doc_type: 'document' | 'spreadsheet' | 'table'
   folder_id: number
+  initiative_id?: number | null
   pinned: boolean
   created_at: string
   updated_at: string

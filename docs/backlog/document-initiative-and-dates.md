@@ -1,4 +1,5 @@
 ---
+branch: backlog/document-initiative-and-dates
 priority: p0
 depends_on: []
 components: [frontend]
@@ -29,3 +30,6 @@ Requested by Alex on 2026-10-18, marked as one of the most important things to t
 - Anything stated in Requirements / notes (including any named default) is implemented or deliberately changed with the reason recorded.
 - Failed API calls show an error to the user.
 - Tests cover the new behaviour; a feature doc in `docs/features/` is written (or the existing one updated) and this file is removed.
+
+## Blocked
+Implemented on the branch. Migration, Rails and frontend tests, lint and the browser could not run (no database, no node_modules). `schema.rb` edited by hand. Verify, then remove this file and merge. Depends-on notes: `document-planning-summary` and `prd-template-that-creates-tasks` build on this.

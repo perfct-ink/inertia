@@ -13,11 +13,12 @@ export function useDocument(id: number) {
 export function useUpdateDocument() {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: ({ id, ...data }: { id: number; title?: string; content?: Record<string, unknown> }) =>
+    mutationFn: ({ id, ...data }: { id: number; title?: string; content?: Record<string, unknown>; initiative_id?: number | null }) =>
       api.patch(`/api/v1/documents/${id}`, { document: data }).then((r) => r.data as Document),
     onSuccess: (doc) => {
       qc.setQueryData(['document', doc.id], doc)
       qc.invalidateQueries({ queryKey: ['workspace'] })
+      qc.invalidateQueries({ queryKey: ['initiatives'] })
     },
   })
 }
