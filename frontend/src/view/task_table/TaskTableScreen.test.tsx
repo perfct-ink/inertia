@@ -4,6 +4,7 @@ import TaskTableScreen from './TaskTableScreen'
 
 jest.mock('@/components/WorkspaceLayout', () => function LayoutMock({ children }: { children: React.ReactNode }) { return <div>{children}</div> })
 const mockUpdate = { mutate: jest.fn() }
+jest.mock('@/components/SavedViews', () => function SavedViewsMock() { return null })
 jest.mock('@/api/tasks', () => ({
   useTasks: () => ({
     data: [

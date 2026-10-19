@@ -231,3 +231,15 @@ export interface FolderContents {
   events: WorkspaceEvent[]
   epics: Epic[]
 }
+
+// A named set of view choices for a page, private or shared with the Space.
+export interface SavedView {
+  id: number
+  page: string
+  name: string
+  config: Record<string, unknown>
+  shared: boolean
+  user_id: number
+  owner_name: string
+  created_at: string
+}

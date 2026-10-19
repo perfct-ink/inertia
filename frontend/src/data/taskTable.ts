@@ -69,3 +69,31 @@ export function taskTableGroups(tasks: Task[], options: TaskTableOptions, lookup
 export function visibleColumns(hidden: Set<TaskColumn>): TaskColumn[] {
   return TASK_COLUMNS.map((c) => c.key).filter((k) => !hidden.has(k))
 }
+
+// What a saved task-table view stores.
+export interface TaskTableConfig {
+  sortKey: TaskColumn
+  sortDir: 'asc' | 'desc'
+  groupBy: GroupBy
+  query: string
+  hidden: TaskColumn[]
+}
+
+export const DEFAULT_TASK_TABLE_CONFIG: TaskTableConfig = { sortKey: 'due_date', sortDir: 'asc', groupBy: 'none', query: '', hidden: [] }
+
+const GROUPS: GroupBy[] = ['none', 'status', 'epic', 'sprint', 'assignee']
+
+// A stored config that may be old or malformed, as a safe one: anything
+// unrecognised falls back to the default, and the Title column can't be hidden.
+export function parseTaskTableConfig(raw: unknown): TaskTableConfig {
+  const value = (raw && typeof raw === 'object' ? raw : {}) as Record<string, unknown>
+  const columns = TASK_COLUMNS.map((c) => c.key)
+  const d = DEFAULT_TASK_TABLE_CONFIG
+  return {
+    sortKey: columns.includes(value.sortKey as TaskColumn) ? (value.sortKey as TaskColumn) : d.sortKey,
+    sortDir: value.sortDir === 'desc' ? 'desc' : 'asc',
+    groupBy: GROUPS.includes(value.groupBy as GroupBy) ? (value.groupBy as GroupBy) : d.groupBy,
+    query: typeof value.query === 'string' ? value.query : d.query,
+    hidden: Array.isArray(value.hidden) ? (value.hidden.filter((c) => columns.includes(c as TaskColumn) && c !== 'title') as TaskColumn[]) : d.hidden,
+  }
+}

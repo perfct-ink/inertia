@@ -1,4 +1,4 @@
-import { taskTableGroups, visibleColumns, TASK_COLUMNS, type TaskTableOptions } from './taskTable'
+import { DEFAULT_TASK_TABLE_CONFIG, parseTaskTableConfig, taskTableGroups, visibleColumns, TASK_COLUMNS, type TaskTableOptions } from './taskTable'
 import type { PivotLookups } from './pivot'
 import type { Task } from '@/types'
 
@@ -40,4 +40,12 @@ test('groups by a field, with the group labels', () => {
 test('visibleColumns drops hidden ones and keeps the order', () => {
   expect(visibleColumns(new Set())).toEqual(TASK_COLUMNS.map((c) => c.key))
   expect(visibleColumns(new Set(['status', 'epic'] as const))).toEqual(['title', 'start_date', 'due_date', 'assignee', 'sprint'])
+})
+
+test('parseTaskTableConfig keeps good values and falls back for bad ones', () => {
+  expect(parseTaskTableConfig({ sortKey: 'title', sortDir: 'desc', groupBy: 'epic', query: 'spec', hidden: ['epic', 'sprint'] }))
+    .toEqual({ sortKey: 'title', sortDir: 'desc', groupBy: 'epic', query: 'spec', hidden: ['epic', 'sprint'] })
+  expect(parseTaskTableConfig({ sortKey: 'nope', sortDir: 'sideways', groupBy: 'x', query: 5, hidden: 'epic' })).toEqual(DEFAULT_TASK_TABLE_CONFIG)
+  expect(parseTaskTableConfig(null)).toEqual(DEFAULT_TASK_TABLE_CONFIG)
+  expect(parseTaskTableConfig({ hidden: ['title', 'status', 'bogus'] }).hidden).toEqual(['status'])
 })

@@ -62,6 +62,7 @@ Rails.application.routes.draw do
       resources :task_dependencies, only: [ :index, :create, :destroy ]
       resources :ai_workers, only: [ :index, :create, :update, :destroy ]
       resources :ai_runs, only: [ :index, :create ]
+      resources :saved_views, only: [ :index, :create, :update, :destroy ]
       resources :objectives, only: [ :index, :create, :update, :destroy ]
       resources :key_results, only: [ :create, :update, :destroy ]
 

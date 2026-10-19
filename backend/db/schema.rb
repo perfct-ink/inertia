@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_10_18_000003) do
+ActiveRecord::Schema[7.2].define(version: 2026_10_19_000017) do
   create_table "ai_runs", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.bigint "workspace_id", null: false
     t.bigint "ai_worker_id", null: false
@@ -193,6 +193,20 @@ ActiveRecord::Schema[7.2].define(version: 2026_10_18_000003) do
     t.datetime "updated_at", null: false
     t.index ["destination_folder_id"], name: "index_quip_imports_on_destination_folder_id"
     t.index ["workspace_id"], name: "index_quip_imports_on_workspace_id"
+  end
+
+  create_table "saved_views", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+    t.bigint "workspace_id", null: false
+    t.bigint "user_id", null: false
+    t.string "page", null: false
+    t.string "name", null: false
+    t.json "config", null: false
+    t.boolean "shared", default: false, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["user_id"], name: "index_saved_views_on_user_id"
+    t.index ["workspace_id", "page"], name: "index_saved_views_on_workspace_id_and_page"
+    t.index ["workspace_id"], name: "index_saved_views_on_workspace_id"
   end
 
   create_table "shares", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
@@ -388,6 +402,8 @@ ActiveRecord::Schema[7.2].define(version: 2026_10_18_000003) do
   add_foreign_key "objectives", "workspaces"
   add_foreign_key "quip_imports", "folders", column: "destination_folder_id"
   add_foreign_key "quip_imports", "workspaces"
+  add_foreign_key "saved_views", "users"
+  add_foreign_key "saved_views", "workspaces"
   add_foreign_key "shares", "users", column: "created_by_id"
   add_foreign_key "social_identities", "users"
   add_foreign_key "social_login_attempts", "users"

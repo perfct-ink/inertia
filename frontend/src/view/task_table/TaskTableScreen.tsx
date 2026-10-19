@@ -8,7 +8,8 @@ import { useTasks, useUpdateTask } from '@/api/tasks'
 import { useWorkspaceMembers } from '@/api/workspaces'
 import { PIVOT_DIMENSIONS } from '@/data/pivot'
 import { TASK_STATUSES, STATUS_LABEL } from '@/data/task'
-import { TASK_COLUMNS, taskTableGroups, visibleColumns, type GroupBy, type TaskColumn } from '@/data/taskTable'
+import SavedViews from '@/components/SavedViews'
+import { parseTaskTableConfig, TASK_COLUMNS, taskTableGroups, visibleColumns, type GroupBy, type TaskColumn } from '@/data/taskTable'
 import { usePageTitle } from '@/hooks/usePageTitle'
 import { useWorkspaceStore } from '@/store/workspaces'
 import type { Task } from '@/types'
@@ -36,6 +37,10 @@ export default function TaskTableScreen() {
     epics: new Map(epics.map((e) => [e.id, e.title])),
     sprints: new Map(sprints.map((s) => [s.id, s.title])),
     assignees: new Map(members.map((m) => [m.user_id, m.user.name])),
+  }
+  function applyView(raw: Record<string, unknown>) {
+    const config = parseTaskTableConfig(raw)
+    setSortKey(config.sortKey); setSortDir(config.sortDir); setGroupBy(config.groupBy); setQuery(config.query); setHidden(new Set(config.hidden))
   }
   const groups = taskTableGroups(tasks, { sortKey, sortDir, groupBy, query }, lookups)
   const columns = visibleColumns(hidden)
@@ -94,6 +99,7 @@ export default function TaskTableScreen() {
             {PIVOT_DIMENSIONS.map((d) => <option key={d.value} value={d.value}>{d.label}</option>)}
           </Select></label>
         </div>
+        <SavedViews page="task_table" config={{ sortKey, sortDir, groupBy, query, hidden: [...hidden] }} onApply={applyView} />
         <fieldset className="task_table-columns">
           <legend>Columns</legend>
           {TASK_COLUMNS.map(({ key, label }) => (
