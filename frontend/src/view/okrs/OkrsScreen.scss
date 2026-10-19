@@ -172,6 +172,9 @@
 
     // Compact field overrides (two classes beat the shared control styles).
     .okrs-date,
+    .okrs-select,
+    .okrs-title_input,
+    .okrs-description,
     .okrs-number,
     .okrs-unit,
     .okrs-add-title,
@@ -188,6 +191,17 @@
 
     .okrs-number {
       width: space(24);
+    }
+
+    .okrs-title_input {
+      width: 100%;
+      font-weight: 600;
+    }
+
+    .okrs-description {
+      width: 100%;
+      min-height: space(10);
+      resize: vertical;
     }
 
     .okrs-add-title {

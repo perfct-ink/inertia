@@ -2,6 +2,7 @@
 priority: p0
 depends_on: []
 components: [frontend]
+branch: backlog/okr-owner-status-and-editing
 ---
 # OKRs: owner, status and editing in the UI
 
@@ -23,3 +24,7 @@ Let users set an objective's owner and status and edit its title, description an
 - Editing a key result's target updates its percent.
 - A failed save shows an error.
 - A frontend test covers owner and status changes.
+
+## Blocked
+
+Implemented on `backlog/okr-owner-status-and-editing` (owner and status pickers, editable title and description, key result editor, shared `data/planning.ts` status labels, frontend tests, `docs/features/okrs.md` updated), but nothing could be run here: no `node_modules`, no network. Before merging, run `npm run lint` and `npm test` in `frontend/` and open `/okrs` to try each edit. Then delete this file.

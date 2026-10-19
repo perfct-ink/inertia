@@ -11,9 +11,8 @@ import '../planning/PlanningScreen.scss'
 import { ProgressBar, Timeline } from '@/components/Timeline'
 import { usePageTitle } from '@/hooks/usePageTitle'
 import { donePercent } from '@/data/schedule'
+import { PLANNING_STATUS_LABEL } from '@/data/planning'
 import type { PlanningStatus } from '@/types'
-
-const STATUS_LABEL: Record<PlanningStatus, string> = { planned: 'Planned', active: 'Active', done: 'Done' }
 
 export default function InitiativesScreen() {
   usePageTitle('Initiatives')
@@ -137,7 +136,7 @@ export default function InitiativesScreen() {
                     onChange={(e) => updateInitiative.mutate({ id: initiative.id, status: e.target.value as PlanningStatus })}
                     className="planning-initiative"
                   >
-                    {Object.entries(STATUS_LABEL).map(([value, label]) => (
+                    {Object.entries(PLANNING_STATUS_LABEL).map(([value, label]) => (
                       <option key={value} value={value}>{label}</option>
                     ))}
                   </Select>

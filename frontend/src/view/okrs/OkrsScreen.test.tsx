@@ -7,6 +7,7 @@ jest.mock('@/components/WorkspaceLayout', () => function LayoutMock({ children }
 const mockCreateKr = { mutate: jest.fn(), isPending: false, isError: false, error: null }
 const mockUpdateKr = { mutate: jest.fn() }
 const mockMutation = { mutate: jest.fn() }
+const mockUpdateObjective = { mutate: jest.fn(), isError: false, error: null }
 jest.mock('@/api/objectives', () => ({
   useObjectives: () => ({
     data: [{
@@ -20,11 +21,15 @@ jest.mock('@/api/objectives', () => ({
     isLoading: false,
   }),
   useCreateObjective: () => mockMutation,
-  useUpdateObjective: () => mockMutation,
+  useUpdateObjective: () => mockUpdateObjective,
   useDeleteObjective: () => mockMutation,
   useCreateKeyResult: () => mockCreateKr,
   useUpdateKeyResult: () => mockUpdateKr,
   useDeleteKeyResult: () => mockMutation,
+}))
+jest.mock('@/api/workspace', () => ({ useWorkspace: () => ({ data: { id: 1 } }) }))
+jest.mock('@/api/workspaces', () => ({
+  useWorkspaceMembers: () => ({ data: [{ user_id: 7, user: { name: 'Ada' } }, { user_id: 8, user: { name: 'Bo' } }] }),
 }))
 jest.mock('@/api/initiatives', () => ({
   useInitiatives: () => ({ data: [{ id: 5, title: 'Onboarding', tasks_count: 4, done_tasks_count: 2 }] }),
@@ -50,4 +55,33 @@ test('updates a number key result and adds one linked to an initiative', () => {
   fireEvent.change(screen.getByLabelText('Measured by'), { target: { value: '5' } })
   fireEvent.click(screen.getByRole('button', { name: 'Add key result' }))
   expect(mockCreateKr.mutate).toHaveBeenCalledWith({ objective_id: 1, title: 'Launch tour', initiative_id: 5 }, expect.anything())
+})
+
+test('changes an objective\'s owner and status, and saves an edited title and description', () => {
+  render(<OkrsScreen />)
+  fireEvent.change(screen.getByLabelText('Owner'), { target: { value: '8' } })
+  expect(mockUpdateObjective.mutate).toHaveBeenCalledWith({ id: 1, owner_id: 8 })
+  fireEvent.change(screen.getByLabelText('Status'), { target: { value: 'done' } })
+  expect(mockUpdateObjective.mutate).toHaveBeenCalledWith({ id: 1, status: 'done' })
+
+  const title = screen.getByLabelText('Objective title')
+  fireEvent.change(title, { target: { value: 'Delight every user' } })
+  fireEvent.blur(title)
+  expect(mockUpdateObjective.mutate).toHaveBeenCalledWith({ id: 1, title: 'Delight every user' })
+
+  const description = screen.getByLabelText('Description')
+  fireEvent.change(description, { target: { value: 'Make day one great' } })
+  fireEvent.blur(description)
+  expect(mockUpdateObjective.mutate).toHaveBeenCalledWith({ id: 1, description: 'Make day one great' })
+})
+
+test('edits a key result\'s target', () => {
+  render(<OkrsScreen />)
+  fireEvent.click(screen.getByRole('button', { name: 'Edit key result Activation' }))
+  fireEvent.change(screen.getByLabelText('Target value'), { target: { value: '80' } })
+  fireEvent.click(screen.getByRole('button', { name: 'Save key result' }))
+  expect(mockUpdateKr.mutate).toHaveBeenCalledWith(
+    { id: 11, title: 'Activation', initiative_id: null, start_value: 20, target_value: 80, unit: '%' },
+    expect.anything(),
+  )
 })

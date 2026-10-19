@@ -15,6 +15,7 @@ type ObjectiveInput = {
   title: string
   description: string | null
   status: PlanningStatus
+  owner_id: number | null
   start_date: string | null
   target_date: string | null
 }
