@@ -7,7 +7,7 @@ import { useEditor, EditorContent } from '@tiptap/react'
 import Collaboration from '@tiptap/extension-collaboration'
 import CollaborationCursor from '@tiptap/extension-collaboration-cursor'
 import TiptapDocument from '@tiptap/extension-document'
-import Paragraph from '@tiptap/extension-paragraph'
+import { StyledParagraph } from '@/extensions/StyledParagraph'
 import Text from '@tiptap/extension-text'
 import Bold from '@tiptap/extension-bold'
 import Italic from '@tiptap/extension-italic'
@@ -61,6 +61,7 @@ import WorkspaceLayout from '@/components/WorkspaceLayout'
 import { useDocument, useUpdateDocument } from '@/api/documents'
 import { useCreateTask } from '@/api/tasks'
 import { useWorkspace } from '@/api/workspace'
+import ParagraphStylePicker from '@/components/ParagraphStylePicker'
 import TableEditor from '@/components/editors/TableEditor'
 import SpreadsheetEditor from '@/components/editors/SpreadsheetEditor'
 import Video from '@/extensions/Video'
@@ -166,7 +167,7 @@ export default function DocumentScreen() {
   const editor = useEditor({
     extensions: [
       CustomDocument,
-      Paragraph,
+      StyledParagraph,
       Text,
       HardBreak,
       Bold,
@@ -416,6 +417,7 @@ export default function DocumentScreen() {
             disabled={!editor.can().redo()}
             title="Redo"
           />
+          <ParagraphStylePicker editor={editor} />
           <Divider />
           <ToolbarBtn
             icon={<Heading1 className="document-toolbar_icon" />}

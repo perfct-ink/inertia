@@ -13,7 +13,7 @@
 // resulting node/mark name set as a tripwire against silent drift.
 import { getSchema, Node } from "@tiptap/core";
 import TiptapDocument from "@tiptap/extension-document";
-import Paragraph from "@tiptap/extension-paragraph";
+import TiptapParagraph from "@tiptap/extension-paragraph";
 import Text from "@tiptap/extension-text";
 import HardBreak from "@tiptap/extension-hard-break";
 import Bold from "@tiptap/extension-bold";
@@ -37,6 +37,14 @@ import TableHeader from "@tiptap/extension-table-header";
 // Matches DocumentPage.tsx:66 — document always starts with a heading
 // followed by body content.
 const CustomDocument = TiptapDocument.extend({ content: "heading block*" });
+
+// Matches frontend/src/extensions/StyledParagraph.ts exactly (shape only): a
+// paragraph with a named style.
+const Paragraph = TiptapParagraph.extend({
+  addAttributes() {
+    return { style: { default: "body" } };
+  },
+});
 
 // Matches frontend/src/extensions/WorkspaceTaskList.ts exactly (shape only).
 const WorkspaceTaskList = Node.create({

@@ -38,6 +38,36 @@
       line-height: 1.625;
     }
 
+    // Named paragraph styles (data/paragraphStyle.ts); plain paragraphs have no data-style.
+    p[data-style='title'] {
+      font-size: 2.25rem;
+      font-weight: 700;
+      line-height: 1.2;
+    }
+
+    p[data-style='subtitle'] {
+      @include text('xl');
+
+      color: color(muted-foreground);
+    }
+
+    p[data-style='quote'] {
+      padding-left: space(4);
+      border-left: 3px solid color(border);
+      color: color(muted-foreground);
+      font-style: italic;
+    }
+
+    p[data-style='caption'] {
+      color: color(muted-foreground);
+      @include text('xs');
+    }
+
+    p[data-style='monospace'] {
+      font-family: ui-monospace, 'SFMono-Regular', Menlo, monospace;
+      @include text('sm');
+    }
+
     ul:not([data-type='taskList']) {
       padding-left: space(5);
       list-style: disc;

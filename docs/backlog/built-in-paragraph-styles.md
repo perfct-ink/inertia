@@ -1,4 +1,5 @@
 ---
+branch: backlog/built-in-paragraph-styles
 priority: p1
 depends_on: []
 components: [frontend]
@@ -27,3 +28,6 @@ Today: the editor (`DocumentScreen.tsx`, Tiptap) has fixed node types only (para
 - Anything stated in Requirements / notes (including any named default) is implemented or deliberately changed with the reason recorded.
 - Failed API calls show an error to the user.
 - Tests cover the new behaviour; a feature doc in `docs/features/` is written (or the existing one updated) and this file is removed.
+
+## Blocked
+To verify: `cd frontend && npm install && npm run lint && npm test`, `cd collab-server && npm install && npm test`, then apply each style in a browser and in two collaborating sessions. None of that could run here. Deploy the collab server with the schema change first. Then remove this file and merge.

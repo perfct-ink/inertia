@@ -66,6 +66,12 @@
       height: space(4);
     }
 
+    @at-root .document-toolbar_style {
+      width: auto;
+      min-height: 0;
+      padding: space(1) space(2);
+    }
+
     @at-root .document-toolbar_divider {
       flex-shrink: 0;
       align-self: center;
