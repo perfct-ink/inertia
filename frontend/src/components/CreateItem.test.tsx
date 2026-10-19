@@ -34,3 +34,9 @@ test('the destination selector can create a sheet in a folder beneath root', asy
   fireEvent.click(screen.getByRole('button', { name: 'New Sheet' }))
   await waitFor(() => expect(mockCreate).toHaveBeenCalledWith({ folderId: 202, title: 'Untitled Sheet', doc_type: 'spreadsheet' }))
 })
+
+test('a template button creates a document with the template content', async () => {
+  render(<CreateItem />)
+  fireEvent.click(screen.getByRole('button', { name: 'New Song' }))
+  await waitFor(() => expect(mockCreate).toHaveBeenCalledWith(expect.objectContaining({ folderId: 101, title: 'Untitled Song', doc_type: 'document', content: expect.objectContaining({ type: 'doc' }) })))
+})

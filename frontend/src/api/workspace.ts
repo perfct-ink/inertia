@@ -102,7 +102,7 @@ export function useDeleteFolder() {
 export function useCreateDocument() {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: ({ folderId, ...data }: { folderId: number; title: string; doc_type?: Document['doc_type'] }) =>
+    mutationFn: ({ folderId, ...data }: { folderId: number; title: string; doc_type?: Document['doc_type']; content?: Record<string, unknown> }) =>
       api
         .post(`/api/v1/folders/${folderId}/documents`, { document: data })
         .then((r) => r.data as Document),

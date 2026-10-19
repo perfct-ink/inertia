@@ -1,4 +1,5 @@
 ---
+branch: backlog/requirements-template
 priority: p0
 depends_on: []
 ---
@@ -29,3 +30,6 @@ Today: folders already nest to any depth (`folders.parent_id`, `Folder#self_and_
 - Requirements template works as described in the Objective, for a signed-in member of the Space, in the web app.
 - Failed API calls show an error to the user.
 - Tests cover the new behaviour; a feature doc in `docs/features/` is written (or the existing one updated) and this file is removed.
+
+## Blocked
+Lint, type-check, tests and the browser could not run (no node_modules, no network). Verify, then remove this file and merge.
