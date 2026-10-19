@@ -12,3 +12,9 @@ test('buildTaskTree nests subtasks to any depth', () => {
 test('a task whose parent is missing becomes a root', () => {
   expect(buildTaskTree([task(2, 99)]).map((t) => t.id)).toEqual([2])
 })
+
+test('every task status has a label', async () => {
+  const { TASK_STATUSES, STATUS_LABEL } = await import('./task')
+  expect(TASK_STATUSES).toEqual(['backlog', 'todo', 'in_progress', 'in_review', 'done'])
+  for (const status of TASK_STATUSES) expect(STATUS_LABEL[status]).toBeTruthy()
+})
