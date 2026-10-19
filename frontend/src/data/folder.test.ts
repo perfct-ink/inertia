@@ -1,5 +1,5 @@
 import type { Document, Folder, SpaceFolder } from '@/types'
-import { documentsIn, filterSpaceFiles, flattenFolders, folderChoices, projectLastModified, projectsOf, searchSpaceFiles, spaceFiles, folderTrail, featureFoldersOf, homeDocumentToOpen, sortFileRows } from './folder'
+import { documentsIn, filterSpaceFiles, findDocument, flattenFolders, folderChoices, projectLastModified, projectsOf, searchSpaceFiles, spaceFiles, folderTrail, featureFoldersOf, homeDocumentToOpen, sortFileRows } from './folder'
 import type { FileRow } from './folder'
 
 const folder = (id: number, children: Folder[] = []) => ({ id, name: `F${id}`, children }) as unknown as Folder
@@ -125,4 +125,10 @@ test('sortFileRows sorts by name, location or last modified in either direction 
   expect(sortFileRows(rows, 'location', 'asc').map((r) => r.id)).toEqual([3, 2, 1])
   expect(sortFileRows(rows, 'modified', 'desc').map((r) => r.id)).toEqual([2, 1, 3])
   expect(rows.map((r) => r.id)).toEqual([1, 2, 3])
+})
+
+test('findDocument finds a document anywhere in the Space, or nothing', () => {
+  expect(findDocument(tree(), 3)?.title).toBe('Mockups')
+  expect(findDocument(tree(), 1)?.title).toBe('Readme')
+  expect(findDocument(tree(), 99)).toBeUndefined()
 })

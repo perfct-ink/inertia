@@ -8,8 +8,8 @@ import { schema } from "../src/schema.js";
 describe("schema", () => {
   it("has exactly the node types DocumentPage.tsx's editor extensions produce", () => {
     expect(Object.keys(schema.nodes).sort()).toEqual([
-      "audio", "bulletList", "codeBlock", "doc", "fileAttachment", "hardBreak", "heading",
-      "horizontalRule", "image", "listItem", "orderedList", "paragraph", "table", "tableCell",
+      "audio", "bulletList", "codeBlock", "doc", "documentLink", "fileAttachment", "hardBreak",
+      "heading", "horizontalRule", "image", "listItem", "orderedList", "paragraph", "table", "tableCell",
       "tableHeader", "tableRow", "text", "video", "workspaceTaskItem", "workspaceTaskList",
     ]);
   });
@@ -24,5 +24,14 @@ describe("schema", () => {
     const withId = schema.nodeFromJSON({ type: "heading", attrs: { level: 2, id: "launch-plan" } });
     expect(withId.attrs).toEqual({ level: 2, id: "launch-plan" });
     expect(schema.nodeFromJSON({ type: "heading", attrs: { level: 2 } }).attrs.id).toBeNull();
+  });
+
+  it("keeps the target of a document link inside a paragraph", () => {
+    const paragraph = schema.nodeFromJSON({
+      type: "paragraph",
+      content: [{ type: "documentLink", attrs: { documentId: 12 } }],
+    });
+    expect(paragraph.firstChild?.type.name).toBe("documentLink");
+    expect(paragraph.firstChild?.attrs).toEqual({ documentId: 12 });
   });
 });

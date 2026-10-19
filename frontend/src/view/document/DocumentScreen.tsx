@@ -57,6 +57,7 @@ import {
   Loader2,
   FileX,
   Paperclip,
+  FileSymlink,
 } from 'lucide-react'
 import WorkspaceLayout from '@/components/WorkspaceLayout'
 import { useDocument, useUpdateDocument } from '@/api/documents'
@@ -73,6 +74,7 @@ import DocumentInitiativeBar from '@/components/DocumentInitiativeBar'
 import FeatureBar from '@/components/FeatureBar'
 import DocumentPlanningSummary from '@/components/DocumentPlanningSummary'
 import ParagraphStylePicker from '@/components/ParagraphStylePicker'
+import DocumentLinkPicker from '@/components/DocumentLinkPicker'
 import TableEditor from '@/components/editors/TableEditor'
 import SpreadsheetEditor from '@/components/editors/SpreadsheetEditor'
 import HeadingLinkPicker from '@/components/HeadingLinkPicker'
@@ -80,6 +82,7 @@ import { HeadingAnchor, assignHeadingIds, linkToHeading } from '@/extensions/Hea
 import Video from '@/extensions/Video'
 import { AudioAttachment, FileAttachment } from '@/extensions/Attachment'
 import { WorkspaceTaskList } from '@/extensions/WorkspaceTaskList'
+import { DocumentLink } from '@/extensions/DocumentLink'
 import { WorkspaceTaskItem } from '@/extensions/WorkspaceTaskItem'
 import './ProseMirror.scss'
 import './DocumentScreen.scss'
@@ -141,6 +144,9 @@ export default function DocumentScreen() {
   const { data: workspace } = useWorkspace()
   const user = useAuthStore((s) => s.user)
   const [linkDialogOpen, setLinkDialogOpen] = useState(false)
+  // The "Link to a document" picker: null while closed, '' when opened from the toolbar,
+  // otherwise the trigger the user typed ("[[" or "@"), which is put back if they cancel.
+  const [docLinkTrigger, setDocLinkTrigger] = useState<string | null>(null)
   const [tasksOnly, setTasksOnly] = useState(false)
   // The document's content while the "Link to a heading" dialog is open (null when closed).
   const [headingLinkContent, setHeadingLinkContent] = useState<Record<string, unknown> | null>(null)
@@ -215,6 +221,7 @@ export default function DocumentScreen() {
       ListItem,
       WorkspaceTaskList,
       WorkspaceTaskItem,
+      DocumentLink.configure({ onTrigger: setDocLinkTrigger }),
       CodeBlock,
       HorizontalRule.extend({
         addCommands() {
@@ -707,6 +714,11 @@ export default function DocumentScreen() {
             title="Link to a heading"
           />
           <ToolbarBtn
+            icon={<FileSymlink className="document-toolbar_icon" />}
+            onClick={() => setDocLinkTrigger('')}
+            title="Link to a document ([[ or @)"
+          />
+          <ToolbarBtn
             icon={<Paperclip className="document-toolbar_icon" />}
             onClick={() => fileInputRef.current?.click()}
             title="Insert image, video, audio or file"
@@ -773,6 +785,12 @@ export default function DocumentScreen() {
         currentContent={headingLinkContent}
         onClose={() => { setHeadingLinkContent(null); editor.commands.focus() }}
         onPick={(picked) => { setHeadingLinkContent(null); linkToHeading(editor, picked) }}
+      />
+      <DocumentLinkPicker
+        open={docLinkTrigger !== null}
+        excludeId={docId}
+        onClose={() => { setDocLinkTrigger(null); editor.chain().focus().restoreDocumentLinkTrigger(docLinkTrigger ?? '').run() }}
+        onPick={(id) => { setDocLinkTrigger(null); editor.chain().focus().insertDocumentLink(id).run() }}
       />
       <PromptDialog
         open={linkDialogOpen}

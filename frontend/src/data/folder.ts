@@ -76,6 +76,11 @@ export function sortFileRows(rows: FileRow[], key: FileSortKey, dir: 'asc' | 'de
   })
 }
 
+// The document with this id anywhere in the Space, or undefined.
+export function findDocument(folders: Folder[], documentId: number): Document | undefined {
+  return folderOfDocument(folders, documentId)?.documents?.find((d) => d.id === documentId)
+}
+
 // One document in a Space: where it lives and which project holds it.
 export interface SpaceFile {
   document: Document
