@@ -24,6 +24,7 @@ import {
 } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import WorkspaceLayout from '@/components/WorkspaceLayout'
+import { STATUS_LABEL } from '@/data/task'
 import { useTasks, useCreateTask, useUpdateTask, useDeleteTask, type TaskFilters } from '@/api/tasks'
 import { useWorkspace } from '@/api/workspace'
 import { useEpics } from '@/api/epics'
@@ -48,14 +49,6 @@ const NEXT_STATUS: Record<Task['status'], Task['status'] | null> = {
   in_progress: 'in_review',
   in_review: 'done',
   done: null,
-}
-
-const STATUS_LABEL: Record<Task['status'], string> = {
-  backlog: 'Backlog',
-  todo: 'To Do',
-  in_progress: 'In Progress',
-  in_review: 'In Review',
-  done: 'Done',
 }
 
 function isColumnId(id: UniqueIdentifier): id is Task['status'] {

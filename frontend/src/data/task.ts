@@ -1,5 +1,16 @@
 import type { Task } from '@/types'
 
+// The task statuses the API accepts, in board order (mirrors Task.statuses in the backend).
+export const TASK_STATUSES: Task['status'][] = ['backlog', 'todo', 'in_progress', 'in_review', 'done']
+
+export const STATUS_LABEL: Record<Task['status'], string> = {
+  backlog: 'Backlog',
+  todo: 'To Do',
+  in_progress: 'In Progress',
+  in_review: 'In Review',
+  done: 'Done',
+}
+
 export interface TaskNode extends Task { children: TaskNode[] }
 
 // Nests tasks under their parent task to any depth. A task whose parent is
