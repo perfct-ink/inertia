@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_10_18_000003) do
+ActiveRecord::Schema[7.2].define(version: 2026_10_19_000005) do
   create_table "ai_runs", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.bigint "workspace_id", null: false
     t.bigint "ai_worker_id", null: false
@@ -36,6 +36,28 @@ ActiveRecord::Schema[7.2].define(version: 2026_10_18_000003) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["workspace_id"], name: "index_ai_workers_on_workspace_id"
+  end
+
+  create_table "baseline_tasks", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+    t.bigint "baseline_id", null: false
+    t.bigint "task_id", null: false
+    t.date "start_date"
+    t.date "due_date", null: false
+    t.index ["baseline_id", "task_id"], name: "index_baseline_tasks_on_baseline_id_and_task_id", unique: true
+    t.index ["baseline_id"], name: "index_baseline_tasks_on_baseline_id"
+    t.index ["task_id"], name: "index_baseline_tasks_on_task_id"
+  end
+
+  create_table "baselines", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+    t.bigint "workspace_id", null: false
+    t.bigint "folder_id", null: false
+    t.bigint "created_by_id"
+    t.string "name", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["created_by_id"], name: "index_baselines_on_created_by_id"
+    t.index ["folder_id"], name: "index_baselines_on_folder_id"
+    t.index ["workspace_id"], name: "index_baselines_on_workspace_id"
   end
 
   create_table "documents", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
@@ -360,6 +382,11 @@ ActiveRecord::Schema[7.2].define(version: 2026_10_18_000003) do
     t.index ["user_id"], name: "index_workspaces_on_user_id"
   end
 
+  add_foreign_key "baseline_tasks", "baselines"
+  add_foreign_key "baseline_tasks", "tasks"
+  add_foreign_key "baselines", "folders"
+  add_foreign_key "baselines", "users", column: "created_by_id", on_delete: :nullify
+  add_foreign_key "baselines", "workspaces"
   add_foreign_key "ai_runs", "ai_workers"
   add_foreign_key "ai_runs", "tasks"
   add_foreign_key "ai_runs", "workspaces"

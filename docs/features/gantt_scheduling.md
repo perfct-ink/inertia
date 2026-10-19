@@ -10,7 +10,10 @@ The Gantt tab of a folder (`/folders/:id?view=gantt`) draws the folder's epics a
 - **Dependencies**: arrows between task bars, a critical-path highlight, and an editor for links (see [task_dependencies.md](task_dependencies.md)).
 - **Dependency mode**: a picker per folder. *Ignore* moves only the dragged task. *Block invalid dates* refuses a move that breaks a link touching that task and shows an error. *Shift dependent tasks* pushes tasks that wait on it later, keeping their length, only as far as needed (`planReschedule`).
 
+- **Baselines**: "Save baseline" in the Gantt toolbar snapshots the planned start and due date of every dated task in the folder (subfolders and their documents included). Picking a baseline from the "Baseline" list draws each task's planned span as a thin bar at the bottom of its track, so planned and actual can be compared; "No baseline" hides them, and the x button deletes the chosen baseline. Later date changes never alter a baseline. Epic rows have no planned bar. Code: `Baseline`/`BaselineTask`, `BaselinesController`, `api/baselines.ts`, `data/baseline.ts`.
+
 ## API and models
+- `baselines` (`workspace_id`, `folder_id`, `created_by_id`, `name`) and `baseline_tasks` (`baseline_id`, `task_id`, `start_date`, `due_date`); `GET/POST /api/v1/folders/:id/baselines` (POST `{ baseline: { name } }`), `DELETE /api/v1/baselines/:id`. `Folder#scheduled_tasks` is the task set shared with `GET /folders/:id/contents`.
 - `folders.dependency_mode` (`none`/`strict`/`flexible`, default `none`), `Folder` enum `dependency_mode` (prefix `dependencies`), permitted in `FoldersController` and returned by `FolderBlueprint`.
 - Rescheduling reuses `PATCH /api/v1/tasks/:id` and `PATCH /api/v1/epics/:id`. The mode is applied in the browser; the server does not enforce it.
 
@@ -32,3 +35,4 @@ Folder page, Gantt tab. The global Epics and Initiatives timeline pages and the 
 ## History
 - Implemented 2026-10-18: milestone diamonds, epic grouping, today line, drag to reschedule, dependency modes. Committed locally; not pushed or deployed.
 - Not verified: none of the tests were run, lint and type-check were not run, and the drag interaction and migration were not tried in a browser or database (no dependencies installed, no network).
+- Baselines added 2026-10-19 on branch `backlog/baselines`, not merged. Tests: `baseline_test.rb`, `baselines_controller_test.rb`, `data/baseline.test.ts`, `GanttPane.test.tsx`. Not verified: migration, Rails tests, lint, type-check, frontend tests and the browser did not run (no database, no node_modules); `schema.rb` edited by hand. No slip numbers are shown yet (`slipDays` exists but is unused in the UI); epics and non-task rows have no baseline.

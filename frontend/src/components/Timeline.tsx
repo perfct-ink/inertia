@@ -40,6 +40,13 @@ const ROW_PITCH_REM = 2.25
 // How far (in % of the track) an arrow leaves its bar before turning.
 const LINK_STUB_PCT = 0.8
 
+// Where a baseline's planned dates fall on the track, clamped to the visible range.
+function plannedSpan(baseline: { start_date: string; target_date: string }, rangeStart: Date, totalDays: number) {
+  const start = Math.max(differenceInCalendarDays(parseISO(baseline.start_date), rangeStart), 0)
+  const end = Math.min(differenceInCalendarDays(parseISO(baseline.target_date), rangeStart), totalDays - 1)
+  return { left: (start / totalDays) * 100, width: Math.max(((end - start + 1) / totalDays) * 100, 1.5) }
+}
+
 export type TimelineReschedule = (item: Scheduled, startDate: string, targetDate: string) => void
 
 // One bar. When `onReschedule` is given it can be dragged to move, or by its
@@ -242,6 +249,16 @@ export function Timeline({ items, milestones = [], range, links = [], onReschedu
                   {item.title}
                 </span>
                 <div className="timeline-track">
+                  {item.baseline && (() => {
+                    const planned = plannedSpan(item.baseline, rangeStart, totalDays)
+                    return (
+                      <div
+                        className="timeline-planned"
+                        style={{ left: `${planned.left}%`, width: `${planned.width}%` }}
+                        title={`Planned ${item.baseline.start_date} → ${item.baseline.target_date}`}
+                      />
+                    )
+                  })()}
                   <TimelineBar item={item} offsetPct={offsetPct} widthPct={widthPct} totalDays={totalDays} onReschedule={onReschedule} />
                 </div>
                 <span className="timeline-count">

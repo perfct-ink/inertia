@@ -56,6 +56,16 @@
       color: color(muted-foreground);
     }
 
+    @at-root .timeline-planned {
+      position: absolute;
+      bottom: 0;
+      height: space(1);
+      border-radius: radius('full');
+      z-index: 1;
+      background: color(muted-foreground, 0.7);
+      pointer-events: none;
+    }
+
     @at-root .timeline-rows {
       position: relative;
       display: flex;

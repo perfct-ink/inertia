@@ -19,6 +19,8 @@ export interface Scheduled {
   health?: MilestoneHealth
   // On the driving (critical) path of a Gantt chart.
   critical?: boolean
+  // Planned dates from a baseline, drawn as a thin bar under the actual one.
+  baseline?: { start_date: string; target_date: string }
 }
 
 // Whole-number percentage of an item's tasks that are done. Narrower than

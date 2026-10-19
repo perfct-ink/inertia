@@ -34,9 +34,7 @@ module Api
         folder_ids = @folder.self_and_descendant_ids
         documents = Document.where(folder_id: folder_ids).order(:title)
 
-        tasks = current_workspace.tasks
-          .where("tasks.folder_id IN (?) OR tasks.document_id IN (?)", folder_ids, documents.select(:id))
-          .includes(:document)
+        tasks = @folder.scheduled_tasks.includes(:document)
 
         events = current_workspace.events.where(folder_id: folder_ids).order(:date)
 

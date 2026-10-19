@@ -36,7 +36,9 @@ Rails.application.routes.draw do
       resources :folders do
         resources :documents, shallow: true
         member { get :contents }
+        resources :baselines, only: [ :index, :create ]
       end
+      resources :baselines, only: [ :destroy ]
 
       resources :documents, only: [] do
         resources :tasks, only: [ :index, :create ], shallow: true
