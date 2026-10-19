@@ -11,12 +11,15 @@ module AiWorkers
     def call
       @run.update!(status: :running, started_at: Time.current)
       worker = @run.ai_worker
-      output = @client.complete(
+      reply = Reply.coerce(@client.complete(
         model: worker.model,
         system: Prompt.system(worker),
         prompt: Prompt.task(@run.task)
+      ))
+      @run.update!(
+        status: :succeeded, output: reply.text, finished_at: Time.current,
+        input_tokens: reply.input_tokens, output_tokens: reply.output_tokens
       )
-      @run.update!(status: :succeeded, output: output, finished_at: Time.current)
     rescue StandardError => e
       Rails.logger.error("AiRun #{@run.id} failed: #{e.class}: #{e.message}")
       @run.update!(status: :failed, error: e.message, finished_at: Time.current)

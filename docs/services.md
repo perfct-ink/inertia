@@ -28,7 +28,7 @@ The Docker frontend starts through `frontend/scripts/start-dev.sh`. It compares 
 | --- | --- | --- |
 | Google OAuth | "Continue with Google" sign-in. | `backend/app/services/auth/social_sign_in.rb` |
 | Sign in with Apple | "Continue with Apple" sign-in. | `backend/app/services/auth/social_sign_in.rb` |
-| Anthropic API (planned) | The AI worker's language model calls, once the adapter exists. Needs the official `anthropic` Ruby gem and `ANTHROPIC_API_KEY`; neither is wired up yet. Default model `claude-opus-5-5`. Task text is sent to Anthropic, so say so wherever workers are shown to users. | `backend/app/services/ai_workers.rb` (the client seam) |
+| Anthropic API | The AI worker's language model calls (`AiWorkers::AnthropicClient`). Needs the official `anthropic` Ruby gem (not yet in the Gemfile: see `docs/features/ai_workers.md`) and `ANTHROPIC_API_KEY`. Default model `claude-opus-5-5`. Task text is sent to Anthropic, so say so wherever workers are shown to users. | `backend/app/services/ai_workers.rb` (the client seam) |
 | Quip API | Importing a user's Quip folders and documents. The user supplies their own Quip token per import; it is not stored as app config. | `backend/app/services/quip/` |
 | DigitalOcean | Hosting (Ubuntu droplet) and the managed MySQL cluster. | `deploy/` |
 | GitHub Actions | CI (`.github/workflows/ci.yml`) and deploys to production on push to `main` (`deploy.yml`). | |
@@ -53,7 +53,7 @@ See [Mac social sign-in](mac-social-sign-in.md) for provider setup steps.
 | `OAUTH_CALLBACK_BASE_URL` | Public origin that receives OAuth provider callbacks. | Required for social sign-in. |
 | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | Google OAuth web client. | Optional; provider is disabled when unset. |
 | `APPLE_CLIENT_ID`, `APPLE_TEAM_ID`, `APPLE_KEY_ID`, `APPLE_PRIVATE_KEY` | Sign in with Apple (Services ID, team, key ID, `.p8` contents). | Optional; provider is disabled when unset. |
-| `ANTHROPIC_API_KEY` | Anthropic API key for AI workers. | Not read yet: the adapter that uses it is not built. Optional; workers stay off without it. |
+| `ANTHROPIC_API_KEY` | Anthropic API key for AI workers. | Read by `config/initializers/ai_workers.rb`. Optional; workers stay off without it, or if the `anthropic` gem is not installed. Server-side only; never sent to the browser. |
 | `REDIS_URL` | Redis connection (development container). | Not used in production. |
 
 ### Frontend (`frontend/`, read at build time by webpack `DefinePlugin`)

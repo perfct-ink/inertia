@@ -10,6 +10,11 @@ class Workspace < ApplicationRecord
   has_many :tasks, dependent: :destroy
   has_many :ai_workers, dependent: :destroy
   has_many :ai_runs, dependent: :destroy
+
+  # Tokens spent by this Space's AI runs (usage tracking; the cap is a separate task).
+  def ai_tokens_used
+    ai_runs.sum("COALESCE(input_tokens, 0) + COALESCE(output_tokens, 0)")
+  end
   has_many :events, dependent: :destroy
   has_many :epics, dependent: :destroy
   has_many :initiatives, dependent: :destroy

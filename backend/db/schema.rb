@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_10_18_000003) do
+ActiveRecord::Schema[7.2].define(version: 2026_10_19_000001) do
   create_table "ai_runs", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.bigint "workspace_id", null: false
     t.bigint "ai_worker_id", null: false
@@ -22,6 +22,8 @@ ActiveRecord::Schema[7.2].define(version: 2026_10_18_000003) do
     t.datetime "finished_at"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.integer "input_tokens"
+    t.integer "output_tokens"
     t.index ["ai_worker_id"], name: "index_ai_runs_on_ai_worker_id"
     t.index ["task_id"], name: "index_ai_runs_on_task_id"
     t.index ["workspace_id"], name: "index_ai_runs_on_workspace_id"
