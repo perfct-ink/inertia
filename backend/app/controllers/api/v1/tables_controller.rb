@@ -9,7 +9,7 @@ module Api
       rescue_from ActiveRecord::RecordInvalid, with: :invalid_record
       rescue_from ActiveRecord::RecordNotDestroyed, with: :invalid_record
       rescue_from ActiveRecord::InvalidForeignKey do
-        render json: { errors: [ "This item is still referenced by another table" ] }, status: :unprocessable_entity
+        render json: { errors: [ "This item is still referenced by another collection" ] }, status: :unprocessable_entity
       end
 
       def show

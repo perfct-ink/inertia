@@ -21,7 +21,7 @@ class MarketingController < ActionController::Base
     features: {
       path: "/features",
       title: "Features — Inertia",
-      description: "Real-time docs, spreadsheets and tables, tasks with epics and sprints, milestones, roadmaps, Gantt charts and OKRs — all in one space."
+      description: "Real-time docs, spreadsheets and collections, tasks with epics and sprints, milestones, roadmaps, Gantt charts and OKRs — all in one space."
     },
     pricing: {
       path: "/pricing",

@@ -35,7 +35,7 @@ export function lastModified(doc: Document): string {
 export const DOC_TYPE_LABELS: Record<Document['doc_type'], string> = {
   document: 'Document',
   spreadsheet: 'Sheet',
-  table: 'Table',
+  table: 'Collection',
 }
 
 export function untitledTitle(type: Document['doc_type']): string {

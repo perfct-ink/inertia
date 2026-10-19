@@ -286,7 +286,7 @@ function OverviewView({
     <div className="folder_detail-pane folder_detail-pane--overview">
       <div className="folder_detail-overview">
         <section>
-          <h2 className="folder_detail-heading folder_detail-spaced">Documents, Sheets & Tables</h2>
+          <h2 className="folder_detail-heading folder_detail-spaced">Documents, Sheets & Collections</h2>
           <div className="folder_detail-spaced"><CreateItem folderId={folderId} /></div>
           {documents.length === 0 ? (
             <p className="folder_detail-note">No documents yet.</p>

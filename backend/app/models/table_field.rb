@@ -15,7 +15,7 @@ class TableField < ApplicationRecord
     errors.add(:document, "must be a table") unless document&.table?
     if data_type == "relation"
       unless relation_table&.table? && relation_table.folder.workspace_id == document&.folder&.workspace_id
-        errors.add(:relation_table, "must be a table in this space")
+        errors.add(:relation_table, "must be a collection in this Space")
       end
     elsif relation_table_id.present?
       errors.add(:relation_table, "is only allowed for relation fields")

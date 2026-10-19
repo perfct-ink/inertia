@@ -9,7 +9,7 @@ class TableCell < ApplicationRecord
 
   def valid_value
     return unless table_field && table_record
-    errors.add(:table_field, "must belong to this table") unless table_field.document_id == table_record.document_id
+    errors.add(:table_field, "must belong to this collection") unless table_field.document_id == table_record.document_id
     valid = case table_field.data_type
     when "text" then value.is_a?(String)
     when "integer" then value.is_a?(Integer)

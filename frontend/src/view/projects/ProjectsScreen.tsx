@@ -66,7 +66,7 @@ export default function ProjectsScreen() {
             {!isLoading && projects.length === 0 && !adding && (
               <div className="projects-empty">
                 <FolderKanban className="projects-empty_icon" aria-hidden="true" />
-                <p>No projects yet. A project groups the docs, sheets and tables for one piece of work.</p>
+                <p>No projects yet. A project groups the docs, sheets and collections for one piece of work.</p>
               </div>
             )}
 

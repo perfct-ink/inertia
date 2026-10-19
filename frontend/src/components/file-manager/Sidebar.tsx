@@ -237,7 +237,7 @@ export default function Sidebar() {
       const current = workspace ?? (await api.get('/api/v1/workspace')).data
       const folderId = scopeFolderId() ?? current.root_folder_id ?? current.folders?.[0]?.id
       if (!folderId) throw new Error('The space root is unavailable. Please try again.')
-      const title = type === 'document' ? 'Untitled' : type === 'table' ? 'Untitled Table' : 'Untitled Sheet'
+      const title = type === 'document' ? 'Untitled' : type === 'table' ? 'Untitled Collection' : 'Untitled Sheet'
       const doc = await createDocument.mutateAsync({ folderId, title, doc_type: type })
       navigate(`/documents/${doc.id}`)
     } catch (error) {
@@ -414,8 +414,8 @@ export default function Sidebar() {
                   <TableIcon className="sidebar-icon--sm" />
                 </Button>
                 <Button
-                  title="New Table"
-                  aria-label="New Table"
+                  title="New Collection"
+                  aria-label="New Collection"
                   onClick={() => createNewSpreadsheet('table')}
                   className="sidebar-tool"
                 >
