@@ -3,6 +3,8 @@ export interface Document {
   title: string
   doc_type: 'document' | 'spreadsheet' | 'table'
   folder_id: number
+  // Who made the file; the "owner" shown and filtered on the All files page.
+  created_by_id?: number
   pinned: boolean
   created_at: string
   updated_at: string
