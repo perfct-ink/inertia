@@ -1,4 +1,5 @@
 ---
+branch: backlog/appearance-settings
 priority: p1
 depends_on: []
 components: [backend]
@@ -25,3 +26,6 @@ Alex asked (2026-10-17, reiterated 2026-10-18) to use [Volta](https://github.com
 - Anything stated in Requirements / notes (including any named default) is implemented or deliberately changed with the reason recorded.
 - Failed API calls show an error to the user.
 - Tests cover the new behaviour; a feature doc in `docs/features/` is written (or the existing one updated) and this file is removed.
+
+## Blocked
+Implemented on the branch with tests (stored per device, not on the server: a conservative choice, since the task lists no API need). To verify: `cd frontend && npm install && npm run lint && npm test`, then switch themes and accents in a browser and check contrast in light and dark. None of that could run here. Then remove this file and merge.

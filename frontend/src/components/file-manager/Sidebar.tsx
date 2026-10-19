@@ -6,6 +6,7 @@ import { Database } from 'lucide-react'
 import { useState, useRef, useEffect, type ComponentType } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useSidebarStore } from '@/store/sidebar'
+import AppearanceDialog from '@/components/AppearanceDialog'
 import {
   FolderPlus, CheckSquare, FilePlus, FileText,
   Table as TableIcon, Pin, Folder, Loader2, CalendarDays,
@@ -88,6 +89,7 @@ export default function Sidebar() {
   const [showArchived, setShowArchived] = useState(false)
   const { data: archivedFolders = [] } = useArchivedFolders()
   const [accountOpen, setAccountOpen] = useState(false)
+  const [appearanceOpen, setAppearanceOpen] = useState(false)
   const [shortcutsOpen, setShortcutsOpen] = useState(false)
   const [quipImportOpen, setQuipImportOpen] = useState(false)
   const [quipToken, setQuipToken] = useState('')
@@ -525,6 +527,12 @@ export default function Sidebar() {
                 Import from Quip
               </Button>
               <Button variant="secondary"
+                onClick={() => { setAccountOpen(false); setAppearanceOpen(true) }}
+                className="sidebar-wide_button"
+              >
+                Appearance
+              </Button>
+              <Button variant="secondary"
                 onClick={handleLogout}
                 className="sidebar-wide_button sidebar-signout"
               >
@@ -630,6 +638,8 @@ export default function Sidebar() {
           </div>
         </div>
       )}
+
+      <AppearanceDialog open={appearanceOpen} onClose={() => setAppearanceOpen(false)} />
 
       {/* Keyboard shortcuts modal */}
       {shortcutsOpen && (
