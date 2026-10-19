@@ -1,4 +1,5 @@
 ---
+branch: backlog/space-name-prominent-on-every-screen
 priority: p1
 depends_on: []
 components: [frontend]
@@ -19,3 +20,6 @@ The sidebar header (`components/workspace/WorkspaceSwitcher.tsx` inside `file-ma
 - On a phone-width viewport the Space name is visible without opening the drawer.
 - On desktop the Space name is the primary line in the sidebar header, in light and dark themes.
 - The Mac app shows the same.
+
+## Blocked
+Implemented on the branch. To verify: `cd frontend && npm install && npm run lint && npm test`, then check the sidebar header in light and dark themes, a phone-width viewport (the name must show in the mobile bar without opening the drawer), and the Mac app (`make mac-build`). None of that could run here. Then remove this file and merge.

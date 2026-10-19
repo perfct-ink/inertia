@@ -315,8 +315,8 @@ export default function Sidebar() {
         >
           <img src={logoMark} alt="" className="sidebar-logo" />
           <div className="sidebar-brand">
-            <p className="sidebar-brand_name">Inertia</p>
             <WorkspaceSwitcher />
+            <p className="sidebar-brand_name">Inertia</p>
           </div>
         </div>
 

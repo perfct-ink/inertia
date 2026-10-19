@@ -22,3 +22,6 @@ None for the switcher itself. `backend/test/controllers/workspaces_controller_te
 ## History
 - Implemented before 2026-10-15 (switcher, create, members modal); see `docs/spaces.md`. Committed locally; not pushed or deployed.
 - Not verified: lint, type-check, tests and the screen were not run.
+
+## Space name placement (branch `backlog/space-name-prominent-on-every-screen`, not merged)
+The Space name is the prominent line in the sidebar header (semibold, normal size, above the smaller muted "Inertia"), and below the `md` breakpoint the mobile top bar shows the Space name instead of "Inertia" (it falls back to "Inertia" while the Space loads). The Mac app loads the same layout, so it shows the same. Test: `frontend/src/components/WorkspaceLayout.test.tsx`. Not verified: lint, type-check, tests and the browser (light and dark themes, a phone-width viewport, the Mac shell) were not run (no node_modules).

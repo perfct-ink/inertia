@@ -162,9 +162,10 @@ $shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
       min-width: 0;
     }
 
+    // The Space name (WorkspaceSwitcher) is the prominent line; the app name is secondary.
     @at-root .sidebar-brand_name {
-      font-weight: 600;
-      @include text('sm');
+      color: color(muted-foreground);
+      @include text('xs');
     }
 
     @at-root .sidebar-workspace_name {
