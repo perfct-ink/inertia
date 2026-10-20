@@ -1,0 +1,58 @@
+@use 'tokens' as *;
+
+@layer app.components {
+  .view-file_viewer {
+    display: flex;
+    flex: 1 1 0%;
+    flex-direction: column;
+    gap: space(3);
+    overflow: auto;
+    padding: space(6);
+
+    @at-root .file_viewer-header {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: space(3);
+    }
+
+    @at-root .file_viewer-name {
+      flex: 1 1 16rem;
+      font-weight: 600;
+    }
+
+    @at-root .file_viewer-download {
+      display: inline-flex;
+      align-items: center;
+      gap: space(1.5);
+      color: color(primary);
+
+      &:hover {
+        text-decoration: underline;
+      }
+    }
+
+    @at-root .file_viewer-icon {
+      width: space(4);
+      height: space(4);
+    }
+
+    @at-root .file_viewer-meta {
+      color: color(muted-foreground);
+      @include text('sm');
+    }
+
+    @at-root .file_viewer-image,
+    .file_viewer-video {
+      max-width: 100%;
+      max-height: 70vh;
+      object-fit: contain;
+    }
+
+    @at-root .file_viewer-pdf {
+      width: 100%;
+      height: 70vh;
+      border-width: 1px;
+    }
+  }
+}

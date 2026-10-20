@@ -61,6 +61,7 @@ import WorkspaceLayout from '@/components/WorkspaceLayout'
 import { useDocument, useUpdateDocument } from '@/api/documents'
 import { useCreateTask } from '@/api/tasks'
 import { useWorkspace } from '@/api/workspace'
+import FileViewer from '@/components/FileViewer'
 import TableEditor from '@/components/editors/TableEditor'
 import SpreadsheetEditor from '@/components/editors/SpreadsheetEditor'
 import Video from '@/extensions/Video'
@@ -383,6 +384,7 @@ export default function DocumentScreen() {
     )
   }
 
+  if (doc?.doc_type === 'file') return <FileViewer doc={doc} />
   if (doc?.doc_type === 'table') return <TableEditor doc={doc} />
 
   if (doc?.doc_type === 'spreadsheet') {

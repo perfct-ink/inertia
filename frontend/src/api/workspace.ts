@@ -120,3 +120,23 @@ export function useDeleteDocument() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ['workspace'] }),
   })
 }
+
+// Uploads files of any type into a folder, each as a file item of its own.
+export function useUploadFiles() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: async ({ folderId, files }: { folderId: number; files: File[] }) => {
+      const created: Document[] = []
+      for (const file of files) {
+        const form = new FormData()
+        form.append('file', file)
+        created.push(await api.post(`/api/v1/folders/${folderId}/files`, form).then((r) => r.data as Document))
+      }
+      return created
+    },
+    onSettled: () => {
+      qc.invalidateQueries({ queryKey: ['workspace'] })
+      qc.invalidateQueries({ queryKey: ['folder-contents'] })
+    },
+  })
+}

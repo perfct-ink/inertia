@@ -18,7 +18,7 @@ import { ProgressBar } from '@/components/Timeline'
 import { useFolderContents, useUpdateFolder } from '@/api/workspace'
 import { useUpdateTask } from '@/api/tasks'
 import { useMilestones } from '@/api/milestones'
-import type { Task, WorkspaceEvent, Epic } from '@/types'
+import type { Document, Task, WorkspaceEvent, Epic } from '@/types'
 import './FolderDetailScreen.scss'
 import { usePageTitle } from '@/hooks/usePageTitle'
 import { donePercent } from '@/data/schedule'
@@ -272,7 +272,7 @@ function OverviewView({
   folderId, documents, tasks, epics, events, navigate,
 }: {
   folderId: number
-  documents: { id: number; title: string; doc_type: 'document' | 'spreadsheet' | 'table' }[]
+  documents: { id: number; title: string; doc_type: Document['doc_type'] }[]
   tasks: Task[]
   epics: Epic[]
   events: WorkspaceEvent[]

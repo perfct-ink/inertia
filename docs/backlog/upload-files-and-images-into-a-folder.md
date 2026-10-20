@@ -1,4 +1,5 @@
 ---
+branch: backlog/upload-files-and-images-into-a-folder
 priority: p1
 depends_on: []
 components: [backend]
@@ -29,3 +30,6 @@ Today: `UploadsController` already stores images and video in ActiveStorage (100
 - Anything stated in Requirements / notes (including any named default) is implemented or deliberately changed with the reason recorded.
 - Failed API calls show an error to the user.
 - Tests cover the new behaviour; a feature doc in `docs/features/` is written (or the existing one updated) and this file is removed.
+
+## Blocked
+Implemented on `backlog/upload-files-and-images-into-a-folder` (one branch covers both this and `upload-any-file-type`). **Check production first:** the repository had no migration for Active Storage's tables; the new migration is guarded with `if_not_exists`. To verify: `cd backend && bundle install && rails db:migrate && rails test` (diff `schema.rb`, edited by hand), `cd frontend && npm install && npm run lint && npm test`, then upload a PDF, an image and a zip in a browser. None of that could run here. Then remove this file and merge.

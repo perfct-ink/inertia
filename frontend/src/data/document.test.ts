@@ -1,5 +1,5 @@
 import type { Document } from '@/types'
-import { buildInitialContent, extractTitle, lastModified, DOC_TYPE_LABELS } from './document'
+import { buildInitialContent, extractTitle, filePreview, formatBytes, lastModified, DOC_TYPE_LABELS } from './document'
 
 test('extractTitle reads the leading heading', () => {
   expect(extractTitle(buildInitialContent('Launch plan'))).toBe('Launch plan')
@@ -18,4 +18,20 @@ test('lastModified prefers the content timestamp', () => {
 
 test('users see tables as Collections', () => {
   expect(DOC_TYPE_LABELS.table).toBe('Collection')
+})
+
+test('filePreview picks how to show a file (SVG is downloaded, not rendered inline)', () => {
+  expect(filePreview('image/png')).toBe('image')
+  expect(filePreview('image/svg+xml')).toBe('none')
+  expect(filePreview('video/mp4')).toBe('video')
+  expect(filePreview('application/pdf')).toBe('pdf')
+  expect(filePreview('application/zip')).toBe('none')
+  expect(filePreview(undefined)).toBe('none')
+})
+
+test('formatBytes uses the largest sensible unit', () => {
+  expect(formatBytes(512)).toBe('512 B')
+  expect(formatBytes(3482)).toBe('3.4 KB')
+  expect(formatBytes(12.1 * 1024 * 1024)).toBe('12.1 MB')
+  expect(formatBytes(5 * 1024 ** 3)).toBe('5.0 GB')
 })
