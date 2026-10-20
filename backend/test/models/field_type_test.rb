@@ -16,7 +16,10 @@ class FieldTypeTest < ActiveSupport::TestCase
     "percent" => [ 99.5, 101 ],
     "rating" => [ 4, 6 ],
     "month" => [ 12, 13 ],
-    "year" => [ 2026, 26 ]
+    "year" => [ 2026, 26 ],
+    "location" => [ "221B Baker Street, London", "  " ],
+    "country" => [ "US", "XX" ],
+    "timezone" => [ "America/New_York", "Mars/Olympus" ]
   }.freeze
 
   test "every type accepts a valid value and rejects an invalid one" do

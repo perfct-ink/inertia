@@ -31,7 +31,13 @@ module FieldType
     "percent" => number_between(0..100),
     "rating" => integer_between(1..5),
     "month" => integer_between(1..12),
-    "year" => integer_between(1000..9999)
+    "year" => integer_between(1000..9999),
+    # A place as typed (an address or a name); coordinates are not stored.
+    "location" => ->(v) { v.is_a?(String) && v.strip.length.between?(1, 500) },
+    # ISO 3166-1 alpha-2, such as "US".
+    "country" => ->(v) { v.is_a?(String) && TZInfo::Country.all_codes.include?(v) },
+    # An IANA time zone such as "America/New_York"; the grid shows its local time.
+    "timezone" => ->(v) { v.is_a?(String) && TZInfo::Timezone.all_identifiers.include?(v) }
   }.freeze
 
   TYPES = RULES.keys.freeze
