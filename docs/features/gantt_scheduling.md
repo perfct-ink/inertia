@@ -20,6 +20,9 @@ Everything is scoped to the current Space. I did not check for role-based limits
 ## Web entry points
 Folder page, Gantt tab. The global Epics and Initiatives timeline pages and the roadmap use the same `Timeline` but are read-only and show no tasks or milestones.
 
+## Mac app
+The Mac app's online workspace is the same React app in a WKWebView (`macos/Sources/Inertia/Components/WorkspaceWebView.swift`, `docs/rules/ui-organization.md`), so the Gantt tab and its API calls are the same as on the web; there is no separate native Gantt. This follows from the code and was not run in the Mac app. The local `.inertia-tasks` editor has no Gantt.
+
 ## Tests
 `data/schedule.test.ts` (grouping, `shiftedRange`), `data/dependency.test.ts` (`planReschedule`), `backend/test/models/folder_test.rb` (mode default and values).
 
