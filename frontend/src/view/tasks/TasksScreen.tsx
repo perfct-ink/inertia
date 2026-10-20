@@ -1,7 +1,7 @@
 import { Button, Input, Select, classNames } from '@/components/ui'
 import { useState, useRef, useEffect } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { Plus, X, ArrowRight, Play, Loader2, Search, Filter, Target } from 'lucide-react'
+import { Plus, X, ArrowRight, Play, Loader2, Search, Filter, Target, Pencil } from 'lucide-react'
 import {
   DndContext,
   DragOverlay,
@@ -24,6 +24,7 @@ import {
 } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import WorkspaceLayout from '@/components/WorkspaceLayout'
+import { TaskDetail } from '@/components/tasks/TaskDetail'
 import { useTasks, useCreateTask, useUpdateTask, useDeleteTask, type TaskFilters } from '@/api/tasks'
 import { useWorkspace } from '@/api/workspace'
 import { useEpics } from '@/api/epics'
@@ -69,15 +70,21 @@ interface CardProps {
   onDelete?: () => void
   onNext: (() => void) | null
   onNavigate: () => void
+  onEdit?: () => void
   epicTitle?: string
   overlay?: boolean
 }
 
-function TaskCard({ task, onNext, onNavigate, epicTitle, overlay }: Omit<CardProps, 'onDelete'>) {
+function TaskCard({ task, onNext, onNavigate, onEdit, epicTitle, overlay }: Omit<CardProps, 'onDelete'>) {
   return (
     <div className={classNames('tasks-card', overlay && 'tasks-card--overlay')}>
       <div className="tasks-card_title_row">
         <p className="tasks-card_title">{task.title}</p>
+        {onEdit && !overlay && (
+          <Button onClick={onEdit} className="tasks-next" aria-label={`Edit ${task.title}`} title="Edit task">
+            <Pencil className="tasks-icon" />
+          </Button>
+        )}
       </div>
       {epicTitle && (
         <div className="tasks-epic tasks-epic--card">
@@ -320,6 +327,7 @@ export default function TasksScreen() {
   const deleteTask = useDeleteTask()
 
   const [addingTo, setAddingTo] = useState<Task['status'] | null>(null)
+  const [editing, setEditing] = useState<Task | null>(null)
 
   useEffect(() => {
     if (searchParams.get('new') === '1') setAddingTo('backlog')
@@ -546,6 +554,7 @@ export default function TasksScreen() {
                           task={task}
                           onNext={NEXT_STATUS[task.status] ? () => updateTask.mutate({ id: task.id, status: NEXT_STATUS[task.status]! }) : null}
                           onNavigate={() => navigate(`/documents/${task.document_id}`)}
+                          onEdit={() => setEditing(task)}
                           epicTitle={task.epic_id ? epicById.get(task.epic_id)?.title : undefined}
                         />
                       ))}
@@ -662,6 +671,7 @@ export default function TasksScreen() {
           </div>
         )}
       </div>
+      {editing && <TaskDetail key={editing.id} task={editing} onClose={() => setEditing(null)} />}
     </WorkspaceLayout>
   )
 }
