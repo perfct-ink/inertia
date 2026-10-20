@@ -1,0 +1,68 @@
+@use 'tokens' as *;
+
+@layer view {
+  .view-cards_view {
+    display: grid;
+    flex: 1 1 0%;
+    grid-template-columns: repeat(auto-fill, minmax(space(60), 1fr));
+    align-content: start;
+    gap: space(4);
+    overflow-y: auto;
+    padding: space(6);
+
+    @at-root .cards_view-card {
+      display: flex;
+      flex-direction: column;
+      gap: space(2);
+      padding: space(4);
+      border: 1px solid color(border);
+      border-radius: radius();
+      background: color(card);
+      color: color(card-foreground);
+      text-decoration: none;
+
+      &:hover {
+        border-color: color(primary);
+      }
+
+      &--done {
+        opacity: 0.7;
+      }
+    }
+
+    @at-root .cards_view-status {
+      color: color(muted-foreground);
+      @include text('xs');
+    }
+
+    @at-root .cards_view-title {
+      margin: 0;
+      font-weight: 600;
+      overflow-wrap: anywhere;
+      @include text('sm');
+    }
+
+    @at-root .cards_view-epic,
+    .cards_view-due,
+    .cards_view-progress {
+      color: color(muted-foreground);
+      @include text('xs');
+    }
+
+    @at-root .cards_view-due--overdue {
+      color: color(danger);
+      font-weight: 600;
+    }
+
+    @at-root .cards_view-progress {
+      display: flex;
+      flex-direction: column;
+      gap: space(1);
+    }
+  }
+
+  .view-cards_view--empty {
+    padding: space(6);
+    color: color(muted-foreground);
+  }
+}
