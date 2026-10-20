@@ -238,3 +238,18 @@ export interface FolderContents {
   events: WorkspaceEvent[]
   epics: Epic[]
 }
+
+// One project in the portfolio table.
+export interface PortfolioRow {
+  id: number
+  name: string
+  owner_id: number | null
+  owner_name: string | null
+  project_status: ProjectStatus
+  start_date: string | null
+  target_date: string | null
+  tasks_count: number
+  done_tasks_count: number
+  percent: number
+  health: MilestoneHealth
+}

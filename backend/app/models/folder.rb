@@ -1,4 +1,6 @@
 class Folder < ApplicationRecord
+  include PlanningHealth
+
   belongs_to :workspace
   belongs_to :parent, class_name: "Folder", optional: true
   belongs_to :owner, class_name: "User", optional: true
@@ -32,6 +34,16 @@ class Folder < ApplicationRecord
 
   scope :active, -> { where(archived_at: nil) }
   scope :archived, -> { where.not(archived_at: nil) }
+
+  # Tasks that sit in this folder, its subfolders, or documents inside them:
+  # what the folder's Gantt and rollups cover.
+  def scheduled_tasks
+    folder_ids = self_and_descendant_ids
+    workspace.tasks.where("tasks.folder_id IN (?) OR tasks.document_id IN (?)", folder_ids, Document.where(folder_id: folder_ids).select(:id))
+  end
+
+  # PlanningHealth asks whether the work is finished.
+  def done? = status_done?
 
   def archived?
     archived_at.present?
