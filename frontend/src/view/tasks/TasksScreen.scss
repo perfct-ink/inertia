@@ -267,6 +267,25 @@
       line-height: 1.375;
     }
 
+    @at-root .tasks-kind {
+      flex: none;
+      padding: 0 space(1.5);
+      border-radius: radius('full');
+      background: color(muted);
+      color: color(muted-foreground);
+      @include text('xs');
+
+      &--bug {
+        background: color(danger, 0.15);
+        color: color(danger);
+      }
+
+      &--story {
+        background: color(primary, 0.15);
+        color: color(primary);
+      }
+    }
+
     @at-root .tasks-epic {
       display: flex;
       align-items: center;

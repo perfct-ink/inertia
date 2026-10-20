@@ -8,6 +8,7 @@ module Api
         tasks = current_workspace.tasks.includes(:document)
         tasks = tasks.where(document_id: params[:document_id]) if params[:document_id]
         tasks = tasks.where(status: params[:status]) if params[:status]
+        tasks = tasks.where(kind: params[:kind]) if params[:kind].present? && Task.kinds.key?(params[:kind])
         tasks = tasks.where(epic_id: params[:epic_id]) if params[:epic_id]
         tasks = tasks.where(sprint_id: params[:sprint_id]) if params[:sprint_id]
         if params[:folder_id]
@@ -51,7 +52,7 @@ module Api
       end
 
       def task_params
-        params.require(:task).permit(:title, :description, :status, :start_date, :due_date, :position, :assignee_id, :epic_id, :sprint_id, :milestone_id, :folder_id, :parent_id)
+        params.require(:task).permit(:title, :description, :status, :kind, :start_date, :due_date, :position, :assignee_id, :epic_id, :sprint_id, :milestone_id, :folder_id, :parent_id)
       end
     end
   end

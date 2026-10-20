@@ -23,6 +23,10 @@ class Task < ApplicationRecord
 
   enum :status, { todo: 0, in_progress: 1, in_review: 2, done: 3, backlog: 4 }
 
+  # What sort of work item this is. A bug shows up in the bugs queue (the
+  # task list filtered to kind = bug); a story is a user-facing slice of work.
+  enum :kind, { task: 0, bug: 1, story: 2 }, prefix: true, scopes: false, validate: true
+
   validates :title, presence: true
   validates :status, presence: true
   validates_same_workspace :epic, :parent

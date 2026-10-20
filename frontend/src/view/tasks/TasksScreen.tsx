@@ -29,7 +29,8 @@ import { useWorkspace } from '@/api/workspace'
 import { useEpics } from '@/api/epics'
 import { useSprints } from '@/api/sprints'
 import { useMilestones } from '@/api/milestones'
-import type { Task, Epic, Sprint, Milestone } from '@/types'
+import type { Task, TaskKind, Epic, Sprint, Milestone } from '@/types'
+import { TASK_KINDS, KIND_LABEL, kindOf } from '@/data/task'
 import './TasksScreen.scss'
 import { usePageTitle } from '@/hooks/usePageTitle'
 
@@ -78,6 +79,9 @@ function TaskCard({ task, onNext, onNavigate, epicTitle, overlay }: Omit<CardPro
     <div className={classNames('tasks-card', overlay && 'tasks-card--overlay')}>
       <div className="tasks-card_title_row">
         <p className="tasks-card_title">{task.title}</p>
+        {kindOf(task) !== 'task' && (
+          <span className={classNames('tasks-kind', `tasks-kind--${kindOf(task)}`)}>{KIND_LABEL[kindOf(task)]}</span>
+        )}
       </div>
       {epicTitle && (
         <div className="tasks-epic tasks-epic--card">
@@ -156,6 +160,7 @@ interface NewTaskFields {
   epicId?: number
   sprintId?: number
   milestoneId?: number
+  kind: TaskKind
 }
 
 interface AddTaskInputProps {
@@ -173,6 +178,7 @@ function AddTaskInput({ onAdd, onCancel, epics, sprints, milestones }: AddTaskIn
   const [epicId, setEpicId] = useState('')
   const [sprintId, setSprintId] = useState('')
   const [milestoneId, setMilestoneId] = useState('')
+  const [kind, setKind] = useState<TaskKind>('task')
   const titleRef = useRef('')
   const containerRef = useRef<HTMLDivElement>(null)
 
@@ -185,6 +191,7 @@ function AddTaskInput({ onAdd, onCancel, epics, sprints, milestones }: AddTaskIn
         epicId: epicId ? Number(epicId) : undefined,
         sprintId: sprintId ? Number(sprintId) : undefined,
         milestoneId: milestoneId ? Number(milestoneId) : undefined,
+        kind,
       })
     } else onCancel()
   }
@@ -227,6 +234,17 @@ function AddTaskInput({ onAdd, onCancel, epics, sprints, milestones }: AddTaskIn
         onChange={(e) => setDueDate(e.target.value)}
         onBlur={handleBlur}
       />
+      <Select
+        aria-label="Type"
+        value={kind}
+        onChange={(e) => setKind(e.target.value as TaskKind)}
+        onBlur={handleBlur}
+        className="tasks-add_field tasks-add_field--select"
+      >
+        {TASK_KINDS.map(({ key, label }) => (
+          <option key={key} value={key}>{label}</option>
+        ))}
+      </Select>
       {epics.length > 0 && (
         <Select
           value={epicId}
@@ -311,6 +329,7 @@ export default function TasksScreen() {
     ...(filters.status ? { status: filters.status } : {}),
     ...(filters.epic_id ? { epic_id: filters.epic_id } : {}),
     ...(filters.sprint_id ? { sprint_id: filters.sprint_id } : {}),
+    ...(filters.kind ? { kind: filters.kind } : {}),
     ...(searchQ.trim() ? { q: searchQ.trim() } : {}),
   }
 
@@ -451,11 +470,11 @@ export default function TasksScreen() {
             </div>
             <Button
               onClick={() => setShowFilters((o) => !o)}
-              className={classNames('tasks-filter_button', !!(showFilters || filters.folder_id || filters.status || filters.epic_id || filters.sprint_id) && 'tasks-filter_button--active')}
+              className={classNames('tasks-filter_button', !!(showFilters || filters.folder_id || filters.status || filters.epic_id || filters.sprint_id || filters.kind) && 'tasks-filter_button--active')}
             >
               <Filter className="tasks-icon" />
               Filter
-              {(filters.folder_id || filters.status || filters.epic_id || filters.sprint_id) && <span className="tasks-filter_dot" />}
+              {(filters.folder_id || filters.status || filters.epic_id || filters.sprint_id || filters.kind) && <span className="tasks-filter_dot" />}
             </Button>
           </div>
         </div>
@@ -486,6 +505,17 @@ export default function TasksScreen() {
               <option value="in_review">In Review</option>
               <option value="done">Done</option>
             </Select>
+            <span className="tasks-filter_label">Type</span>
+            <Select
+              className="tasks-filter_select"
+              value={filters.kind ?? ''}
+              onChange={(e) => setFilters((f) => ({ ...f, kind: (e.target.value || undefined) as TaskKind | undefined }))}
+            >
+              <option value="">Any type</option>
+              {TASK_KINDS.map(({ key, label }) => (
+                <option key={key} value={key}>{key === 'bug' ? 'Bugs (queue)' : label}</option>
+              ))}
+            </Select>
             <span className="tasks-filter_label">Epic</span>
             <Select
               className="tasks-filter_select"
@@ -508,7 +538,7 @@ export default function TasksScreen() {
                 <option key={sprint.id} value={sprint.id}>{sprint.title}</option>
               ))}
             </Select>
-            {(filters.folder_id || filters.status || filters.epic_id || filters.sprint_id) && (
+            {(filters.folder_id || filters.status || filters.epic_id || filters.sprint_id || filters.kind) && (
               <Button
                 onClick={() => setFilters({})}
                 className="tasks-clear"

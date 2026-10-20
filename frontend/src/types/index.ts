@@ -57,11 +57,14 @@ export interface WorkspaceMember {
   user: { id: number; name: string; email: string }
 }
 
+export type TaskKind = 'task' | 'bug' | 'story'
+
 export interface Task {
   id: number
   title: string
   description: string | null
   status: 'todo' | 'in_progress' | 'in_review' | 'done' | 'backlog'
+  kind?: TaskKind
   start_date?: string | null
   due_date: string | null
   position: number

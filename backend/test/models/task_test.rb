@@ -68,4 +68,16 @@ class TaskTest < ActiveSupport::TestCase
     assert_not by_parent.valid?
     assert_includes by_parent.errors[:parent], "must belong to the same workspace"
   end
+
+  test "kind defaults to task and accepts bug and story" do
+    user = User.create!(name: "Ada", email: "ada-kind@example.com", password: "password123")
+    task = user.workspace.tasks.create!(title: "Plain")
+    assert task.kind_task?
+
+    task.update!(kind: :bug)
+    assert task.kind_bug?
+    assert_equal [ task ], user.workspace.tasks.where(kind: :bug).to_a
+    task.kind = "epic"
+    assert_not task.valid?
+  end
 end
