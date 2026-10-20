@@ -84,5 +84,9 @@ services:
       timeout: 5s
       retries: 5
 
+# Coolify runs on the same droplet that served the old docker-compose.prod.yml
+# stack, so the api reuses that stack's uploads volume instead of copying it.
 volumes:
   storage:
+    external: true
+    name: inertiaitcom_storage

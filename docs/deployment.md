@@ -18,7 +18,7 @@ browser ──https──▶ Coolify proxy (Traefik, TLS)
 | `api` | `backend/Dockerfile`; `bin/docker-entrypoint` runs `db:prepare` before the server starts, so migrations run on every deploy | `GET /up` |
 | `collab` | `collab-server/Dockerfile` | `GET /` on port 1234 |
 
-Only `web` gets a domain. `api` and `collab` are reachable only inside the stack's network. Uploads (Active Storage, disk service) live in the `storage` volume on the Coolify server.
+Only `web` gets a domain. `api` and `collab` are reachable only inside the stack's network. Uploads (Active Storage, disk service) live in the `inertiaitcom_storage` Docker volume, the one the old droplet stack created; the compose file mounts it as an external volume, so it must exist before the first deploy.
 
 `config.assume_ssl` is on in production: every public request arrives through Coolify's TLS proxy, and the collab service and health checks call `http://api:3000` directly, which `force_ssl` would otherwise redirect.
 
@@ -53,8 +53,8 @@ GitHub repository settings used by the workflow:
 
 ## One-time setup
 
-1. **Server.** Install Coolify on a server with ports 80 and 443 free (`curl -fsSL https://cdn.coollabs.io/coolify/install.sh | sudo bash`), or add an existing server to your Coolify instance. Coolify's proxy needs 80/443 to itself, so it can't share the old droplet, whose host nginx serves other sites.
-2. **Database access.** In DigitalOcean → Databases → the MySQL cluster → **Trusted Sources**, add the Coolify server's IP. The credentials already in `config/credentials.yml.enc` keep working unchanged.
+1. **Server.** Coolify (`https://coolify.homecloud.one`) runs on the droplet itself (104.131.183.186) as the `localhost` server; its Traefik proxy holds ports 80/443 and passes hosts it doesn't route on to the droplet's host nginx. The resource lives in the **Inertia** project, `production` environment.
+2. **Database access.** Nothing to add: the droplet's IP is already in the MySQL cluster's Trusted Sources, and the credentials in `config/credentials.yml.enc` keep working unchanged.
 3. **Repository.** In Coolify: Sources → add a GitHub App with access to `perfct-ink/inertia`.
 4. **Resource.** New resource → the GitHub App source → `perfct-ink/inertia`, branch `main`, build pack **Docker Compose**, compose file `/docker-compose.coolify.yml`.
 5. **Domain.** On the `web` service, set the domain to `https://inertia.it.com,https://www.inertia.it.com`. Leave `api` and `collab` without a domain.
@@ -64,8 +64,8 @@ GitHub repository settings used by the workflow:
 
 ## Cutover from the droplet
 
-1. **Copy uploads.** On the droplet, find the old volume (`docker volume ls | grep storage`, likely `inertiaitcom_storage`) and archive it: `docker run --rm -v inertiaitcom_storage:/data -v "$PWD":/out alpine tar -czf /out/storage.tgz -C /data .`. Copy `storage.tgz` to the Coolify server, find the new volume (`docker volume ls | grep storage`; Coolify prefixes it with the resource's ID), and restore it: `docker run --rm -v <new_volume>:/data -v "$PWD":/in alpine sh -c 'tar -xzf /in/storage.tgz -C /data && chown -R 1000:1000 /data'`.
-2. **DNS.** Point the `A` records for `inertia.it.com` and `www.inertia.it.com` at the Coolify server. Coolify requests the certificates once the names resolve to it.
+1. **Uploads.** Nothing to copy: both stacks mount the same `inertiaitcom_storage` volume.
+2. **Domain.** DNS already points at the droplet. Change the `web` service's domain from the test sslip.io address to `https://inertia.it.com,https://www.inertia.it.com` and redeploy; Traefik then routes the names to the stack and requests their certificates. Remove the droplet nginx vhost for `inertia.it.com` afterwards so nothing else answers for it.
 3. **Switch deploys.** Add the `COOLIFY_TOKEN` secret and the `COOLIFY_DEPLOY_WEBHOOK` variable in GitHub (Settings → Secrets and variables → Actions). The next push to `main` deploys through Coolify.
 4. **Verify** `https://inertia.it.com/` (marketing page), sign in, open a document in two tabs to check live collaboration, and open an existing upload.
 5. **Retire the droplet path** per `docs/backlog/retire-droplet-deploy.md`, then stop the old containers and remove the nginx vhost on the droplet.
