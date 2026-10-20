@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_10_18_000003) do
+ActiveRecord::Schema[7.2].define(version: 2026_10_19_000021) do
   create_table "ai_runs", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.bigint "workspace_id", null: false
     t.bigint "ai_worker_id", null: false
@@ -91,6 +91,8 @@ ActiveRecord::Schema[7.2].define(version: 2026_10_18_000003) do
     t.time "start_time"
     t.time "end_time"
     t.bigint "folder_id"
+    t.bigint "document_id"
+    t.index ["document_id"], name: "index_events_on_document_id"
     t.index ["folder_id"], name: "index_events_on_folder_id"
     t.index ["workspace_id", "date"], name: "index_events_on_workspace_id_and_date"
     t.index ["workspace_id"], name: "index_events_on_workspace_id"
@@ -372,6 +374,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_10_18_000003) do
   add_foreign_key "epics", "workspaces"
   add_foreign_key "event_tasks", "events"
   add_foreign_key "event_tasks", "tasks"
+  add_foreign_key "events", "documents", on_delete: :nullify
   add_foreign_key "events", "folders"
   add_foreign_key "events", "workspaces"
   add_foreign_key "folders", "folders", column: "parent_id"

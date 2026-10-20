@@ -55,17 +55,22 @@ import {
   Link as LinkIcon,
   Loader2,
   FileX,
+  CalendarPlus,
   Image as ImageIcon,
 } from 'lucide-react'
 import WorkspaceLayout from '@/components/WorkspaceLayout'
 import { useDocument, useUpdateDocument } from '@/api/documents'
 import { useCreateTask } from '@/api/tasks'
+import { useCreateEvent } from '@/api/events'
+import DocumentEventDialog from '@/components/DocumentEventDialog'
+import { documentEventPayload } from '@/data/documentEvent'
 import { useWorkspace } from '@/api/workspace'
 import TableEditor from '@/components/editors/TableEditor'
 import SpreadsheetEditor from '@/components/editors/SpreadsheetEditor'
 import Video from '@/extensions/Video'
 import { WorkspaceTaskList } from '@/extensions/WorkspaceTaskList'
 import { WorkspaceTaskItem } from '@/extensions/WorkspaceTaskItem'
+import { DocumentEvent } from '@/extensions/DocumentEvent'
 import './ProseMirror.scss'
 import './DocumentScreen.scss'
 import api from '@/lib/api'
@@ -120,6 +125,8 @@ export default function DocumentScreen() {
   const { data: workspace } = useWorkspace()
   const user = useAuthStore((s) => s.user)
   const [linkDialogOpen, setLinkDialogOpen] = useState(false)
+  const [eventDialogOpen, setEventDialogOpen] = useState(false)
+  const createEvent = useCreateEvent()
   const [tasksOnly, setTasksOnly] = useState(false)
   const [saveStatus, setSaveStatus] = useState<'saved' | 'saving' | 'unsaved'>('saved')
   const pendingRef = useRef<{ title?: string; content?: Record<string, unknown> }>({})
@@ -180,6 +187,7 @@ export default function DocumentScreen() {
       ListItem,
       WorkspaceTaskList,
       WorkspaceTaskItem,
+      DocumentEvent.configure({ onTrigger: () => setEventDialogOpen(true) }),
       CodeBlock,
       HorizontalRule.extend({
         addCommands() {
@@ -534,6 +542,11 @@ export default function DocumentScreen() {
             title="Insert table"
           />
           <ToolbarBtn
+            icon={<CalendarPlus className="document-toolbar_icon" />}
+            onClick={() => setEventDialogOpen(true)}
+            title="Add an event (/event)"
+          />
+          <ToolbarBtn
             icon={<LinkIcon className="document-toolbar_icon" />}
             onClick={() => setLinkDialogOpen(true)}
             active={editor.isActive('link')}
@@ -574,6 +587,13 @@ export default function DocumentScreen() {
           </div>
         </div>
       </div>
+      <DocumentEventDialog
+        open={eventDialogOpen}
+        onClose={() => { setEventDialogOpen(false); editor.commands.focus() }}
+        onSubmit={(event) => createEvent.mutate(documentEventPayload(event, { id: docId, folder_id: doc.folder_id }), {
+          onSuccess: (created) => { setEventDialogOpen(false); editor.chain().focus().insertDocumentEvent(created.id).run() },
+        })}
+      />
       <PromptDialog
         open={linkDialogOpen}
         title="Link"

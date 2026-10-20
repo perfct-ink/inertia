@@ -217,6 +217,8 @@ export interface WorkspaceEvent {
   end_time: string | null
   event_type: 'deadline' | 'milestone'
   folder_id: number | null
+  // The document the event was made in, if any.
+  document_id?: number | null
   tasks: Task[]
   created_at: string
   updated_at: string

@@ -1,0 +1,30 @@
+@use 'tokens' as *;
+
+@layer app.components {
+  .document_event {
+    display: inline-flex;
+    align-items: center;
+    gap: space(1);
+    padding: 0 space(1.5);
+    border-radius: radius('sm');
+    background: palette('yellow-500', 0.2);
+
+    @at-root .document_event-icon {
+      width: space(3.5);
+      height: space(3.5);
+    }
+
+    @at-root .document_event-date {
+      min-height: 0;
+      padding: 0 space(1);
+      border: 0;
+      background: transparent;
+      @include text('xs');
+    }
+
+    @at-root .document_event-missing {
+      color: color(muted-foreground);
+      font-style: italic;
+    }
+  }
+}

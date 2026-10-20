@@ -1,4 +1,5 @@
 ---
+branch: backlog/create-dates-and-events-from-the-document
 priority: p0
 depends_on: []
 ---
@@ -28,3 +29,6 @@ Requested by Alex on 2026-10-18, marked as one of the most important things to t
 - Anything stated in Requirements / notes (including any named default) is implemented or deliberately changed with the reason recorded.
 - Failed API calls show an error to the user.
 - Tests cover the new behaviour; a feature doc in `docs/features/` is written (or the existing one updated) and this file is removed.
+
+## Blocked
+Implemented on the branch (toolbar and `/event `; `@date` is not wired). To verify: `cd backend && bundle install && rails db:migrate && rails test` (diff `schema.rb`, edited by hand), `cd frontend && npm install && npm run lint && npm test`, `cd collab-server && npm install && npm test`, then add an event in a document, change its date in the chip and on the calendar, and check collaboration keeps the chip. None of that could run here. Deploy the collab server with the schema change first. Then remove this file and merge.

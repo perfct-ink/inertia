@@ -12,7 +12,7 @@ export function useEvents() {
 export function useCreateEvent() {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: (data: { title: string; date: string; event_type: 'deadline' | 'milestone'; description?: string; start_time?: string; end_time?: string }) =>
+    mutationFn: (data: { title: string; date: string; event_type: 'deadline' | 'milestone'; description?: string; start_time?: string; end_time?: string; document_id?: number; folder_id?: number }) =>
       api.post('/api/v1/events', { event: data }).then((r) => r.data as WorkspaceEvent),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['events'] }),
   })

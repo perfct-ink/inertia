@@ -7,6 +7,7 @@ module Api
       def index
         events = current_workspace.events.includes(tasks: :document).order(:date)
         events = events.where(folder_id: params[:folder_id]) if params[:folder_id]
+        events = events.where(document_id: params[:document_id]) if params[:document_id]
         render json: EventBlueprint.render(events, view: :with_tasks)
       end
 
@@ -39,7 +40,7 @@ module Api
       end
 
       def event_params
-        params.require(:event).permit(:title, :description, :date, :event_type, :start_time, :end_time, :folder_id)
+        params.require(:event).permit(:title, :description, :date, :event_type, :start_time, :end_time, :folder_id, :document_id)
       end
     end
   end

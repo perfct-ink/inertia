@@ -8,7 +8,7 @@ import { schema } from "../src/schema.js";
 describe("schema", () => {
   it("has exactly the node types DocumentPage.tsx's editor extensions produce", () => {
     expect(Object.keys(schema.nodes).sort()).toEqual([
-      "bulletList", "codeBlock", "doc", "hardBreak", "heading", "horizontalRule",
+      "bulletList", "codeBlock", "doc", "documentEvent", "hardBreak", "heading", "horizontalRule",
       "image", "listItem", "orderedList", "paragraph", "table", "tableCell",
       "tableHeader", "tableRow", "text", "video", "workspaceTaskItem", "workspaceTaskList",
     ]);
