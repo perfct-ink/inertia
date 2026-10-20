@@ -1,0 +1,80 @@
+@use 'tokens' as *;
+
+@layer app.components {
+  .files_gallery {
+    display: flex;
+    flex-direction: column;
+    gap: space(3);
+
+    @at-root .files_gallery-filters {
+      display: flex;
+      flex-wrap: wrap;
+      gap: space(2);
+    }
+
+    @at-root .files_gallery-filter {
+      padding: space(1) space(3);
+      border-width: 1px;
+      border-radius: radius('full');
+      @include text('sm');
+
+      &--active {
+        background: color(primary);
+        color: color(primary-foreground);
+      }
+    }
+
+    @at-root .files_gallery-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(9rem, 1fr));
+      gap: space(3);
+    }
+
+    @at-root .files_gallery-card {
+      display: flex;
+      flex-direction: column;
+      gap: space(1);
+      padding: space(2);
+      border-width: 1px;
+      border-radius: radius('md');
+      text-align: left;
+
+      &:hover {
+        background: color(accent);
+      }
+    }
+
+    @at-root .files_gallery-thumb {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: space(24);
+      overflow: hidden;
+      border-radius: radius('sm');
+      background: color(muted);
+
+      img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+    }
+
+    @at-root .files_gallery-icon {
+      width: space(8);
+      height: space(8);
+      color: color(muted-foreground);
+    }
+
+    @at-root .files_gallery-name {
+      @include truncate;
+      @include text('sm');
+    }
+
+    @at-root .files_gallery-size,
+    .files_gallery-empty {
+      color: color(muted-foreground);
+      @include text('xs');
+    }
+  }
+}

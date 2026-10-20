@@ -1,4 +1,5 @@
 ---
+branch: backlog/file-previews-and-gallery
 priority: p1
 depends_on: [upload-files-and-images-into-a-folder]
 components: [frontend]
@@ -29,3 +30,6 @@ Today: `UploadsController` already stores images and video in ActiveStorage (100
 - Anything stated in Requirements / notes (including any named default) is implemented or deliberately changed with the reason recorded.
 - Failed API calls show an error to the user.
 - Tests cover the new behaviour; a feature doc in `docs/features/` is written (or the existing one updated) and this file is removed.
+
+## Blocked
+Implemented on `backlog/file-previews-and-gallery` (this branch covers both this task and `files-gallery-of-all-attachments`, as the gallery of the Space's uploaded files), stacked on `backlog/file-download-rename-move-replace` (merge that and its base first). Attachments to tasks and collection fields are not in the gallery (those features do not exist yet). To verify: `cd frontend && npm install && npm run lint && npm test`, then open All files > Gallery in a browser with uploaded images. Then remove this file and merge.

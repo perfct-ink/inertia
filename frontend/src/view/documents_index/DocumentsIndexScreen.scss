@@ -27,6 +27,12 @@
       margin-bottom: space(6);
     }
 
+    @at-root .documents_index-modes {
+      display: flex;
+      gap: space(2);
+      margin-bottom: space(4);
+    }
+
     @at-root .documents_index-loading {
       display: flex;
       justify-content: center;

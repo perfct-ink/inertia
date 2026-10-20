@@ -7,6 +7,7 @@ import DocTypeIcon from '@/components/DocTypeIcon'
 import { useWorkspace } from '@/api/workspace'
 import WorkspaceLayout from '@/components/WorkspaceLayout'
 import CreateItem from '@/components/CreateItem'
+import FilesGallery from '@/components/FilesGallery'
 import { spaceFiles, searchSpaceFiles } from '@/data/folder'
 import './DocumentsIndexScreen.scss'
 import type { Document } from '@/types'
@@ -25,6 +26,7 @@ export default function DocumentsIndexScreen() {
   const [sortKey, setSortKey] = useState<SortKey>('name')
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc')
   const [query, setQuery] = useState('')
+  const [mode, setMode] = useState<'list' | 'gallery'>('list')
 
   const files = spaceFiles(workspace?.folders ?? [])
   const allDocs: Row[] = searchSpaceFiles(files, query).map((f) => ({
@@ -80,17 +82,23 @@ export default function DocumentsIndexScreen() {
             className="documents_index-search"
           />
 
+          <div className="documents_index-modes" role="group" aria-label="View">
+            <Button aria-pressed={mode === 'list'} onClick={() => setMode('list')}>List</Button>
+            <Button aria-pressed={mode === 'gallery'} onClick={() => setMode('gallery')}>Gallery</Button>
+          </div>
+          {mode === 'gallery' && <FilesGallery documents={sortedDocs} />}
+
           {isLoading && (
             <div className="documents_index-loading">
               <Loader2 className="documents_index-spinner" />
             </div>
           )}
 
-          {!isLoading && allDocs.length === 0 && (
+          {mode === 'list' && !isLoading && allDocs.length === 0 && (
             <p className="documents_index-empty">{files.length ? 'No files match your search.' : 'No files in this Space yet.'}</p>
           )}
 
-          {!isLoading && allDocs.length > 0 && (
+          {mode === 'list' && !isLoading && allDocs.length > 0 && (
             <div className="documents_index-table">
               <div className="documents_index-head">
                 <span className="documents_index-spacer" />
