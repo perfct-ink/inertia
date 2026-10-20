@@ -20,3 +20,4 @@ One file per implemented feature, written from the code (see `docs/rules/feature
 | Switching Spaces from the sidebar | [space_switcher.md](space_switcher.md) |
 | Collections naming (tables are called Collections in the UI) | [collections.md](collections.md) |
 | Task priority, effort estimate and story points | [task_estimates.md](task_estimates.md) |
+| Workload: estimated hours per person per week, over-allocation | [workload.md](workload.md) |
