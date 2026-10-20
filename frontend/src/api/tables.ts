@@ -2,7 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import api from '@/lib/api'
 
 export type DataType = 'text' | 'integer' | 'number' | 'boolean' | 'date' | 'datetime' | 'relation'
-export interface TableField { id: number; name: string; data_type: DataType; relation_table_id: number | null }
+export interface TableField { id: number; name: string; data_type: DataType; relation_table_id: number | null; unit?: string | null }
 export interface TableRecord { id: number; values: Record<string, string | number | boolean | null> }
 export interface TableData { fields: TableField[]; records: TableRecord[] }
 export const tableQuery = (id: number) => ({

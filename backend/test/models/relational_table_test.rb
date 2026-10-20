@@ -60,4 +60,12 @@ class RelationalTableTest < ActiveSupport::TestCase
     field = other.table_fields.create!(name: "Name", data_type: "text")
     assert_not @record.table_cells.build(table_field: field, value: "Ada").valid?
   end
+
+  test "a unit is only for number fields and at most 20 characters" do
+    assert @table.table_fields.build(name: "Weight", data_type: "number", unit: "kg").valid?
+    assert @table.table_fields.build(name: "Count", data_type: "integer", unit: "items").valid?
+    assert_not @table.table_fields.build(name: "Label", data_type: "text", unit: "kg").valid?
+    assert_not @table.table_fields.build(name: "Long", data_type: "number", unit: "x" * 21).valid?
+    assert @table.table_fields.build(name: "Plain", data_type: "text", unit: "").valid?
+  end
 end

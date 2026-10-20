@@ -19,3 +19,8 @@ Field types, one-to-many relationships, multiple images and YAML or JSON import 
 ## History
 - Implemented 2026-10-19.
 - Not verified: lint, type-check, the Jest and Rails tests and the screens were not run (no dependencies installed, no network). Only Ruby syntax was checked.
+
+## Number units and column summaries
+An integer or number field can have a **unit** ("kg", "$", "%", up to 20 characters; the field form shows "Unit (optional)" for number types only). The unit shows beside the type in the column header, and `$ € £ ¥` lead the value in summaries while other units follow it. A **Summary** row at the bottom of the grid has a menu under each number column (No summary, Sum, Average, Min, Max, Count) and shows the result in the unit; it ignores blank cells, rounds to two decimals, and is chosen per visit (not saved). `table_fields.unit` (nullable string; rejected on non-number fields, 422). Code: `data/tableSummary.ts` (`columnSummary`, `withUnit`; stand-in runner: pass), `TableEditor.tsx`, `TablesController`. Tests: `relational_table_test.rb`, `tableSummary.test.ts`, `TableEditor.test.tsx`.
+- Limits: summaries cover the records on screen only (all of them, there is no paging yet) and are not saved with the collection; values in cells are not formatted with the unit, only the summary and header are; types added on `backlog/collection-field-types` (money, percent...) are not wired to summaries.
+- Added 2026-10-19 on branch `backlog/number-fields-with-units-and-summaries`, not merged. Not verified: migration, Rails tests, lint, type-check, the component tests and the browser did not run (no database, no node_modules); `schema.rb` edited by hand.

@@ -14,7 +14,7 @@ module Api
 
       def show
         render json: {
-          fields: @table.table_fields.order(:id).as_json(only: [ :id, :name, :data_type, :relation_table_id ]),
+          fields: @table.table_fields.order(:id).as_json(only: [ :id, :name, :data_type, :relation_table_id, :unit ]),
           records: @table.table_records.order(:id).includes(:table_cells).map(&:as_table_json)
         }
       end
@@ -61,7 +61,7 @@ module Api
       end
 
       def field_params
-        params.require(:field).permit(:name, :data_type, :relation_table_id)
+        params.require(:field).permit(:name, :data_type, :relation_table_id, :unit)
       end
 
       def write_values(record)

@@ -164,6 +164,17 @@
       border-radius: radius('lg');
     }
 
+    @at-root .table_editor-summary_row {
+      background: color(muted, 0.4);
+    }
+
+    @at-root .table_editor-summary_value {
+      display: block;
+      padding: space(1) space(2);
+      font-variant-numeric: tabular-nums;
+      font-weight: 600;
+    }
+
     @at-root .table_editor-table_head {
       background: color(muted, 0.3);
     }

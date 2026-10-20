@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_10_18_000003) do
+ActiveRecord::Schema[7.2].define(version: 2026_10_19_000022) do
   create_table "ai_runs", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.bigint "workspace_id", null: false
     t.bigint "ai_worker_id", null: false
@@ -272,6 +272,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_10_18_000003) do
     t.bigint "relation_table_id"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "unit"
     t.index ["document_id", "name"], name: "index_table_fields_on_document_id_and_name", unique: true
     t.index ["document_id"], name: "index_table_fields_on_document_id"
     t.index ["relation_table_id"], name: "index_table_fields_on_relation_table_id"

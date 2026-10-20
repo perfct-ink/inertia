@@ -6,10 +6,17 @@ class TableField < ApplicationRecord
 
   validates :name, presence: true, length: { maximum: 255 }, uniqueness: { scope: :document_id }
   validates :data_type, inclusion: { in: DATA_TYPES }
+  validates :unit, length: { maximum: 20 }
+  validate :unit_only_on_numbers
   validate :valid_table
   validate :compatible_schema_change
 
   private
+
+  # A unit ("kg", "$") makes sense for numbers only.
+  def unit_only_on_numbers
+    errors.add(:unit, "is only for integer and number fields") if unit.present? && !%w[integer number].include?(data_type)
+  end
 
   def valid_table
     errors.add(:document, "must be a table") unless document&.table?

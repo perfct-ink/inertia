@@ -11,6 +11,7 @@ import { useTabsStore } from '@/store/tabs'
 import './TableEditor.scss'
 import { usePageTitle } from '@/hooks/usePageTitle'
 import { flattenFolders } from '@/data/folder'
+import { columnSummary, SUMMARY_LABEL, withUnit, type SummaryKind } from '@/data/tableSummary'
 
 const types: DataType[] = ['text', 'integer', 'number', 'boolean', 'date', 'datetime', 'relation']
 const inputClass = 'table_editor-input'
@@ -80,6 +81,8 @@ export default function TableEditor({ doc }: { doc: Document }) {
   const [name, setName] = useState('')
   const [type, setType] = useState<DataType>('text')
   const [relationTable, setRelationTable] = useState('')
+  const [unit, setUnit] = useState('')
+  const [summaries, setSummaries] = useState<Record<number, SummaryKind>>({})
   const tables = flattenFolders(workspace?.folders ?? []).flatMap(f => f.documents ?? []).filter(d => d.doc_type === 'table')
   const targetIds = [...new Set((data?.fields ?? []).flatMap(f => f.relation_table_id ? [f.relation_table_id] : []))]
   const queries = useQueries({ queries: targetIds.map(tableQuery) })
@@ -98,12 +101,12 @@ export default function TableEditor({ doc }: { doc: Document }) {
   }
   function fieldForm(field?: TableField) {
     setEditingField(field ?? null); setName(field?.name ?? ''); setType(field?.data_type ?? 'text')
-    setRelationTable(field?.relation_table_id ? String(field.relation_table_id) : ''); setShowForm(true); setError('')
+    setRelationTable(field?.relation_table_id ? String(field.relation_table_id) : ''); setUnit(field?.unit ?? ''); setShowForm(true); setError('')
   }
   async function saveField(e: React.FormEvent) {
     e.preventDefault()
     try {
-      await action(editingField ? `fields/${editingField.id}` : 'fields', editingField ? 'patch' : 'post', { field: { name: name.trim(), data_type: type, relation_table_id: type === 'relation' ? Number(relationTable) : null } })
+      await action(editingField ? `fields/${editingField.id}` : 'fields', editingField ? 'patch' : 'post', { field: { name: name.trim(), data_type: type, relation_table_id: type === 'relation' ? Number(relationTable) : null, ...(type === 'integer' || type === 'number' ? { unit: unit.trim() || null } : {}) } })
       setShowForm(false)
     } catch (e) { setError(errorMessage(e)) }
   }
@@ -125,6 +128,7 @@ export default function TableEditor({ doc }: { doc: Document }) {
         <label className="table_editor-field_form_label">Field name<Input required maxLength={255} autoFocus className={`${fieldInputClass}`} value={name} onChange={e => setName(e.target.value)} /></label>
         <label className="table_editor-field_form_label">Data type<Select className={`${fieldInputClass}`} value={type} onChange={e => setType(e.target.value as DataType)}>{types.map(t => <option key={t} value={t}>{t[0].toUpperCase() + t.slice(1)}</option>)}</Select></label>
         {type === 'relation' && <label className="table_editor-field_form_label">Related collection<Select required className={`${fieldInputClass}`} value={relationTable} onChange={e => setRelationTable(e.target.value)}><option value="">Choose a collection</option>{tables.map(t => <option key={t.id} value={t.id}>{t.title}</option>)}</Select></label>}
+        {(type === 'integer' || type === 'number') && <label className="table_editor-field_form_label">Unit (optional)<Input maxLength={20} placeholder="kg, $, %…" className={`${fieldInputClass}`} value={unit} onChange={e => setUnit(e.target.value)} /></label>}
         <Button variant="primary" disabled={busy || !name.trim()} className="table_editor-field_form_button">{editingField ? 'Save field' : 'Create field'}</Button>
         <Button type="button" onClick={() => setShowForm(false)} className="table_editor-cancel_button">Cancel</Button>
         {editingField && <p className="table_editor-field_form_hint">Clear this field’s values before changing its data type or related collection.</p>}
@@ -132,12 +136,22 @@ export default function TableEditor({ doc }: { doc: Document }) {
       {isLoading ? <Loader2 className="table_editor-spinner" /> : data && data.fields.length === 0 ? <div className="table_editor-empty"><Database className="table_editor-empty_icon" /><p className="table_editor-empty_title">Define your collection’s fields</p><p className="table_editor-empty_text">Add text, numbers, dates, booleans, or a relation to another collection.</p><Button variant="secondary" onClick={() => fieldForm()} className="table_editor-empty_button">Add first field</Button></div> : data && <div className="table_editor-grid">
         <table className="table_editor-table">
           <thead className="table_editor-table_head"><tr><th className="table_editor-column_head table_editor-column_head--id">Record ID</th>
-            {data.fields.map(field => <th key={field.id} className="table_editor-column_head"><div className="table_editor-column_head_main"><Button onClick={() => fieldForm(field)} className="table_editor-column_name_button"><span>{field.name}</span><Pencil className="table_editor-column_edit_icon" /></Button><Button aria-label={`Delete field ${field.name}`} disabled={busy} onClick={() => remove(`fields/${field.id}`, `Delete “${field.name}” and all its values?`)} className="table_editor-icon_button table_editor-icon_button--column"><Trash2 className="table_editor-icon_button_icon table_editor-icon_button_icon--sm" /></Button></div><span className="table_editor-column_type">{field.data_type}{field.relation_table_id ? ` → ${tables.find(t => t.id === field.relation_table_id)?.title ?? 'Table'}` : ''}</span></th>)}
+            {data.fields.map(field => <th key={field.id} className="table_editor-column_head"><div className="table_editor-column_head_main"><Button onClick={() => fieldForm(field)} className="table_editor-column_name_button"><span>{field.name}</span><Pencil className="table_editor-column_edit_icon" /></Button><Button aria-label={`Delete field ${field.name}`} disabled={busy} onClick={() => remove(`fields/${field.id}`, `Delete “${field.name}” and all its values?`)} className="table_editor-icon_button table_editor-icon_button--column"><Trash2 className="table_editor-icon_button_icon table_editor-icon_button_icon--sm" /></Button></div><span className="table_editor-column_type">{field.data_type}{field.unit ? ` (${field.unit})` : ''}{field.relation_table_id ? ` → ${tables.find(t => t.id === field.relation_table_id)?.title ?? 'Table'}` : ''}</span></th>)}
             <th className="table_editor-column_head table_editor-column_head--actions">Actions</th>
           </tr></thead>
           <tbody>{data.records.map(record => <RecordRow key={record.id} record={record} fields={data.fields} relations={relations} busy={busy} onSave={values => action(`records/${record.id}`, 'patch', { record: { values } })} onDelete={() => remove(`records/${record.id}`, `Delete record #${record.id}?`)} />)}
             <RecordRow fields={data.fields} relations={relations} busy={busy} onSave={values => action('records', 'post', { record: { values } })} />
           </tbody>
+          {data.fields.some(f => f.data_type === 'integer' || f.data_type === 'number') && <tfoot className="table_editor-summary_row"><tr>
+            <th className="table_editor-column_head table_editor-column_head--id">Summary</th>
+            {data.fields.map(field => <td key={field.id} className="table_editor-cell">{field.data_type === 'integer' || field.data_type === 'number' ? <>
+              <Select aria-label={`Summary of ${field.name}`} className={inputClass} value={summaries[field.id] ?? 'none'} onChange={e => setSummaries(current => ({ ...current, [field.id]: e.target.value as SummaryKind }))}>
+                {(Object.keys(SUMMARY_LABEL) as SummaryKind[]).map(kind => <option key={kind} value={kind}>{SUMMARY_LABEL[kind]}</option>)}
+              </Select>
+              <span className="table_editor-summary_value">{withUnit(columnSummary(data.records.map(r => r.values[String(field.id)]), summaries[field.id] ?? 'none'), summaries[field.id] === 'count' ? null : field.unit)}</span>
+            </> : null}</td>)}
+            <td className="table_editor-cell" />
+          </tr></tfoot>}
         </table>
       </div>}
     </div>
