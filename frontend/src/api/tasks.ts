@@ -50,3 +50,18 @@ export function useDeleteTask() {
     },
   })
 }
+
+// Attach an uploaded file item to a task, or detach it.
+export function useTaskFiles() {
+  const qc = useQueryClient()
+  const done = () => qc.invalidateQueries({ queryKey: ['tasks'] })
+  const attach = useMutation({
+    mutationFn: ({ taskId, fileId }: { taskId: number; fileId: number }) => api.post(`/api/v1/tasks/${taskId}/files`, { file_id: fileId }).then((r) => r.data as Task),
+    onSuccess: done,
+  })
+  const detach = useMutation({
+    mutationFn: ({ taskId, fileId }: { taskId: number; fileId: number }) => api.delete(`/api/v1/tasks/${taskId}/files/${fileId}`).then((r) => r.data as Task),
+    onSuccess: done,
+  })
+  return { attach, detach }
+}

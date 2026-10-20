@@ -10,6 +10,7 @@ class Document < ApplicationRecord
   has_one_attached :file
   belongs_to :created_by, class_name: "User"
   has_many :tasks, dependent: :destroy
+  has_many :task_files, foreign_key: :file_id, dependent: :destroy, inverse_of: :file
   has_many :shares, as: :shareable, dependent: :destroy
 
   has_many :table_fields, dependent: :destroy

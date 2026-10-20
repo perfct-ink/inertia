@@ -1,4 +1,5 @@
 ---
+branch: backlog/attach-uploaded-files-to-tasks-and-features
 priority: p1
 depends_on: [upload-files-and-images-into-a-folder]
 ---
@@ -28,3 +29,6 @@ Today: `UploadsController` already stores images and video in ActiveStorage (100
 - Anything stated in Requirements / notes (including any named default) is implemented or deliberately changed with the reason recorded.
 - Failed API calls show an error to the user.
 - Tests cover the new behaviour; a feature doc in `docs/features/` is written (or the existing one updated) and this file is removed.
+
+## Blocked
+Partial, on the branch: files on tasks. Not done: files on features (documents in feature folders); the spec ties them to `feature-folder-type`. The branch is stacked on `backlog/file-download-rename-move-replace` (merge the file branches first). To verify: `cd backend && bundle install && rails db:migrate && rails test` (diff `schema.rb`, edited by hand), `cd frontend && npm install && npm run lint && npm test`, then attach files to a task in a browser. None of that could run here. Leave this file on `main` until features can have attachments.

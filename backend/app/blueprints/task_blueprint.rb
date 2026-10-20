@@ -9,6 +9,7 @@ class TaskBlueprint < Blueprinter::Base
   field :milestone_id
   field :folder_id
   field :parent_id
+  field(:file_ids) { |task| task.task_files.map(&:file_id) }
 
   view :with_document do
     association :document, blueprint: DocumentBlueprint do |task, _options|

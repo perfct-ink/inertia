@@ -1,7 +1,7 @@
 import { Button, Input, Select, classNames } from '@/components/ui'
 import { useState, useRef, useEffect } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { Plus, X, ArrowRight, Play, Loader2, Search, Filter, Target } from 'lucide-react'
+import { Plus, X, ArrowRight, Play, Loader2, Search, Filter, Paperclip, Target } from 'lucide-react'
 import {
   DndContext,
   DragOverlay,
@@ -24,6 +24,7 @@ import {
 } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import WorkspaceLayout from '@/components/WorkspaceLayout'
+import TaskFilesDialog from '@/components/TaskFilesDialog'
 import { useTasks, useCreateTask, useUpdateTask, useDeleteTask, type TaskFilters } from '@/api/tasks'
 import { useWorkspace } from '@/api/workspace'
 import { useEpics } from '@/api/epics'
@@ -71,9 +72,10 @@ interface CardProps {
   onNavigate: () => void
   epicTitle?: string
   overlay?: boolean
+  onFiles?: () => void
 }
 
-function TaskCard({ task, onNext, onNavigate, epicTitle, overlay }: Omit<CardProps, 'onDelete'>) {
+function TaskCard({ task, onNext, onNavigate, epicTitle, overlay, onFiles }: Omit<CardProps, 'onDelete'>) {
   return (
     <div className={classNames('tasks-card', overlay && 'tasks-card--overlay')}>
       <div className="tasks-card_title_row">
@@ -86,6 +88,11 @@ function TaskCard({ task, onNext, onNavigate, epicTitle, overlay }: Omit<CardPro
         </div>
       )}
       <div className="tasks-card_footer">
+        {onFiles && !overlay && (
+          <Button onClick={onFiles} className="tasks-next" aria-label={`Files of ${task.title}`} title="Attached files">
+            <Paperclip className="tasks-icon" />{task.file_ids?.length ? <span className="tasks-meta">{task.file_ids.length}</span> : null}
+          </Button>
+        )}
         {task.document && (
           <Button
             onClick={onNavigate}
@@ -320,6 +327,7 @@ export default function TasksScreen() {
   const deleteTask = useDeleteTask()
 
   const [addingTo, setAddingTo] = useState<Task['status'] | null>(null)
+  const [filesTask, setFilesTask] = useState<Task | null>(null)
 
   useEffect(() => {
     if (searchParams.get('new') === '1') setAddingTo('backlog')
@@ -547,6 +555,7 @@ export default function TasksScreen() {
                           onNext={NEXT_STATUS[task.status] ? () => updateTask.mutate({ id: task.id, status: NEXT_STATUS[task.status]! }) : null}
                           onNavigate={() => navigate(`/documents/${task.document_id}`)}
                           epicTitle={task.epic_id ? epicById.get(task.epic_id)?.title : undefined}
+                          onFiles={() => setFilesTask(task)}
                         />
                       ))}
                       {addingTo === key ? (
@@ -662,6 +671,7 @@ export default function TasksScreen() {
           </div>
         )}
       </div>
+      <TaskFilesDialog task={filesTask ? tasks.find((t) => t.id === filesTask.id) ?? filesTask : null} onClose={() => setFilesTask(null)} />
     </WorkspaceLayout>
   )
 }

@@ -39,6 +39,23 @@ module Api
         end
       end
 
+      # POST { file_id } attaches an uploaded file item to the task.
+      def attach_file
+        task = current_workspace.tasks.find(params[:id])
+        link = task.task_files.build(file: current_workspace.documents.find(params.require(:file_id)))
+        if link.save
+          render json: TaskBlueprint.render(task.reload), status: :created
+        else
+          render json: { errors: link.errors.full_messages }, status: :unprocessable_entity
+        end
+      end
+
+      def detach_file
+        task = current_workspace.tasks.find(params[:id])
+        task.task_files.find_by!(file_id: params[:file_id]).destroy
+        render json: TaskBlueprint.render(task.reload)
+      end
+
       def destroy
         @task.destroy
         head :no_content

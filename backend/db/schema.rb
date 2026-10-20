@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_10_19_000023) do
+ActiveRecord::Schema[7.2].define(version: 2026_10_19_000025) do
   create_table "active_storage_attachments", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.string "name", null: false
     t.string "record_type", null: false
@@ -325,6 +325,16 @@ ActiveRecord::Schema[7.2].define(version: 2026_10_19_000023) do
     t.index ["workspace_id"], name: "index_task_dependencies_on_workspace_id"
   end
 
+  create_table "task_files", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+    t.bigint "task_id", null: false
+    t.bigint "file_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["file_id"], name: "index_task_files_on_file_id"
+    t.index ["task_id", "file_id"], name: "index_task_files_on_task_id_and_file_id", unique: true
+    t.index ["task_id"], name: "index_task_files_on_task_id"
+  end
+
   create_table "tasks", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.string "title", null: false
     t.text "description"
@@ -432,6 +442,8 @@ ActiveRecord::Schema[7.2].define(version: 2026_10_19_000023) do
   add_foreign_key "task_dependencies", "tasks", column: "predecessor_id"
   add_foreign_key "task_dependencies", "tasks", column: "successor_id"
   add_foreign_key "task_dependencies", "workspaces"
+  add_foreign_key "task_files", "documents", column: "file_id"
+  add_foreign_key "task_files", "tasks"
   add_foreign_key "tasks", "documents"
   add_foreign_key "tasks", "epics"
   add_foreign_key "tasks", "folders"

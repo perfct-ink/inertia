@@ -74,6 +74,8 @@ export interface Task {
   sprint_id?: number | null
   parent_id: number | null
   folder_id: number | null
+  // Ids of uploaded file items attached to the task.
+  file_ids?: number[]
   document?: Document
 }
 
