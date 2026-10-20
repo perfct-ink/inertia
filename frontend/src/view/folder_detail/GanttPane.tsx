@@ -10,18 +10,21 @@ import { useCreateTaskDependency, useDeleteTaskDependency, useTaskDependencies }
 import { ganttTaskKey, groupGanttRows, type Scheduled } from '@/data/schedule'
 import { DEPENDENCY_KINDS, DEPENDENCY_LABEL, DEPENDENCY_MODES, DEPENDENCY_MODE_LABEL, drivingPath, planReschedule } from '@/data/dependency'
 import { errorMessage } from '@/util/errorMessage'
+import { exportGanttPng } from '@/util/ganttCanvas'
+import { printGantt } from '@/util/printGantt'
 import type { DependencyKind, DependencyMode, Epic, Task, TaskDependency } from '@/types'
 import './GanttPane.scss'
 
 // The folder's Gantt tab: epics and dated tasks, dependency arrows between
 // this folder's tasks (PM-13), the driving path highlighted (PM-15), and a
 // small editor for the links underneath.
-export default function GanttPane({ folderId, dependencyMode, epics, tasks, milestones }: {
+export default function GanttPane({ folderId, dependencyMode, epics, tasks, milestones, folderName = 'Gantt' }: {
   folderId: number
   dependencyMode: DependencyMode
   epics: Epic[]
   tasks: Task[]
   milestones: TimelineMilestone[]
+  folderName?: string
 }) {
   const { data: allDependencies = [] } = useTaskDependencies()
   const [showCritical, setShowCritical] = useState(true)
@@ -30,6 +33,7 @@ export default function GanttPane({ folderId, dependencyMode, epics, tasks, mile
   const updateEpic = useUpdateEpic()
   const updateFolder = useUpdateFolder()
   const [moveError, setMoveError] = useState<string | null>(null)
+  const [exportError, setExportError] = useState<string | null>(null)
 
   // Rows are keyed `task-<id>` / `epic-<id>`; a task's end is due_date, an epic's is target_date.
   // Task moves go through the folder's dependency mode (PM-14), which may block
@@ -82,6 +86,16 @@ export default function GanttPane({ folderId, dependencyMode, epics, tasks, mile
           {DEPENDENCY_MODES.map((m) => <option key={m} value={m}>{DEPENDENCY_MODE_LABEL[m]}</option>)}
         </Select>
       </div>
+      <div className="gantt_pane-toolbar">
+        <Button
+          variant="secondary"
+          onClick={() => { setExportError(null); exportGanttPng(groupGanttRows(epics, tasks, critical), folderName).catch((e) => setExportError(errorMessage(e))) }}
+        >
+          Export PNG
+        </Button>
+        <Button variant="secondary" onClick={printGantt}>Print or save as PDF</Button>
+      </div>
+      <FormError message={exportError} />
       <FormError message={moveError} />
       <Timeline milestones={milestones} items={groupGanttRows(epics, tasks, critical)} links={links} onReschedule={reschedule} />
       <DependencyEditor tasks={tasks} dependencies={dependencies} />

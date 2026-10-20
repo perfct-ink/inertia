@@ -10,6 +10,8 @@ The Gantt tab of a folder (`/folders/:id?view=gantt`) draws the folder's epics a
 - **Dependencies**: arrows between task bars, a critical-path highlight, and an editor for links (see [task_dependencies.md](task_dependencies.md)).
 - **Dependency mode**: a picker per folder. *Ignore* moves only the dragged task. *Block invalid dates* refuses a move that breaks a link touching that task and shows an error. *Shift dependent tasks* pushes tasks that wait on it later, keeping their length, only as far as needed (`planReschedule`).
 
+- **Export**: the Gantt toolbar has "Export PNG" and "Print or save as PDF". PNG draws the same rows as the chart (month header, labels indented by depth, bars with the done part filled, critical bars outlined, today's line) onto an off-screen canvas at twice the size, in the page's current light or dark colours, and downloads it as `<folder name> gantt.png` (a browser failure shows an error under the toolbar). The PDF button opens the browser print dialog with only the chart visible (choose "Save as PDF"). Layout is `ganttExportLayout` in `data/ganttExport.ts`; painting and download in `util/ganttCanvas.ts`; print in `util/printGantt.ts`. No new libraries.
+
 ## API and models
 - `folders.dependency_mode` (`none`/`strict`/`flexible`, default `none`), `Folder` enum `dependency_mode` (prefix `dependencies`), permitted in `FoldersController` and returned by `FolderBlueprint`.
 - Rescheduling reuses `PATCH /api/v1/tasks/:id` and `PATCH /api/v1/epics/:id`. The mode is applied in the browser; the server does not enforce it.
@@ -32,3 +34,4 @@ Folder page, Gantt tab. The global Epics and Initiatives timeline pages and the 
 ## History
 - Implemented 2026-10-18: milestone diamonds, epic grouping, today line, drag to reschedule, dependency modes. Committed locally; not pushed or deployed.
 - Not verified: none of the tests were run, lint and type-check were not run, and the drag interaction and migration were not tried in a browser or database (no dependencies installed, no network).
+- Gantt export added 2026-10-19 on branch `backlog/export-gantt-to-png-pdf`, not merged. The layout and painting tests pass in a stand-in runner; the real canvas, download and print dialog were never run (no browser). Limits: dependency arrows and milestones are not drawn on the image, rows are cut to 34 characters, and the PDF is whatever the browser prints (page breaks on a long chart are not controlled).
