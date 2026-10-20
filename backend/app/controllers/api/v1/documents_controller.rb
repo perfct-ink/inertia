@@ -62,7 +62,7 @@ module Api
       end
 
       def document_params
-        permitted = params.require(:document).permit(:title, :doc_type, :pinned, :folder_id, content: {})
+        permitted = params.require(:document).permit(:title, :doc_type, :pinned, :folder_id, :parent_feature_id, :feature_status, :feature_owner_id, :epic_id, :milestone_id, content: {})
         # A document stays in its own workspace; moving it into another folder
         # of that workspace is the only move allowed.
         Folder.where(workspace_id: document_workspace_id).find(permitted[:folder_id]) if permitted[:folder_id]

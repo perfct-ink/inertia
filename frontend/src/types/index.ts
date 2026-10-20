@@ -3,6 +3,11 @@ export interface Document {
   title: string
   doc_type: 'document' | 'spreadsheet' | 'table'
   folder_id: number
+  parent_feature_id?: number | null
+  feature_status?: FeatureStatus | null
+  feature_owner_id?: number | null
+  epic_id?: number | null
+  milestone_id?: number | null
   pinned: boolean
   created_at: string
   updated_at: string
@@ -11,6 +16,7 @@ export interface Document {
 }
 
 export type FolderKind = 'folder' | 'project' | 'feature'
+export type FeatureStatus = 'planned' | 'active' | 'done'
 // How a folder's Gantt reacts to dependency links when a task is rescheduled.
 export type DependencyMode = 'none' | 'strict' | 'flexible'
 
@@ -230,4 +236,23 @@ export interface FolderContents {
   tasks: Task[]
   events: WorkspaceEvent[]
   epics: Epic[]
+}
+
+// One feature in a folder's rollup: nested by `depth`, with task counts that
+// include its sub-features. status_derived is true when it wasn't set by hand.
+export interface FeatureRow {
+  id: number
+  title: string
+  folder_id: number
+  parent_feature_id: number | null
+  owner_id: number | null
+  owner_name: string | null
+  epic_id: number | null
+  milestone_id: number | null
+  depth: number
+  tasks_count: number
+  done_tasks_count: number
+  percent: number
+  status: FeatureStatus
+  status_derived: boolean
 }

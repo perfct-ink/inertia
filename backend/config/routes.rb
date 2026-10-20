@@ -35,7 +35,10 @@ Rails.application.routes.draw do
 
       resources :folders do
         resources :documents, shallow: true
-        member { get :contents }
+        member do
+          get :contents
+          get :features
+        end
       end
 
       resources :documents, only: [] do

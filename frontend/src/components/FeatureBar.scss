@@ -1,0 +1,13 @@
+@use 'tokens' as *;
+
+@layer app.components {
+  .feature_bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: space(2);
+    padding: space(2) space(4);
+    border-bottom-width: 1px;
+    @include text('sm');
+  }
+}

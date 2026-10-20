@@ -20,3 +20,4 @@ One file per implemented feature, written from the code (see `docs/rules/feature
 | Switching Spaces from the sidebar | [space_switcher.md](space_switcher.md) |
 | Collections naming (tables are called Collections in the UI) | [collections.md](collections.md) |
 | Feature folders: a folder flagged as holding features | [feature_folders.md](feature_folders.md) |
+| Feature hierarchy: nested features, status, owner, planning links, folder rollup | [feature_hierarchy.md](feature_hierarchy.md) |

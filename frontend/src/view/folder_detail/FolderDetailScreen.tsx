@@ -13,6 +13,7 @@ import {
   addMonths, subMonths,
 } from 'date-fns'
 import CreateItem from '@/components/CreateItem'
+import FeatureRollup from '@/components/FeatureRollup'
 import WorkspaceLayout from '@/components/WorkspaceLayout'
 import { ProgressBar } from '@/components/Timeline'
 import { useFolderContents, useUpdateFolder } from '@/api/workspace'
@@ -285,6 +286,7 @@ function OverviewView({
   return (
     <div className="folder_detail-pane folder_detail-pane--overview">
       <div className="folder_detail-overview">
+        <FeatureRollup folderId={folderId} />
         <section>
           <h2 className="folder_detail-heading folder_detail-spaced">Documents, Sheets & Collections</h2>
           <div className="folder_detail-spaced"><CreateItem folderId={folderId} /></div>

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_10_18_000003) do
+ActiveRecord::Schema[7.2].define(version: 2026_10_19_000020) do
   create_table "ai_runs", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.bigint "workspace_id", null: false
     t.bigint "ai_worker_id", null: false
@@ -48,9 +48,18 @@ ActiveRecord::Schema[7.2].define(version: 2026_10_18_000003) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.boolean "pinned", default: false, null: false
+    t.bigint "parent_feature_id"
+    t.bigint "feature_owner_id"
+    t.integer "feature_status"
+    t.bigint "epic_id"
+    t.bigint "milestone_id"
     t.index ["created_by_id"], name: "index_documents_on_created_by_id"
     t.index ["doc_type"], name: "index_documents_on_doc_type"
+    t.index ["epic_id"], name: "index_documents_on_epic_id"
+    t.index ["feature_owner_id"], name: "index_documents_on_feature_owner_id"
     t.index ["folder_id"], name: "index_documents_on_folder_id"
+    t.index ["milestone_id"], name: "index_documents_on_milestone_id"
+    t.index ["parent_feature_id"], name: "index_documents_on_parent_feature_id"
   end
 
   create_table "epics", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
@@ -364,8 +373,12 @@ ActiveRecord::Schema[7.2].define(version: 2026_10_18_000003) do
   add_foreign_key "ai_runs", "tasks"
   add_foreign_key "ai_runs", "workspaces"
   add_foreign_key "ai_workers", "workspaces"
+  add_foreign_key "documents", "documents", column: "parent_feature_id", on_delete: :nullify
+  add_foreign_key "documents", "epics", on_delete: :nullify
   add_foreign_key "documents", "folders"
+  add_foreign_key "documents", "milestones", on_delete: :nullify
   add_foreign_key "documents", "users", column: "created_by_id"
+  add_foreign_key "documents", "users", column: "feature_owner_id", on_delete: :nullify
   add_foreign_key "epics", "folders"
   add_foreign_key "epics", "initiatives"
   add_foreign_key "epics", "milestones"
