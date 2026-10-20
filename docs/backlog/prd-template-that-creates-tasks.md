@@ -1,4 +1,5 @@
 ---
+branch: backlog/prd-template-that-creates-tasks
 priority: p0
 depends_on: [document-initiative-and-dates]
 ---
@@ -35,3 +36,6 @@ Requested by Alex on 2026-10-18: write product requirement documents that turn i
 - Anything stated in Requirements / notes (including any named default) is implemented or deliberately changed with the reason recorded.
 - Failed API calls show an error to the user.
 - Tests cover the new behaviour; a feature doc in `docs/features/` is written (or the existing one updated) and this file is removed.
+
+## Blocked
+Implemented on the branch, stacked on `backlog/requirements-template` (merge it first); setting the initiative and dates uses `backlog/document-initiative-and-dates` (separate branch). Milestone lines are task lines, not milestone records (a product call). The data test passes in a stand-in runner; the rest is unverified (no node_modules). Then remove this file and merge.

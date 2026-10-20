@@ -26,3 +26,15 @@ test('the requirements template covers problem, goals, stories, acceptance crite
   const req = JSON.stringify(DOCUMENT_TEMPLATES.find((t) => t.id === 'requirements')!.content)
   for (const word of ['Problem', 'Goals', 'User stories', 'Acceptance criteria', 'Out of scope']) expect(req).toContain(word)
 })
+
+test('the PRD template has its sections, with requirements and milestones as task lines', () => {
+  const prd = DOCUMENT_TEMPLATES.find((t) => t.id === 'prd')!
+  const json = JSON.stringify(prd.content)
+  for (const word of ['Problem', 'Goals', 'Users', 'Requirements', 'Acceptance criteria', 'Out of scope', 'Milestones']) expect(json).toContain(word)
+  const blocks = (prd.content as { content: Node[] }).content
+  const headings = blocks.map((b, i) => [b, i] as const).filter(([b]) => b.type === 'heading')
+  const after = (title: string) => blocks[headings.find(([b]) => JSON.stringify(b).includes(title))![1] + 1].type
+  expect(after('Requirements')).toBe('workspaceTaskList')
+  expect(after('Milestones')).toBe('workspaceTaskList')
+  expect(after('Acceptance criteria')).toBe('bulletList')
+})
