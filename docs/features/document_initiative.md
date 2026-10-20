@@ -5,6 +5,8 @@ A document can name one initiative, from a bar under the editor toolbar: pick an
 - Tasks in the document roll up to the initiative (`Initiative#tasks_count`, done count and percent): tasks under its epics plus tasks whose document names it, each counted once.
 - Deleting the initiative clears the link on its documents.
 
+- **Plan summary** (below the initiative bar): when the document has an initiative, tasks or upcoming events, a line shows the initiative with its health badge and dates, a progress bar with "done/total tasks done" and an "N overdue" count for the document's own tasks (open and past due), and the next three events in the document's folder (`planningSummary`, `components/DocumentPlanningSummary.tsx`). It is hidden when there is nothing to show.
+
 ## API and models
 `documents.initiative_id` (nullable FK, `on_delete: :nullify`). `PATCH /api/v1/documents/:id` accepts `initiative_id`; `document.initiative_id` is in the document JSON. `Document` validates the initiative is in the document's Space (422 otherwise). Frontend: `components/DocumentInitiativeBar.tsx`, `api/documents.ts`.
 
@@ -12,7 +14,7 @@ A document can name one initiative, from a bar under the editor toolbar: pick an
 Anyone who can write to the document; initiative edits use the normal initiative update call.
 
 ## Tests
-`backend/test/models/document_initiative_test.rb`, `frontend/src/components/DocumentInitiativeBar.test.tsx`.
+`backend/test/models/document_initiative_test.rb`, `frontend/src/data/planningSummary.test.ts` (stand-in runner: pass), `components/DocumentPlanningSummary.test.tsx`, `frontend/src/components/DocumentInitiativeBar.test.tsx`.
 
 ## Known limits
 - Milestone rollups still count only epic-based initiative tasks; they do not include document tasks.
@@ -22,3 +24,4 @@ Anyone who can write to the document; initiative edits use the normal initiative
 ## History
 - Implemented 2026-10-19 on branch `backlog/document-initiative-and-dates`. Not merged or deployed.
 - Not verified: migration, Rails tests, lint, type-check, frontend tests and the browser were not run (no database, no node_modules); `schema.rb` edited by hand. Only `ruby -c` passed.
+- Plan summary added 2026-10-19 on branch `backlog/document-planning-summary`, stacked on `backlog/document-initiative-and-dates`. Not merged. Events are matched by folder (events have no document link until `create-dates-and-events-from-the-document` is built).

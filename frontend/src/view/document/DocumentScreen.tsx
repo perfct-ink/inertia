@@ -62,6 +62,7 @@ import { useDocument, useUpdateDocument } from '@/api/documents'
 import { useCreateTask } from '@/api/tasks'
 import { useWorkspace } from '@/api/workspace'
 import DocumentInitiativeBar from '@/components/DocumentInitiativeBar'
+import DocumentPlanningSummary from '@/components/DocumentPlanningSummary'
 import TableEditor from '@/components/editors/TableEditor'
 import SpreadsheetEditor from '@/components/editors/SpreadsheetEditor'
 import Video from '@/extensions/Video'
@@ -560,6 +561,7 @@ export default function DocumentScreen() {
         </div>
 
         <DocumentInitiativeBar doc={doc} />
+        <DocumentPlanningSummary doc={doc} />
 
         {/* Editor area — clicking anywhere in the whitespace focuses the editor */}
         <div
