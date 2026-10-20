@@ -1,6 +1,7 @@
 ---
 priority: p0
 depends_on: []
+branch: backlog/local-task-file-initiative-and-milestone-levels
 ---
 # Local `.inertia-tasks` file format gains Initiative + Milestone levels
 
@@ -40,3 +41,6 @@ Default chosen for this backlog: Milestone is the top-level container, and each 
 - Anything stated in Requirements / notes (including any named default) is implemented or deliberately changed with the reason recorded.
 - Failed API calls show an error to the user.
 - Tests cover the new behaviour; a feature doc in `docs/features/` is written (or the existing one updated) and this file is removed.
+
+## Blocked
+Format and model done on `backlog/local-task-file-initiative-and-milestone-levels` (see `docs/features/local_task_file_planning.md`). Not done: Mac app screens to edit initiatives and milestones. Not run: `swift test` (XCTest missing here) and the SwiftUI app build (needs Xcode); run `make mac-build` and `swift test` in `macos/`. The acceptance text mentions the web app, but this task is about the local file; the hosted app already has both levels.

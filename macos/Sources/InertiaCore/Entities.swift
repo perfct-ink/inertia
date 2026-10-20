@@ -15,6 +15,16 @@ public enum TaskStatus: String, Codable, CaseIterable {
     }
 }
 public enum EventType: String, Codable, CaseIterable { case deadline, milestone }
+// Lifecycle shared by the planning levels Milestone and Initiative (Rails `PlanningItem`).
+public enum PlanningStatus: String, Codable, CaseIterable {
+    case planned, active, done
+    public var label: String { rawValue.capitalized }
+}
+// Roadmap horizon (Rails `RoadmapHorizon`).
+public enum Horizon: String, Codable, CaseIterable {
+    case now, next, later
+    public var label: String { rawValue.capitalized }
+}
 // Local IDs occupy the same JSON integer shape as Rails IDs. They are scoped to
 // the document, not identities in a server database. No automatic import occurs.
 public func newLocalID() -> Int { Int.random(in: 1...9_007_199_254_740_991) }
@@ -29,6 +39,7 @@ public struct TaskRecord: Codable, Equatable, Identifiable {
     public var document_id: Int?
     public var assignee_id: Int?
     public var epic_id: Int?
+    public var milestone_id: Int?
     public var parent_id: Int?
     public var folder_id: Int?
     public var workspace_id: Int?
@@ -45,6 +56,7 @@ public struct TaskRecord: Codable, Equatable, Identifiable {
     public var comments: [TaskComment] { get { extensions?.comments ?? [] } set { ensureExtras(); extensions?.comments = newValue } }
     public var dueDate: String? { get { due_date } set { due_date = newValue } }
     public var epicID: Int? { get { epic_id } set { epic_id = newValue } }
+    public var milestoneID: Int? { get { milestone_id } set { milestone_id = newValue } }
     public var parentID: Int? { get { parent_id } set { parent_id = newValue } }
     public var assigneeID: Int? { get { assignee_id } set { assignee_id = newValue } }
     public var descriptionText: String { get { description ?? "" } set { description = newValue } }
@@ -61,6 +73,8 @@ public struct TaskExtras: Codable, Equatable {
 public struct EpicRecord: Codable, Equatable, Identifiable {
     public var id: Int
     public var title: String
+    public var initiative_id: Int?
+    public var milestone_id: Int?
     public var folder_id: Int?
     public var workspace_id: Int?
     public var start_date: String?
@@ -73,7 +87,50 @@ public struct EpicRecord: Codable, Equatable, Identifiable {
     public init(title: String = "New Epic") { id = newLocalID(); self.title = title }
     public var startDate: String? { get { start_date } set { start_date = newValue } }
     public var targetDate: String? { get { target_date } set { target_date = newValue } }
+    public var initiativeID: Int? { get { initiative_id } set { initiative_id = newValue } }
+    public var milestoneID: Int? { get { milestone_id } set { milestone_id = newValue } }
     public var notes: String { get { extensions?.notes ?? "" } set { extensions = EpicExtras(notes: newValue) } }
+}
+// The planning Milestone (a target date that everything under it rolls up to). Not
+// the same as an Event with `event_type: "milestone"`, which stays a calendar date.
+public struct MilestoneRecord: Codable, Equatable, Identifiable {
+    public var id: Int
+    public var title: String
+    public var description: String?
+    public var target_date: String?
+    public var status: PlanningStatus?
+    public var owner_id: Int?
+    public var folder_id: Int?
+    public var workspace_id: Int?
+    public var created_at: String?
+    public var updated_at: String?
+    public init(title: String = "New Milestone") { id = newLocalID(); self.title = title; status = .planned }
+    public var targetDate: String? { get { target_date } set { target_date = newValue } }
+    public var state: PlanningStatus { get { status ?? .planned } set { status = newValue } }
+    public var ownerID: Int? { get { owner_id } set { owner_id = newValue } }
+    public var notes: String { get { description ?? "" } set { description = newValue } }
+}
+// A strategic theme that spans epics, optionally under a Milestone.
+public struct InitiativeRecord: Codable, Equatable, Identifiable {
+    public var id: Int
+    public var title: String
+    public var description: String?
+    public var start_date: String?
+    public var target_date: String?
+    public var status: PlanningStatus?
+    public var horizon: Horizon?
+    public var owner_id: Int?
+    public var milestone_id: Int?
+    public var workspace_id: Int?
+    public var created_at: String?
+    public var updated_at: String?
+    public init(title: String = "New Initiative") { id = newLocalID(); self.title = title; status = .planned }
+    public var startDate: String? { get { start_date } set { start_date = newValue } }
+    public var targetDate: String? { get { target_date } set { target_date = newValue } }
+    public var state: PlanningStatus { get { status ?? .planned } set { status = newValue } }
+    public var ownerID: Int? { get { owner_id } set { owner_id = newValue } }
+    public var milestoneID: Int? { get { milestone_id } set { milestone_id = newValue } }
+    public var notes: String { get { description ?? "" } set { description = newValue } }
 }
 public struct EpicExtras: Codable, Equatable { public var notes: String? }
 public struct EventRecord: Codable, Equatable, Identifiable {

@@ -8,21 +8,29 @@ Build with `make mac-build`, then use File → New/Open/Save in `macos/dist/Iner
 
 ## Container and entities
 
-Root fields: `format: "com.inertia.tasks"`, `version: 4`, document `id` (UUID), `title`, `board: {columns: [...]}`, `tasks`, `epics`, `events`, `event_tasks`, optional `users`, and optional `extensions`.
+Root fields: `format: "com.inertia.tasks"`, `version: 4`, document `id` (UUID), `title`, `board: {columns: [...]}`, `tasks`, `epics`, `events`, `event_tasks`, optional `users`, optional `initiatives` and `milestones` (see Planning levels), and optional `extensions`.
 
 Entity IDs are positive JSON integers, at most 9007199254740991, unique within their collection. They are scoped to the file, not identities in a server database. Keep them stable across edits. The containing document retains a UUID.
 
 | Entity | Fields |
 | --- | --- |
-| Task | Required `id`, `title`, `status`; optional `description`, `due_date`, `position`, `document_id`, `assignee_id`, `epic_id`, `parent_id`, `folder_id`, `workspace_id`, timestamps |
-| Epic | Required `id`, `title`; optional `start_date`, `target_date`, `folder_id`, `workspace_id`, timestamps, API summary counts `tasks_count`/`done_tasks_count` |
+| Task | Required `id`, `title`, `status`; optional `description`, `due_date`, `position`, `document_id`, `assignee_id`, `epic_id`, `milestone_id`, `parent_id`, `folder_id`, `workspace_id`, timestamps |
+| Epic | Required `id`, `title`; optional `initiative_id`, `milestone_id`, `start_date`, `target_date`, `folder_id`, `workspace_id`, timestamps, API summary counts `tasks_count`/`done_tasks_count` |
 | Event | Required `id`, `title`, `event_type`, `date`; optional `description`, `start_time`, `end_time`, `folder_id`, `workspace_id`, timestamps |
+| Initiative | Required `id`, `title`; optional `description`, `start_date`, `target_date`, `status` (`planned`, `active`, `done`), `horizon` (`now`, `next`, `later`), `owner_id`, `milestone_id`, `workspace_id`, timestamps |
+| Milestone | Required `id`, `title`; optional `description`, `target_date`, `status` (`planned`, `active`, `done`), `owner_id`, `folder_id`, `workspace_id`, timestamps |
 | EventTask | Required `event_id`, `task_id`; unique pair |
 | User | Required `id`, `name`; optional `email`, timestamps |
 
 Timestamps are `created_at` and `updated_at`. Public profile data only: authentication fields are rejected. Optional fields may be omitted or null. Folder/workspace/document references are preserved as metadata; their contents are not bundled, fetched, or synced.
 
 Task statuses match Rails: `backlog`, `todo`, `in_progress`, `in_review`, `done`. Event types are `deadline` and `milestone`. Tasks can link to multiple events, and events to multiple tasks. Embedded API `events[].tasks` responses are normalized into the root task collection and event-task links; conflicting copies are rejected.
+
+## Planning levels
+
+Files can carry the same planning hierarchy as the hosted app: **Milestone > Initiative > Epic > Task**. `milestones` and `initiatives` are optional root arrays, omitted when empty so files that do not plan stay readable by earlier version 4 builds (which reject unknown fields). Tasks and epics gain optional `milestone_id`, epics gain `initiative_id`, and initiatives gain `milestone_id`. These **Milestone** records are the planning kind (a target date everything under it rolls up to), distinct from an Event with `event_type: "milestone"`, which stays a calendar date.
+
+A task with no milestone of its own inherits its epic's, and an epic without one inherits its initiative's (`TaskFile.effectiveMilestoneID(of:)`). Milestone and initiative progress counts tasks with `status == "done"` under them (`progress(milestoneID:)`, `progress(initiativeID:)`). References must exist in the file, owners must be file users, dates must be valid and an initiative's target cannot precede its start. Deleting an initiative or milestone clears the references to it (matching Rails `dependent: :nullify`), and deleting a user clears owner references.
 
 ## Board and relationships
 

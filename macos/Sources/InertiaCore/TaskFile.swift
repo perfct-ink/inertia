@@ -23,6 +23,10 @@ public struct TaskFile: Codable, Equatable {
     public var events: [EventRecord]
     public var event_tasks: [EventTaskRecord]
     public var users: [UserRecord]
+    // Planning levels above epics. Absent (nil) when unused so files that do not
+    // plan stay readable by earlier v4 builds, which reject unknown fields.
+    public var initiatives: [InitiativeRecord]?
+    public var milestones: [MilestoneRecord]?
     public var extensions: DocumentExtras?
     public var columns: [BoardColumn] { get { board.columns } set { board.columns = newValue } }
     public var sprints: [Sprint] {
@@ -56,6 +60,8 @@ public struct TaskFile: Codable, Equatable {
         var data = try encoder.encode(file); data.append(0x0a); return data
     }
     private mutating func normalize() throws {
+        if initiatives?.isEmpty == true { initiatives = nil }
+        if milestones?.isEmpty == true { milestones = nil }
         // The same EventRecord decodes the API's with_tasks blueprint and files.
         // Flatten embedded API associations to the existing EventTask relation.
         for index in events.indices {
@@ -81,12 +87,27 @@ public struct TaskFile: Codable, Equatable {
         try unique(columns.map(\.id)); try unique(tasks.map(\.id)); try unique(epics.map(\.id))
         try unique(events.map(\.id)); try unique(users.map(\.id)); try unique(sprints.map(\.id))
         try unique(tasks.flatMap { $0.comments.map(\.id) })
+        try unique(initiativeList.map(\.id)); try unique(milestoneList.map(\.id))
         let userIDs = Set(users.map(\.id)), epicIDs = Set(epics.map(\.id)), sprintIDs = Set(sprints.map(\.id))
+        let initiativeIDs = Set(initiativeList.map(\.id)), milestoneIDs = Set(milestoneList.map(\.id))
+        for milestone in milestoneList {
+            try required(milestone.title, "Milestones must have a title.")
+            try validateDate(milestone.targetDate)
+            if let owner = milestone.ownerID, !userIDs.contains(owner) { throw TaskFileError.invalid("A milestone refers to a missing owner.") }
+        }
+        for initiative in initiativeList {
+            try required(initiative.title, "Initiatives must have a title.")
+            try dateRange(initiative.startDate, initiative.targetDate)
+            if let owner = initiative.ownerID, !userIDs.contains(owner) { throw TaskFileError.invalid("An initiative refers to a missing owner.") }
+            if let milestone = initiative.milestoneID, !milestoneIDs.contains(milestone) { throw TaskFileError.invalid("An initiative refers to a missing milestone.") }
+        }
         let taskByID = Dictionary(uniqueKeysWithValues: tasks.map { ($0.id, $0) })
         for user in users { try required(user.name, "Users must have a name.") }
         for epic in epics {
             try required(epic.title, "Epics must have a title.")
             try dateRange(epic.startDate, epic.targetDate)
+            if let initiative = epic.initiativeID, !initiativeIDs.contains(initiative) { throw TaskFileError.invalid("An epic refers to a missing initiative.") }
+            if let milestone = epic.milestoneID, !milestoneIDs.contains(milestone) { throw TaskFileError.invalid("An epic refers to a missing milestone.") }
         }
         for sprint in sprints { try dateRange(sprint.startDate, sprint.endDate) }
         for event in events {
@@ -104,6 +125,7 @@ public struct TaskFile: Codable, Equatable {
             try required(task.title, "Tasks must have a title.")
             if let assignee = task.assigneeID, !userIDs.contains(assignee) { throw TaskFileError.invalid("A task refers to a missing assignee.") }
             if let epic = task.epicID, !epicIDs.contains(epic) { throw TaskFileError.invalid("A task refers to a missing epic.") }
+            if let milestone = task.milestoneID, !milestoneIDs.contains(milestone) { throw TaskFileError.invalid("A task refers to a missing milestone.") }
             if let sprint = task.sprintID, !sprintIDs.contains(sprint) { throw TaskFileError.invalid("A task extension refers to a missing sprint.") }
             guard let column = columns.first(where: { $0.id == task.columnID }), column.status == task.status else {
                 throw TaskFileError.invalid("Task status does not match its board column.")
@@ -155,6 +177,39 @@ public struct TaskFile: Codable, Equatable {
     public mutating func removeEvent(_ id: Int) {
         events.removeAll { $0.id == id }; event_tasks.removeAll { $0.event_id == id }
     }
+    public var initiativeList: [InitiativeRecord] { initiatives ?? [] }
+    public var milestoneList: [MilestoneRecord] { milestones ?? [] }
+    public mutating func addInitiative(_ initiative: InitiativeRecord) { initiatives = initiativeList + [initiative] }
+    public mutating func addMilestone(_ milestone: MilestoneRecord) { milestones = milestoneList + [milestone] }
+    // Mirrors Rails `has_many :epics, dependent: :nullify` for both levels.
+    public mutating func removeInitiative(_ id: Int) {
+        initiatives = initiativeList.filter { $0.id != id }.nilIfEmpty
+        for index in epics.indices where epics[index].initiativeID == id { epics[index].initiativeID = nil }
+    }
+    public mutating func removeMilestone(_ id: Int) {
+        milestones = milestoneList.filter { $0.id != id }.nilIfEmpty
+        if var list = initiatives { for index in list.indices where list[index].milestoneID == id { list[index].milestoneID = nil }; initiatives = list }
+        for index in epics.indices where epics[index].milestoneID == id { epics[index].milestoneID = nil }
+        for index in tasks.indices where tasks[index].milestoneID == id { tasks[index].milestoneID = nil }
+    }
+    /// A task's own milestone, else its epic's, else its epic's initiative's.
+    public func effectiveMilestoneID(of task: TaskRecord) -> Int? {
+        if let own = task.milestoneID { return own }
+        guard let epic = epics.first(where: { $0.id == task.epicID }) else { return nil }
+        if let milestone = epic.milestoneID { return milestone }
+        return initiativeList.first { $0.id == epic.initiativeID }?.milestoneID
+    }
+    /// Tasks under a milestone (directly or by inheritance) and how many are done.
+    public func progress(milestoneID: Int) -> (done: Int, total: Int) {
+        let under = tasks.filter { effectiveMilestoneID(of: $0) == milestoneID }
+        return (under.filter { $0.status == .done }.count, under.count)
+    }
+    /// Tasks under an initiative (through its epics) and how many are done.
+    public func progress(initiativeID: Int) -> (done: Int, total: Int) {
+        let epicIDs = Set(epics.filter { $0.initiativeID == initiativeID }.map(\.id))
+        let under = tasks.filter { $0.epicID.map(epicIDs.contains) == true }
+        return (under.filter { $0.status == .done }.count, under.count)
+    }
     public func eventIDs(for taskID: Int) -> [Int] { event_tasks.filter { $0.task_id == taskID }.map(\.event_id) }
     public func taskIDs(for eventID: Int) -> [Int] { event_tasks.filter { $0.event_id == eventID }.map(\.task_id) }
     public mutating func setEvents(_ eventIDs: Set<Int>, for taskID: Int) {
@@ -164,6 +219,8 @@ public struct TaskFile: Codable, Equatable {
     public mutating func removeUser(_ id: Int) {
         let name = users.first { $0.id == id }?.name
         users.removeAll { $0.id == id }
+        if var list = initiatives { for index in list.indices where list[index].ownerID == id { list[index].ownerID = nil }; initiatives = list }
+        if var list = milestones { for index in list.indices where list[index].ownerID == id { list[index].ownerID = nil }; milestones = list }
         for index in tasks.indices {
             if tasks[index].assigneeID == id { tasks[index].assigneeID = nil }
             for j in tasks[index].comments.indices where tasks[index].comments[j].authorID == id {
@@ -191,6 +248,9 @@ public struct TaskFile: Codable, Equatable {
         formatter.dateFormat = "yyyy-MM-dd"; formatter.isLenient = false
         guard value.count == 10, let parsed = formatter.date(from: value), formatter.string(from: parsed) == value else { throw TaskFileError.invalid("Use a valid YYYY-MM-DD calendar date.") }
     }
+}
+private extension Array {
+    var nilIfEmpty: [Element]? { isEmpty ? nil : self }
 }
 public enum TaskFileError: LocalizedError {
     case invalid(String)

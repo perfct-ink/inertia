@@ -4,12 +4,14 @@ enum TaskFileSchema {
     static func keys(_ object: [String: Any], _ allowed: Set<String>) throws {
         guard Set(object.keys).isSubset(of: allowed) else { throw TaskFileError.invalid("Unrecognized file fields; refusing to discard data.") }
     }
-    static let taskFields: Set<String> = ["id", "title", "description", "status", "due_date", "position", "document_id", "assignee_id", "epic_id", "parent_id", "folder_id", "workspace_id", "created_at", "updated_at", "extensions"]
-    static let epicFields: Set<String> = ["id", "title", "folder_id", "workspace_id", "start_date", "target_date", "created_at", "updated_at", "tasks_count", "done_tasks_count", "extensions"]
+    static let taskFields: Set<String> = ["id", "title", "description", "status", "due_date", "position", "document_id", "assignee_id", "epic_id", "milestone_id", "parent_id", "folder_id", "workspace_id", "created_at", "updated_at", "extensions"]
+    static let epicFields: Set<String> = ["id", "title", "initiative_id", "milestone_id", "folder_id", "workspace_id", "start_date", "target_date", "created_at", "updated_at", "tasks_count", "done_tasks_count", "extensions"]
     static let eventFields: Set<String> = ["id", "title", "description", "date", "event_type", "start_time", "end_time", "folder_id", "workspace_id", "created_at", "updated_at", "tasks", "extensions"]
+    static let milestoneFields: Set<String> = ["id", "title", "description", "target_date", "status", "owner_id", "folder_id", "workspace_id", "created_at", "updated_at"]
+    static let initiativeFields: Set<String> = ["id", "title", "description", "start_date", "target_date", "status", "horizon", "owner_id", "milestone_id", "workspace_id", "created_at", "updated_at"]
     static let userFields: Set<String> = ["id", "name", "email", "created_at", "updated_at"]
     static func check(_ root: [String: Any]) throws {
-        try keys(root, ["format", "version", "id", "title", "board", "tasks", "epics", "events", "event_tasks", "users", "extensions"])
+        try keys(root, ["format", "version", "id", "title", "board", "tasks", "epics", "events", "event_tasks", "users", "initiatives", "milestones", "extensions"])
         if let board = root["board"] as? [String: Any] {
             try keys(board, ["columns"])
             for column in board["columns"] as? [[String: Any]] ?? [] { try keys(column, ["id", "title", "status"]) }
@@ -24,6 +26,8 @@ enum TaskFileSchema {
             if let ext = event["extensions"] as? [String: Any] { try keys(ext, ["epic_id", "completed", "unscheduled"]) }
             for task in event["tasks"] as? [[String: Any]] ?? [] { try checkTask(task) }
         }
+        for milestone in root["milestones"] as? [[String: Any]] ?? [] { try keys(milestone, milestoneFields) }
+        for initiative in root["initiatives"] as? [[String: Any]] ?? [] { try keys(initiative, initiativeFields) }
         for link in root["event_tasks"] as? [[String: Any]] ?? [] { try keys(link, ["event_id", "task_id"]) }
         for user in root["users"] as? [[String: Any]] ?? [] { try keys(user, userFields) }
         if let ext = root["extensions"] as? [String: Any] {
