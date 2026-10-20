@@ -8,7 +8,7 @@ First stage of the gradual SwiftUI migration, requiring macOS 14+ and Xcode's Sw
 - `make test-native-mac` runs the native regression tests.
 - Open `macos/Package.swift` in Xcode to debug, or `swift run --package-path macos`.
 
-The Mac app opens native sign-in followed by **Documents, Sheets & Tables** in the existing React workspace. Its sidebar, tabs, projects, documents, task views, and calendar all use the same components and layout as the web app in an isolated WKWebView. The Mac shell does not create a separate workspace or sidebar layout. Use `make dev-electron` for Electron development.
+The Mac app opens native sign-in followed by **Documents, Sheets & Tables** in the existing React workspace. Its sidebar, tabs, projects, documents, task views, calendar, and planning pages (Gantt, Roadmap, Timeline, Epics, Initiatives, Milestones) all use the same components and layout as the web app in an isolated WKWebView, so there is no separate native Gantt; see [Gantt scheduling](../docs/features/gantt_scheduling.md). The Mac shell does not create a separate workspace or sidebar layout. Use `make dev-electron` for Electron development.
 
 The login screen supports Apple and Google through the system browser, as well as email/password. Provider credentials must be configured on the backend; see [sign-in setup](../docs/mac-social-sign-in.md).
 

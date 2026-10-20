@@ -33,6 +33,13 @@ Everything is scoped to the current Space. Task and epic updates need the member
 - Epics page and Initiatives page, Timeline tab (`components/PlanningTimeline.tsx`): the same four levels for the whole Space, read-only, with a diamond for every dated milestone in range. It loads epics, initiatives, milestones and tasks itself, so the List tab doesn't fetch every task. Only tasks under a listed epic are drawn (tasks with no epic belong to the folder Gantt and would bury the epics). The Epics page passes its initiative-filtered epics, so the filter also narrows the initiatives, milestones and tasks shown. The Initiatives page also keeps initiatives that have no epic yet; one without dates is named under the chart as not shown.
 - The roadmap uses the same `Timeline` but keeps its own lanes (`roadmapLanes`) and is read-only.
 
+## Mac app
+The Mac app's online workspace is the same React app in a WKWebView (`macos/Sources/Inertia/Components/WorkspaceWebView.swift`; see `docs/project/ui-organization.md`), signed in with the token the native login passes to it, so the Gantt and its API calls are the same as on the web and there is no separate native Gantt or Gantt API. This was read from the code; the Mac app was not run. The shell uses the hash router (`#/folders/4?view=gantt`; see [clean_urls.md](clean_urls.md)) with the same route list as the web.
+- Where to find it in the Mac app: a project or folder page (Epics section, "Gantt" link, or the Gantt view tab), the Timeline tab of Epics and Initiatives, and the Roadmap page on the icon rail. The rail's "Timeline" entry is the task timeline, not this Gantt.
+- Dragging bars, the dependency editor and modes, baselines and the zoom controls need only the pointer, the API and the page's own modals (no browser `alert`, `confirm` or `prompt`), so nothing in the shell should block them.
+- **Export PNG and Print do not work in the Mac shell.** The PNG export clicks a download link to a `blob:` address (`util/ganttCanvas.ts`) and the shell's navigation policy cancels every address that is not the workspace page or an http(s) link, with no download handler, so nothing is saved and no error shows. Print calls `window.print()` (`util/printGantt.ts`), which the shell does not handle. Tracked in `docs/backlog/mac-shell-downloads-and-print.md`; any other blob download has the same gap.
+- The local `.inertia-tasks` editor has no Gantt (it has epics with start and target dates).
+
 ## Tests
 `data/schedule.test.ts` (grouping, group date spans, empty and unlisted parents, `planningGanttRows`, `milestoneMarkers`, `shiftedRange`), `data/milestone.test.ts` (`compareByTargetDate`), `data/dependency.test.ts` (`planReschedule`, including pulling earlier), `view/folder_detail/GanttPane.test.tsx` (grouped rows, group bars not draggable), `components/PlanningTimeline.test.tsx` (global timeline rows, diamonds, read-only), `view/folder_detail/GanttPane.reschedule.test.tsx` (strict refusal in the browser, shifted tasks saved, server refusal shown), `backend/test/models/folder_test.rb` (mode default and values), `backend/test/services/scheduling/dependency_planner_test.rb` (the rules; no Rails needed), `backend/test/controllers/tasks_controller_test.rb` (strict refusal, push, pull, gap left alone, document's folder, other folder's mode ignored).
 
@@ -48,6 +55,7 @@ The zoom and weekend choices are not remembered between visits. Weekends are not
 - Milestone and initiative bars cannot be dragged; their dates are edited on the Milestones and Initiatives pages. A milestone bar is a roll-up, so it can run past the milestone's own target date when work under it does.
 - A task whose epic has no dates sits under its own milestone (or at the top), not under that epic's initiative.
 - The Epics and Initiatives timelines load every task in the Space and draw no dependency arrows.
+- In the Mac app, Export PNG and Print do nothing (see Mac app above).
 
 ## History
 - Implemented 2026-10-18: milestone diamonds, epic grouping, today line, drag to reschedule, dependency modes. Committed locally; not pushed or deployed.
@@ -62,3 +70,4 @@ The zoom and weekend choices are not remembered between visits. Weekends are not
 - Baselines added 2026-10-19 on branch `backlog/baselines`, not merged. Tests: `baseline_test.rb`, `baselines_controller_test.rb`, `data/baseline.test.ts`, `GanttPane.test.tsx`. Not verified: migration, Rails tests, lint, type-check, frontend tests and the browser did not run (no database, no node_modules); `schema.rb` edited by hand. No slip numbers are shown yet (`slipDays` exists but is unused in the UI); epics and non-task rows have no baseline.
 
 - Merged to main 2026-11-05 after running, merged with main: `rails db:migrate` (schema diff clean), `rails test`, `npm run lint`, `tsc -b`, Jest, and the collab-server tests, all passing. Not checked in a browser.
+- Mac app checked 2026-11-07 on branch `backlog/native-macos-online-gantt` (docs only, no app code changed; not merged, not deployed): the claims above come from reading `WorkspaceWebView.swift`, `Requests.workspaceURL`, `App.tsx`, `FolderDetailScreen.tsx`, `ganttCanvas.ts` and `printGantt.ts`. Ran `swift build --disable-sandbox --target InertiaCore -Xswiftc -warnings-as-errors` (passes). The Mac app target needs full Xcode and was not built or opened.
