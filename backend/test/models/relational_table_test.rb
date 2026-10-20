@@ -60,4 +60,43 @@ class RelationalTableTest < ActiveSupport::TestCase
     field = other.table_fields.create!(name: "Name", data_type: "text")
     assert_not @record.table_cells.build(table_field: field, value: "Ada").valid?
   end
+
+  def file_item(title = "mock.png", folder = @folder, user = @user)
+    document = Document.new(title: title, doc_type: :file, folder: folder, created_by: user)
+    document.file.attach(io: StringIO.new("png"), filename: title, content_type: "image/png")
+    document.save!
+    document
+  end
+
+  test "file and files fields hold uploaded file items from the same space" do
+    cover = file_item
+    shots = [ file_item("a.png"), file_item("b.png") ]
+    single = @table.table_fields.create!(name: "Cover", data_type: "file")
+    many = @table.table_fields.create!(name: "Screenshots", data_type: "files")
+
+    assert @record.table_cells.build(table_field: single, value: cover.id).save
+    assert @record.table_cells.build(table_field: many, value: shots.map(&:id)).save
+
+    other = User.create!(name: "O", email: "table-files-other@example.com", password: "password123")
+    foreign = file_item("x.png", other.workspace.folders.create!(name: "X"), other)
+    plain = Document.create!(title: "Plain", folder: @folder, created_by: @user)
+    record2 = @table.table_records.create!
+    [ [ single, foreign.id ], [ single, plain.id ], [ single, "7" ], [ many, [ foreign.id ] ], [ many, shots.map(&:id) * 2 ], [ many, "no" ] ].each do |field, bad|
+      assert_not record2.table_cells.build(table_field: field, value: bad).valid?, "accepted #{bad.inspect} for #{field.name}"
+    end
+  end
+
+  test "deleting a file removes it from file fields" do
+    keep = file_item("keep.png")
+    drop = file_item("drop.png")
+    single = @table.table_fields.create!(name: "Cover", data_type: "file")
+    many = @table.table_fields.create!(name: "Shots", data_type: "files")
+    one_cell = @record.table_cells.create!(table_field: single, value: drop.id)
+    many_cell = @record.table_cells.create!(table_field: many, value: [ keep.id, drop.id ])
+
+    drop.destroy
+
+    assert_not TableCell.exists?(one_cell.id)
+    assert_equal [ keep.id ], many_cell.reload.value
+  end
 end

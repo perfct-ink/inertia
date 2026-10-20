@@ -69,7 +69,7 @@ module Api
         values.each do |field_id, value|
           field = @table.table_fields.find(field_id)
           cell = record.table_cells.find_or_initialize_by(table_field: field)
-          if value.nil? || value == ""
+          if value.nil? || value == "" || value == []
             cell.destroy! if cell.persisted?
           else
             cell.value = field.data_type == "relation" ? nil : value

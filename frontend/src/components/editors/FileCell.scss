@@ -1,0 +1,29 @@
+@use 'tokens' as *;
+
+@layer app.components {
+  .file_cell {
+    display: flex;
+    flex-direction: column;
+    gap: space(1);
+
+    @at-root .file_cell-chosen {
+      display: flex;
+      flex-wrap: wrap;
+      gap: space(1);
+    }
+
+    @at-root .file_cell-thumb {
+      width: space(10);
+      height: space(10);
+      border-radius: radius('sm');
+      object-fit: cover;
+    }
+
+    @at-root .file_cell-option {
+      display: flex;
+      align-items: center;
+      gap: space(1.5);
+      @include text('xs');
+    }
+  }
+}

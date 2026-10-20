@@ -19,3 +19,7 @@ Field types, one-to-many relationships, multiple images and YAML or JSON import 
 ## History
 - Implemented 2026-10-19.
 - Not verified: lint, type-check, the Jest and Rails tests and the screens were not run (no dependencies installed, no network). Only Ruby syntax was checked.
+
+## File and Files fields
+A field of type **File** holds one uploaded file item of the Space, and **Files** holds up to 50 (for several images). In the grid a File cell is a menu of the Space's uploaded files (with a "No file" choice); a Files cell is a "Choose files" list of checkboxes. Chosen images show as thumbnails in the cell, other files by name. The cell value is the file item's id, or a list of ids (`TableCell` checks they are uploaded file items in the collection's Space, no duplicates; 422 otherwise). Deleting a file item removes it from any cell that held it (an emptied cell is cleared). Upload the files first (see [uploaded_files.md](uploaded_files.md)); there is no upload inside the cell, and no gallery when a cell is opened. Code: `FileCell.tsx`, `TableCell`, `Document#remove_from_collection_cells`; tests `relational_table_test.rb`, `FileCell.test.tsx`.
+- Added 2026-10-19 on branch `backlog/collection-image-and-file-fields`, stacked on `backlog/file-previews-and-gallery` (it needs the uploaded-file items). Not merged. Not verified: Rails tests, lint, type-check, the component test and the browser did not run (no database, no node_modules). Import (JSON/YAML) does not create file fields.

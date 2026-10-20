@@ -1,4 +1,5 @@
 ---
+branch: backlog/collection-image-and-file-fields
 priority: p0
 depends_on: []
 components: [frontend]
@@ -33,3 +34,6 @@ Requested by Alex on 2026-10-18: tables should be called **Collections**; collec
 - Anything stated in Requirements / notes (including any named default) is implemented or deliberately changed with the reason recorded.
 - Failed API calls show an error to the user.
 - Tests cover the new behaviour; a feature doc in `docs/features/` is written (or the existing one updated) and this file is removed.
+
+## Blocked
+Implemented on the branch (File and Files fields; thumbnails in the cell, no gallery when opened), stacked on `backlog/file-previews-and-gallery` and so on the other uploaded-file branches (merge those first). To verify: `cd backend && bundle install && rails test`, `cd frontend && npm install && npm run lint && npm test`, then add a Files field and pick images in a browser. None of that could run here. Then remove this file and merge.
