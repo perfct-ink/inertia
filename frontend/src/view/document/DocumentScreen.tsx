@@ -66,6 +66,9 @@ import SpreadsheetEditor from '@/components/editors/SpreadsheetEditor'
 import Video from '@/extensions/Video'
 import { WorkspaceTaskList } from '@/extensions/WorkspaceTaskList'
 import { WorkspaceTaskItem } from '@/extensions/WorkspaceTaskItem'
+import { EditorShortcuts, insertTaskList } from '@/extensions/EditorShortcuts'
+import { withoutShortcuts } from '@/extensions/withoutShortcuts'
+import { REPLACED_DEFAULTS } from '@/data/shortcuts'
 import './ProseMirror.scss'
 import './DocumentScreen.scss'
 import api from '@/lib/api'
@@ -74,6 +77,12 @@ import { useAuthStore } from '@/store/auth'
 import { usePageTitle } from '@/hooks/usePageTitle'
 import { extractTitle, buildInitialContent } from '@/data/document'
 import { colorForUserId } from '@/util/color'
+
+// The default keystrokes the editor's own shortcut table replaces, by extension name.
+const REPLACED_BY = (['strike', 'bulletList', 'orderedList', 'codeBlock'] as const).reduce(
+  (all, name) => ({ ...all, [name]: REPLACED_DEFAULTS.filter(([n]) => n === name).map(([, key]) => key) }),
+  {} as Record<'strike' | 'bulletList' | 'orderedList' | 'codeBlock', string[]>,
+)
 
 // Enforce: document always starts with a heading followed by body content
 const CustomDocument = TiptapDocument.extend({ content: 'heading block*' })
@@ -172,15 +181,16 @@ export default function DocumentScreen() {
       Bold,
       Italic,
       Underline,
-      Strike,
+      withoutShortcuts(Strike, REPLACED_BY.strike),
       Code,
       Heading.configure({ levels: [1, 2, 3, 4, 5] as (1 | 2 | 3 | 4 | 5 | 6)[] }),
-      BulletList,
-      OrderedList,
+      withoutShortcuts(BulletList, REPLACED_BY.bulletList),
+      withoutShortcuts(OrderedList, REPLACED_BY.orderedList),
       ListItem,
       WorkspaceTaskList,
       WorkspaceTaskItem,
-      CodeBlock,
+      withoutShortcuts(CodeBlock, REPLACED_BY.codeBlock),
+      EditorShortcuts,
       HorizontalRule.extend({
         addCommands() {
           return {
@@ -493,16 +503,7 @@ export default function DocumentScreen() {
           />
           <ToolbarBtn
             icon={<ListChecks className="document-toolbar_icon" />}
-            onClick={() => {
-              const { state, dispatch } = editor.view
-              const { workspaceTaskList, workspaceTaskItem, paragraph } = state.schema.nodes
-              const node = workspaceTaskList.create(null, [
-                workspaceTaskItem.create(null, paragraph.create()),
-              ])
-              const tr = state.tr.replaceSelectionWith(node)
-              dispatch(tr)
-              editor.commands.focus()
-            }}
+            onClick={() => insertTaskList(editor)}
             active={editor.isActive('workspaceTaskList')}
             title="Task list"
           />

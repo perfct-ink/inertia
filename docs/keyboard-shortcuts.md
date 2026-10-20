@@ -33,16 +33,27 @@ Notes:
 
 ## Document editor
 
-Document editor (TipTap, `frontend/src/pages/workspace/DocumentPage.tsx`) uses the extensions' default bindings.
+Document editor (TipTap, `frontend/src/view/document/DocumentScreen.tsx`). The shortcuts below come from one table, `EDITOR_SHORTCUTS` in `frontend/src/data/shortcuts.ts`: `extensions/EditorShortcuts.ts` binds them, and a test fails if this table stops listing one. Apple Notes keys where the two apps differ.
 
 | Keys | Action |
 |------|--------|
 | `⌘B` / `⌘I` / `⌘U` | Bold / italic / underline |
-| `⌘⇧S` | Strikethrough |
-| `⌘E` | Inline code |
-| `⌘⌥1`–`⌘⌥6` | Heading 1–6 |
-| `⌘⇧7` / `⌘⇧8` | Numbered / bulleted list |
-| `⌘⌥C` | Code block |
+| `⌘⇧X` | Strikethrough |
+| `⌘⇧T` | Title (Heading 1) |
+| `⌘⇧H` | Heading (Heading 2) |
+| `⌘⇧J` | Subheading (Heading 3) |
+| `⌘⇧B` | Body text |
+| `⌘⌥0` | Normal text |
+| `⌘⌥1`–`⌘⌥6` | Heading 1–6 (TipTap default) |
+| `⌘⇧7` | Bulleted list |
+| `⌘⇧9` | Numbered list |
+| `⌘⇧L` | Checklist |
+| `⌘⇧M` | Monospaced code block |
+| `⌥⌘T` | Insert table |
+| `⌘]` | Indent list item |
+| `⌘[` | Outdent list item |
+| `⌘\` | Clear formatting |
+| `⌘E` | Inline code (TipTap default) |
 | `Shift+Enter` | Line break |
 | `⌘Z` / `⌘⇧Z` | Undo / redo |
 
@@ -75,22 +86,24 @@ The work is split into tasks in `docs/backlog/`: `rebind-editor-shortcuts-to-app
 | Action | Apple Notes | Google Docs | Inertia should use | Today |
 | --- | --- | --- | --- | --- |
 | Bold / italic / underline | `⌘B` `⌘I` `⌘U` | same | same | matches |
-| Strikethrough | `⌘⇧X` | `⌘⇧X` | `⌘⇧X` | `⌘⇧S` |
-| Title / Heading / Subheading / Body | `⌘⇧T` / `⌘⇧H` / `⌘⇧J` / `⌘⇧B` | (none) | Notes keys → H1 / H2 / H3 / paragraph | not bound |
-| Heading 1–6, normal text | (none) | `⌘⌥1`–`6`, `⌘⌥0` | Docs keys | `⌘⌥1`–`6` match; `⌘⌥0` missing |
-| Monospaced / code block | `⌘⇧M` | (none) | `⌘⇧M` | `⌘⌥C` |
-| Bulleted list | `⌘⇧7` | `⌘⇧8` | **`⌘⇧7`** (Notes wins) | `⌘⇧8` |
+| Strikethrough | `⌘⇧X` | `⌘⇧X` | `⌘⇧X` | **built** (see Document editor) |
+| Title / Heading / Subheading / Body | `⌘⇧T` / `⌘⇧H` / `⌘⇧J` / `⌘⇧B` | (none) | Notes keys → H1 / H2 / H3 / paragraph | **built** (see Document editor) |
+| Heading 1–6, normal text | (none) | `⌘⌥1`–`6`, `⌘⌥0` | Docs keys | **built** (see Document editor) |
+| Monospaced / code block | `⌘⇧M` | (none) | `⌘⇧M` | **built** (see Document editor) |
+| Bulleted list | `⌘⇧7` | `⌘⇧8` | **`⌘⇧7`** (Notes wins) | **built** (see Document editor) |
 | Dashed list | `⌘⇧8` | (bullets) | **`⌘⇧8`** dashed list (Notes wins) | bulleted list |
-| Numbered list | `⌘⇧9` | `⌘⇧7` | **`⌘⇧9`** (Notes wins) | `⌘⇧7` |
-| Checklist (task item) | `⌘⇧L` | `⌘⇧9` | **`⌘⇧L`** (Notes wins) | not bound |
+| Numbered list | `⌘⇧9` | `⌘⇧7` | **`⌘⇧9`** (Notes wins) | **built** (see Document editor) |
+| Checklist (task item) | `⌘⇧L` | `⌘⇧9` | **`⌘⇧L`** (Notes wins) | **built** (see Document editor) |
 | Mark checklist item done | `⌘⇧U` | (none) | `⌘⇧U` | not bound |
 | Insert link | `⌘K` | `⌘K` | `⌘K` inside the editor | `⌘K` is the global quick-add |
-| Indent / outdent | `⌘]` / `⌘[` | `⌘]` / `⌘[` | same, plus Tab / Shift+Tab in lists | Tab only in task lists |
+| Indent / outdent | `⌘]` / `⌘[` | `⌘]` / `⌘[` | same, plus Tab / Shift+Tab in lists | **built** (see Document editor) |
 | Move list item up / down | `⌃⌘↑` / `⌃⌘↓` | (none) | Notes keys | not bound |
-| Table | `⌥⌘T` | (none) | `⌥⌘T` | not bound |
+| Table | `⌥⌘T` | (none) | `⌥⌘T` | **built** (see Document editor) |
 | Align left / center / right / justify | (none) | `⌘⇧L` / `⌘⇧E` / `⌘⇧R` / `⌘⇧J` | center/right/justify from Docs; left can't use `⌘⇧L` (checklist) or `⌘⇧J` (Subheading), so left is menu-only | not present |
-| Clear formatting | (none) | `⌘\` | `⌘\` | not bound |
+| Clear formatting | (none) | `⌘\` | `⌘\` | **built** (see Document editor) |
 | Comment | (none) | `⌘⌥M` | `⌘⌥M` (with `comments-on-documents.md`) | n/a |
 | Paste without formatting | `⌥⇧⌘V` | `⌘⇧V` | both | browser default |
 | Superscript / subscript | (none) | `⌘.` / `⌘,` | Docs keys | not present |
 | Markdown-style typing (`- `, `1. `, `# `, `[] `) | partial | partial | keep TipTap's input rules | works |
+
+Built 2026-10-19 on branch `backlog/rebind-editor-shortcuts-to-apple-notes-map` (not merged; the keys are from the table above and were not checked against the two apps' menus). Not yet built: dashed list `⌘⇧8`, mark checklist item done `⌘⇧U`, `⌘K` insert link (clashes with the global quick-add), move list item up/down, alignment, superscript/subscript, comment, paste without formatting.

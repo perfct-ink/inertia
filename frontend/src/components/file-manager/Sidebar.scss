@@ -158,6 +158,13 @@ $shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
       height: space(6);
     }
 
+    @at-root .sidebar-shortcuts_group {
+      margin-top: space(3);
+      color: color(muted-foreground);
+      font-weight: 600;
+      @include text('xs');
+    }
+
     @at-root .sidebar-brand {
       min-width: 0;
     }

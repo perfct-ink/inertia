@@ -1,4 +1,5 @@
 ---
+branch: backlog/rebind-editor-shortcuts-to-apple-notes-map
 priority: p1
 depends_on: []
 components: [frontend, backend]
@@ -31,3 +32,6 @@ The full proposed keystroke map (Apple Notes vs Google Docs vs the choice for In
 - Anything stated in Requirements / notes (including any named default) is implemented or deliberately changed with the reason recorded.
 - Failed API calls show an error to the user.
 - Tests cover the new behaviour; a feature doc in `docs/features/` is written (or the existing one updated) and this file is removed.
+
+## Blocked
+Implemented on the branch for the bindings that do not need other work (see the feature doc for the rest). The table-and-doc test passes in a stand-in runner; no keystroke was tried. Several combinations are claimed by browsers (`⌘⇧T`, `⌘⇧B`) so the product call is whether to keep them. To verify: `cd frontend && npm install && npm run lint && npm test`, then press each shortcut in the document editor in a browser and in the Electron app. Leave this file on `main` until the remaining bindings ship, or split the done part out.

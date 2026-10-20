@@ -1,4 +1,5 @@
 import { flattenFolders } from '@/data/folder'
+import { EDITOR_SHORTCUTS } from '@/data/shortcuts'
 import { WorkspaceSwitcher } from '@/components/workspace/WorkspaceSwitcher'
 import { Button, Input, Select } from '@/components/ui'
 import './Sidebar.scss'
@@ -641,6 +642,13 @@ export default function Sidebar() {
             </div>
             <div className="sidebar-shortcuts">
               {KEYBOARD_SHORTCUTS.map(({ keys, label }) => (
+                <div key={keys} className="sidebar-shortcut">
+                  <span>{label}</span>
+                  <kbd className="sidebar-kbd">{keys}</kbd>
+                </div>
+              ))}
+              <h3 className="sidebar-shortcuts_group">In a document</h3>
+              {EDITOR_SHORTCUTS.map(({ keys, label }) => (
                 <div key={keys} className="sidebar-shortcut">
                   <span>{label}</span>
                   <kbd className="sidebar-kbd">{keys}</kbd>
