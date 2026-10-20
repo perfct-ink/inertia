@@ -1,6 +1,7 @@
 class WorkspaceBlueprint < Blueprinter::Base
   identifier :id
   fields :name, :root_folder_id, :personal
+  field(:storage) { |workspace| { used: workspace.storage_used, limit: workspace.storage_limit } }
 
   # The signed-in user's role here; callers pass `roles: { workspace_id => role }`.
   field :role do |workspace, options|

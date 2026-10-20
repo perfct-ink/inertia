@@ -1,5 +1,5 @@
 import type { Document } from '@/types'
-import { buildInitialContent, extractTitle, filePreview, formatBytes, galleryFiles, lastModified, DOC_TYPE_LABELS } from './document'
+import { buildInitialContent, extractTitle, filePreview, formatBytes, galleryFiles, storageLabel, storagePercent, lastModified, DOC_TYPE_LABELS } from './document'
 
 test('extractTitle reads the leading heading', () => {
   expect(extractTitle(buildInitialContent('Launch plan'))).toBe('Launch plan')
@@ -49,4 +49,12 @@ test('galleryFiles keeps uploaded files only, filters by kind and lists the newe
   expect(galleryFiles(docs, 'video').map((d) => d.id)).toEqual([4])
   expect(galleryFiles(docs, 'pdf').map((d) => d.id)).toEqual([2])
   expect(galleryFiles(docs, 'other').map((d) => d.id)).toEqual([3])
+})
+
+test('storage reads as used of limit, with a capped percentage', () => {
+  expect(storageLabel({ used: 120 * 1024 * 1024, limit: 1024 ** 3 })).toBe('120.0 MB of 1.0 GB used')
+  expect(storageLabel(undefined)).toBeNull()
+  expect(storagePercent({ used: 512, limit: 1024 })).toBe(50)
+  expect(storagePercent({ used: 2048, limit: 1024 })).toBe(100)
+  expect(storagePercent({ used: 0, limit: 0 })).toBe(100)
 })

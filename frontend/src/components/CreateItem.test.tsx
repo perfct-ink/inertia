@@ -43,3 +43,10 @@ test('chosen files are uploaded into the folder, several at once', async () => {
   fireEvent.change(screen.getByLabelText('Choose files to upload'), { target: { files } })
   await waitFor(() => expect(mockUpload).toHaveBeenCalledWith({ folderId: 202, files }))
 })
+
+test('shows how much of the Space\'s storage is used', () => {
+  mockWorkspace.storage = { used: 5 * 1024 * 1024, limit: 1024 ** 3 }
+  render(<CreateItem />)
+  expect(screen.getByText('5.0 MB of 1.0 GB used')).toBeInTheDocument()
+  delete (mockWorkspace as { storage?: unknown }).storage
+})

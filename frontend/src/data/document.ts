@@ -77,3 +77,13 @@ export function galleryFiles(documents: Document[], filter: GalleryFilter): Docu
     })
     .sort((a, b) => b.updated_at.localeCompare(a.updated_at) || a.title.localeCompare(b.title))
 }
+
+// "120.0 MB of 1.0 GB used", or null when the server did not send usage.
+export function storageLabel(storage: { used: number; limit: number } | undefined): string | null {
+  return storage ? `${formatBytes(storage.used)} of ${formatBytes(storage.limit)} used` : null
+}
+
+// The share of the limit used, 0 to 100 (a limit of 0 reads as full).
+export function storagePercent(storage: { used: number; limit: number }): number {
+  return storage.limit <= 0 ? 100 : Math.min(100, Math.round((storage.used / storage.limit) * 100))
+}

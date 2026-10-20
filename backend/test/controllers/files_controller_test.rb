@@ -73,4 +73,29 @@ class FilesControllerTest < ActionDispatch::IntegrationTest
     put "/api/v1/documents/#{theirs.id}/file", params: { file: upload("b.csv", "text/csv") }, headers: @headers
     assert_response :not_found
   end
+
+  test "an upload that would pass the Space's storage limit is refused with the usage" do
+    @user.workspace.update!(storage_limit_bytes: 20)
+    post "/api/v1/folders/#{@folder.id}/files", params: { file: upload("a.txt", "text/plain", "x" * 15) }, headers: @headers
+    assert_response :created
+    post "/api/v1/folders/#{@folder.id}/files", params: { file: upload("b.txt", "text/plain", "x" * 15) }, headers: @headers
+    assert_response :unprocessable_entity
+    assert_match(/Not enough storage/, response.parsed_body["errors"].first)
+  end
+
+  test "the Space reports its usage and limit" do
+    post "/api/v1/folders/#{@folder.id}/files", params: { file: upload("a.txt", "text/plain", "x" * 10) }, headers: @headers
+    get "/api/v1/workspace", headers: @headers
+    assert_equal({ "used" => 10, "limit" => Workspace::DEFAULT_STORAGE_LIMIT }, response.parsed_body["storage"])
+  end
+
+  test "replacing with a larger file counts only the growth" do
+    @user.workspace.update!(storage_limit_bytes: 20)
+    post "/api/v1/folders/#{@folder.id}/files", params: { file: upload("a.txt", "text/plain", "x" * 15) }, headers: @headers
+    id = response.parsed_body["id"]
+    put "/api/v1/documents/#{id}/file", params: { file: upload("a2.txt", "text/plain", "x" * 18) }, headers: @headers
+    assert_response :success
+    put "/api/v1/documents/#{id}/file", params: { file: upload("a3.txt", "text/plain", "x" * 25) }, headers: @headers
+    assert_response :unprocessable_entity
+  end
 end

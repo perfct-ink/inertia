@@ -18,10 +18,30 @@ class Workspace < ApplicationRecord
   has_many :objectives, dependent: :destroy
   has_many :quip_imports, dependent: :destroy
 
+  # Uploaded files per Space, unless storage_limit_bytes says otherwise.
+  DEFAULT_STORAGE_LIMIT = 1.gigabyte
+
   validates :name, presence: true
+  validates :storage_limit_bytes, numericality: { only_integer: true, greater_than_or_equal_to: 0, allow_nil: true }
   after_create :add_creator_as_owner
   after_create :ensure_document_root!
   before_destroy :prepare_destroy, prepend: true
+
+  def storage_limit
+    storage_limit_bytes || DEFAULT_STORAGE_LIMIT
+  end
+
+  # Bytes taken by the Space's uploaded file items.
+  def storage_used
+    ActiveStorage::Attachment.joins(:blob)
+      .where(record_type: "Document", name: "file", record_id: Document.where(doc_type: :file, folder_id: folders.select(:id)).select(:id))
+      .sum("active_storage_blobs.byte_size")
+  end
+
+  # Whether `bytes` more would still fit within the limit.
+  def storage_room_for?(bytes)
+    storage_used + bytes <= storage_limit
+  end
 
   def ensure_document_root!
     return root_folder if root_folder_id.present?

@@ -3,7 +3,7 @@ import { useRef, useState } from 'react'
 import { useUploadFiles, useWorkspace } from '@/api/workspace'
 import { errorMessage } from '@/api/tables'
 import { flattenFolders } from '@/data/folder'
-import { DOC_TYPE_LABELS } from '@/data/document'
+import { DOC_TYPE_LABELS, storageLabel } from '@/data/document'
 import { useNewDocument } from '@/hooks/useNewDocument'
 import type { Document } from '@/types'
 import './CreateItem.scss'
@@ -32,6 +32,7 @@ export default function CreateItem({ folderId }: { folderId?: number }) {
     </Select>}
     {(['document', 'spreadsheet', 'table'] as const).map(type => <Button variant="secondary" key={type} disabled={busy || !workspace} onClick={() => make(type)} className="create_item-button">New {DOC_TYPE_LABELS[type]}</Button>)}
     <Button variant="secondary" disabled={busy || !workspace} onClick={() => fileInputRef.current?.click()} className="create_item-button">Upload files</Button>
+    {storageLabel(workspace?.storage) && <span className="create_item-storage">{storageLabel(workspace?.storage)}</span>}
     <Input
       ref={fileInputRef}
       type="file"

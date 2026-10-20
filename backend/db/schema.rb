@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_10_19_000023) do
+ActiveRecord::Schema[7.2].define(version: 2026_10_19_000024) do
   create_table "active_storage_attachments", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.string "name", null: false
     t.string "record_type", null: false
@@ -384,6 +384,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_10_19_000023) do
     t.datetime "updated_at", null: false
     t.bigint "root_folder_id"
     t.boolean "personal", default: false, null: false
+    t.bigint "storage_limit_bytes"
     t.index ["root_folder_id"], name: "index_workspaces_on_root_folder_id", unique: true
     t.index ["user_id"], name: "index_workspaces_on_user_id"
   end

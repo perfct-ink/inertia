@@ -49,6 +49,8 @@ export interface WorkspaceSummary {
 
 export interface Workspace extends WorkspaceSummary {
   root_folder_id?: number
+  // Bytes of uploaded files in use, and the Space's limit.
+  storage?: { used: number; limit: number }
   folders: Folder[]
 }
 

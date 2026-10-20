@@ -1,4 +1,5 @@
 ---
+branch: backlog/storage-quota-per-space-and-a-per-file-size-limit
 priority: p1
 depends_on: []
 ---
@@ -28,3 +29,6 @@ Today: `UploadsController` already stores images and video in ActiveStorage (100
 - Anything stated in Requirements / notes (including any named default) is implemented or deliberately changed with the reason recorded.
 - Failed API calls show an error to the user.
 - Tests cover the new behaviour; a feature doc in `docs/features/` is written (or the existing one updated) and this file is removed.
+
+## Blocked
+Implemented on the branch, stacked on the uploaded-files branches (merge those first). The 1 GB default and the "operator sets the limit" approach are product calls to confirm; production still uses local disk (see `docs/storage-options.md`). The usage/percent formatting passes in a stand-in runner. To verify: `cd backend && bundle install && rails db:migrate && rails test` (diff `schema.rb`, edited by hand), `cd frontend && npm install && npm run lint && npm test`. Then remove this file and merge.
