@@ -20,10 +20,11 @@ class TableField < ApplicationRecord
     elsif relation_table_id.present?
       errors.add(:relation_table, "is only allowed for relation fields")
     end
+    errors.add(:allow_many, "is only allowed for relation fields") if allow_many && data_type != "relation"
   end
 
   def compatible_schema_change
-    if persisted? && (data_type_changed? || relation_table_id_changed?) && table_cells.exists?
+    if persisted? && (data_type_changed? || relation_table_id_changed? || allow_many_changed?) && table_cells.exists?
       errors.add(:data_type, "cannot change while this field has values; clear its values first")
     end
   end

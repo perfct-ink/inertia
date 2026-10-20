@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_10_18_000003) do
+ActiveRecord::Schema[7.2].define(version: 2026_10_19_000028) do
   create_table "ai_runs", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.bigint "workspace_id", null: false
     t.bigint "ai_worker_id", null: false
@@ -252,6 +252,16 @@ ActiveRecord::Schema[7.2].define(version: 2026_10_18_000003) do
     t.index ["workspace_id"], name: "index_sprints_on_workspace_id"
   end
 
+  create_table "table_cell_links", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+    t.bigint "table_cell_id", null: false
+    t.bigint "related_record_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["related_record_id"], name: "index_table_cell_links_on_related_record_id"
+    t.index ["table_cell_id", "related_record_id"], name: "index_table_cell_links_on_cell_and_record", unique: true
+    t.index ["table_cell_id"], name: "index_table_cell_links_on_table_cell_id"
+  end
+
   create_table "table_cells", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.bigint "table_record_id", null: false
     t.bigint "table_field_id", null: false
@@ -272,6 +282,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_10_18_000003) do
     t.bigint "relation_table_id"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.boolean "allow_many", default: false, null: false
     t.index ["document_id", "name"], name: "index_table_fields_on_document_id_and_name", unique: true
     t.index ["document_id"], name: "index_table_fields_on_document_id"
     t.index ["relation_table_id"], name: "index_table_fields_on_relation_table_id"
@@ -393,6 +404,8 @@ ActiveRecord::Schema[7.2].define(version: 2026_10_18_000003) do
   add_foreign_key "social_login_attempts", "users"
   add_foreign_key "sprints", "users", column: "owner_id", on_delete: :nullify
   add_foreign_key "sprints", "workspaces"
+  add_foreign_key "table_cell_links", "table_cells"
+  add_foreign_key "table_cell_links", "table_records", column: "related_record_id"
   add_foreign_key "table_cells", "table_fields"
   add_foreign_key "table_cells", "table_records"
   add_foreign_key "table_cells", "table_records", column: "related_record_id"

@@ -1,6 +1,7 @@
 ---
 priority: p0
 depends_on: []
+branch: backlog/collection-one-to-many-relationships
 components: [frontend, backend]
 ---
 # One-to-many relationships
@@ -33,3 +34,6 @@ Requested by Alex on 2026-10-18: tables should be called **Collections**; collec
 - Anything stated in Requirements / notes (including any named default) is implemented or deliberately changed with the reason recorded.
 - Failed API calls show an error to the user.
 - Tests cover the new behaviour; a feature doc in `docs/features/` is written (or the existing one updated) and this file is removed.
+
+## Blocked
+Implemented on `backlog/collection-one-to-many-relationships` (see `docs/features/collection_relationships.md`). Lookup and rollup fields are not built. Not run (no gems, DB or node_modules offline): `rails test`, `rails db:migrate` (then diff `db/schema.rb`, edited by hand; migration 20261019000028), `npm run lint`, type-check, Jest.

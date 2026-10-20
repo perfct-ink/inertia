@@ -74,6 +74,26 @@
       &--field {
         margin-top: space(1);
       }
+
+      // A relation that holds many records is a multi-select list.
+      &--many {
+        min-height: space(20);
+      }
+    }
+
+    // The automatic reverse side of a relation: linked records, read-only.
+    @at-root .table_editor-cell--reverse {
+      display: table-cell;
+      color: color(muted-foreground);
+      @include text('sm');
+    }
+
+    @at-root .table_editor-reverse_link {
+      display: inline-block;
+      margin: 0 space(1) space(1) 0;
+      padding: 0 space(2);
+      border: 1px solid color(border);
+      border-radius: radius();
     }
 
     @at-root .table_editor-field_form {

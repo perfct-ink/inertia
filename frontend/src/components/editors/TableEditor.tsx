@@ -5,19 +5,20 @@ import { Database, Loader2, Pencil, Trash2 } from 'lucide-react'
 import WorkspaceLayout from '@/components/WorkspaceLayout'
 import { useWorkspace } from '@/api/workspace'
 import { useUpdateDocument } from '@/api/documents'
-import { useTable, useEditTable, tableQuery, errorMessage, type TableData, type TableField, type TableRecord, type DataType } from '@/api/tables'
+import { useTable, useEditTable, tableQuery, errorMessage, type CellValue, type ReverseField, type TableData, type TableField, type TableRecord, type DataType } from '@/api/tables'
 import type { Document } from '@/types'
 import { useTabsStore } from '@/store/tabs'
 import './TableEditor.scss'
 import { usePageTitle } from '@/hooks/usePageTitle'
 import { flattenFolders } from '@/data/folder'
+import { holdsMany, linkedIds, pickedIds, recordLabel } from '@/data/collection'
 
 const types: DataType[] = ['text', 'integer', 'number', 'boolean', 'date', 'datetime', 'relation']
 const inputClass = 'table_editor-input'
 const fieldInputClass = `${inputClass} table_editor-input--field`
 
-function RecordRow({ record, fields, relations, busy, onSave, onDelete }: {
-  record?: TableRecord; fields: TableField[]; relations: Map<number, TableData>; busy: boolean
+function RecordRow({ record, fields, reverseFields, relations, busy, onSave, onDelete }: {
+  record?: TableRecord; fields: TableField[]; reverseFields: ReverseField[]; relations: Map<number, TableData>; busy: boolean
   onSave: (values: TableRecord['values']) => Promise<void>; onDelete?: () => void
 }) {
   const [values, setValues] = useState<TableRecord['values']>(record?.values ?? {})
@@ -30,7 +31,7 @@ function RecordRow({ record, fields, relations, busy, onSave, onDelete }: {
     const liveValues = Object.fromEntries(Object.entries(values).filter(([id]) => fields.some(field => String(field.id) === id)))
     try { await onSave(liveValues); if (!record) setValues({}) } catch (e) { setError(errorMessage(e)) }
   }
-  function set(field: TableField, value: string | number | boolean | null) { setValues(prev => ({ ...prev, [field.id]: value })) }
+  function set(field: TableField, value: CellValue) { setValues(prev => ({ ...prev, [field.id]: value })) }
   return <tr className="table_editor-row">
     <td className="table_editor-cell table_editor-cell--id">{record ? `#${record.id}` : 'New'}</td>
     {fields.map(field => {
@@ -39,13 +40,11 @@ function RecordRow({ record, fields, relations, busy, onSave, onDelete }: {
       return <td key={field.id} className="table_editor-cell">
         {field.data_type === 'boolean' ? <Select aria-label={field.name} className={inputClass} value={value == null ? '' : String(value)} onChange={e => set(field, e.target.value === '' ? null : e.target.value === 'true')}>
           <option value="">Empty</option><option value="true">True</option><option value="false">False</option>
+        </Select> : holdsMany(field) ? <Select multiple aria-label={field.name} className={`${inputClass} table_editor-input--many`} value={linkedIds(value).map(String)} onChange={e => { const ids = pickedIds(Array.from(e.target.options)); set(field, ids.length ? ids : null) }}>
+          {target?.records.map(row => <option key={row.id} value={row.id}>{recordLabel(target.fields, row)}</option>)}
         </Select> : field.data_type === 'relation' ? <Select aria-label={field.name} className={inputClass} value={value == null ? '' : String(value)} onChange={e => set(field, e.target.value ? Number(e.target.value) : null)}>
           <option value="">{target ? 'No linked record' : 'Loading records…'}</option>
-          {target?.records.map(row => {
-            const labelField = target.fields.find(f => f.data_type === 'text')
-            const label = labelField ? row.values[labelField.id] : null
-            return <option key={row.id} value={row.id}>#{row.id}{label ? ` · ${label}` : ''}</option>
-          })}
+          {target?.records.map(row => <option key={row.id} value={row.id}>{recordLabel(target.fields, row)}</option>)}
         </Select> : <Input aria-label={field.name} className={inputClass}
           type={field.data_type === 'integer' || field.data_type === 'number' ? 'number' : field.data_type === 'datetime' ? 'datetime-local' : field.data_type === 'date' ? 'date' : 'text'}
           step={field.data_type === 'integer' ? '1' : field.data_type === 'number' ? 'any' : undefined}
@@ -56,6 +55,9 @@ function RecordRow({ record, fields, relations, busy, onSave, onDelete }: {
           }} />}
       </td>
     })}
+    {reverseFields.map(field => <td key={`reverse-${field.id}`} className="table_editor-cell table_editor-cell--reverse">
+      {(record?.reverse?.[field.id] ?? []).map(link => <span key={link.id} className="table_editor-reverse_link">{link.label}</span>)}
+    </td>)}
     <td className="table_editor-cell table_editor-cell--actions">
       <div className="table_editor-cell_actions">
         <Button variant="secondary" disabled={busy || (!!record && !dirty)} onClick={save} className="table_editor-save_button">{record ? 'Save' : 'Add record'}</Button>
@@ -80,6 +82,7 @@ export default function TableEditor({ doc }: { doc: Document }) {
   const [name, setName] = useState('')
   const [type, setType] = useState<DataType>('text')
   const [relationTable, setRelationTable] = useState('')
+  const [allowMany, setAllowMany] = useState(false)
   const tables = flattenFolders(workspace?.folders ?? []).flatMap(f => f.documents ?? []).filter(d => d.doc_type === 'table')
   const targetIds = [...new Set((data?.fields ?? []).flatMap(f => f.relation_table_id ? [f.relation_table_id] : []))]
   const queries = useQueries({ queries: targetIds.map(tableQuery) })
@@ -98,12 +101,12 @@ export default function TableEditor({ doc }: { doc: Document }) {
   }
   function fieldForm(field?: TableField) {
     setEditingField(field ?? null); setName(field?.name ?? ''); setType(field?.data_type ?? 'text')
-    setRelationTable(field?.relation_table_id ? String(field.relation_table_id) : ''); setShowForm(true); setError('')
+    setRelationTable(field?.relation_table_id ? String(field.relation_table_id) : ''); setAllowMany(!!field?.allow_many); setShowForm(true); setError('')
   }
   async function saveField(e: React.FormEvent) {
     e.preventDefault()
     try {
-      await action(editingField ? `fields/${editingField.id}` : 'fields', editingField ? 'patch' : 'post', { field: { name: name.trim(), data_type: type, relation_table_id: type === 'relation' ? Number(relationTable) : null } })
+      await action(editingField ? `fields/${editingField.id}` : 'fields', editingField ? 'patch' : 'post', { field: { name: name.trim(), data_type: type, relation_table_id: type === 'relation' ? Number(relationTable) : null, allow_many: type === 'relation' && allowMany } })
       setShowForm(false)
     } catch (e) { setError(errorMessage(e)) }
   }
@@ -125,6 +128,7 @@ export default function TableEditor({ doc }: { doc: Document }) {
         <label className="table_editor-field_form_label">Field name<Input required maxLength={255} autoFocus className={`${fieldInputClass}`} value={name} onChange={e => setName(e.target.value)} /></label>
         <label className="table_editor-field_form_label">Data type<Select className={`${fieldInputClass}`} value={type} onChange={e => setType(e.target.value as DataType)}>{types.map(t => <option key={t} value={t}>{t[0].toUpperCase() + t.slice(1)}</option>)}</Select></label>
         {type === 'relation' && <label className="table_editor-field_form_label">Related collection<Select required className={`${fieldInputClass}`} value={relationTable} onChange={e => setRelationTable(e.target.value)}><option value="">Choose a collection</option>{tables.map(t => <option key={t.id} value={t.id}>{t.title}</option>)}</Select></label>}
+        {type === 'relation' && <label className="table_editor-field_form_label">Links per record<Select className={`${fieldInputClass}`} value={allowMany ? 'many' : 'one'} onChange={e => setAllowMany(e.target.value === 'many')}><option value="one">One record</option><option value="many">Many records</option></Select></label>}
         <Button variant="primary" disabled={busy || !name.trim()} className="table_editor-field_form_button">{editingField ? 'Save field' : 'Create field'}</Button>
         <Button type="button" onClick={() => setShowForm(false)} className="table_editor-cancel_button">Cancel</Button>
         {editingField && <p className="table_editor-field_form_hint">Clear this field’s values before changing its data type or related collection.</p>}
@@ -132,11 +136,12 @@ export default function TableEditor({ doc }: { doc: Document }) {
       {isLoading ? <Loader2 className="table_editor-spinner" /> : data && data.fields.length === 0 ? <div className="table_editor-empty"><Database className="table_editor-empty_icon" /><p className="table_editor-empty_title">Define your collection’s fields</p><p className="table_editor-empty_text">Add text, numbers, dates, booleans, or a relation to another collection.</p><Button variant="secondary" onClick={() => fieldForm()} className="table_editor-empty_button">Add first field</Button></div> : data && <div className="table_editor-grid">
         <table className="table_editor-table">
           <thead className="table_editor-table_head"><tr><th className="table_editor-column_head table_editor-column_head--id">Record ID</th>
-            {data.fields.map(field => <th key={field.id} className="table_editor-column_head"><div className="table_editor-column_head_main"><Button onClick={() => fieldForm(field)} className="table_editor-column_name_button"><span>{field.name}</span><Pencil className="table_editor-column_edit_icon" /></Button><Button aria-label={`Delete field ${field.name}`} disabled={busy} onClick={() => remove(`fields/${field.id}`, `Delete “${field.name}” and all its values?`)} className="table_editor-icon_button table_editor-icon_button--column"><Trash2 className="table_editor-icon_button_icon table_editor-icon_button_icon--sm" /></Button></div><span className="table_editor-column_type">{field.data_type}{field.relation_table_id ? ` → ${tables.find(t => t.id === field.relation_table_id)?.title ?? 'Table'}` : ''}</span></th>)}
+            {data.fields.map(field => <th key={field.id} className="table_editor-column_head"><div className="table_editor-column_head_main"><Button onClick={() => fieldForm(field)} className="table_editor-column_name_button"><span>{field.name}</span><Pencil className="table_editor-column_edit_icon" /></Button><Button aria-label={`Delete field ${field.name}`} disabled={busy} onClick={() => remove(`fields/${field.id}`, `Delete “${field.name}” and all its values?`)} className="table_editor-icon_button table_editor-icon_button--column"><Trash2 className="table_editor-icon_button_icon table_editor-icon_button_icon--sm" /></Button></div><span className="table_editor-column_type">{field.data_type}{field.relation_table_id ? ` → ${tables.find(t => t.id === field.relation_table_id)?.title ?? 'Collection'}${field.allow_many ? ' (many)' : ''}` : ''}</span></th>)}
+            {(data.reverse_fields ?? []).map(field => <th key={`reverse-${field.id}`} className="table_editor-column_head"><div className="table_editor-column_head_main"><span>{field.name}</span></div><span className="table_editor-column_type">linked, read-only</span></th>)}
             <th className="table_editor-column_head table_editor-column_head--actions">Actions</th>
           </tr></thead>
-          <tbody>{data.records.map(record => <RecordRow key={record.id} record={record} fields={data.fields} relations={relations} busy={busy} onSave={values => action(`records/${record.id}`, 'patch', { record: { values } })} onDelete={() => remove(`records/${record.id}`, `Delete record #${record.id}?`)} />)}
-            <RecordRow fields={data.fields} relations={relations} busy={busy} onSave={values => action('records', 'post', { record: { values } })} />
+          <tbody>{data.records.map(record => <RecordRow key={record.id} record={record} fields={data.fields} reverseFields={data.reverse_fields ?? []} relations={relations} busy={busy} onSave={values => action(`records/${record.id}`, 'patch', { record: { values } })} onDelete={() => remove(`records/${record.id}`, `Delete record #${record.id}?`)} />)}
+            <RecordRow fields={data.fields} reverseFields={data.reverse_fields ?? []} relations={relations} busy={busy} onSave={values => action('records', 'post', { record: { values } })} />
           </tbody>
         </table>
       </div>}

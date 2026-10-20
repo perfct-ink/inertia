@@ -2,6 +2,7 @@ class TableCell < ApplicationRecord
   belongs_to :table_record
   belongs_to :table_field
   belongs_to :related_record, class_name: "TableRecord", optional: true
+  has_many :links, class_name: "TableCellLink", dependent: :destroy
   validates :table_field_id, uniqueness: { scope: :table_record_id }
   validate :valid_value
 
@@ -17,7 +18,10 @@ class TableCell < ApplicationRecord
     when "boolean" then value == true || value == false
     when "date" then valid_date?(value)
     when "datetime" then value.is_a?(String) && valid_datetime?(value)
-    when "relation" then value.nil? && related_record&.document_id == table_field.relation_table_id
+    when "relation"
+      if table_field.allow_many then value.nil? && related_record_id.nil?
+      else value.nil? && related_record&.document_id == table_field.relation_table_id
+      end
     else false
     end
     valid &&= related_record_id.nil? unless table_field.data_type == "relation"

@@ -8,14 +8,19 @@ module Api
       before_action :set_table
       rescue_from ActiveRecord::RecordInvalid, with: :invalid_record
       rescue_from ActiveRecord::RecordNotDestroyed, with: :invalid_record
+      class BadValue < StandardError; end
+      rescue_from(BadValue) { |error| render json: { errors: [ error.message ] }, status: :unprocessable_entity }
       rescue_from ActiveRecord::InvalidForeignKey do
         render json: { errors: [ "This item is still referenced by another collection" ] }, status: :unprocessable_entity
       end
 
       def show
+        backrefs = TableBackrefs.new(@table)
+        reverse = backrefs.by_record
         render json: {
-          fields: @table.table_fields.order(:id).as_json(only: [ :id, :name, :data_type, :relation_table_id ]),
-          records: @table.table_records.order(:id).includes(:table_cells).map(&:as_table_json)
+          fields: @table.table_fields.order(:id).as_json(only: [ :id, :name, :data_type, :relation_table_id, :allow_many ]),
+          reverse_fields: backrefs.columns,
+          records: @table.table_records.order(:id).includes(table_cells: [ :table_field, :links ]).map { |record| record.as_table_json.merge(reverse: reverse[record.id] || {}) }
         }
       end
 
@@ -61,7 +66,7 @@ module Api
       end
 
       def field_params
-        params.require(:field).permit(:name, :data_type, :relation_table_id)
+        params.require(:field).permit(:name, :data_type, :relation_table_id, :allow_many)
       end
 
       def write_values(record)
@@ -71,12 +76,27 @@ module Api
           cell = record.table_cells.find_or_initialize_by(table_field: field)
           if value.nil? || value == ""
             cell.destroy! if cell.persisted?
+          elsif field.data_type == "relation" && field.allow_many
+            write_links(cell, field, value)
           else
+            raise BadValue, "#{field.name} takes one value" if value.is_a?(Array)
             cell.value = field.data_type == "relation" ? nil : value
             cell.related_record = field.data_type == "relation" ? field.relation_table.table_records.find(value) : nil
             cell.save!
           end
         end
+      end
+
+      # A "many" relation takes a list of record ids; an empty list clears the cell.
+      def write_links(cell, field, value)
+        ids = Array(value).map(&:to_i).uniq
+        return (cell.destroy! if cell.persisted?) if ids.empty?
+        records = field.relation_table.table_records.find(ids)
+        cell.value = nil
+        cell.related_record = nil
+        cell.save!
+        cell.links.where.not(related_record_id: ids).destroy_all
+        (records.map(&:id) - cell.links.pluck(:related_record_id)).each { |id| cell.links.create!(related_record_id: id) }
       end
 
       def invalid_record(error)

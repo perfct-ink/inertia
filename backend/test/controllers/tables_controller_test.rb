@@ -98,4 +98,86 @@ class TablesControllerTest < ActionDispatch::IntegrationTest
     assert Folder.exists?(folder.id)
     assert Document.exists?(target.id)
   end
+
+  test "a many relation holds a list of records, replaces it, clears it and protects linked records" do
+    songs = @folder.documents.create!(title: "Songs", doc_type: :table, created_by: @user)
+    one = songs.table_records.create!
+    two = songs.table_records.create!
+    field = @table.table_fields.create!(name: "Songs", data_type: "relation", relation_table: songs, allow_many: true)
+    post "/api/v1/tables/#{@table.id}/records", params: { record: { values: { field.id.to_s => [ one.id, two.id ] } } }, as: :json
+    assert_response :success
+    row = response.parsed_body["records"].first
+    assert_equal [ one.id, two.id ], row["values"][field.id.to_s]
+    assert response.parsed_body["fields"].find { |f| f["id"] == field.id }["allow_many"]
+
+    delete "/api/v1/tables/#{songs.id}/records/#{one.id}"
+    assert_response :unprocessable_entity
+
+    patch "/api/v1/tables/#{@table.id}/records/#{row['id']}", params: { record: { values: { field.id.to_s => [ two.id ] } } }, as: :json
+    assert_equal [ two.id ], response.parsed_body["records"].first["values"][field.id.to_s]
+    delete "/api/v1/tables/#{songs.id}/records/#{one.id}"
+    assert_response :success
+
+    patch "/api/v1/tables/#{@table.id}/records/#{row['id']}", params: { record: { values: { field.id.to_s => [] } } }, as: :json
+    assert_equal({}, response.parsed_body["records"].first["values"])
+  end
+
+  test "a many relation rejects records from other collections and a list for a single relation" do
+    songs = @folder.documents.create!(title: "Songs", doc_type: :table, created_by: @user)
+    many = @table.table_fields.create!(name: "Songs", data_type: "relation", relation_table: songs, allow_many: true)
+    single = @table.table_fields.create!(name: "Best song", data_type: "relation", relation_table: songs)
+    song = songs.table_records.create!
+    stranger = @table.table_records.create!
+    post "/api/v1/tables/#{@table.id}/records", params: { record: { values: { many.id.to_s => [ stranger.id ] } } }, as: :json
+    assert_response :not_found
+    post "/api/v1/tables/#{@table.id}/records", params: { record: { values: { single.id.to_s => [ song.id ] } } }, as: :json
+    assert_response :unprocessable_entity
+  end
+
+  test "allow_many is only for relation fields and cannot change once the field has values" do
+    post "/api/v1/tables/#{@table.id}/fields", params: { field: { name: "Tags", data_type: "text", allow_many: true } }, as: :json
+    assert_response :unprocessable_entity
+    songs = @folder.documents.create!(title: "Songs", doc_type: :table, created_by: @user)
+    field = @table.table_fields.create!(name: "Song", data_type: "relation", relation_table: songs)
+    song = songs.table_records.create!
+    post "/api/v1/tables/#{@table.id}/records", params: { record: { values: { field.id.to_s => song.id } } }, as: :json
+    patch "/api/v1/tables/#{@table.id}/fields/#{field.id}", params: { field: { allow_many: true } }, as: :json
+    assert_response :unprocessable_entity
+  end
+
+  test "the related collection lists the records that link to each of its records" do
+    albums = @folder.documents.create!(title: "Albums", doc_type: :table, created_by: @user)
+    title = albums.table_fields.create!(name: "Title", data_type: "text")
+    album = albums.table_records.create!
+    other_album = albums.table_records.create!
+    songs = @folder.documents.create!(title: "Songs", doc_type: :table, created_by: @user)
+    name = songs.table_fields.create!(name: "Name", data_type: "text")
+    belongs = songs.table_fields.create!(name: "Album", data_type: "relation", relation_table: albums)
+    first = songs.table_records.create!
+    first.table_cells.create!(table_field: name, value: "Intro")
+    first.table_cells.create!(table_field: belongs, related_record: album)
+    second = songs.table_records.create!
+    second.table_cells.create!(table_field: belongs, related_record: album)
+    third = songs.table_records.create!
+    third.table_cells.create!(table_field: belongs, related_record: other_album)
+    album.table_cells.create!(table_field: title, value: "Debut")
+
+    get "/api/v1/tables/#{albums.id}"
+    assert_response :success
+    body = response.parsed_body
+    assert_equal [ { "id" => belongs.id, "name" => "Songs", "source_table_id" => songs.id } ], body["reverse_fields"]
+    reverse = body["records"].find { |r| r["id"] == album.id }["reverse"][belongs.id.to_s]
+    assert_equal [ { "id" => first.id, "label" => "Intro" }, { "id" => second.id, "label" => "##{second.id}" } ], reverse
+    assert_equal [ third.id ], body["records"].find { |r| r["id"] == other_album.id }["reverse"][belongs.id.to_s].map { |s| s["id"] }
+  end
+
+  test "reverse lists also include songs linked through a many relation" do
+    albums = @folder.documents.create!(title: "Albums", doc_type: :table, created_by: @user)
+    album = albums.table_records.create!
+    songs = @folder.documents.create!(title: "Songs", doc_type: :table, created_by: @user)
+    many = songs.table_fields.create!(name: "Albums", data_type: "relation", relation_table: albums, allow_many: true)
+    post "/api/v1/tables/#{songs.id}/records", params: { record: { values: { many.id.to_s => [ album.id ] } } }, as: :json
+    get "/api/v1/tables/#{albums.id}"
+    assert_equal [ songs.table_records.last.id ], response.parsed_body["records"].first["reverse"][many.id.to_s].map { |s| s["id"] }
+  end
 end
