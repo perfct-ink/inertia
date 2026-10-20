@@ -48,7 +48,7 @@ GitHub repository settings used by the workflow:
 
 | Name | Kind | Value |
 | --- | --- | --- |
-| `COOLIFY_DEPLOY_WEBHOOK` | variable | The resource's deploy webhook URL (Coolify: resource → **Webhooks**), e.g. `https://coolify.example.com/api/v1/deploy?uuid=…&force=false`. Setting it switches deploys from the droplet to Coolify. |
+| `COOLIFY_DEPLOY_WEBHOOK` | variable | The resource's deploy webhook URL (Coolify: resource → **Webhooks**), `https://coolify.homecloud.one/api/v1/deploy?uuid=smu9zcyqqxhwhd7fybqqmn7j&force=false` (called with POST; Coolify 4.4 rejects GET). Setting it switches deploys from the droplet to Coolify. |
 | `COOLIFY_TOKEN` | secret | A Coolify API token with deploy permission (Coolify: **Keys & Tokens** → API tokens). |
 
 ## One-time setup
