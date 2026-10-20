@@ -2,8 +2,8 @@
 # off ApplicationController (which requires Devise auth via authenticate_user!
 # on every request) and off ActionController::API (which has no view/layout
 # rendering at all) — this is a sibling of ApplicationController, not a
-# subclass. See config/routes.rb and deploy/server/sites-available/
-# inertia.it.com.conf for why nginx forwards only these exact paths to Rails;
+# subclass. See config/routes.rb and frontend/nginx/default.conf for why
+# nginx forwards only these exact paths to Rails;
 # everything else at the root still falls through to the static SPA build,
 # which is also all Electron and the Capacitor iOS app ever load — neither
 # makes a network request for HTML, so these pages are web-only by construction.

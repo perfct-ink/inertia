@@ -39,7 +39,10 @@ Rails.application.configure do
 
   # Assume all access to the app is happening through a SSL-terminating reverse proxy.
   # Can be used together with config.force_ssl for Strict-Transport-Security and secure cookies.
-  # config.assume_ssl = true
+  # Production only receives traffic through Coolify's TLS proxy, or over the
+  # stack's private network (the collab service and container health checks
+  # call http://api:3000 directly), so force_ssl must not redirect those.
+  config.assume_ssl = true
 
   # Force all access to the app over SSL, use Strict-Transport-Security, and use secure cookies.
   config.force_ssl = true

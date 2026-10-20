@@ -1,13 +1,22 @@
 name: Deploy
 
-# Mirrors ~/Sites/pocketproducer-web/.github/workflows/deploy.yml — same
-# shared droplet, same "test gate, then build and ship" shape. See this
-# repo's docs/README.md "Deploy" section for the one-time setup this depends on.
+# Test gate, then deploy. Production is moving from the shared droplet to
+# Coolify (docs/deployment.md). Once the COOLIFY_DEPLOY_WEBHOOK repository
+# variable is set, `coolify` asks Coolify to build and deploy
+# docker-compose.coolify.yml from main; until then `droplet` keeps shipping
+# to the old host so production doesn't freeze mid-migration. Delete the
+# `droplet` job and deploy/ once the domain is served from Coolify
+# (docs/backlog/retire-droplet-deploy.md).
 
 on:
   push:
     branches: [main]
   workflow_dispatch: {}
+
+# Never interrupt a deploy that's already running; queue the next one.
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
 
 jobs:
   test:
@@ -49,8 +58,28 @@ jobs:
         working-directory: backend
         run: bin/rails test
 
-  deploy:
+  coolify:
     needs: test
+    if: vars.COOLIFY_DEPLOY_WEBHOOK != ''
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    steps:
+      # Coolify's deploy webhook (the resource's Webhooks tab) with an API
+      # token from Keys & Tokens. Coolify builds and health-checks the stack
+      # itself; follow the deployment in its dashboard.
+      - name: Trigger Coolify deployment
+        env:
+          COOLIFY_DEPLOY_WEBHOOK: ${{ vars.COOLIFY_DEPLOY_WEBHOOK }}
+          COOLIFY_TOKEN: ${{ secrets.COOLIFY_TOKEN }}
+        run: |
+          : "${COOLIFY_TOKEN:?Add the COOLIFY_TOKEN repository secret}"
+          curl --fail-with-body -sS -H "Authorization: Bearer $COOLIFY_TOKEN" "$COOLIFY_DEPLOY_WEBHOOK"
+
+  droplet:
+    needs: test
+    if: vars.COOLIFY_DEPLOY_WEBHOOK == ''
     runs-on: ubuntu-latest
     permissions:
       contents: read

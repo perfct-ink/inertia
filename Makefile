@@ -1,6 +1,6 @@
 .DEFAULT_GOAL := all
 
-.PHONY: all setup deps dev dev-backend dev-frontend dev-mac build build-backend build-frontend build-mac clean clean-backend clean-frontend clean-mac help \
+.PHONY: all setup deps dev dev-backend dev-frontend dev-mac build build-backend build-coolify build-frontend build-mac clean clean-backend clean-frontend clean-mac help \
         up up-d up-build down restart open \
         logs logs-backend logs-frontend ps \
         db-migrate db-rollback db-reset db-fake db-seed db-status \
@@ -65,6 +65,9 @@ build: ## Build all (backend Docker image + native macOS app)
 
 build-backend: ## Build the backend production Docker image
 	$(COMPOSE) build backend
+
+build-coolify: ## Build the production images Coolify deploys (docker-compose.coolify.yml)
+	RAILS_MASTER_KEY=$${RAILS_MASTER_KEY:-unused-for-build} $(COMPOSE) -f docker-compose.coolify.yml build
 
 build-frontend: ## Build the frontend for production (webpack bundle)
 	$(COMPOSE) run --rm frontend npm run build

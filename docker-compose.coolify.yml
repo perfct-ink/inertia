@@ -1,0 +1,88 @@
+# Production stack, deployed by Coolify (Docker Compose build pack). Coolify
+# builds these images from the repo on its own server and routes the public
+# domain (set on the `web` service in Coolify) to web:80 through its proxy,
+# which also handles TLS. See docs/deployment.md for the setup steps.
+#
+# The database stays on the DigitalOcean managed MySQL cluster, so there's no
+# db service; its connection details come from the encrypted Rails
+# credentials that RAILS_MASTER_KEY decrypts. No Redis either: ActionCable is
+# unused (config/cable.yml's production adapter is `async`), and document
+# collaboration is the separate collab service below.
+#
+# ${VAR} values show up in Coolify's Environment Variables tab. The defaults
+# are for inertia.it.com; only RAILS_MASTER_KEY has to be set there.
+services:
+  web:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        API_URL: ${APP_URL:-https://inertia.it.com}
+        COLLAB_URL: ${COLLAB_URL:-wss://inertia.it.com/collab}
+    restart: unless-stopped
+    expose:
+      - "80"
+    depends_on:
+      - api
+      - collab
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1/healthz"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    expose:
+      - "3000"
+    environment:
+      RAILS_ENV: production
+      RAILS_MASTER_KEY: ${RAILS_MASTER_KEY:?}
+      # Used for absolute Active Storage URLs from background jobs, which have
+      # no request to take a host from.
+      APP_URL: ${APP_URL:-https://inertia.it.com}
+      # capacitor://localhost is the iOS app's WKWebView origin.
+      CORS_ORIGINS: ${CORS_ORIGINS:-https://inertia.it.com,capacitor://localhost}
+      OAUTH_CALLBACK_BASE_URL: ${OAUTH_CALLBACK_BASE_URL:-https://inertia.it.com}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
+      APPLE_CLIENT_ID: ${APPLE_CLIENT_ID:-}
+      APPLE_TEAM_ID: ${APPLE_TEAM_ID:-}
+      APPLE_KEY_ID: ${APPLE_KEY_ID:-}
+      APPLE_PRIVATE_KEY: ${APPLE_PRIVATE_KEY:-}
+    volumes:
+      - storage:/rails/storage
+    # bin/docker-entrypoint runs db:prepare before the server starts, so the
+    # first check waits out migrations.
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:3000/up"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 60s
+
+  # Real-time collaborative editing (Yjs/Hocuspocus). Holds no secrets:
+  # onAuthenticate asks `api` whether the user may open the document.
+  collab:
+    build:
+      context: ./collab-server
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    expose:
+      - "1234"
+    environment:
+      RAILS_INTERNAL_URL: http://api:3000
+      PORT: "1234"
+    depends_on:
+      - api
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:1234').then(r=>process.exit(r.ok?0:1),()=>process.exit(1))"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  storage:

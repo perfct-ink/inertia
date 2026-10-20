@@ -2,8 +2,8 @@ Rails.application.routes.draw do
   get "up" => "rails/health#show", as: :rails_health_check
 
   # The only HTML this API renders: public marketing/SEO pages. nginx proxies
-  # just these exact paths to Rails (see deploy/server/sites-available/
-  # inertia.it.com.conf); everything else at the root still falls through to
+  # just these exact paths to Rails (see frontend/nginx/default.conf);
+  # everything else at the root still falls through to
   # the static SPA build. Electron and the Capacitor iOS app never hit these —
   # both load frontend/dist/index.html straight off disk and never make a
   # network request for HTML — so these pages are web-only by construction.

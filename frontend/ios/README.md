@@ -46,8 +46,8 @@ you're doing:
     container (`docker compose up -d --force-recreate --no-deps backend`).
 
 Either way, the app's own origin is `capacitor://localhost` — already
-allowed in `docker-compose.yml` (dev) and `deploy/deploy.sh` (prod, added to
-`CORS_ORIGINS` on every deploy).
+allowed in `docker-compose.yml` (dev) and `docker-compose.coolify.yml`
+(prod, the default `CORS_ORIGINS`).
 
 ## Signing (one-time, per Mac)
 
