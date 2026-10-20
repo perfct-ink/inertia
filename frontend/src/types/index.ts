@@ -231,3 +231,21 @@ export interface FolderContents {
   events: WorkspaceEvent[]
   epics: Epic[]
 }
+
+// A credential an outside agent (Claude, Claude Code...) uses to reach a Space.
+export interface AgentToken {
+  id: number
+  name: string
+  permission: 'read' | 'write'
+  token_prefix: string
+  folder_id: number | null
+  revoked_at: string | null
+  last_used_at: string | null
+  created_at: string
+}
+
+// What creating a token returns: the token itself (shown once) and where to connect.
+export interface NewAgentToken extends AgentToken {
+  token: string
+  mcp_url: string
+}

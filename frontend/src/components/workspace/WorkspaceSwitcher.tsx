@@ -1,11 +1,12 @@
 import { useState } from 'react'
-import { Check, ChevronsUpDown, Plus, Users } from 'lucide-react'
+import { Bot, Check, ChevronsUpDown, Plus, Users } from 'lucide-react'
 import { Button, Modal, PromptDialog } from '@/components/ui'
 import { useWorkspace } from '@/api/workspace'
-import { useCreateWorkspace, useWorkspaces } from '@/api/workspaces'
+import { canManageWorkspace, useCreateWorkspace, useWorkspaces } from '@/api/workspaces'
 import { useSwitchWorkspace } from '@/hooks/useSwitchWorkspace'
 import type { WorkspaceSummary } from '@/types'
 import { WorkspaceMembers } from './WorkspaceMembers'
+import { AgentAccess } from './AgentAccess'
 import './WorkspaceSwitcher.scss'
 
 // The sidebar header's workspace name, which opens a list to switch between
@@ -18,6 +19,7 @@ export function WorkspaceSwitcher() {
   const [listOpen, setListOpen] = useState(false)
   const [creating, setCreating] = useState(false)
   const [membersOpen, setMembersOpen] = useState(false)
+  const [agentsOpen, setAgentsOpen] = useState(false)
 
   function switchTo(workspace: WorkspaceSummary) {
     setListOpen(false)
@@ -63,10 +65,16 @@ export function WorkspaceSwitcher() {
               <Users className="workspace_switcher-icon" /> Members
             </Button>
           )}
+          {current && canManageWorkspace(current.role) && (
+            <Button variant="secondary" onClick={() => { setListOpen(false); setAgentsOpen(true) }}>
+              <Bot className="workspace_switcher-icon" /> Agent access
+            </Button>
+          )}
         </div>
       </Modal>
 
       <PromptDialog open={creating} title="New space" label="Space name" placeholder="e.g. Website relaunch" submitLabel="Create" onSubmit={create} onClose={() => setCreating(false)} />
+      {current && canManageWorkspace(current.role) && <AgentAccess open={agentsOpen} onClose={() => setAgentsOpen(false)} />}
       {current && <WorkspaceMembers workspace={current} open={membersOpen} onClose={() => setMembersOpen(false)} />}
     </>
   )

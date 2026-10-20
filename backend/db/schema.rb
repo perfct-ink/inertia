@@ -10,7 +10,38 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_10_18_000003) do
+ActiveRecord::Schema[7.2].define(version: 2026_10_19_000026) do
+  create_table "agent_activities", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+    t.bigint "agent_token_id", null: false
+    t.bigint "workspace_id", null: false
+    t.string "action", null: false
+    t.string "subject_type"
+    t.bigint "subject_id"
+    t.string "summary"
+    t.datetime "created_at", null: false
+    t.index ["agent_token_id"], name: "index_agent_activities_on_agent_token_id"
+    t.index ["subject_type", "subject_id"], name: "index_agent_activities_on_subject_type_and_subject_id"
+    t.index ["workspace_id"], name: "index_agent_activities_on_workspace_id"
+  end
+
+  create_table "agent_tokens", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+    t.bigint "workspace_id", null: false
+    t.bigint "folder_id"
+    t.bigint "created_by_id"
+    t.string "name", null: false
+    t.string "token_digest", null: false
+    t.string "token_prefix", null: false
+    t.integer "permission", default: 0, null: false
+    t.datetime "revoked_at"
+    t.datetime "last_used_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["created_by_id"], name: "index_agent_tokens_on_created_by_id"
+    t.index ["folder_id"], name: "index_agent_tokens_on_folder_id"
+    t.index ["token_digest"], name: "index_agent_tokens_on_token_digest", unique: true
+    t.index ["workspace_id"], name: "index_agent_tokens_on_workspace_id"
+  end
+
   create_table "ai_runs", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.bigint "workspace_id", null: false
     t.bigint "ai_worker_id", null: false
@@ -360,6 +391,11 @@ ActiveRecord::Schema[7.2].define(version: 2026_10_18_000003) do
     t.index ["user_id"], name: "index_workspaces_on_user_id"
   end
 
+  add_foreign_key "agent_activities", "agent_tokens"
+  add_foreign_key "agent_activities", "workspaces"
+  add_foreign_key "agent_tokens", "folders", on_delete: :cascade
+  add_foreign_key "agent_tokens", "users", column: "created_by_id", on_delete: :nullify
+  add_foreign_key "agent_tokens", "workspaces"
   add_foreign_key "ai_runs", "ai_workers"
   add_foreign_key "ai_runs", "tasks"
   add_foreign_key "ai_runs", "workspaces"

@@ -1,6 +1,7 @@
 ---
 priority: p0
 depends_on: []
+branch: backlog/ai-worker-agent-access
 components: [backend]
 ---
 # AI worker: let Claude and other agents read and edit a Space
@@ -21,3 +22,8 @@ An outside agent (Claude, Claude Code, or any agent that speaks MCP or REST) nee
 - A revoked token stops working immediately.
 - Each change shows the agent as its author.
 - Tests cover token scoping and the read/write tools; `docs/features/` and `docs/services.md` are updated and this file is removed.
+
+## Blocked
+Built on `backlog/ai-worker-agent-access`: tokens, MCP endpoint, REST wrapper, tools, Markdown conversion, activity log, Agent access dialog. Not done: showing the agent as author in the UI (activity is logged in `agent_activities`).
+Not run (no gems, DB or node_modules offline): `rails test`, `rails db:migrate` (then diff `db/schema.rb`; migration 20261019000026), `npm run lint`, type-check, Jest. Only `ruby -c` and a plain-Ruby check of `DocumentMarkdown` ran.
+To verify: run the above, add `/mcp` to the nginx proxy, then `claude mcp add --transport http inertia <url>/mcp --header "Authorization: Bearer <token>"` and read, tick and edit a document.

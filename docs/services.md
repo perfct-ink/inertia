@@ -11,6 +11,7 @@ Every internal and external service Inertia uses, why it is used, and the config
 | Collab server | `collab-server/` (port 1234) | Real-time collaborative document editing (Yjs/Hocuspocus). Holds no secrets: it asks Rails (`GET /api/v1/documents/:id`) to authenticate and authorize each connection. |
 | AI workers | `backend/app/services/ai_workers/`, `AiWorkerRunJob` | Runs a task through a language model and stores the reply on an `ai_runs` row (see `docs/features/ai_workers.md`). The model call goes through `AiWorkers.client`, which is unset by default, so runs fail with "No AI client is configured" until the Anthropic adapter is added. A run only stores text; it cannot edit tasks or documents. Jobs use the in-process queue, like the Quip import. |
 | Native Mac app | `macos/` | SwiftUI shell for native sign-in and local `.inertia-tasks` files; loads the React workspace in WKWebView. |
+| MCP server and agent API | `backend/app/controllers/mcp_controller.rb`, `backend/app/services/agent_tools.rb` | Lets Claude, Claude Code and other agents read and edit a Space with a revocable per-Space token (`/mcp`, `/api/v1/agent/tools`). Needs no config; the reverse proxy must forward `/mcp` to Rails. Tokens are stored as SHA256 digests. |
 
 ## Data stores
 

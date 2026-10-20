@@ -22,6 +22,10 @@ Rails.application.routes.draw do
       registrations: "api/v1/auth/registrations"
     }
 
+  # Inertia's MCP server for agents (Claude, Claude Code, ...); see AgentTools.
+  post "/mcp", to: "mcp#handle"
+  get "/mcp", to: "mcp#unsupported"
+
   namespace :api do
     namespace :v1 do
       post "auth/social/:provider/start", to: "auth/social#start", constraints: { provider: /apple|google/ }
@@ -62,6 +66,9 @@ Rails.application.routes.draw do
       resources :task_dependencies, only: [ :index, :create, :destroy ]
       resources :ai_workers, only: [ :index, :create, :update, :destroy ]
       resources :ai_runs, only: [ :index, :create ]
+      resources :agent_tokens, only: [ :index, :create, :destroy ]
+      get "agent/tools", to: "agent_tools#index"
+      post "agent/tools/:name", to: "agent_tools#create"
       resources :objectives, only: [ :index, :create, :update, :destroy ]
       resources :key_results, only: [ :create, :update, :destroy ]
 
