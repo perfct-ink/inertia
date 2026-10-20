@@ -1,8 +1,11 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { Download } from 'lucide-react'
-import { Button, Input } from '@/components/ui'
+import { Button, FormError, Input, Select } from '@/components/ui'
 import WorkspaceLayout from '@/components/WorkspaceLayout'
 import { useUpdateDocument } from '@/api/documents'
+import { useMoveDocument, useReplaceFile, useWorkspace } from '@/api/workspace'
+import { errorMessage } from '@/util/errorMessage'
+import { flattenFolders } from '@/data/folder'
 import api from '@/lib/api'
 import { filePreview, formatBytes } from '@/data/document'
 import { useTabsStore } from '@/store/tabs'
@@ -17,6 +20,12 @@ export default function FileViewer({ doc }: { doc: Document }) {
   const updateDocument = useUpdateDocument()
   const { updateTitle } = useTabsStore()
   const [title, setTitle] = useState(doc.title)
+  const { data: workspace } = useWorkspace()
+  const moveDocument = useMoveDocument()
+  const replaceFile = useReplaceFile()
+  const replaceInput = useRef<HTMLInputElement>(null)
+  const [error, setError] = useState<string | null>(null)
+  const folders = flattenFolders(workspace?.folders ?? []).filter((f) => !f.archived)
   const file = doc.file
   const url = file ? `${api.defaults.baseURL ?? ''}${file.url}` : ''
   const preview = filePreview(file?.content_type)
@@ -45,6 +54,31 @@ export default function FileViewer({ doc }: { doc: Document }) {
             </a>
           )}
         </div>
+        <div className="file_viewer-actions">
+          <label>
+            Folder
+            <Select
+              aria-label="Folder"
+              value={doc.folder_id}
+              onChange={(e) => moveDocument.mutate({ id: doc.id, folderId: Number(e.target.value) }, { onError: (err) => setError(errorMessage(err)) })}
+            >
+              {folders.map((f) => <option key={f.id} value={f.id}>{f.root ? 'Root' : f.name}</option>)}
+            </Select>
+          </label>
+          <Button variant="secondary" disabled={replaceFile.isPending} onClick={() => replaceInput.current?.click()}>Replace with a new version</Button>
+          <Input
+            ref={replaceInput}
+            type="file"
+            hidden
+            aria-label="Choose the new version"
+            onChange={(e) => {
+              const picked = e.target.files?.[0]
+              e.target.value = ''
+              if (picked) replaceFile.mutate({ documentId: doc.id, file: picked }, { onError: (err) => setError(errorMessage(err)) })
+            }}
+          />
+        </div>
+        <FormError message={error} />
         {file && <p className="file_viewer-meta">{file.content_type || 'Unknown type'} · {formatBytes(file.byte_size)}</p>}
         {!file && <p className="file_viewer-meta">This file is not available.</p>}
         {file && preview === 'image' && <img className="file_viewer-image" src={url} alt={doc.title} />}

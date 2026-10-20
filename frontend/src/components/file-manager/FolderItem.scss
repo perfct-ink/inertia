@@ -12,6 +12,11 @@
       text-decoration: underline;
     }
 
+    @at-root .folder_item-row--drop {
+      outline: 2px dashed color(primary);
+      outline-offset: -2px;
+    }
+
     @at-root .folder_item-row {
       @include fm.row;
 

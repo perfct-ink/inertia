@@ -40,6 +40,7 @@ Rails.application.routes.draw do
       end
 
       resources :documents, only: [] do
+        resource :file, only: [ :update ], controller: "files"
         resources :tasks, only: [ :index, :create ], shallow: true
       end
 

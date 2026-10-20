@@ -140,3 +140,19 @@ export function useUploadFiles() {
     },
   })
 }
+
+// Replaces a file item's contents with a new upload.
+export function useReplaceFile() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ documentId, file }: { documentId: number; file: File }) => {
+      const form = new FormData()
+      form.append('file', file)
+      return api.put(`/api/v1/documents/${documentId}/file`, form).then((r) => r.data as Document)
+    },
+    onSuccess: (doc) => {
+      qc.setQueryData(['document', doc.id], doc)
+      qc.invalidateQueries({ queryKey: ['workspace'] })
+    },
+  })
+}
