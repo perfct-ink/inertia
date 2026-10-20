@@ -26,8 +26,8 @@
     }
 
     @at-root .sprint_header-dates,
-    @at-root .sprint_header-goal,
-    @at-root .sprint_header-progress {
+    .sprint_header-goal,
+    .sprint_header-progress {
       color: color(muted-foreground);
       @include text('sm');
     }
