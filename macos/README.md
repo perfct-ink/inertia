@@ -41,6 +41,7 @@ Choose **File → New** (Command-N) to create an `.inertia-tasks` document, and 
 - Create epics with start/target dates and completion bars, and events (deadlines or milestones) with dates; legacy epic links and Reached state remain file extensions.
 - Filter the board or list by sprint, epic, and event; View Tasks in each planning view opens its tasks.
 - Rename/add/reorder columns and mark which columns count as completed.
+- A file can also hold Initiatives and Milestones above epics (Milestone > Initiative > Epic > Task). The format and model read, validate and keep them; there are no screens to edit them yet. See [the planning levels](../docs/features/local_task_file_planning.md).
 
 See [the v4 format](../docs/task-file-format.md) and [the sample project](../examples/Launch.inertia-tasks). These files are independent of the Rails workspace; no automatic import/sync takes place. The extension is registered only by the built native `.app`, not `swift run` or Electron.
 
