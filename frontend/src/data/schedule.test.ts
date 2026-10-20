@@ -37,8 +37,10 @@ describe('gantt zoom axis', () => {
   const start = new Date(2026, 9, 14) // Wed 14 Oct 2026
   const end = new Date(2026, 10, 15) // Sun 15 Nov 2026 (33 days)
 
-  test.each(['day', 'week', 'month', 'quarter', 'year'] as const)('%s ticks cover the range exactly once', (zoom) => {
-    expect(axisTicks(start, end, zoom).reduce((sum, t) => sum + t.days, 0)).toBe(33)
+  test('ticks cover the range exactly once at every zoom', () => {
+    for (const zoom of ['day', 'week', 'month', 'quarter', 'year'] as const) {
+      expect(axisTicks(start, end, zoom).reduce((sum, t) => sum + t.days, 0)).toBe(33)
+    }
   })
 
   test('ticks are clipped to the range and labelled for their zoom', () => {
