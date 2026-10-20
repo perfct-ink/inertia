@@ -249,3 +249,24 @@ export interface NewAgentToken extends AgentToken {
   token: string
   mcp_url: string
 }
+
+export type HandoffSubject = 'document' | 'folder' | 'task'
+
+// A document, folder or task sent to an outside agent.
+export interface AgentHandoff {
+  id: number
+  subject_type: string
+  subject_id: number
+  agent_name: string
+  instruction: string | null
+  prompt: string
+  status: 'sent' | 'working' | 'closed'
+  sent_by_name: string | null
+  created_at: string
+}
+
+// What sending returns: the handoff plus the token (shown once) and MCP URL.
+export interface NewAgentHandoff extends AgentHandoff {
+  token: string
+  mcp_url: string
+}

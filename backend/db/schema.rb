@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_10_19_000026) do
+ActiveRecord::Schema[7.2].define(version: 2026_10_19_000027) do
   create_table "agent_activities", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.bigint "agent_token_id", null: false
     t.bigint "workspace_id", null: false
@@ -22,6 +22,23 @@ ActiveRecord::Schema[7.2].define(version: 2026_10_19_000026) do
     t.index ["agent_token_id"], name: "index_agent_activities_on_agent_token_id"
     t.index ["subject_type", "subject_id"], name: "index_agent_activities_on_subject_type_and_subject_id"
     t.index ["workspace_id"], name: "index_agent_activities_on_workspace_id"
+  end
+
+  create_table "agent_handoffs", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+    t.bigint "workspace_id", null: false
+    t.bigint "agent_token_id", null: false
+    t.bigint "sent_by_id"
+    t.string "subject_type", null: false
+    t.bigint "subject_id", null: false
+    t.string "agent_name", null: false
+    t.text "instruction"
+    t.text "prompt", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["agent_token_id"], name: "index_agent_handoffs_on_agent_token_id"
+    t.index ["sent_by_id"], name: "index_agent_handoffs_on_sent_by_id"
+    t.index ["subject_type", "subject_id"], name: "index_agent_handoffs_on_subject_type_and_subject_id"
+    t.index ["workspace_id"], name: "index_agent_handoffs_on_workspace_id"
   end
 
   create_table "agent_tokens", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
@@ -393,6 +410,9 @@ ActiveRecord::Schema[7.2].define(version: 2026_10_19_000026) do
 
   add_foreign_key "agent_activities", "agent_tokens"
   add_foreign_key "agent_activities", "workspaces"
+  add_foreign_key "agent_handoffs", "agent_tokens"
+  add_foreign_key "agent_handoffs", "users", column: "sent_by_id", on_delete: :nullify
+  add_foreign_key "agent_handoffs", "workspaces"
   add_foreign_key "agent_tokens", "folders", on_delete: :cascade
   add_foreign_key "agent_tokens", "users", column: "created_by_id", on_delete: :nullify
   add_foreign_key "agent_tokens", "workspaces"

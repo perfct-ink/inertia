@@ -23,6 +23,13 @@ Outside agents (Claude, Claude Code, any MCP or REST client) reach a Space with 
 - nginx must proxy `/mcp` to Rails. Edits go through Rails, not the collab server, so an open editor can overwrite them until `ai-worker-live-updates` is built.
 - Tests: `test/models/agent_token_test.rb`, `test/services/agent_tools_test.rb`, `test/services/document_markdown_test.rb`, `test/controllers/mcp_controller_test.rb`, `test/controllers/agent_tokens_controller_test.rb`; frontend `AgentAccess.test.tsx`, `data/agentAccess.test.ts`.
 
+## Send to agent (Claude Code or another MCP agent)
+A **Send to agent** button (bot icon) sits in the document toolbar, the folder header and on each task card. It asks for an agent name, an instruction and read-only or read-and-write, then shows a handoff to copy once: a prompt (what to read, the open tasks or folder documents, the instruction) plus the `claude mcp add` command with a new token limited to the item's folder. The prompt never contains the token; the token is shown once.
+- `POST /api/v1/agent_handoffs` (`subject_type` document, folder or task; `subject_id`, `agent_name`, `instruction`, `permission`) and `GET /api/v1/agent_handoffs?subject_type=&subject_id=`. Anyone who can write in the Space can send; viewers cannot.
+- Model `AgentHandoff` (who sent it, what it covers, instruction, prompt, token). Its status is derived from the token: **sent** until the agent first uses it, **working** after, **closed** once revoked. The dialog lists earlier handoffs for the item.
+- Tests: `test/controllers/agent_handoffs_controller_test.rb`; frontend `SendToAgent.test.tsx`, `data/agentAccess.test.ts`.
+- **Not built:** the "Claude, run by Inertia" destination (needs `ai-worker-anthropic-adapter`: the gem, `ANTHROPIC_API_KEY` and network) and delivery by webhook. Handoffs are not yet shown as runs on the item beyond the dialog's list.
+
 ## Who can view and change
 Scoped to the current Space; I did not check role-based limits.
 
@@ -41,3 +48,4 @@ No model adapter, no UI, no cost limits, no retry or cancel, and runs stuck in `
 - Implemented 2026-10-18 (foundation only). Committed locally; not pushed or deployed.
 - Not verified: the tests were not run (no gems installed), the migration was not run, and no real model call was made.
 - Agent access implemented 2026-10-19 on branch `backlog/ai-worker-agent-access`; not merged or deployed. Not verified: Rails tests, migration, Jest, lint, type-check (no gems, DB or node_modules offline); Markdown conversion was checked with a plain Ruby script.
+- Send to agent (copy-and-paste destination) implemented 2026-10-19 on branch `backlog/ai-worker-send-docs-to-agent`, stacked on `backlog/ai-worker-agent-access`; not merged or deployed. Not verified: Rails tests, migration 20261019000027, Jest, lint, type-check.

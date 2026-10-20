@@ -13,6 +13,7 @@ class Workspace < ApplicationRecord
   has_many :events, dependent: :destroy
   has_many :epics, dependent: :destroy
   has_many :initiatives, dependent: :destroy
+  has_many :agent_handoffs, dependent: :destroy
   has_many :agent_tokens, dependent: :destroy
   has_many :milestones, dependent: :destroy
   has_many :sprints, dependent: :destroy

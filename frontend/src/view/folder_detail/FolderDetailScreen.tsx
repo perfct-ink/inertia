@@ -14,6 +14,7 @@ import {
 } from 'date-fns'
 import CreateItem from '@/components/CreateItem'
 import WorkspaceLayout from '@/components/WorkspaceLayout'
+import { SendToAgent } from '@/components/workspace/SendToAgent'
 import { ProgressBar } from '@/components/Timeline'
 import { useFolderContents, useUpdateFolder } from '@/api/workspace'
 import { useUpdateTask } from '@/api/tasks'
@@ -433,6 +434,7 @@ export default function FolderDetailScreen() {
               </Button>
             ))}
           </div>
+          <SendToAgent subjectType="folder" subjectId={folderId} title={folder.name} className="folder_detail-subtle" />
           <Button
             onClick={() => updateFolder.mutate({ id: folderId, archived: !folder.archived })}
             className="folder_detail-subtle folder_detail-archive"

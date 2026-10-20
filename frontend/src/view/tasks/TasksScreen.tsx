@@ -1,4 +1,5 @@
 import { Button, Input, Select, classNames } from '@/components/ui'
+import { SendToAgent } from '@/components/workspace/SendToAgent'
 import { useState, useRef, useEffect } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { Plus, X, ArrowRight, Play, Loader2, Search, Filter, Target } from 'lucide-react'
@@ -94,6 +95,7 @@ function TaskCard({ task, onNext, onNavigate, epicTitle, overlay }: Omit<CardPro
             {task.document.title}
           </Button>
         )}
+        {!overlay && <SendToAgent subjectType="task" subjectId={task.id} title={task.title} className="tasks-next" />}
         {onNext && !overlay && (
           <Button
             onClick={onNext}

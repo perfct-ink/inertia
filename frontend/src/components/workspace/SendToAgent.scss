@@ -1,0 +1,16 @@
+@use 'tokens' as *;
+
+@layer app.components {
+  .send_to_agent {
+    &-icon {
+      width: 1rem;
+      height: 1rem;
+    }
+
+    &-sent {
+      display: flex;
+      flex-direction: column;
+      gap: space(2);
+    }
+  }
+}

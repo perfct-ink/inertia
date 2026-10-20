@@ -58,6 +58,7 @@ import {
   Image as ImageIcon,
 } from 'lucide-react'
 import WorkspaceLayout from '@/components/WorkspaceLayout'
+import { SendToAgent } from '@/components/workspace/SendToAgent'
 import { useDocument, useUpdateDocument } from '@/api/documents'
 import { useCreateTask } from '@/api/tasks'
 import { useWorkspace } from '@/api/workspace'
@@ -552,6 +553,7 @@ export default function DocumentScreen() {
             hidden
             onChange={handleMediaInputChange}
           />
+          <SendToAgent subjectType="document" subjectId={docId} title={doc?.title ?? 'document'} className="document-toolbar_button" />
           <div className="document-status">
             {saveStatus === 'saving' && <Loader2 className="document-status_spinner" />}
             {saveStatus === 'unsaved' && <div className="document-status_dot" />}

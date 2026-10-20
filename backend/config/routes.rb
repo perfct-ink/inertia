@@ -66,6 +66,7 @@ Rails.application.routes.draw do
       resources :task_dependencies, only: [ :index, :create, :destroy ]
       resources :ai_workers, only: [ :index, :create, :update, :destroy ]
       resources :ai_runs, only: [ :index, :create ]
+      resources :agent_handoffs, only: [ :index, :create ]
       resources :agent_tokens, only: [ :index, :create, :destroy ]
       get "agent/tools", to: "agent_tools#index"
       post "agent/tools/:name", to: "agent_tools#create"

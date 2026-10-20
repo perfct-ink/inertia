@@ -1,6 +1,7 @@
 ---
 priority: p0
 depends_on: [ai-worker-agent-access]
+branch: backlog/ai-worker-send-docs-to-agent
 components: [frontend, backend]
 ---
 # AI worker: send docs to Claude or an agent and start the work
@@ -21,3 +22,8 @@ From a document, folder or task, press **Send to agent**, pick where it goes, an
 - A person can copy a handoff for Claude Code, paste it, and the agent can read the same docs through MCP.
 - Failed API calls show an error.
 - Tests cover the handoff; `docs/features/ai_workers.md` is updated and this file is removed.
+
+## Blocked
+Built on `backlog/ai-worker-send-docs-to-agent`, stacked on `backlog/ai-worker-agent-access` (merge that first): the Claude Code / other-agent destination with a copyable prompt, MCP URL and folder-scoped token, on documents, folders and tasks, with a handoff record and status.
+Not built: "Claude, run by Inertia" (needs `ai-worker-anthropic-adapter`, which needs the `anthropic` gem, `ANTHROPIC_API_KEY` and network) and webhook delivery. Leave this file in place until those exist.
+Not run (no gems, DB or node_modules offline): `rails test`, `rails db:migrate` (diff `db/schema.rb`), `npm run lint`, type-check, Jest.
