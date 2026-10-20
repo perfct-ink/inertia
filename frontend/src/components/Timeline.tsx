@@ -1,10 +1,10 @@
 import { useRef, useState, type PointerEvent as ReactPointerEvent } from 'react'
 import {
-  format, parseISO, startOfMonth, endOfMonth, eachMonthOfInterval, differenceInCalendarDays,
+  parseISO, startOfMonth, endOfMonth, differenceInCalendarDays,
 } from 'date-fns'
 import './Timeline.scss'
 import { classNames } from '@/components/ui'
-import { donePercent, shiftedRange, type DragMode, type Scheduled } from '@/data/schedule'
+import { axisTicks, donePercent, shiftedRange, trackWidthPx, weekendSpans, type DragMode, type GanttZoom, type Scheduled } from '@/data/schedule'
 import { linkSides } from '@/data/dependency'
 import type { DependencyKind } from '@/types'
 
@@ -113,13 +113,17 @@ function TimelineBar({ item, offsetPct, widthPct, totalDays, onReschedule }: {
 // bars' month range are left off rather than stretching the axis.
 // `range` pins the axis (the roadmap stacks one Timeline per lane and needs
 // their months to line up); without it the axis fits this list's own dates.
-export function Timeline({ items, milestones = [], range, links = [], onReschedule }: {
+export function Timeline({ items, milestones = [], range, links = [], onReschedule, zoom = 'month', shadeWeekends = false }: {
   items: Scheduled[]
   milestones?: TimelineMilestone[]
   range?: { start: Date; end: Date }
   links?: TimelineLink[]
   // Makes bars draggable (move / resize); absent keeps the chart read-only.
   onReschedule?: TimelineReschedule
+  // Axis granularity; month (the default) fits the page, the others scroll sideways.
+  zoom?: GanttZoom
+  // Shade Saturdays and Sundays (only drawn at day and week zoom, where they are wide enough to see).
+  shadeWeekends?: boolean
 }) {
   const dated = items.filter((e): e is Dated => Boolean(e.start_date && e.target_date))
   const undated = items.filter((e) => !e.start_date || !e.target_date)
@@ -136,7 +140,10 @@ export function Timeline({ items, milestones = [], range, links = [], onReschedu
   const rangeStart = range?.start ?? startOfMonth(new Date(Math.min(...dated.map((e) => parseISO(e.start_date).getTime()))))
   const rangeEnd = range?.end ?? endOfMonth(new Date(Math.max(...dated.map((e) => parseISO(e.target_date).getTime()))))
   const totalDays = differenceInCalendarDays(rangeEnd, rangeStart) + 1
-  const months = eachMonthOfInterval({ start: rangeStart, end: rangeEnd })
+  const ticks = axisTicks(rangeStart, rangeEnd, zoom)
+  const weekends = shadeWeekends && (zoom === 'day' || zoom === 'week') ? weekendSpans(rangeStart, rangeEnd) : []
+  // Room for the title and count columns beside the track.
+  const chartWidth = trackWidthPx(totalDays, zoom)
 
   const markers = milestones
     .map((m) => ({ ...m, date: parseISO(m.target_date) }))
@@ -178,20 +185,20 @@ export function Timeline({ items, milestones = [], range, links = [], onReschedu
 
   return (
     <div className="view-timeline">
-      <div className="timeline-chart">
+      <div
+        className={classNames('timeline-chart', zoom !== 'month' && 'timeline-chart--zoomed')}
+        style={chartWidth ? { minWidth: `calc(${chartWidth}px + var(--timeline-side-columns))` } : undefined}
+      >
         <div className="timeline-months">
-          {months.map((m) => {
-            const daysInMonth = differenceInCalendarDays(endOfMonth(m), startOfMonth(m)) + 1
-            return (
-              <div
-                key={m.toISOString()}
-                style={{ width: `${(daysInMonth / totalDays) * 100}%` }}
-                className="timeline-month"
-              >
-                {format(m, 'MMM yyyy')}
-              </div>
-            )
-          })}
+          {ticks.map((tick) => (
+            <div
+              key={tick.key}
+              style={{ width: `${(tick.days / totalDays) * 100}%` }}
+              className={classNames('timeline-month', zoom === 'day' && 'timeline-month--day')}
+            >
+              {tick.label}
+            </div>
+          ))}
         </div>
         {markers.length > 0 && (
           <div className="timeline-row timeline-markers">
@@ -212,6 +219,13 @@ export function Timeline({ items, milestones = [], range, links = [], onReschedu
           </div>
         )}
         <div className="timeline-rows">
+          {weekends.length > 0 && (
+            <div className="timeline-today_area" aria-hidden="true">
+              {weekends.map((w) => (
+                <span key={w.offset} className="timeline-weekend" style={{ left: `${(w.offset / totalDays) * 100}%`, width: `${(w.days / totalDays) * 100}%` }} />
+              ))}
+            </div>
+          )}
           {todayPct !== null && (
             <div className="timeline-today_area" aria-hidden="true">
               <span className="timeline-today" style={{ left: `${todayPct}%` }} title="Today" />

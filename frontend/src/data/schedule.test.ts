@@ -1,4 +1,4 @@
-import { donePercent, groupGanttRows, shiftedRange, type Scheduled } from './schedule'
+import { axisTicks, donePercent, groupGanttRows, shiftedRange, trackWidthPx, weekendSpans, type Scheduled } from './schedule'
 
 const item = (tasks_count: number, done_tasks_count: number) =>
   ({ id: 1, title: 'x', start_date: null, target_date: null, tasks_count, done_tasks_count }) as Scheduled
@@ -31,4 +31,36 @@ test('shiftedRange moves both ends or resizes one edge without crossing', () => 
   expect(shiftedRange('2026-01-10', '2026-01-20', 'end', -30)).toEqual({ start: '2026-01-10', end: '2026-01-10' })
   expect(shiftedRange('2026-01-10', '2026-01-20', 'start', 30)).toEqual({ start: '2026-01-20', end: '2026-01-20' })
   expect(shiftedRange('2026-01-10', '2026-01-20', 'start', -2)).toEqual({ start: '2026-01-08', end: '2026-01-20' })
+})
+
+describe('gantt zoom axis', () => {
+  const start = new Date(2026, 9, 14) // Wed 14 Oct 2026
+  const end = new Date(2026, 10, 15) // Sun 15 Nov 2026 (33 days)
+
+  test.each(['day', 'week', 'month', 'quarter', 'year'] as const)('%s ticks cover the range exactly once', (zoom) => {
+    expect(axisTicks(start, end, zoom).reduce((sum, t) => sum + t.days, 0)).toBe(33)
+  })
+
+  test('ticks are clipped to the range and labelled for their zoom', () => {
+    expect(axisTicks(start, end, 'month').map((t) => [t.label, t.days])).toEqual([['Oct 2026', 18], ['Nov 2026', 15]])
+    expect(axisTicks(start, end, 'week').map((t) => [t.label, t.days])).toEqual([['Oct 12', 5], ['Oct 19', 7], ['Oct 26', 7], ['Nov 2', 7], ['Nov 9', 7]])
+    expect(axisTicks(start, end, 'quarter').map((t) => [t.label, t.days])).toEqual([['Q4 2026', 33]])
+    expect(axisTicks(start, end, 'year').map((t) => [t.label, t.days])).toEqual([['2026', 33]])
+    expect(axisTicks(start, end, 'day')).toHaveLength(33)
+    expect(axisTicks(start, end, 'day')[0].label).toBe('14')
+  })
+
+  test('weekend runs join Saturday and Sunday', () => {
+    expect(weekendSpans(start, end)).toEqual([
+      { offset: 3, days: 2 }, { offset: 10, days: 2 }, { offset: 17, days: 2 }, { offset: 24, days: 2 }, { offset: 31, days: 2 },
+    ])
+    // A range that starts on a Sunday begins with a one-day run.
+    expect(weekendSpans(new Date(2026, 9, 18), new Date(2026, 9, 20))).toEqual([{ offset: 0, days: 1 }])
+  })
+
+  test('chart width scales with zoom; months fit the page', () => {
+    expect(trackWidthPx(33, 'day')).toBe(1188)
+    expect(trackWidthPx(33, 'month')).toBe(0)
+    expect(trackWidthPx(365, 'year')).toBe(365)
+  })
 })

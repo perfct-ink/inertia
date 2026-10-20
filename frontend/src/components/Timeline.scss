@@ -34,8 +34,16 @@
     }
 
     @at-root .timeline-chart {
+      // Title column + count column + the gaps around the track.
+      --timeline-side-columns: #{space(36) + space(14) + space(6)};
+
       min-width: 700px;
       max-width: 56rem;
+
+      // Day, week, quarter and year zoom size the track by days, and scroll.
+      &--zoomed {
+        max-width: none;
+      }
     }
 
     // Month labels sit over the track column only (same offsets as the
@@ -49,6 +57,10 @@
     @at-root .timeline-month {
       @include text('xs');
       @include truncate;
+
+      &--day {
+        text-align: center;
+      }
 
       flex-shrink: 0;
       padding-bottom: space(1);
@@ -159,6 +171,14 @@
       position: absolute;
       inset: 0 calc(#{space(14)} + #{space(3)}) 0 calc(#{space(36)} + #{space(3)});
       pointer-events: none;
+    }
+
+    // A Saturday-Sunday run behind the bars (day and week zoom).
+    @at-root .timeline-weekend {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      background: color(muted, 0.5);
     }
 
     // Dependency arrows: same horizontal span as the today overlay.
