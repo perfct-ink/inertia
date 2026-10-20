@@ -1,4 +1,5 @@
 ---
+branch: backlog/task-line-two-way-sync
 priority: p0
 depends_on: []
 components: [frontend, backend]
@@ -23,3 +24,6 @@ A checklist line creates a task on save (`syncTaskNodes` in `view/document/Docum
 - Checking the line sets the task to done; setting the task to done checks the line.
 - Deleting a task removes or flags its line; deleting a line shows a prompt offering to delete or keep the task.
 - Failed updates show an error.
+
+## Blocked
+Implemented on the branch, stacked on `backlog/task-line-set-assignee-status-start-date` (merge it first). The reconcile rules are unit-tested and pass in a stand-in runner, but the editor wiring (`reconcileTaskLines`) is the riskiest part and was never run: test in a browser typing in a line while the task refreshes, renaming the task elsewhere, ticking the checkbox, deleting a line (the prompt) and a task, and with two people in the document. To verify the rest: `cd frontend && npm install && npm run lint && npm test`. Then remove this file and merge.

@@ -6,6 +6,7 @@ import { useTasks, useUpdateTask } from '@/api/tasks'
 import { useWorkspaceMembers } from '@/api/workspaces'
 import { useWorkspaceStore } from '@/store/workspaces'
 import { Button, Input, Select } from '@/components/ui'
+import { statusForCheckbox } from '@/data/taskLine'
 import type { Task } from '@/types'
 import './WorkspaceTaskItemView.scss'
 
@@ -92,27 +93,58 @@ function TaskFieldControls({ task }: { task: Task }) {
   )
 }
 
-export default function WorkspaceTaskItemView({ node }: NodeViewProps) {
-  const { data: tasks = [] } = useTasks()
+export default function WorkspaceTaskItemView({ node, editor, getPos }: NodeViewProps) {
+  const { data: tasks = [], isSuccess } = useTasks()
+  const updateTask = useUpdateTask()
   const taskId = node.attrs.taskId as number | null
   const task = tasks.find((t) => t.id === taskId)
   const status = task?.status ?? 'backlog'
   const dotClass = STATUS_DOT[status] ?? 'task_item-dot--backlog'
+  // The line points at a task that no longer exists (deleted elsewhere).
+  const taskGone = Boolean(taskId) && isSuccess && !task
+
+  function removeLine() {
+    const pos = getPos()
+    if (typeof pos === 'number') editor.view.dispatch(editor.state.tr.delete(pos, pos + node.nodeSize))
+  }
+
+  function unlink() {
+    const pos = getPos()
+    if (typeof pos === 'number') editor.view.dispatch(editor.state.tr.setNodeMarkup(pos, undefined, { taskId: null }))
+  }
 
   return (
     <NodeViewWrapper as="li" className="view-task_item">
-      <span
-        className={`task_item-dot ${dotClass} ${!taskId ? 'task_item-dot--unsaved' : ''}`}
-        title={task ? `Status: ${status.replace('_', ' ')}` : 'Unsaved task'}
-      />
+      {task ? (
+        <Input
+          type="checkbox"
+          aria-label={`Mark “${task.title}” done`}
+          checked={task.status === 'done'}
+          contentEditable={false}
+          onChange={(e) => updateTask.mutate({ id: task.id, status: statusForCheckbox(e.target.checked) })}
+          className="task_item-check"
+        />
+      ) : (
+        <span
+          className={`task_item-dot ${dotClass} ${!taskId ? 'task_item-dot--unsaved' : ''}`}
+          title={taskGone ? 'This task was deleted' : 'Unsaved task'}
+        />
+      )}
       <div className="task_item-body">
         <NodeViewContent as="div" />
+        {taskGone && (
+          <div className="task_item-gone" contentEditable={false}>
+            <span>This task was deleted.</span>
+            <Button onClick={unlink}>Make a new task</Button>
+            <Button onClick={removeLine}>Remove line</Button>
+          </div>
+        )}
         {/* Only once the item has synced to a real Task (see DocumentScreen.
             tsx's syncTaskNodes) — there's nothing to attach a date to
             before that. Nested inside the same flex-1 column as the text
             (not a sibling of it) so it sits right under the task instead of
             at the far right edge of the whole editor. */}
-        {taskId && <DueDateControl taskId={taskId} dueDate={task?.due_date ?? null} />}
+        {taskId && task && <DueDateControl taskId={taskId} dueDate={task.due_date ?? null} />}
         {task && <TaskFieldControls task={task} />}
       </div>
     </NodeViewWrapper>

@@ -78,6 +78,20 @@
       }
     }
 
+    & .task_item-check {
+      flex-shrink: 0;
+      margin-top: 0.3rem;
+    }
+
+    & .task_item-gone {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: space(2);
+      color: palette('red-500');
+      @include text('xs');
+    }
+
     & .task_item-fields {
       display: flex;
       flex-wrap: wrap;
