@@ -7,7 +7,7 @@ export function withoutShortcuts<T extends AnyExtension>(extension: T, keys: str
     addKeyboardShortcuts() {
       const parent: Record<string, unknown> = { ...(this.parent?.() ?? {}) }
       keys.forEach((key) => delete parent[key])
-      return parent as ReturnType<NonNullable<typeof this.parent>>
+      return parent as never
     },
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } as any) as T

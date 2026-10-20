@@ -1,4 +1,4 @@
-import { readFileSync } from 'node:fs'
+import { existsSync, readFileSync } from 'node:fs'
 import path from 'node:path'
 import { duplicateShortcuts, EDITOR_SHORTCUTS, REPLACED_DEFAULTS } from './shortcuts'
 
@@ -12,7 +12,9 @@ test('the defaults being replaced belong to the four extensions the editor wraps
 })
 
 test('the keyboard shortcuts doc lists every editor shortcut with its keys', () => {
-  const doc = readFileSync(path.resolve(process.cwd(), '../docs/keyboard-shortcuts.md'), 'utf8')
+  // Jest runs from frontend/; a runner at the repo root works too.
+  const file = ['../docs/keyboard-shortcuts.md', 'docs/keyboard-shortcuts.md'].map((p) => path.resolve(process.cwd(), p)).find((p) => existsSync(p)) as string
+  const doc = readFileSync(file, 'utf8')
   for (const shortcut of EDITOR_SHORTCUTS) {
     expect(doc.includes(shortcut.keys)).toBe(true)
     expect(doc.includes(shortcut.label)).toBe(true)
