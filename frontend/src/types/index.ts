@@ -67,6 +67,8 @@ export interface Task {
   position: number
   document_id: number
   assignee_id: number | null
+  assignee_ids?: number[]
+  watcher_ids?: number[]
   milestone_id?: number | null
   epic_id: number | null
   sprint_id?: number | null

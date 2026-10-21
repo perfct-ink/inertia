@@ -4,6 +4,8 @@ class TaskBlueprint < Blueprinter::Base
 
   field :document_id
   field :assignee_id
+  field :assignee_ids
+  field :watcher_ids
   field :epic_id
   field :sprint_id
   field :milestone_id

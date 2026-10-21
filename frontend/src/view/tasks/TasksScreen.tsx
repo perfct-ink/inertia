@@ -29,7 +29,10 @@ import { useWorkspace } from '@/api/workspace'
 import { useEpics } from '@/api/epics'
 import { useSprints } from '@/api/sprints'
 import { useMilestones } from '@/api/milestones'
-import type { Task, Epic, Sprint, Milestone } from '@/types'
+import type { Task, Epic, Sprint, Milestone, WorkspaceMember } from '@/types'
+import { PeoplePicker } from '@/components/people/PeoplePicker'
+import { initials } from '@/data/person'
+import { useWorkspaceMembers } from '@/api/workspaces'
 import './TasksScreen.scss'
 import { usePageTitle } from '@/hooks/usePageTitle'
 
@@ -70,10 +73,11 @@ interface CardProps {
   onNext: (() => void) | null
   onNavigate: () => void
   epicTitle?: string
+  assignees?: WorkspaceMember[]
   overlay?: boolean
 }
 
-function TaskCard({ task, onNext, onNavigate, epicTitle, overlay }: Omit<CardProps, 'onDelete'>) {
+function TaskCard({ task, onNext, onNavigate, epicTitle, assignees = [], overlay }: Omit<CardProps, 'onDelete'>) {
   return (
     <div className={classNames('tasks-card', overlay && 'tasks-card--overlay')}>
       <div className="tasks-card_title_row">
@@ -84,6 +88,13 @@ function TaskCard({ task, onNext, onNavigate, epicTitle, overlay }: Omit<CardPro
           <Target className="tasks-icon tasks-icon--sm" />
           <span className="tasks-epic_title">{epicTitle}</span>
         </div>
+      )}
+      {assignees.length > 0 && (
+        <ul className="tasks-people" aria-label="Assignees">
+          {assignees.map((m) => (
+            <li key={m.user_id} className="tasks-avatar" title={m.user.name}>{initials(m.user.name)}</li>
+          ))}
+        </ul>
       )}
       <div className="tasks-card_footer">
         {task.document && (
@@ -156,6 +167,8 @@ interface NewTaskFields {
   epicId?: number
   sprintId?: number
   milestoneId?: number
+  assignee_ids: number[]
+  watcher_ids: number[]
 }
 
 interface AddTaskInputProps {
@@ -164,15 +177,18 @@ interface AddTaskInputProps {
   epics: Epic[]
   sprints: Sprint[]
   milestones: Milestone[]
+  members: WorkspaceMember[]
 }
 
-function AddTaskInput({ onAdd, onCancel, epics, sprints, milestones }: AddTaskInputProps) {
+function AddTaskInput({ onAdd, onCancel, epics, sprints, milestones, members }: AddTaskInputProps) {
   const [title, setTitle] = useState('')
   const [startDate, setStartDate] = useState('')
   const [dueDate, setDueDate] = useState('')
   const [epicId, setEpicId] = useState('')
   const [sprintId, setSprintId] = useState('')
   const [milestoneId, setMilestoneId] = useState('')
+  const [assigneeIds, setAssigneeIds] = useState<number[]>([])
+  const [watcherIds, setWatcherIds] = useState<number[]>([])
   const titleRef = useRef('')
   const containerRef = useRef<HTMLDivElement>(null)
 
@@ -185,6 +201,8 @@ function AddTaskInput({ onAdd, onCancel, epics, sprints, milestones }: AddTaskIn
         epicId: epicId ? Number(epicId) : undefined,
         sprintId: sprintId ? Number(sprintId) : undefined,
         milestoneId: milestoneId ? Number(milestoneId) : undefined,
+        assignee_ids: assigneeIds,
+        watcher_ids: watcherIds,
       })
     } else onCancel()
   }
@@ -253,6 +271,12 @@ function AddTaskInput({ onAdd, onCancel, epics, sprints, milestones }: AddTaskIn
           ))}
         </Select>
       )}
+      {members.length > 1 && (
+        <>
+          <PeoplePicker label="Assignees" members={members} value={assigneeIds} onChange={setAssigneeIds} />
+          <PeoplePicker label="Watchers" members={members} value={watcherIds} onChange={setWatcherIds} />
+        </>
+      )}
       {milestones.length > 0 && (
         <Select
           aria-label="Milestone"
@@ -296,6 +320,10 @@ export default function TasksScreen() {
   const { data: sprints = [] } = useSprints()
   const { data: milestones = [] } = useMilestones()
   const epicById = new Map(epics.map((e) => [e.id, e]))
+  const { data: members = [] } = useWorkspaceMembers(workspace?.id ?? 0)
+  const memberByUserId = new Map(members.map((m) => [m.user_id, m]))
+  const assigneesOf = (task: Task) =>
+    (task.assignee_ids ?? []).flatMap((id) => memberByUserId.get(id) ?? [])
 
   useEffect(() => {
     const epicId = searchParams.get('epic_id')
@@ -311,6 +339,7 @@ export default function TasksScreen() {
     ...(filters.status ? { status: filters.status } : {}),
     ...(filters.epic_id ? { epic_id: filters.epic_id } : {}),
     ...(filters.sprint_id ? { sprint_id: filters.sprint_id } : {}),
+    ...(filters.assignee_id ? { assignee_id: filters.assignee_id } : {}),
     ...(searchQ.trim() ? { q: searchQ.trim() } : {}),
   }
 
@@ -451,11 +480,11 @@ export default function TasksScreen() {
             </div>
             <Button
               onClick={() => setShowFilters((o) => !o)}
-              className={classNames('tasks-filter_button', !!(showFilters || filters.folder_id || filters.status || filters.epic_id || filters.sprint_id) && 'tasks-filter_button--active')}
+              className={classNames('tasks-filter_button', !!(showFilters || filters.folder_id || filters.status || filters.epic_id || filters.sprint_id || filters.assignee_id) && 'tasks-filter_button--active')}
             >
               <Filter className="tasks-icon" />
               Filter
-              {(filters.folder_id || filters.status || filters.epic_id || filters.sprint_id) && <span className="tasks-filter_dot" />}
+              {(filters.folder_id || filters.status || filters.epic_id || filters.sprint_id || filters.assignee_id) && <span className="tasks-filter_dot" />}
             </Button>
           </div>
         </div>
@@ -486,6 +515,17 @@ export default function TasksScreen() {
               <option value="in_review">In Review</option>
               <option value="done">Done</option>
             </Select>
+            <span className="tasks-filter_label">Assignee</span>
+            <Select
+              className="tasks-filter_select"
+              value={filters.assignee_id ?? ''}
+              onChange={(e) => setFilters((f) => ({ ...f, assignee_id: e.target.value ? Number(e.target.value) : undefined }))}
+            >
+              <option value="">Anyone</option>
+              {members.map((m) => (
+                <option key={m.user_id} value={m.user_id}>{m.user.name}</option>
+              ))}
+            </Select>
             <span className="tasks-filter_label">Epic</span>
             <Select
               className="tasks-filter_select"
@@ -508,7 +548,7 @@ export default function TasksScreen() {
                 <option key={sprint.id} value={sprint.id}>{sprint.title}</option>
               ))}
             </Select>
-            {(filters.folder_id || filters.status || filters.epic_id || filters.sprint_id) && (
+            {(filters.folder_id || filters.status || filters.epic_id || filters.sprint_id || filters.assignee_id) && (
               <Button
                 onClick={() => setFilters({})}
                 className="tasks-clear"
@@ -547,6 +587,7 @@ export default function TasksScreen() {
                           onNext={NEXT_STATUS[task.status] ? () => updateTask.mutate({ id: task.id, status: NEXT_STATUS[task.status]! }) : null}
                           onNavigate={() => navigate(`/documents/${task.document_id}`)}
                           epicTitle={task.epic_id ? epicById.get(task.epic_id)?.title : undefined}
+                          assignees={assigneesOf(task)}
                         />
                       ))}
                       {addingTo === key ? (
@@ -557,6 +598,8 @@ export default function TasksScreen() {
                             epics={epics}
                             sprints={sprints}
                             milestones={milestones}
+                    members={members}
+                            members={members}
                           />
                         </div>
                       ) : (

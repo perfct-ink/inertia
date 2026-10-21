@@ -68,4 +68,34 @@ class TaskTest < ActiveSupport::TestCase
     assert_not by_parent.valid?
     assert_includes by_parent.errors[:parent], "must belong to the same workspace"
   end
+
+  test "a task takes several assignees and watchers who are members of the Space" do
+    owner = User.create!(name: "Ada", email: "ada-part@example.com", password: "password123")
+    other = User.create!(name: "Bo", email: "bo-part@example.com", password: "password123")
+    outsider = User.create!(name: "Cy", email: "cy-part@example.com", password: "password123")
+    team = Workspace.create!(name: "Team", user: owner)
+    team.memberships.create!(user: other, role: :member)
+
+    task = team.tasks.create!(title: "Ship", assignee_ids: [ owner.id, other.id ], watcher_ids: [ other.id ])
+    task.reload
+    assert_equal [ owner.id, other.id ], task.assignee_ids
+    assert_equal [ other.id ], task.watcher_ids
+    assert_equal owner.id, task.assignee_id
+
+    task.update!(assignee_ids: [ other.id ])
+    assert_equal [ other.id ], task.reload.assignee_ids
+    assert_equal other.id, task.assignee_id
+
+    assert_not task.update(watcher_ids: [ outsider.id ])
+    assert_equal [ other.id ], task.reload.watcher_ids
+  end
+
+  test "setting only assignee_id still adds that person as an assignee" do
+    user = User.create!(name: "Ada", email: "ada-legacy@example.com", password: "password123")
+    task = user.workspace.tasks.create!(title: "Old way", assignee_id: user.id)
+    assert_equal [ user.id ], task.reload.assignee_ids
+
+    task.update!(assignee_id: nil)
+    assert_equal [], task.reload.assignee_ids
+  end
 end

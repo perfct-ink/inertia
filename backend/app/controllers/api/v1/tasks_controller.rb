@@ -5,9 +5,12 @@ module Api
       before_action :set_task, only: [ :update, :destroy ]
 
       def index
-        tasks = current_workspace.tasks.includes(:document)
+        tasks = current_workspace.tasks.includes(:document, :participants)
         tasks = tasks.where(document_id: params[:document_id]) if params[:document_id]
         tasks = tasks.where(status: params[:status]) if params[:status]
+        if params[:assignee_id].present?
+          tasks = tasks.where(id: TaskParticipant.assignee.where(user_id: params[:assignee_id]).select(:task_id))
+        end
         tasks = tasks.where(epic_id: params[:epic_id]) if params[:epic_id]
         tasks = tasks.where(sprint_id: params[:sprint_id]) if params[:sprint_id]
         if params[:folder_id]
@@ -51,7 +54,7 @@ module Api
       end
 
       def task_params
-        params.require(:task).permit(:title, :description, :status, :start_date, :due_date, :position, :assignee_id, :epic_id, :sprint_id, :milestone_id, :folder_id, :parent_id)
+        params.require(:task).permit(:title, :description, :status, :start_date, :due_date, :position, :assignee_id, :epic_id, :sprint_id, :milestone_id, :folder_id, :parent_id, assignee_ids: [], watcher_ids: [])
       end
     end
   end

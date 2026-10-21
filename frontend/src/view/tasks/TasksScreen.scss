@@ -267,6 +267,28 @@
       line-height: 1.375;
     }
 
+    @at-root .tasks-people {
+      display: flex;
+      flex-wrap: wrap;
+      gap: space(1);
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    @at-root .tasks-avatar {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: space(6);
+      height: space(6);
+      border-radius: radius('full');
+      background: color(primary, 0.15);
+      color: color(primary);
+      font-size: 0.6875rem;
+      font-weight: 600;
+    }
+
     @at-root .tasks-epic {
       display: flex;
       align-items: center;
