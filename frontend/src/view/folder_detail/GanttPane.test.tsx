@@ -6,6 +6,10 @@ import type { Task } from '@/types'
 
 const mockCreate = { mutate: jest.fn(), isPending: false, isError: false, error: null }
 const mockDelete = { mutate: jest.fn() }
+jest.mock('@/api/tasks', () => ({
+  useTasks: () => ({ data: [{ id: 99, title: 'Vendor contract', status: 'todo', due_date: null }] }),
+  useUpdateTask: () => ({ mutate: jest.fn() }),
+}))
 jest.mock('@/api/taskDependencies', () => ({
   useTaskDependencies: () => ({
     data: [
@@ -30,7 +34,11 @@ test('draws links between this folder\'s tasks, flags the driving path, and edit
   )
   expect(container.querySelectorAll('.timeline-link')).toHaveLength(1)
   expect(container.querySelectorAll('.timeline-bar--critical')).toHaveLength(2)
-  expect(screen.getByText(/waits on/, { selector: 'span.gantt_pane-item-text' })).toHaveTextContent('Build waits on Design')
+  const items = screen.getAllByText(/waits on/, { selector: 'span.gantt_pane-item-text' })
+  expect(items[0]).toHaveTextContent('Build waits on Design')
+  // The link to a task in another project is listed, but not drawn.
+  expect(screen.getByRole('heading', { name: 'Other projects' })).toBeInTheDocument()
+  expect(items[1]).toHaveTextContent('Vendor contract waits on Design')
 
   fireEvent.click(screen.getByLabelText('Highlight critical path'))
   expect(container.querySelectorAll('.timeline-bar--critical')).toHaveLength(0)

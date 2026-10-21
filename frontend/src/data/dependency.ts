@@ -130,3 +130,17 @@ export function planReschedule(
 
   return { updates: [...moved].map(([id, r]) => ({ id, start_date: r.start, due_date: r.end })) }
 }
+
+// Splits links by how they relate to one folder's tasks: `internal` has both
+// ends in it (drawn on its chart), `external` has exactly one end in it (the
+// other end is a task in another project). Links with neither end are dropped.
+export function splitDependencies(dependencies: TaskDependency[], taskIds: Set<number>) {
+  const internal: TaskDependency[] = []
+  const external: TaskDependency[] = []
+  dependencies.forEach((d) => {
+    const ends = Number(taskIds.has(d.predecessor_id)) + Number(taskIds.has(d.successor_id))
+    if (ends === 2) internal.push(d)
+    else if (ends === 1) external.push(d)
+  })
+  return { internal, external }
+}

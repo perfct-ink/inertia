@@ -36,6 +36,12 @@
       @include text('sm');
     }
 
+    @at-root .gantt_pane-subheading {
+      color: color(muted-foreground);
+      font-weight: 600;
+      @include text('xs');
+    }
+
     @at-root .gantt_pane-muted {
       color: color(muted-foreground);
       @include text('xs');

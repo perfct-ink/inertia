@@ -1,5 +1,5 @@
 import type { TaskDependency } from '@/types'
-import { drivingPath, linkSides, planReschedule } from './dependency'
+import { drivingPath, linkSides, planReschedule, splitDependencies } from './dependency'
 
 const dep = (predecessor_id: number, successor_id: number, kind: TaskDependency['kind'] = 'finish_to_start') =>
   ({ id: predecessor_id * 100 + successor_id, predecessor_id, successor_id, kind, created_at: '' })
@@ -67,4 +67,11 @@ describe('planReschedule', () => {
       ],
     })
   })
+})
+
+test('splitDependencies separates links inside a folder from links to other projects', () => {
+  const ids = new Set([1, 2])
+  const { internal, external } = splitDependencies([dep(1, 2), dep(2, 9), dep(8, 1), dep(8, 9)], ids)
+  expect(internal.map((d) => [d.predecessor_id, d.successor_id])).toEqual([[1, 2]])
+  expect(external.map((d) => [d.predecessor_id, d.successor_id])).toEqual([[2, 9], [8, 1]])
 })
