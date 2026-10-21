@@ -97,7 +97,7 @@ GET    /shared/:token
 
 ## Deploy
 
-Production runs on **Coolify**: one Docker Compose resource (`docker-compose.coolify.yml`) with an nginx `web` service for the frontend, the Rails `api` and the `collab` WebSocket service, behind Coolify's TLS proxy. The database stays on the DigitalOcean managed MySQL cluster, and the only production secret is `RAILS_MASTER_KEY`, which decrypts `backend/config/credentials.yml.enc`. Every push to `main` runs the backend tests, then deploys through Coolify's API. Setup, configuration, cutover and rollback are in [deployment.md](deployment.md).
+Production runs on **Coolify**: one Docker Compose resource (`docker-compose.coolify.yml`) with an nginx `web` service for the frontend, the Rails `api` and the `collab` WebSocket service, behind Coolify's TLS proxy. The database stays on the DigitalOcean managed MySQL cluster, and the only production secret is `RAILS_MASTER_KEY`, which decrypts `backend/config/credentials.yml.enc`. Every push to `main` deploys through Coolify's Auto Deploy, while CI runs the tests separately. Setup, configuration, cutover and rollback are in [deployment.md](deployment.md).
 
 ### Native macOS preview (SwiftUI)
 
