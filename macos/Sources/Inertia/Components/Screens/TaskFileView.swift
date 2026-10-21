@@ -51,7 +51,7 @@ struct TaskFileView: View {
                         ForEach(document.board.events) { Text($0.title).tag(String($0.id)) }
                     }.frame(maxWidth: 220)
                     Spacer()
-                    Text("\(visibleTasks.count) tasks").foregroundStyle(.secondary)
+                    Text("\(visibleTasks.count) tasks").foregroundStyle(Volta.mutedForeground)
                 }.padding([.horizontal, .bottom])
             }
             Divider()
@@ -114,37 +114,37 @@ struct TaskFileView: View {
                             Image(systemName: column.status == .done ? "checkmark.circle" : "rectangle.stack")
                             Text(column.title).font(.headline)
                             Spacer()
-                            Text("\(visibleTasks.filter { $0.columnID == column.id }.count)").foregroundStyle(.secondary)
+                            Text("\(visibleTasks.filter { $0.columnID == column.id }.count)").foregroundStyle(Volta.mutedForeground)
                             Button { newTask(column: column.id) } label: { Image(systemName: "plus") }.help("Add task to \(column.title)")
                         }
                         ForEach(visibleTasks.filter { $0.columnID == column.id }) { task in
                             Button { taskDraft = task } label: {
                                 VStack(alignment: .leading, spacing: 6) {
-                                    Text(task.title).font(.body.weight(.medium)).foregroundStyle(.primary)
-                                    if !task.descriptionText.isEmpty { Text(task.descriptionText).lineLimit(2).font(.caption).foregroundStyle(.secondary) }
+                                    Text(task.title).font(.body.weight(.medium)).foregroundStyle(Volta.foreground)
+                                    if !task.descriptionText.isEmpty { Text(task.descriptionText).lineLimit(2).font(.caption).foregroundStyle(Volta.mutedForeground) }
                                     if let user = document.board.users.first(where: { $0.id == task.assigneeID }) {
-                                        Label(user.name, systemImage: "person").font(.caption).foregroundStyle(.secondary)
+                                        Label(user.name, systemImage: "person").font(.caption).foregroundStyle(Volta.mutedForeground)
                                     }
-                                    if !task.comments.isEmpty { Label("\(task.comments.count) comments", systemImage: "text.bubble").font(.caption).foregroundStyle(.secondary) }
+                                    if !task.comments.isEmpty { Label("\(task.comments.count) comments", systemImage: "text.bubble").font(.caption).foregroundStyle(Volta.mutedForeground) }
                                     if let epic = document.board.epics.first(where: { $0.id == task.epicID }) {
-                                        Label(epic.title, systemImage: "square.stack.3d.up").font(.caption).foregroundStyle(.secondary)
+                                        Label(epic.title, systemImage: "square.stack.3d.up").font(.caption).foregroundStyle(Volta.mutedForeground)
                                     }
                                     ForEach(document.board.events.filter { document.board.eventIDs(for: task.id).contains($0.id) }) { milestone in
-                                        Label(milestone.title, systemImage: "flag").font(.caption).foregroundStyle(.secondary)
+                                        Label(milestone.title, systemImage: "flag").font(.caption).foregroundStyle(Volta.mutedForeground)
                                     }
-                                    if let date = task.dueDate { Label(date, systemImage: "calendar").font(.caption).foregroundStyle(.secondary) }
+                                    if let date = task.dueDate { Label(date, systemImage: "calendar").font(.caption).foregroundStyle(Volta.mutedForeground) }
                                     if let sprint = document.board.sprints.first(where: { $0.id == task.sprintID }) {
-                                        Text(sprint.title).font(.caption).foregroundStyle(.secondary)
+                                        Text(sprint.title).font(.caption).foregroundStyle(Volta.mutedForeground)
                                     }
                                 }.frame(maxWidth: .infinity, alignment: .leading).padding(12)
-                                    .background(.background, in: RoundedRectangle(cornerRadius: 8))
+                                    .background(Volta.card, in: RoundedRectangle(cornerRadius: 8))
                             }.buttonStyle(.plain).draggable(String(task.id))
                                 .contextMenu { taskMenu(task) }
                         }
                         if !visibleTasks.contains(where: { $0.columnID == column.id }) {
-                            Text("Drop a task here").foregroundStyle(.secondary).frame(maxWidth: .infinity).padding(.vertical, 30)
+                            Text("Drop a task here").foregroundStyle(Volta.mutedForeground).frame(maxWidth: .infinity).padding(.vertical, 30)
                         }
-                    }.padding(12).frame(width: 260).background(.quaternary.opacity(0.4), in: RoundedRectangle(cornerRadius: 12))
+                    }.padding(12).frame(width: 260).background(Volta.muted, in: RoundedRectangle(cornerRadius: 12))
                         .dropDestination(for: String.self) { values, _ in
                             guard let value = values.first, let id = Int( value), document.board.tasks.contains(where: { $0.id == id }) else { return false }
                             document.board.moveTask(id, to: column.id)
@@ -156,17 +156,17 @@ struct TaskFileView: View {
     }
     private var taskList: some View {
         List {
-            if visibleTasks.isEmpty { Text("No tasks. Use New Task to add one.").foregroundStyle(.secondary) }
+            if visibleTasks.isEmpty { Text("No tasks. Use New Task to add one.").foregroundStyle(Volta.mutedForeground) }
             ForEach(visibleTasks) { task in
                 HStack {
                     Button(task.title) { taskDraft = task }.buttonStyle(.plain)
                     if task.parentID != nil { Image(systemName: "arrow.turn.down.right").help("Subtask") }
                     Spacer()
                     if let user = document.board.users.first(where: { $0.id == task.assigneeID }) {
-                        Text(user.name).foregroundStyle(.secondary)
+                        Text(user.name).foregroundStyle(Volta.mutedForeground)
                     }
-                    if !task.comments.isEmpty { Label("\(task.comments.count)", systemImage: "text.bubble").foregroundStyle(.secondary) }
-                    Text(task.dueDate ?? "").foregroundStyle(.secondary)
+                    if !task.comments.isEmpty { Label("\(task.comments.count)", systemImage: "text.bubble").foregroundStyle(Volta.mutedForeground) }
+                    Text(task.dueDate ?? "").foregroundStyle(Volta.mutedForeground)
                     Picker("Column", selection: Binding(get: { task.columnID }, set: { document.board.moveTask(task.id, to: $0) })) {
                         ForEach(document.board.columns) { Text($0.title).tag($0.id) }
                     }.labelsHidden().frame(width: 170)
@@ -176,7 +176,7 @@ struct TaskFileView: View {
     }
     private var sprints: some View {
         List {
-            if document.board.sprints.isEmpty { Text("No sprints yet. Tasks can also stay unassigned.").foregroundStyle(.secondary) }
+            if document.board.sprints.isEmpty { Text("No sprints yet. Tasks can also stay unassigned.").foregroundStyle(Volta.mutedForeground) }
             ForEach(document.board.sprints) { sprint in
                 VStack(alignment: .leading, spacing: 8) {
                     HStack {
@@ -184,7 +184,7 @@ struct TaskFileView: View {
                         Spacer()
                         Button("View Tasks") { sprintFilter = String(sprint.id); epicFilter = "all"; milestoneFilter = "all"; view = "Workboard" }
                     }
-                    if !sprint.goal.isEmpty { Text(sprint.goal).foregroundStyle(.secondary) }
+                    if !sprint.goal.isEmpty { Text(sprint.goal).foregroundStyle(Volta.mutedForeground) }
                     Text("\(sprint.startDate ?? "No start date") – \(sprint.endDate ?? "No end date")").font(.caption)
                     let total = document.board.tasks.filter { $0.sprintID == sprint.id }.count
                     let done = document.board.completedCount(in: sprint.id)

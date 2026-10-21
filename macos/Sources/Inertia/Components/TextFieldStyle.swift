@@ -13,12 +13,12 @@ struct InertiaTextFieldStyle: TextFieldStyle {
             .padding(.vertical, 10)
             .frame(minHeight: minimumHeight)
             .background {
-                if showsBorder { RoundedRectangle(cornerRadius: 6).fill(.background) }
+                if showsBorder { RoundedRectangle(cornerRadius: 6).fill(Volta.base) }
             }
             .overlay {
                 if showsBorder {
                     RoundedRectangle(cornerRadius: 6)
-                        .stroke(focused ? Color.accentColor : Color.secondary.opacity(0.3), lineWidth: focused ? 2 : 1)
+                        .stroke(focused ? Volta.accent : Volta.border, lineWidth: focused ? 2 : 1)
                 }
             }
             .focused($focused)

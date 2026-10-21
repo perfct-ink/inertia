@@ -9,6 +9,7 @@ import InertiaCore
         Window("Online Space", id: "workspace") {
             RootView().environmentObject(session).frame(minWidth: 900, minHeight: 600)
                 .textFieldStyle(InertiaTextFieldStyle())
+                .tint(Volta.accent)
                 .appErrorAlert(error: $session.error)
         }
         .windowStyle(.hiddenTitleBar)
@@ -20,6 +21,7 @@ import InertiaCore
         DocumentGroup(newDocument: TasksDocument()) { file in
             TaskFileView(document: file.$document)
                 .textFieldStyle(InertiaTextFieldStyle())
+                .tint(Volta.accent)
         }
         .windowStyle(.hiddenTitleBar)
     }

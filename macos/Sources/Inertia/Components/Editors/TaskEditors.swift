@@ -83,7 +83,7 @@ struct ColumnEditor: View {
     @Binding var board: TaskFile
     var body: some View {
         EditorSheet(title: "Workboard Columns", width: 540, height: 350) {
-            Text("Columns map to Inertia task statuses. Done tasks count toward progress.").foregroundStyle(.secondary)
+            Text("Columns map to Inertia task statuses. Done tasks count toward progress.").foregroundStyle(Volta.mutedForeground)
             List {
                 ForEach($board.columns) { $column in
                     HStack {

@@ -28,6 +28,6 @@ struct AuthDivider: View {
             Rectangle().frame(height: 1)
             Text("or sign in with email").fixedSize()
             Rectangle().frame(height: 1)
-        }.foregroundStyle(.secondary)
+        }.foregroundStyle(Volta.mutedForeground)
     }
 }

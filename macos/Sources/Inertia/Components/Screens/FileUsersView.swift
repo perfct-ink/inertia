@@ -7,14 +7,14 @@ struct FileUsersView: View {
     var body: some View {
         EditorSheet(title: "Users", width: 560, height: 400) {
             Text("Optional people stored in this file for assignments and comment authors. No accounts or invitations are created.")
-                .foregroundStyle(.secondary)
+                .foregroundStyle(Volta.mutedForeground)
             List {
-                if board.users.isEmpty { Text("No users yet. Tasks and comments also work without them.").foregroundStyle(.secondary) }
+                if board.users.isEmpty { Text("No users yet. Tasks and comments also work without them.").foregroundStyle(Volta.mutedForeground) }
                 ForEach(board.users) { user in
                     HStack {
                         VStack(alignment: .leading) {
                             Text(user.name).font(.headline)
-                            if let email = user.email { Text(email).foregroundStyle(.secondary) }
+                            if let email = user.email { Text(email).foregroundStyle(Volta.mutedForeground) }
                         }
                         Spacer()
                         Button("Edit") { draft = user }

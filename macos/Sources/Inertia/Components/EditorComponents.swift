@@ -37,14 +37,14 @@ struct NotesEditor: View {
 
     var body: some View {
         Text(title).font(.headline)
-        TextEditor(text: $text).frame(height: height).border(.quaternary)
+        TextEditor(text: $text).frame(height: height).border(Volta.border)
     }
 }
 
 struct ValidationMessage: View {
     let message: String?
     var body: some View {
-        if let message { Text(message).foregroundStyle(.red).font(.caption) }
+        if let message { Text(message).foregroundStyle(Volta.danger).font(.caption) }
     }
 }
 
@@ -54,7 +54,7 @@ struct CompletionProgress: View {
 
     var body: some View {
         ProgressView(value: Double(done), total: Double(max(total, 1)))
-        Text("\(done) of \(total) tasks complete").font(.caption).foregroundStyle(.secondary)
+        Text("\(done) of \(total) tasks complete").font(.caption).foregroundStyle(Volta.mutedForeground)
     }
 }
 

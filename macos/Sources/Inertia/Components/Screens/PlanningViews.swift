@@ -9,7 +9,7 @@ struct EpicList: View {
         VStack(alignment: .leading) {
             Button("New Epic", systemImage: "plus") { draft = EpicRecord() }.padding()
             List {
-                if board.epics.isEmpty { Text("Group related tasks into an epic, even across sprints.").foregroundStyle(.secondary) }
+                if board.epics.isEmpty { Text("Group related tasks into an epic, even across sprints.").foregroundStyle(Volta.mutedForeground) }
                 ForEach(board.epics) { epic in
                     VStack(alignment: .leading, spacing: 8) {
                         HStack {
@@ -17,7 +17,7 @@ struct EpicList: View {
                             Spacer()
                             Button("View Tasks") { showTasks(epic.id) }
                         }
-                        if !epic.notes.isEmpty { Text(epic.notes).foregroundStyle(.secondary) }
+                        if !epic.notes.isEmpty { Text(epic.notes).foregroundStyle(Volta.mutedForeground) }
                         Text("\(epic.startDate ?? "No start date") – \(epic.targetDate ?? "No target date")").font(.caption)
                         let total = board.tasks.filter { $0.epicID == epic.id }.count
                         let done = board.completedCount(epicID: epic.id)
@@ -49,7 +49,7 @@ struct MilestoneList: View {
         VStack(alignment: .leading) {
             Button("New Event", systemImage: "plus") { draft = EventRecord() }.padding()
             List {
-                if board.events.isEmpty { Text("Add a milestone for a release, review, or delivery date.").foregroundStyle(.secondary) }
+                if board.events.isEmpty { Text("Add a milestone for a release, review, or delivery date.").foregroundStyle(Volta.mutedForeground) }
                 ForEach(board.events) { milestone in
                     VStack(alignment: .leading, spacing: 8) {
                         HStack {
@@ -58,10 +58,10 @@ struct MilestoneList: View {
                             })).toggleStyle(.checkbox)
                             Button(milestone.title) { draft = milestone }.font(.headline).buttonStyle(.plain)
                             Spacer()
-                            Text(milestone.targetDate ?? "Unscheduled").foregroundStyle(.secondary)
+                            Text(milestone.targetDate ?? "Unscheduled").foregroundStyle(Volta.mutedForeground)
                             Button("View Tasks") { showTasks(milestone.id) }
                         }
-                        if !milestone.notes.isEmpty { Text(milestone.notes).foregroundStyle(.secondary) }
+                        if !milestone.notes.isEmpty { Text(milestone.notes).foregroundStyle(Volta.mutedForeground) }
                         if let epic = board.epics.first(where: { $0.id == milestone.epicID }) {
                             Label(epic.title, systemImage: "square.stack.3d.up").font(.caption)
                         }
