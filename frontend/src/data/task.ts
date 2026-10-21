@@ -1,3 +1,4 @@
+import { formatDistance } from 'date-fns'
 import type { Task } from '@/types'
 
 export interface TaskNode extends Task { children: TaskNode[] }
@@ -13,4 +14,15 @@ export function buildTaskTree(tasks: Task[]): TaskNode[] {
     else roots.push(node)
   })
   return roots
+}
+
+// The read-only fields the server fills in: item ID, creator and timestamps.
+// `now` is passed in so the "ago" wording can be tested.
+export function autoFields(task: Pick<Task, 'id' | 'created_by_name' | 'created_at' | 'updated_at'>, now: Date = new Date()) {
+  return {
+    itemId: `#${task.id}`,
+    createdBy: task.created_by_name ?? null,
+    created: task.created_at ? formatDistance(new Date(task.created_at), now, { addSuffix: true }) : null,
+    updated: task.updated_at ? formatDistance(new Date(task.updated_at), now, { addSuffix: true }) : null,
+  }
 }

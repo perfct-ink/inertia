@@ -67,6 +67,10 @@ export interface Task {
   position: number
   document_id: number
   assignee_id: number | null
+  created_by_id?: number | null
+  created_by_name?: string | null
+  created_at?: string
+  updated_at?: string
   milestone_id?: number | null
   epic_id: number | null
   sprint_id?: number | null

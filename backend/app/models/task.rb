@@ -5,6 +5,7 @@ class Task < ApplicationRecord
   belongs_to :workspace
   belongs_to :document, optional: true
   belongs_to :assignee, class_name: "User", optional: true
+  belongs_to :created_by, class_name: "User", optional: true
   belongs_to :epic, optional: true
   belongs_to :sprint, optional: true
   # Separate from document_id: lets a task scope to a folder even when it

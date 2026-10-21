@@ -29,6 +29,7 @@ import { useWorkspace } from '@/api/workspace'
 import { useEpics } from '@/api/epics'
 import { useSprints } from '@/api/sprints'
 import { useMilestones } from '@/api/milestones'
+import { autoFields } from '@/data/task'
 import type { Task, Epic, Sprint, Milestone } from '@/types'
 import './TasksScreen.scss'
 import { usePageTitle } from '@/hooks/usePageTitle'
@@ -73,6 +74,12 @@ interface CardProps {
   overlay?: boolean
 }
 
+// "#12 · Ada · updated 2 hours ago": the auto fields, in one muted line.
+function cardMeta(task: Task) {
+  const { itemId, createdBy, updated } = autoFields(task)
+  return [itemId, createdBy, updated && `updated ${updated}`].filter(Boolean).join(' · ')
+}
+
 function TaskCard({ task, onNext, onNavigate, epicTitle, overlay }: Omit<CardProps, 'onDelete'>) {
   return (
     <div className={classNames('tasks-card', overlay && 'tasks-card--overlay')}>
@@ -85,6 +92,7 @@ function TaskCard({ task, onNext, onNavigate, epicTitle, overlay }: Omit<CardPro
           <span className="tasks-epic_title">{epicTitle}</span>
         </div>
       )}
+      <p className="tasks-card_meta">{cardMeta(task)}</p>
       <div className="tasks-card_footer">
         {task.document && (
           <Button

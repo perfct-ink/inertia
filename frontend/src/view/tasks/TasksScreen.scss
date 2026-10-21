@@ -267,6 +267,12 @@
       line-height: 1.375;
     }
 
+    @at-root .tasks-card_meta {
+      margin: 0;
+      color: color(muted-foreground);
+      @include text('xs');
+    }
+
     @at-root .tasks-epic {
       display: flex;
       align-items: center;

@@ -5,7 +5,7 @@ module Api
       before_action :set_task, only: [ :update, :destroy ]
 
       def index
-        tasks = current_workspace.tasks.includes(:document)
+        tasks = current_workspace.tasks.includes(:document, :created_by)
         tasks = tasks.where(document_id: params[:document_id]) if params[:document_id]
         tasks = tasks.where(status: params[:status]) if params[:status]
         tasks = tasks.where(epic_id: params[:epic_id]) if params[:epic_id]
@@ -23,6 +23,7 @@ module Api
 
       def create
         task = current_workspace.tasks.build(task_params)
+        task.created_by = current_user
         task.document_id = params[:document_id] if params[:document_id].present?
         if task.save
           render json: TaskBlueprint.render(task), status: :created

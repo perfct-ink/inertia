@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_10_18_000003) do
+ActiveRecord::Schema[7.2].define(version: 2026_10_21_000002) do
   create_table "ai_runs", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.bigint "workspace_id", null: false
     t.bigint "ai_worker_id", null: false
@@ -314,7 +314,9 @@ ActiveRecord::Schema[7.2].define(version: 2026_10_18_000003) do
     t.bigint "parent_id"
     t.bigint "milestone_id"
     t.bigint "sprint_id"
+    t.bigint "created_by_id"
     t.index ["assignee_id"], name: "index_tasks_on_assignee_id"
+    t.index ["created_by_id"], name: "index_tasks_on_created_by_id"
     t.index ["document_id"], name: "index_tasks_on_document_id"
     t.index ["epic_id"], name: "index_tasks_on_epic_id"
     t.index ["folder_id"], name: "index_tasks_on_folder_id"
@@ -409,6 +411,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_10_18_000003) do
   add_foreign_key "tasks", "sprints"
   add_foreign_key "tasks", "tasks", column: "parent_id"
   add_foreign_key "tasks", "users", column: "assignee_id"
+  add_foreign_key "tasks", "users", column: "created_by_id", on_delete: :nullify
   add_foreign_key "tasks", "workspaces"
   add_foreign_key "workspace_memberships", "users"
   add_foreign_key "workspace_memberships", "workspaces"
