@@ -17,6 +17,7 @@ class Task < ApplicationRecord
   belongs_to :parent, class_name: "Task", optional: true
   has_many :subtasks, class_name: "Task", foreign_key: :parent_id, dependent: :destroy, inverse_of: :parent
   has_many :ai_runs, dependent: :destroy
+  has_many :time_entries, dependent: :destroy
   # Gantt links (PM-13), removed with either end.
   has_many :successor_links, class_name: "TaskDependency", foreign_key: :predecessor_id, dependent: :destroy, inverse_of: :predecessor
   has_many :predecessor_links, class_name: "TaskDependency", foreign_key: :successor_id, dependent: :destroy, inverse_of: :successor

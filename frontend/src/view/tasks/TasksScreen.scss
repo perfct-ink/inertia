@@ -267,6 +267,40 @@
       line-height: 1.375;
     }
 
+    @at-root .tasks-progress {
+      position: relative;
+      height: space(4);
+      overflow: hidden;
+      border-radius: radius('full');
+      background: color(muted);
+    }
+
+    @at-root .tasks-progress_bar {
+      height: 100%;
+      background: color(primary, 0.35);
+    }
+
+    @at-root .tasks-progress_text {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      @include text('xs');
+    }
+
+    @at-root .tasks-timer {
+      display: flex;
+      align-items: center;
+      gap: space(2);
+    }
+
+    @at-root .tasks-timer_text {
+      color: color(muted-foreground);
+      font-variant-numeric: tabular-nums;
+      @include text('xs');
+    }
+
     @at-root .tasks-epic {
       display: flex;
       align-items: center;

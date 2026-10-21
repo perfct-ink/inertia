@@ -1,5 +1,5 @@
 import { Button, Input, Select, classNames } from '@/components/ui'
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useMemo } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { Plus, X, ArrowRight, Play, Loader2, Search, Filter, Target } from 'lucide-react'
 import {
@@ -29,6 +29,8 @@ import { useWorkspace } from '@/api/workspace'
 import { useEpics } from '@/api/epics'
 import { useSprints } from '@/api/sprints'
 import { useMilestones } from '@/api/milestones'
+import { TaskTimer } from './TaskTimer'
+import { progressById, type Progress } from '@/data/task'
 import type { Task, Epic, Sprint, Milestone } from '@/types'
 import './TasksScreen.scss'
 import { usePageTitle } from '@/hooks/usePageTitle'
@@ -70,10 +72,11 @@ interface CardProps {
   onNext: (() => void) | null
   onNavigate: () => void
   epicTitle?: string
+  progress?: Progress
   overlay?: boolean
 }
 
-function TaskCard({ task, onNext, onNavigate, epicTitle, overlay }: Omit<CardProps, 'onDelete'>) {
+function TaskCard({ task, onNext, onNavigate, epicTitle, progress, overlay }: Omit<CardProps, 'onDelete'>) {
   return (
     <div className={classNames('tasks-card', overlay && 'tasks-card--overlay')}>
       <div className="tasks-card_title_row">
@@ -85,6 +88,13 @@ function TaskCard({ task, onNext, onNavigate, epicTitle, overlay }: Omit<CardPro
           <span className="tasks-epic_title">{epicTitle}</span>
         </div>
       )}
+      {progress && (
+        <div className="tasks-progress" role="progressbar" aria-label="Subtask progress" aria-valuemin={0} aria-valuemax={100} aria-valuenow={progress.percent}>
+          <div className="tasks-progress_bar" style={{ width: `${progress.percent}%` }} />
+          <span className="tasks-progress_text">{progress.done}/{progress.total} subtasks</span>
+        </div>
+      )}
+      {!overlay && <TaskTimer task={task} />}
       <div className="tasks-card_footer">
         {task.document && (
           <Button
@@ -315,6 +325,7 @@ export default function TasksScreen() {
   }
 
   const { data: tasks = [], isLoading } = useTasks(activeFilters)
+  const progressByTask = useMemo(() => progressById(tasks), [tasks])
   const createTask = useCreateTask()
   const updateTask = useUpdateTask()
   const deleteTask = useDeleteTask()
@@ -547,6 +558,7 @@ export default function TasksScreen() {
                           onNext={NEXT_STATUS[task.status] ? () => updateTask.mutate({ id: task.id, status: NEXT_STATUS[task.status]! }) : null}
                           onNavigate={() => navigate(`/documents/${task.document_id}`)}
                           epicTitle={task.epic_id ? epicById.get(task.epic_id)?.title : undefined}
+                          progress={progressByTask.get(task.id)}
                         />
                       ))}
                       {addingTo === key ? (

@@ -1,5 +1,6 @@
 ---
 priority: p1
+branch: backlog/progress-and-time-tracking-fields
 depends_on: []
 ---
 # Progress (auto from subtasks), time tracking (start/stop timer, logged hours)
@@ -19,3 +20,6 @@ Today a task has a fixed field set: title, description, status, due date, assign
 - Progress (auto from subtasks), time tracking (start/stop timer, logged hours) works as described in the Objective, for a signed-in member of the Space, in the web app.
 - Failed API calls show an error to the user.
 - Tests cover the new behaviour; a feature doc in `docs/features/` is written (or the existing one updated) and this file is removed.
+
+## Blocked
+Implemented on the branch with tests; see `docs/features/task_progress_and_time_tracking.md`. Not run (no network, node_modules or database): `rails db:migrate` (then diff `backend/db/schema.rb`, which was hand-edited), `rails test`, `cd frontend && npm install && npm run lint && npm test`, and a look at /tasks in a browser. Then remove this file and merge.

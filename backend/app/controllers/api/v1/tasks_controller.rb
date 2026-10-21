@@ -5,7 +5,7 @@ module Api
       before_action :set_task, only: [ :update, :destroy ]
 
       def index
-        tasks = current_workspace.tasks.includes(:document)
+        tasks = current_workspace.tasks.includes(:document, :time_entries)
         tasks = tasks.where(document_id: params[:document_id]) if params[:document_id]
         tasks = tasks.where(status: params[:status]) if params[:status]
         tasks = tasks.where(epic_id: params[:epic_id]) if params[:epic_id]
@@ -18,14 +18,14 @@ module Api
             .where("tasks.folder_id = :fid OR documents.folder_id = :fid", fid: params[:folder_id])
         end
         tasks = tasks.where("tasks.title LIKE ?", "%#{params[:q]}%") if params[:q]
-        render json: TaskBlueprint.render(tasks, view: :with_document)
+        render json: TaskBlueprint.render(tasks, view: :with_document, current_user: current_user)
       end
 
       def create
         task = current_workspace.tasks.build(task_params)
         task.document_id = params[:document_id] if params[:document_id].present?
         if task.save
-          render json: TaskBlueprint.render(task), status: :created
+          render json: TaskBlueprint.render(task, current_user: current_user), status: :created
         else
           render json: { errors: task.errors.full_messages }, status: :unprocessable_entity
         end
@@ -33,7 +33,7 @@ module Api
 
       def update
         if @task.update(task_params)
-          render json: TaskBlueprint.render(@task)
+          render json: TaskBlueprint.render(@task, current_user: current_user)
         else
           render json: { errors: @task.errors.full_messages }, status: :unprocessable_entity
         end
