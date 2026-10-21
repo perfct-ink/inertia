@@ -2,6 +2,10 @@
 
 Production runs on a [Coolify](https://coolify.io) server as one Docker Compose resource built from `docker-compose.coolify.yml`. Coolify clones the repo, builds the images on its own server, routes `inertia.it.com` to the stack through its proxy (Traefik) and issues the TLS certificate. The database stays on the DigitalOcean managed MySQL cluster.
 
+Cutover finished on 2026-10-21: `inertia.it.com` and `www.inertia.it.com` are served by the `inertia` resource (Inertia project, `production` environment, uuid `smu9zcyqqxhwhd7fybqqmn7j`) on `https://coolify.homecloud.one`.
+
+The Coolify proxy's `--providers.docker.constraints` setting (Servers → localhost → Proxy) lists the app uuids Traefik routes; hosts it doesn't route fall through to the droplet's host nginx. Keep Inertia's uuid in that list.
+
 ```
 browser ──https──▶ Coolify proxy (Traefik, TLS)
                         │
