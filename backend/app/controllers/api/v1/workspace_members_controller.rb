@@ -5,6 +5,7 @@ module Api
     # managed from anywhere.
     class WorkspaceMembersController < ApplicationController
       include WorkspaceScoped
+      include WorkspaceRoleGrants
       skip_before_action :require_current_workspace_write!
       before_action :set_workspace
 
@@ -65,11 +66,6 @@ module Api
       def requested_role
         role = params[:role].to_s
         role if WorkspaceMembership.roles.key?(role)
-      end
-
-      # Only an owner may grant, change or revoke the owner role.
-      def authorize_role_grant!(role)
-        raise Pundit::NotAuthorizedError if role.to_s == "owner" && !membership_in(@workspace.id).owner?
       end
     end
   end

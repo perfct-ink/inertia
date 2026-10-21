@@ -18,6 +18,7 @@ import OkrsScreen from '@/view/okrs/OkrsScreen'
 import ProjectsScreen from '@/view/projects/ProjectsScreen'
 import FolderDetailScreen from '@/view/folder_detail/FolderDetailScreen'
 import SharedScreen from '@/view/shared/SharedScreen'
+import InviteScreen from '@/view/invite/InviteScreen'
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
   const token = useAuthStore((s) => s.token)
@@ -41,6 +42,7 @@ export default function App() {
         <Route path="/login" element={<LoginScreen />} />
         <Route path="/signup" element={<SignupScreen />} />
         <Route path="/shared/:token" element={<SharedScreen />} />
+        <Route path="/invite/:token" element={<InviteScreen />} />
         {/* Rails owns "/" in production for the marketing homepage (see
             backend/app/controllers/marketing_controller.rb and the nginx vhost
             under deploy/) — this route only matters for local dev (no Rails

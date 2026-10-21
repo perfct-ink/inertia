@@ -57,6 +57,14 @@ export interface WorkspaceMember {
   user: { id: number; name: string; email: string }
 }
 
+export interface WorkspaceInvitation {
+  id: number
+  email: string
+  role: WorkspaceRole
+  token: string
+  created_at: string
+}
+
 export interface Task {
   id: number
   title: string

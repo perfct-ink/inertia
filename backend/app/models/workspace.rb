@@ -3,6 +3,7 @@ class Workspace < ApplicationRecord
   belongs_to :user
   has_many :memberships, class_name: "WorkspaceMembership", dependent: :destroy
   has_many :members, through: :memberships, source: :user
+  has_many :invitations, class_name: "WorkspaceInvitation", dependent: :destroy
   belongs_to :root_folder, class_name: "Folder", optional: true
   has_many :folders, dependent: :destroy
   has_many :documents, through: :folders

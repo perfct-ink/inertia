@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_10_18_000003) do
+ActiveRecord::Schema[7.2].define(version: 2026_10_21_000004) do
   create_table "ai_runs", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.bigint "workspace_id", null: false
     t.bigint "ai_worker_id", null: false
@@ -338,6 +338,21 @@ ActiveRecord::Schema[7.2].define(version: 2026_10_18_000003) do
     t.index ["reset_password_token"], name: "index_users_on_reset_password_token", unique: true
   end
 
+  create_table "workspace_invitations", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+    t.bigint "workspace_id", null: false
+    t.bigint "invited_by_id"
+    t.string "email", null: false
+    t.integer "role", default: 1, null: false
+    t.string "token", null: false
+    t.datetime "accepted_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["invited_by_id"], name: "index_workspace_invitations_on_invited_by_id"
+    t.index ["token"], name: "index_workspace_invitations_on_token", unique: true
+    t.index ["workspace_id", "email"], name: "index_workspace_invitations_on_workspace_id_and_email", unique: true
+    t.index ["workspace_id"], name: "index_workspace_invitations_on_workspace_id"
+  end
+
   create_table "workspace_memberships", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.bigint "workspace_id", null: false
     t.bigint "user_id", null: false
@@ -410,6 +425,8 @@ ActiveRecord::Schema[7.2].define(version: 2026_10_18_000003) do
   add_foreign_key "tasks", "tasks", column: "parent_id"
   add_foreign_key "tasks", "users", column: "assignee_id"
   add_foreign_key "tasks", "workspaces"
+  add_foreign_key "workspace_invitations", "users", column: "invited_by_id", on_delete: :nullify
+  add_foreign_key "workspace_invitations", "workspaces"
   add_foreign_key "workspace_memberships", "users"
   add_foreign_key "workspace_memberships", "workspaces"
   add_foreign_key "workspaces", "folders", column: "root_folder_id"

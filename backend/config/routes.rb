@@ -26,11 +26,13 @@ Rails.application.routes.draw do
     namespace :v1 do
       post "auth/social/:provider/start", to: "auth/social#start", constraints: { provider: /apple|google/ }
       match "auth/social/:provider/callback", to: "auth/social#callback", via: [ :get, :post ], constraints: { provider: /apple|google/ }
+      post "invitations/:token/accept", to: "workspace_invitations#accept"
       post "auth/social/exchange", to: "auth/social#exchange"
       # The workspace named by the X-Workspace-Id header (default: personal).
       resource :workspace, as: :current_workspace, only: [ :show, :update ]
       resources :workspaces, only: [ :index, :create, :destroy ] do
         resources :members, controller: "workspace_members", only: [ :index, :create, :update, :destroy ]
+        resources :invitations, controller: "workspace_invitations", only: [ :index, :create, :destroy ]
       end
 
       resources :folders do
