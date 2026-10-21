@@ -598,7 +598,6 @@ export default function TasksScreen() {
                             epics={epics}
                             sprints={sprints}
                             milestones={milestones}
-                    members={members}
                             members={members}
                           />
                         </div>
@@ -656,6 +655,7 @@ export default function TasksScreen() {
                     epics={epics}
                     sprints={sprints}
                     milestones={milestones}
+                    members={members}
                   />
                 </div>
               )}
