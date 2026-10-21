@@ -23,10 +23,11 @@ struct ProviderSignInButton: View {
 }
 
 struct AuthDivider: View {
+    var label = "or sign in with email"
     var body: some View {
         HStack {
             Rectangle().frame(height: 1)
-            Text("or sign in with email").fixedSize()
+            Text(label).fixedSize()
             Rectangle().frame(height: 1)
         }.foregroundStyle(.secondary)
     }

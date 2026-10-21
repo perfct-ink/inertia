@@ -29,4 +29,15 @@ final class RequestsTests: XCTestCase {
         let task = try JSONDecoder().decode(WorkTask.self, from: Data(#"{"id":1,"title":"Task","status":"todo","due_date":null}"#.utf8))
         XCTAssertNil(task.due_date)
     }
+    func testSignupBodyWrapsTrimmedFieldsInUser() throws {
+        let body = try Signup.body(name: "  Ada Lovelace ", email: " ada@example.com\n", password: "secret123")
+        let user = try XCTUnwrap((try JSONSerialization.jsonObject(with: body) as? [String: [String: String]])?["user"])
+        XCTAssertEqual(user, ["name": "Ada Lovelace", "email": "ada@example.com", "password": "secret123", "password_confirmation": "secret123"])
+    }
+    func testSignupErrorsReadTheValidationMessages() {
+        XCTAssertEqual(Signup.errors(from: Data(#"{"errors":["Email has already been taken","Password is too short (minimum is 6 characters)"]}"#.utf8)),
+                       ["Email has already been taken", "Password is too short (minimum is 6 characters)"])
+        XCTAssertEqual(Signup.errors(from: Data("{}".utf8)), [])
+        XCTAssertEqual(Signup.errors(from: Data("not json".utf8)), [])
+    }
 }

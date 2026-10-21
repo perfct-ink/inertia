@@ -19,3 +19,4 @@ One file per implemented feature, written from the code (see `docs/rules/feature
 | Checklist lines in documents become Space tasks | [document_task_lines.md](document_task_lines.md) |
 | Switching Spaces from the sidebar | [space_switcher.md](space_switcher.md) |
 | Collections naming (tables are called Collections in the UI) | [collections.md](collections.md) |
+| Create an account from the Mac app | [mac_app_sign_up.md](mac_app_sign_up.md) |

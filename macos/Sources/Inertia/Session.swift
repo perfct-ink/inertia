@@ -26,6 +26,28 @@ import AuthenticationServices
             token = String(header.dropFirst(7))
         } catch { self.error = error.localizedDescription }
     }
+    /// Creates an account and signs in. Returns the API's validation messages
+    /// (taken email, short password) for the form to show inline; any other
+    /// failure goes to `error`. An empty result means the user is signed in.
+    func signUp(name: String, email: String, password: String) async -> [String] {
+        guard !busy else { return [] }
+        busy = true
+        defer { busy = false }
+        do {
+            let body = try Signup.body(name: name, email: email, password: password)
+            let (data, response) = try await URLSession.shared.data(for: Requests.make(base: api, path: "api/v1/auth/signup", token: nil, method: "POST", body: body))
+            let http = response as! HTTPURLResponse
+            if http.statusCode == 422 {
+                let messages = Signup.errors(from: data)
+                if !messages.isEmpty { return messages }
+            }
+            guard http.statusCode == 201 else { throw APIError.response(http.statusCode) }
+            guard let header = http.value(forHTTPHeaderField: "Authorization"), header.hasPrefix("Bearer ") else { throw APIError.missingToken }
+            user = try JSONDecoder().decode(Login.self, from: data).user
+            token = String(header.dropFirst(7))
+        } catch { self.error = error.localizedDescription }
+        return []
+    }
     func login(provider: String) async {
         guard !busy else { return }
         busy = true

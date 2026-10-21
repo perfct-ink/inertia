@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct LoginView: View {
+    let showSignup: () -> Void
     @EnvironmentObject private var session: Session
     @State private var email = ""
     @State private var password = ""
@@ -29,7 +30,7 @@ struct LoginView: View {
             Button("Sign In", action: signIn).buttonStyle(.borderedProminent)
                 .disabled(session.busy || email.isEmpty || password.isEmpty)
             if session.busy { ProgressView() }
-            Link("Create an account", destination: URL(string: "/index.html#/signup", relativeTo: session.web)!)
+            Button("Create an account", action: showSignup).buttonStyle(.link)
         }.padding(.horizontal, 40).padding(.vertical, 32).frame(width: 400)
     }
 

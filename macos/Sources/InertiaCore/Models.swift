@@ -35,6 +35,24 @@ public enum APIError: LocalizedError {
         }
     }
 }
+/// The sign-up call (`POST api/v1/auth/signup`): what it sends and how its
+/// validation errors read.
+public enum Signup {
+    public static func body(name: String, email: String, password: String) throws -> Data {
+        try JSONSerialization.data(withJSONObject: ["user": [
+            "name": name.trimmingCharacters(in: .whitespacesAndNewlines),
+            "email": email.trimmingCharacters(in: .whitespacesAndNewlines),
+            "password": password,
+            "password_confirmation": password,
+        ]])
+    }
+    /// The messages in a 422 body (`{"errors": ["Email has already been taken"]}`); empty when there are none.
+    public static func errors(from data: Data) -> [String] {
+        guard let object = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+              let messages = object["errors"] as? [String] else { return [] }
+        return messages
+    }
+}
 public enum Requests {
     public static func make(base: URL, path: String, token: String?, method: String = "GET", body: Data? = nil) -> URLRequest {
         var request = URLRequest(url: base.appendingPathComponent(path))

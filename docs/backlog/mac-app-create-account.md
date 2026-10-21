@@ -1,5 +1,6 @@
 ---
 priority: p1
+branch: backlog/mac-app-create-account
 depends_on: []
 components: [macos, backend]
 ---
@@ -24,3 +25,6 @@ A new user can sign up inside the Mac app, without being sent to a browser.
 - A duplicate email shows the API's error and keeps the entered email.
 - No browser opens during email sign-up.
 - Tests cover the session sign-up call and error mapping.
+
+## Blocked
+Implemented on the branch; see `docs/features/mac_app_sign_up.md`. To verify, on a Mac with Xcode: `cd macos && swift test && swift build`, run the app against a local server (`INERTIA_API_URL`), sign up with a new email, then try a taken email (the message should show and the email stay). Then remove this file and merge.
