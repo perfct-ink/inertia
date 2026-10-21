@@ -1,12 +1,8 @@
 name: Deploy
 
-# Test gate, then deploy. Production is moving from the shared droplet to
-# Coolify (docs/deployment.md). Once the COOLIFY_DEPLOY_WEBHOOK repository
-# variable is set, `coolify` asks Coolify to build and deploy
-# docker-compose.coolify.yml from main; until then `droplet` keeps shipping
-# to the old host so production doesn't freeze mid-migration. Delete the
-# `droplet` job and deploy/ once the domain is served from Coolify
-# (docs/backlog/retire-droplet-deploy.md).
+# Test gate, then deploy: `coolify` asks Coolify to build and deploy
+# docker-compose.coolify.yml from main and waits for the result
+# (docs/deployment.md).
 
 on:
   push:
@@ -60,79 +56,32 @@ jobs:
 
   coolify:
     needs: test
-    if: vars.COOLIFY_DEPLOY_WEBHOOK != ''
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 30
     permissions:
       contents: read
+    env:
+      COOLIFY_URL: https://coolify.homecloud.one
+      # The `inertia` resource (Inertia project, production environment).
+      COOLIFY_APP_UUID: smu9zcyqqxhwhd7fybqqmn7j
+      COOLIFY_API_TOKEN: ${{ secrets.COOLIFY_API_TOKEN }}
     steps:
-      # Coolify's deploy webhook (the resource's Webhooks tab) with an API
-      # token from Keys & Tokens. Coolify builds and health-checks the stack
-      # itself; follow the deployment in its dashboard.
-      - name: Trigger Coolify deployment
-        env:
-          COOLIFY_DEPLOY_WEBHOOK: ${{ vars.COOLIFY_DEPLOY_WEBHOOK }}
-          COOLIFY_TOKEN: ${{ secrets.COOLIFY_TOKEN }}
+      # Coolify builds the images and only switches traffic once the health
+      # checks pass; this fails the run if the deployment fails.
+      - name: Deploy with Coolify
         run: |
-          : "${COOLIFY_TOKEN:?Add the COOLIFY_TOKEN repository secret}"
-          curl --fail-with-body -sS -X POST -H "Authorization: Bearer $COOLIFY_TOKEN" "$COOLIFY_DEPLOY_WEBHOOK"
-
-  droplet:
-    needs: test
-    if: vars.COOLIFY_DEPLOY_WEBHOOK == ''
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-    steps:
-      - uses: actions/checkout@v7
-
-      - uses: actions/setup-node@v6
-        with:
-          node-version: "22"
-          cache: npm
-          cache-dependency-path: frontend/package-lock.json
-
-      # API_URL was never set here before, so this build would have shipped
-      # with lib/api.ts's dev fallback (http://localhost:3000) baked into
-      # every real visitor's bundle — broken regardless of collaboration.
-      # Fixed alongside COLLAB_URL since it's the same build step.
-      - name: Build frontend
-        working-directory: frontend
-        env:
-          API_URL: https://inertia.it.com
-          COLLAB_URL: wss://inertia.it.com/collab
-        run: npm ci && npm run build
-
-      - uses: docker/build-push-action@v6
-        with:
-          context: ./backend
-          load: true
-          tags: inertia-backend:latest
-
-      - uses: docker/build-push-action@v6
-        with:
-          context: ./collab-server
-          load: true
-          tags: inertia-collab:latest
-
-      - name: Configure SSH agent
-        run: |
-          mkdir -p ~/.ssh
-          ssh-keyscan -H inertia.it.com >> ~/.ssh/known_hosts
-          eval "$(ssh-agent -s)"
-          echo "SSH_AUTH_SOCK=$SSH_AUTH_SOCK" >> "$GITHUB_ENV"
-          echo "SSH_AGENT_PID=$SSH_AGENT_PID" >> "$GITHUB_ENV"
-          ssh-add - <<< "${{ secrets.DEPLOY_SSH_KEY }}"
-
-      - name: Copy images to server
-        run: |
-          set -o pipefail
-          docker save inertia-backend:latest inertia-collab:latest | gzip | ssh deploy@inertia.it.com 'gunzip | docker load'
-
-      # bin/docker-entrypoint runs db:prepare on every start, so migrations
-      # happen automatically once the container's up.
-      - name: Deploy
-        env:
-          RAILS_ENV: ${{ vars.RAILS_ENV || 'production' }}
-          RAILS_MASTER_KEY: ${{ secrets.RAILS_MASTER_KEY }}
-        run: deploy/deploy.sh
+          : "${COOLIFY_API_TOKEN:?Add the COOLIFY_API_TOKEN repository secret}"
+          auth="Authorization: Bearer $COOLIFY_API_TOKEN"
+          deployment=$(curl --fail-with-body -sS -X POST -H "$auth" \
+            "$COOLIFY_URL/api/v1/deploy?uuid=$COOLIFY_APP_UUID&force=false" \
+            | jq -er '.deployments[0].deployment_uuid')
+          echo "Coolify deployment $deployment"
+          while :; do
+            sleep 15
+            status=$(curl --fail-with-body -sS -H "$auth" "$COOLIFY_URL/api/v1/deployments/$deployment" | jq -r .status)
+            echo "status: $status"
+            case "$status" in
+              finished) exit 0 ;;
+              failed|cancelled*) exit 1 ;;
+            esac
+          done

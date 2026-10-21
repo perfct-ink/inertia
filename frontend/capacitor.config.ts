@@ -4,7 +4,7 @@ import type { CapacitorConfig } from '@capacitor/cli'
 // `win.loadFile` — the WKWebView loads it locally under the capacitor://
 // scheme rather than file://, which is why backend/config/initializers/
 // cors.rb's CORS_ORIGINS needs that origin added (see docker-compose.yml /
-// deploy/deploy.sh). appId matches frontend/package.json's Electron
+// docker-compose.coolify.yml). appId matches frontend/package.json's Electron
 // `build.appId` for consistency across the two native shells.
 const config: CapacitorConfig = {
   appId: 'com.inertia.app',

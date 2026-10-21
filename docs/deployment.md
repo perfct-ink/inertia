@@ -4,7 +4,7 @@ Production runs on a [Coolify](https://coolify.io) server as one Docker Compose 
 
 Cutover finished on 2026-10-21: `inertia.it.com` and `www.inertia.it.com` are served by the `inertia` resource (Inertia project, `production` environment, uuid `smu9zcyqqxhwhd7fybqqmn7j`) on `https://coolify.homecloud.one`.
 
-The Coolify proxy's `--providers.docker.constraints` setting (Servers → localhost → Proxy) lists the app uuids Traefik routes; hosts it doesn't route fall through to the droplet's host nginx. Keep Inertia's uuid in that list.
+The Coolify proxy's `--providers.docker.constraints` setting (Servers → localhost → Proxy) lists the app uuids Traefik routes; hosts it doesn't route fall through to the host nginx. Keep Inertia's uuid in that list.
 
 ```
 browser ──https──▶ Coolify proxy (Traefik, TLS)
@@ -28,9 +28,7 @@ Only `web` gets a domain. `api` and `collab` are reachable only inside the stack
 
 ## Deploys
 
-Every push to `main` runs `.github/workflows/deploy.yml`: the backend test suite, then the `coolify` job calls Coolify's deploy webhook. Coolify builds and starts the new containers and only switches traffic once their health checks pass. Turn Coolify's own **Auto Deploy** off for this resource so nothing deploys without the test gate.
-
-Until the `COOLIFY_DEPLOY_WEBHOOK` repository variable is set, the workflow's `droplet` job keeps deploying to the old droplet with `deploy/deploy.sh` instead. That path is retired after cutover (see `docs/backlog/retire-droplet-deploy.md`).
+Every push to `main` runs `.github/workflows/deploy.yml`: the backend test suite, then the `coolify` job asks Coolify's API (`POST /api/v1/deploy?uuid=smu9zcyqqxhwhd7fybqqmn7j`) to deploy and waits until the deployment finishes, failing the run if it fails. Coolify builds and starts the new containers and only switches traffic once their health checks pass. Coolify's own **Auto Deploy** is off for this resource so nothing deploys without the test gate.
 
 To deploy by hand, use **Deploy** on the resource in Coolify, or run the workflow from the Actions tab.
 
@@ -52,12 +50,11 @@ GitHub repository settings used by the workflow:
 
 | Name | Kind | Value |
 | --- | --- | --- |
-| `COOLIFY_DEPLOY_WEBHOOK` | variable | The resource's deploy webhook URL (Coolify: resource → **Webhooks**), `https://coolify.homecloud.one/api/v1/deploy?uuid=smu9zcyqqxhwhd7fybqqmn7j&force=false` (called with POST; Coolify 4.4 rejects GET). Setting it switches deploys from the droplet to Coolify. |
-| `COOLIFY_TOKEN` | secret | A Coolify API token with deploy permission (Coolify: **Keys & Tokens** → API tokens). |
+| `COOLIFY_API_TOKEN` | secret | A Coolify API token with deploy permission (Coolify: **Keys & Tokens** → API tokens). The Coolify URL and the resource uuid are in the workflow itself. |
 
 ## One-time setup
 
-1. **Server.** Coolify (`https://coolify.homecloud.one`) runs on the droplet itself (104.131.183.186) as the `localhost` server; its Traefik proxy holds ports 80/443 and passes hosts it doesn't route on to the droplet's host nginx. The resource lives in the **Inertia** project, `production` environment.
+1. **Server.** Coolify (`https://coolify.homecloud.one`) runs on the droplet itself (104.131.183.186) as the `localhost` server; its Traefik proxy holds ports 80/443 and passes hosts it doesn't route on to the host nginx, which still serves other sites. The resource lives in the **Inertia** project, `production` environment.
 2. **Database access.** Nothing to add: the droplet's IP is already in the MySQL cluster's Trusted Sources, and the credentials in `config/credentials.yml.enc` keep working unchanged.
 3. **Repository.** In Coolify: Sources → add a GitHub App with access to `perfct-ink/inertia`.
 4. **Resource.** New resource → the GitHub App source → `perfct-ink/inertia`, branch `main`, build pack **Docker Compose**, compose file `/docker-compose.coolify.yml`.
@@ -66,17 +63,20 @@ GitHub repository settings used by the workflow:
 7. **Auto Deploy.** Turn it off under the resource's Advanced settings so deploys only come from the tested workflow.
 8. **First deploy.** Click Deploy and wait for all three services to report healthy. Before DNS moves, you can check it on a temporary domain (Coolify can generate an sslip.io one) or with `curl -H 'Host: inertia.it.com' http://<server-ip>/healthz`.
 
-## Cutover from the droplet
+## Cutover from the droplet (done 2026-10-21)
 
-1. **Uploads.** Nothing to copy: both stacks mount the same `inertiaitcom_storage` volume.
-2. **Domain.** DNS already points at the droplet. Change the `web` service's domain from the test sslip.io address to `https://inertia.it.com,https://www.inertia.it.com` and redeploy; Traefik then routes the names to the stack and requests their certificates. Remove the droplet nginx vhost for `inertia.it.com` afterwards so nothing else answers for it.
-3. **Switch deploys.** Add the `COOLIFY_TOKEN` secret and the `COOLIFY_DEPLOY_WEBHOOK` variable in GitHub (Settings → Secrets and variables → Actions). The next push to `main` deploys through Coolify.
-4. **Verify** `https://inertia.it.com/` (marketing page), sign in, open a document in two tabs to check live collaboration, and open an existing upload.
-5. **Retire the droplet path** per `docs/backlog/retire-droplet-deploy.md`, then stop the old containers and remove the nginx vhost on the droplet.
+Both stacks mounted the same `inertiaitcom_storage` volume, so no uploads were copied. The `web` domain moved from a test sslip.io address to `inertia.it.com`, and the droplet deploy (`deploy/deploy.sh`, `docker-compose.prod.yml`, the host nginx vhost) was removed from the repo. What's left on the droplet is a one-time cleanup by hand, in Coolify → Servers → localhost → Terminal or over SSH:
+
+```
+sudo rm /etc/nginx/sites-enabled/inertia.it.com /etc/nginx/sites-available/inertia.it.com && sudo nginx -t && sudo systemctl reload nginx
+cd /var/www/inertia.it.com && docker compose down
+```
+
+Keep the `inertiaitcom_storage` volume: Coolify uses it.
 
 ## Rollback
 
-In Coolify, the resource's **Deployments** tab can redeploy any earlier successful deployment. Migrations don't roll back automatically, so keep schema changes backward compatible or plan their reversal. Before cutover is finished, removing the `COOLIFY_DEPLOY_WEBHOOK` variable sends deploys back to the droplet.
+In Coolify, the resource's **Deployments** tab can redeploy any earlier successful deployment. Migrations don't roll back automatically, so keep schema changes backward compatible or plan their reversal.
 
 ## Running the production stack locally
 

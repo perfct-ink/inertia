@@ -97,9 +97,7 @@ GET    /shared/:token
 
 ## Deploy
 
-Production is moving to **Coolify**: one Docker Compose resource (`docker-compose.coolify.yml`) with an nginx `web` service for the frontend, the Rails `api` and the `collab` WebSocket service, behind Coolify's TLS proxy. The database stays on the DigitalOcean managed MySQL cluster, and the only production secret is `RAILS_MASTER_KEY`, which decrypts `backend/config/credentials.yml.enc`. Every push to `main` runs the backend tests, then triggers Coolify's deploy webhook. Setup, configuration, cutover and rollback are in [deployment.md](deployment.md).
-
-Until the cutover finishes (the `COOLIFY_DEPLOY_WEBHOOK` repository variable is unset), the same workflow still deploys to the old shared droplet with `deploy/deploy.sh`, which copies the images over SSH and manages that host's nginx vhost and certificate. That path is being retired; see `docs/backlog/retire-droplet-deploy.md`.
+Production runs on **Coolify**: one Docker Compose resource (`docker-compose.coolify.yml`) with an nginx `web` service for the frontend, the Rails `api` and the `collab` WebSocket service, behind Coolify's TLS proxy. The database stays on the DigitalOcean managed MySQL cluster, and the only production secret is `RAILS_MASTER_KEY`, which decrypts `backend/config/credentials.yml.enc`. Every push to `main` runs the backend tests, then deploys through Coolify's API. Setup, configuration, cutover and rollback are in [deployment.md](deployment.md).
 
 ### Native macOS preview (SwiftUI)
 

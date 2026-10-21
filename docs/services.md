@@ -31,10 +31,10 @@ The Docker frontend starts through `frontend/scripts/start-dev.sh`. It compares 
 | Anthropic API (planned) | The AI worker's language model calls, once the adapter exists. Needs the official `anthropic` Ruby gem and `ANTHROPIC_API_KEY`; neither is wired up yet. Default model `claude-opus-5-5`. Task text is sent to Anthropic, so say so wherever workers are shown to users. | `backend/app/services/ai_workers.rb` (the client seam) |
 | Quip API | Importing a user's Quip folders and documents. The user supplies their own Quip token per import; it is not stored as app config. | `backend/app/services/quip/` |
 | Coolify | Builds and runs the production stack from `docker-compose.coolify.yml`, routes the domain and issues TLS certificates (Traefik + Let's Encrypt). | `docker-compose.coolify.yml`, [deployment.md](deployment.md) |
-| DigitalOcean | The managed MySQL cluster, and the old droplet that hosts production until the Coolify cutover. | `deploy/` (droplet only) |
+| DigitalOcean | The managed MySQL cluster, and the droplet Coolify runs on. | `deploy/server_setup.sh` |
 | GitHub Actions | CI (`.github/workflows/ci.yml`), and on push to `main` runs the tests then triggers the Coolify deploy (`deploy.yml`). | |
 | Public npm registry | Installs frontend and collab dependencies locally and in CI. Lockfile URLs must use `registry.npmjs.org`, with no private registry credentials required. | `frontend/package-lock.json`, `collab-server/package-lock.json` |
-| nginx | Serves the static frontend and proxies the marketing pages, `/api`, Active Storage and `/collab` (the `web` service). On the old droplet, host nginx + certbot do the same and terminate TLS. | `frontend/nginx/default.conf`, `deploy/` (droplet) |
+| nginx | Serves the static frontend and proxies the marketing pages, `/api`, Active Storage and `/collab` (the `web` service). | `frontend/nginx/default.conf` |
 
 See [Mac social sign-in](mac-social-sign-in.md) for provider setup steps.
 
@@ -83,10 +83,6 @@ See [Mac social sign-in](mac-social-sign-in.md) for provider setup steps.
 
 | Secret | Purpose |
 | --- | --- |
-| `COOLIFY_DEPLOY_WEBHOOK` (variable) | Coolify's deploy webhook for the resource. Setting it switches deploys from the droplet to Coolify. |
-| `COOLIFY_TOKEN` | Coolify API token used to call that webhook. |
-| `RAILS_MASTER_KEY` | Droplet deploys only; on Coolify it's set in the resource's environment variables. |
-| `DEPLOY_SSH_KEY` | Droplet deploys only: private key authorized on the server's `deploy` account. |
-| `RAILS_ENV` (variable, optional) | Droplet deploys only. Defaults to `production`. |
+| `COOLIFY_API_TOKEN` | Coolify API token the deploy job uses to start a deployment and follow it. |
 
 Production runtime variables on Coolify (`RAILS_MASTER_KEY`, `APP_URL`, `COLLAB_URL`, `CORS_ORIGINS`, social sign-in) are listed in [deployment.md](deployment.md#configuration).

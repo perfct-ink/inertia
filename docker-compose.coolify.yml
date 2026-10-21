@@ -84,8 +84,8 @@ services:
       timeout: 5s
       retries: 5
 
-# Coolify runs on the same droplet that served the old docker-compose.prod.yml
-# stack, so the api reuses that stack's uploads volume instead of copying it.
+# The uploads volume the old droplet deploy created on this same server; Coolify
+# took it over at cutover instead of copying it.
 volumes:
   storage:
     external: true
