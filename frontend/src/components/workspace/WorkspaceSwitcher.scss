@@ -25,51 +25,5 @@
       width: space(3.5);
       height: space(3.5);
     }
-
-    &-list {
-      display: flex;
-      flex-direction: column;
-      gap: space(1);
-      margin-top: space(3);
-    }
-
-    &-item {
-      display: flex;
-      align-items: center;
-      gap: space(2);
-      width: 100%;
-      padding: space(2) space(3);
-      border-radius: radius('md');
-      text-align: left;
-      @include text('sm');
-
-      &:hover {
-        background: color(accent);
-      }
-
-      &_name {
-        flex: 1 1 0%;
-        @include truncate;
-      }
-
-      &_role {
-        color: color(muted-foreground);
-        text-transform: capitalize;
-        @include text('xs');
-      }
-    }
-
-    &-actions {
-      display: flex;
-      flex-wrap: wrap;
-      gap: space(2);
-      margin-top: space(4);
-
-      .ui-button {
-        display: inline-flex;
-        align-items: center;
-        gap: space(2);
-      }
-    }
   }
 }

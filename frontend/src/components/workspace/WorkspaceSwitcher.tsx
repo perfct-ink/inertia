@@ -1,6 +1,6 @@
 import { useState } from 'react'
-import { Check, ChevronsUpDown, Plus, Users } from 'lucide-react'
-import { Button, Modal, PromptDialog } from '@/components/ui'
+import { ChevronsUpDown, Plus, Users } from 'lucide-react'
+import { Menu, PromptDialog, type MenuItem } from '@/components/ui'
 import { useWorkspace } from '@/api/workspace'
 import { useCreateWorkspace, useWorkspaces } from '@/api/workspaces'
 import { useSwitchWorkspace } from '@/hooks/useSwitchWorkspace'
@@ -8,19 +8,17 @@ import type { WorkspaceSummary } from '@/types'
 import { WorkspaceMembers } from './WorkspaceMembers'
 import './WorkspaceSwitcher.scss'
 
-// The sidebar header's workspace name, which opens a list to switch between
-// workspaces (projects with their own people), create one, or manage members.
+// The sidebar header's Space name, which opens a dropdown menu to switch
+// between Spaces (projects with their own people), create one, or manage members.
 export function WorkspaceSwitcher() {
   const switchWorkspace = useSwitchWorkspace()
   const { data: current } = useWorkspace()
   const { data: workspaces = [] } = useWorkspaces()
   const createWorkspace = useCreateWorkspace()
-  const [listOpen, setListOpen] = useState(false)
   const [creating, setCreating] = useState(false)
   const [membersOpen, setMembersOpen] = useState(false)
 
   function switchTo(workspace: WorkspaceSummary) {
-    setListOpen(false)
     if (workspace.id !== current?.id) switchWorkspace(workspace)
   }
 
@@ -29,44 +27,26 @@ export function WorkspaceSwitcher() {
     createWorkspace.mutate(name, { onSuccess: switchTo })
   }
 
+  const items: MenuItem[] = [
+    ...workspaces.map((w) => ({
+      key: `space-${w.id}`,
+      label: w.name,
+      hint: w.personal ? 'personal' : w.role,
+      checked: w.id === current?.id,
+      onSelect: () => switchTo(w),
+    })),
+    { key: 'new', label: 'New Space...', icon: <Plus className="workspace_switcher-icon" aria-hidden="true" />, separatorBefore: true, onSelect: () => setCreating(true) },
+    ...(current ? [{ key: 'members', label: 'Members...', icon: <Users className="workspace_switcher-icon" aria-hidden="true" />, onSelect: () => setMembersOpen(true) }] : []),
+  ]
+
   return (
     <>
-      <Button
-        variant="unstyled"
-        className="workspace_switcher-trigger"
-        aria-label={`Space: ${current?.name ?? 'My Space'}. Switch space`}
-        aria-haspopup="dialog"
-        onClick={() => setListOpen(true)}
-      >
+      <Menu label={`Space: ${current?.name ?? 'My Space'}. Switch Space`} triggerClassName="workspace_switcher-trigger" items={items}>
         <span className="workspace_switcher-name">{current?.name ?? 'My Space'}</span>
-        <ChevronsUpDown className="workspace_switcher-icon" />
-      </Button>
+        <ChevronsUpDown className="workspace_switcher-icon" aria-hidden="true" />
+      </Menu>
 
-      <Modal open={listOpen} title="Spaces" description="Each space is a separate project with its own people." onClose={() => setListOpen(false)}>
-        <ul className="workspace_switcher-list">
-          {workspaces.map((w) => (
-            <li key={w.id}>
-              <Button variant="unstyled" className="workspace_switcher-item" onClick={() => switchTo(w)}>
-                <span className="workspace_switcher-item_name">{w.name}</span>
-                <span className="workspace_switcher-item_role">{w.personal ? 'personal' : w.role}</span>
-                {w.id === current?.id && <Check className="workspace_switcher-icon" aria-label="Current space" />}
-              </Button>
-            </li>
-          ))}
-        </ul>
-        <div className="workspace_switcher-actions">
-          <Button variant="secondary" onClick={() => { setListOpen(false); setCreating(true) }}>
-            <Plus className="workspace_switcher-icon" /> New space
-          </Button>
-          {current && (
-            <Button variant="secondary" onClick={() => { setListOpen(false); setMembersOpen(true) }}>
-              <Users className="workspace_switcher-icon" /> Members
-            </Button>
-          )}
-        </div>
-      </Modal>
-
-      <PromptDialog open={creating} title="New space" label="Space name" placeholder="e.g. Website relaunch" submitLabel="Create" onSubmit={create} onClose={() => setCreating(false)} />
+      <PromptDialog open={creating} title="New Space" label="Space name" placeholder="e.g. Website relaunch" submitLabel="Create" onSubmit={create} onClose={() => setCreating(false)} />
       {current && <WorkspaceMembers workspace={current} open={membersOpen} onClose={() => setMembersOpen(false)} />}
     </>
   )

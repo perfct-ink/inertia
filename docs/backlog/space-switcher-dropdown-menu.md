@@ -1,5 +1,6 @@
 ---
 priority: p1
+branch: backlog/space-switcher-dropdown-menu
 depends_on: []
 components: [frontend]
 ---
@@ -20,3 +21,6 @@ Clicking the Space name opens a modal ("Spaces") with a list and "New space" and
 - The current Space has a check; picking another switches to it.
 - "New Space..." opens the name prompt; "Members..." opens the members dialog.
 - Arrow keys, Enter and Escape work.
+
+## Blocked
+Implemented on the branch with a shared `Menu` component and tests; see `docs/features/space_switcher.md`. Not run (no node_modules): `cd frontend && npm install && npm run lint && npm test`, then open the sidebar's Space name in a browser (check the menu isn't clipped by the sidebar, and clicks work inside the Electron/Mac drag header). Then remove this file and merge.
