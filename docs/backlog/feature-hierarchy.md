@@ -12,6 +12,8 @@ depends_on: [feature-folder-type]
 
 Default: each feature is a document plus an optional `parent_feature` link, so a feature's doc and its children sit together.
 
+Alex (2026-10-22): every feature requires a requirements document; a feature can't exist without one. The user flow (create, write tasks, check off, collapse to tasks) is in `features-with-requirements-docs.md`.
+
 ## Context
 
 Section "Feature folders" of the retired shared backlog.

@@ -8,6 +8,10 @@ depends_on: []
 
 **Requirements template** for new feature docs (problem, goals, user stories, acceptance criteria, out of scope)
 
+## Requirements / notes
+
+Alex (2026-10-22): creating a feature always creates its requirements document from this template (`features-with-requirements-docs.md`), so the template needs a section where tasks are written as checklist lines.
+
 ## Context
 
 Section "Feature folders" of the retired shared backlog.
