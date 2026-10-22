@@ -32,7 +32,7 @@ The Docker frontend starts through `frontend/scripts/start-dev.sh`. It compares 
 | Quip API | Importing a user's Quip folders and documents. The user supplies their own Quip token per import; it is not stored as app config. | `backend/app/services/quip/` |
 | Coolify | Builds and runs the production stack from `docker-compose.coolify.yml`, routes the domain and issues TLS certificates (Traefik + Let's Encrypt). | `docker-compose.coolify.yml`, [deployment.md](deployment.md) |
 | DigitalOcean | The managed MySQL cluster, and the droplet Coolify runs on. | `deploy/server_setup.sh` |
-| GitHub Actions | CI (`.github/workflows/ci.yml`). Deploys don't go through it: Coolify's GitHub App deploys every push to `main`. | |
+| GitHub Actions | CI (`.github/workflows/ci.yml`). Its last job deploys `main` through Coolify's API once every other job passes; Coolify's Auto Deploy is off. | |
 | Public npm registry | Installs frontend and collab dependencies locally and in CI. Lockfile URLs must use `registry.npmjs.org`, with no private registry credentials required. | `frontend/package-lock.json`, `collab-server/package-lock.json` |
 | nginx | Serves the static frontend and proxies the marketing pages, `/api`, Active Storage and `/collab` (the `web` service). | `frontend/nginx/default.conf` |
 
@@ -83,6 +83,6 @@ See [Mac social sign-in](mac-social-sign-in.md) for provider setup steps.
 
 | Secret | Purpose |
 | --- | --- |
-| (none) | Deploys need no GitHub secrets; Coolify pulls the repo through its GitHub App. |
+| `COOLIFY_WEBHOOK`, `COOLIFY_TOKEN` | CI's deploy job: the resource's deploy URL and a Coolify API token with deploy permission. Coolify still pulls the repo through its GitHub App. |
 
 Production runtime variables on Coolify (`RAILS_MASTER_KEY`, `APP_URL`, `COLLAB_URL`, `CORS_ORIGINS`, social sign-in) are listed in [deployment.md](deployment.md#configuration).

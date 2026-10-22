@@ -171,3 +171,22 @@ jobs:
         run: |
           plutil -lint macos/dist/Inertia.app/Contents/Info.plist
           codesign --verify --deep --strict macos/dist/Inertia.app
+
+  # Production is Coolify (coolify.homecloud.one). Its GitHub App gives it the
+  # repo, but Auto Deploy is off, so this job is the only thing that deploys,
+  # and only after every job above passed on main. Needs the COOLIFY_WEBHOOK
+  # (the resource's deploy URL) and COOLIFY_TOKEN (a Coolify API token with
+  # deploy permission) secrets.
+  deploy:
+    name: Deploy to Coolify
+    needs: [backend, brakeman, rubocop, frontend, collab, native-macos]
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Trigger the Coolify deploy
+        env:
+          COOLIFY_WEBHOOK: ${{ secrets.COOLIFY_WEBHOOK }}
+          COOLIFY_TOKEN: ${{ secrets.COOLIFY_TOKEN }}
+        run: |
+          curl --fail-with-body -sS -X POST -H "Authorization: Bearer $COOLIFY_TOKEN" "$COOLIFY_WEBHOOK"

@@ -28,7 +28,7 @@ Only `web` gets a domain. `api` and `collab` are reachable only inside the stack
 
 ## Deploys
 
-Coolify's **Auto Deploy** is on for this resource: every push to `main` reaches Coolify through its GitHub App and deploys right away. Coolify builds and starts the new containers and only switches traffic once their health checks pass. CI (`.github/workflows/ci.yml`) runs the tests on the same push in parallel, so a failing test does not stop a deploy (Alex's choice, 2026-10-21); check CI before pushing.
+A push to `main` deploys only once CI passes (Alex, 2026-10-22). Coolify reads the repo through its GitHub App with **Auto Deploy off**; the last job in `.github/workflows/ci.yml`, `deploy`, runs after every other CI job succeeds on `main` and POSTs the resource's deploy endpoint. Coolify builds and starts the new containers and only switches traffic once their health checks pass.
 
 To deploy by hand, use **Deploy** on the resource in Coolify.
 
@@ -46,7 +46,7 @@ Set these in the resource's **Environment Variables** tab in Coolify. Only `RAIL
 
 `APP_URL` and `COLLAB_URL` are build arguments: changing them needs a redeploy, not a restart. Never put a secret in them, since they ship to every browser.
 
-No GitHub secrets or variables are needed for deploys. To deploy by API instead, `POST https://coolify.homecloud.one/api/v1/deploy?uuid=smu9zcyqqxhwhd7fybqqmn7j&force=false` with a Coolify API token (Keys & Tokens).
+CI's deploy job needs two GitHub secrets: `COOLIFY_WEBHOOK` (`https://coolify.homecloud.one/api/v1/deploy?uuid=smu9zcyqqxhwhd7fybqqmn7j&force=false`) and `COOLIFY_TOKEN` (a Coolify API token with deploy permission, from Keys & Tokens). Without them the job fails and nothing deploys.
 
 ## One-time setup
 
@@ -56,7 +56,7 @@ No GitHub secrets or variables are needed for deploys. To deploy by API instead,
 4. **Resource.** New resource → the GitHub App source → `perfct-ink/inertia`, branch `main`, build pack **Docker Compose**, compose file `/docker-compose.coolify.yml`.
 5. **Domain.** On the `web` service, set the domain to `https://inertia.it.com,https://www.inertia.it.com`. Leave `api` and `collab` without a domain.
 6. **Environment.** Add `RAILS_MASTER_KEY` (plus any social sign-in values) as above.
-7. **Auto Deploy.** Turn it on under the resource's Advanced settings so pushes to `main` deploy.
+7. **Auto Deploy.** Leave it off under the resource's Advanced settings; CI's deploy job starts deploys. Add the `COOLIFY_WEBHOOK` and `COOLIFY_TOKEN` GitHub secrets (above).
 8. **First deploy.** Click Deploy and wait for all three services to report healthy. Before DNS moves, you can check it on a temporary domain (Coolify can generate an sslip.io one) or with `curl -H 'Host: inertia.it.com' http://<server-ip>/healthz`.
 
 ## Cutover from the droplet (done 2026-10-21)
