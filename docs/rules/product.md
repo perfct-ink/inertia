@@ -22,4 +22,14 @@ Users see workspaces as **Spaces**. Use "Space" in every label, message, page ti
 
 ### Design principles
 
-- **Works on mobile** (Alex, 2026-10-22). Every feature must be usable on a phone, not only on desktop: layouts fit a 375px-wide screen without horizontal scrolling, touch targets are large enough to tap, and nothing depends on hover or a keyboard shortcut alone. This applies to every new feature and every backlog task. A task isn't done until it has been checked at mobile width as well as desktop, and any backlog task that would be desktop-only should say how it works on mobile.
+From Alex (2026-10-22). They apply to every page, feature and backlog task; a task isn't done until it meets them.
+
+1. **Responsive on all devices.** Consider phones, tablets and larger displays for every page. On a phone, layouts fit a 375px-wide screen without horizontal scrolling, touch targets are large enough to tap, and nothing depends on hover or a keyboard shortcut alone. Check every change at mobile width as well as desktop, and any backlog task that would be desktop-only should say how it works on mobile.
+2. **Native controls look the same everywhere.** Where browsers render them differently, style them: dialog boxes, buttons, text fields, selects (dropdowns), checkboxes and radio buttons.
+3. **Interactive things react to the cursor; nothing else does.** Anything clickable changes when the cursor is over it. Anything that isn't clickable doesn't change on hover.
+4. **View hierarchy: Global, then App, then View.** Libraries and global styles are the base, app-wide changes sit on top, and each view overrides what it inherits (see Inheritance in [code-requirements.md](code-requirements.md)).
+5. **Text never touches the edge of the viewport.** Text at the edge looks cut off; use margin or padding to keep it in.
+6. **Animations are fast (150ms).** Longer animations distract.
+7. **Hover and other state changes never change an element's size or position**, since that makes clicking glitchy. The only exception is when the hover or click mask stays the same.
+8. **UI text that no one would select isn't selectable**: buttons, dropdowns, icons.
+9. **Views only show things of value.** For example, don't show pagination when there's only one page.
