@@ -8,7 +8,11 @@
     @at-root .documents_index-content {
       max-width: 56rem;
       margin-inline: auto;
-      padding: space(8) space(6);
+      padding: space(6) space(4);
+
+      @include up('md') {
+        padding: space(8) space(6);
+      }
     }
 
     @at-root .documents_index-title {
@@ -80,10 +84,6 @@
       gap: space(3);
       padding: space(2.5) space(2);
       border-radius: radius('md');
-
-      &:hover {
-        background: color(accent);
-      }
     }
 
     @at-root .documents_index-icon {
@@ -118,9 +118,16 @@
       flex: 1 1 0%;
     }
 
-    @at-root .documents_index-col--location {
+    // A phone has room for the name and date only; the location column
+    // returns at sm.
+    .documents_index-col--location {
+      display: none;
       flex-shrink: 0;
       width: space(32);
+
+      @include up('sm') {
+        display: flex;
+      }
     }
 
     @at-root .documents_index-col--modified {
@@ -141,7 +148,7 @@
     }
 
     .documents_index-location {
-      display: flex;
+      display: none;
       flex-shrink: 0;
       align-items: center;
       gap: space(1);
@@ -152,6 +159,10 @@
 
       &:hover {
         text-decoration: underline;
+      }
+
+      @include up('sm') {
+        display: flex;
       }
     }
 

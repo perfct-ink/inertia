@@ -8,6 +8,11 @@
     display: none !important;
   }
 
+  /* Fortune Sheet's own transitions run 100-300ms; the app's are all 150ms. */
+  .fortune-container * {
+    transition-duration: var(--v-anim-speed);
+  }
+
   /* Fortune Sheet — dark mode.
      The grid, headers, and toolbar icons are drawn on <canvas>, and the
      library exposes no theme API (checked @fortune-sheet/core's Settings

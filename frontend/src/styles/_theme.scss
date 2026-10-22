@@ -15,12 +15,17 @@
   --v-color-trim-subtle: hsl(174deg 10% 45%);
   --v-color-danger: hsl(0deg 72% 51%);
 
+  // Native widgets (date pickers, scrollbars, autofill) follow the theme.
+  color-scheme: light;
+
   // Inertia colors Volta has no token for.
   --accent-foreground: hsl(174deg 72% 20%);
   --card: var(--v-color-base);
 }
 
 @include volta.dark-scheme {
+  color-scheme: dark;
+
   --v-accent: hsl(174deg 72% 42%);
   --v-accent-hover: hsl(174deg 72% 36%);
   --v-accent-subtle: hsl(174deg 15% 18%);

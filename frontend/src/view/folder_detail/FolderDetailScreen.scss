@@ -22,7 +22,7 @@
       padding: space(4);
 
       &--overview {
-        padding: space(6);
+        @include page-padding;
       }
 
       &--list {
@@ -62,7 +62,7 @@
       }
 
       &--chevron {
-        transition: transform 150ms cubic-bezier(0.4, 0, 0.2, 1);
+        @include transition(transform);
       }
 
       &--open {
@@ -161,12 +161,7 @@
     /* ── Page header ─────────────────────────────────────────────────────────── */
 
     @at-root .folder_detail-header {
-      display: flex;
-      flex-shrink: 0;
-      align-items: center;
-      gap: space(3);
-      padding: space(3) space(6);
-      border-bottom-width: 1px;
+      @include page-header(space(3));
     }
 
     @at-root .folder_detail-title {
@@ -178,7 +173,7 @@
 
     @at-root .folder_detail-tabs {
       display: flex;
-      flex-shrink: 0;
+      flex-wrap: wrap;
       gap: space(1);
       margin-left: space(2);
     }
@@ -189,6 +184,7 @@
       gap: space(1.5);
       padding: space(1) space(3);
       border-radius: radius('md');
+      white-space: nowrap;
       @include text('sm');
 
       &--compact {
@@ -327,7 +323,7 @@
     @at-root .folder_detail-list {
       max-width: 42rem;
       margin: 0 auto;
-      padding: space(6);
+      @include page-padding;
 
       &-toolbar {
         display: flex;

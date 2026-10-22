@@ -8,12 +8,7 @@
     overflow: hidden;
 
     @at-root .okrs-header {
-      display: flex;
-      flex-shrink: 0;
-      align-items: center;
-      gap: space(4);
-      padding: space(3) space(6);
-      border-bottom-width: 1px;
+      @include page-header;
     }
 
     @at-root .okrs-title {
@@ -49,7 +44,7 @@
       gap: space(4);
       max-width: 48rem;
       margin-inline: auto;
-      padding: space(6);
+      @include page-padding;
     }
 
     @at-root .okrs-empty {
@@ -176,13 +171,8 @@
     .okrs-unit,
     .okrs-add-title,
     .okrs-add-source {
-      width: auto;
-      min-height: 0;
-      padding: 0 0 space(0.5);
-      border-width: 0 0 1px;
-      border-color: color(input);
-      border-radius: 0;
-      background: transparent;
+      @include field-underline;
+
       @include text('sm');
     }
 

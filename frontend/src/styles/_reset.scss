@@ -83,6 +83,20 @@ button:disabled {
   cursor: default;
 }
 
+// Nobody selects the text of a control or an icon, so a drag or double-click
+// on one shouldn't highlight it (design principle 8).
+button,
+select,
+label,
+summary,
+svg,
+[role='button'],
+[role='tab'],
+[role='menuitem'],
+[role='option'] {
+  user-select: none;
+}
+
 img,
 svg,
 video,

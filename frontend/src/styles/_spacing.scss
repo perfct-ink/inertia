@@ -1,8 +1,6 @@
 // Margin and padding live in one place: the scale is `space(n)` in
 // _tokens.scss (0.25rem steps). Stylesheets apply it directly; there are no
 // global spacing utility classes.
-// Shared layout paddings that several views reuse:
-@use 'tokens' as *;
-
-$page-padding: space(6);
-$page-padding-compact: space(4);
+// Page layout padding is shared through the `page-padding` and `page-header`
+// mixins in _tokens.scss: 16px on a phone, 24px from md up, so text never
+// reaches the edge of the screen.

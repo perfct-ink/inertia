@@ -42,7 +42,7 @@
     @at-root .folder_item-chevron {
       @include fm.icon(3, false);
 
-      transition: transform 150ms cubic-bezier(0.4, 0, 0.2, 1);
+      @include transition(transform);
 
       &--open {
         transform: rotate(90deg);
@@ -89,7 +89,6 @@
       @include fm.icon_action;
 
       flex-shrink: 0;
-      opacity: 1;
       cursor: pointer;
 
       /* Follow the button's hover color instead of the icon's own muted color. */
@@ -97,15 +96,11 @@
         color: inherit;
       }
 
-      @include up(md) {
-        opacity: 0;
-      }
+      @include reveal-on-hover;
     }
 
     @at-root .folder_item-row:hover .folder_item-actions {
-      @include up(md) {
-        opacity: 1;
-      }
+      opacity: 1;
     }
 
     @at-root .folder_item-new_folder {

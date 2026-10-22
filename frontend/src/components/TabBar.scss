@@ -23,7 +23,7 @@
       @include text('sm');
 
       color: color(muted-foreground);
-      transition: color 150ms, background-color 150ms;
+      @include transition(color, background-color);
 
       &:hover {
         background: color(accent, 0.5);
@@ -69,7 +69,7 @@
       border-radius: radius();
       color: color(muted-foreground);
       cursor: pointer;
-      opacity: 0;
+      @include reveal-on-hover;
 
       &:focus-visible,
       &:hover {

@@ -115,9 +115,7 @@
         user-select: none;
 
         input {
-          width: space(4);
-          height: space(4);
-          cursor: pointer;
+          @include checkable;
         }
       }
 

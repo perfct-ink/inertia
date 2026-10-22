@@ -10,12 +10,7 @@
     overflow: hidden;
 
     @at-root .planning-header {
-      display: flex;
-      flex-shrink: 0;
-      align-items: center;
-      gap: space(4);
-      padding: space(3) space(6);
-      border-bottom-width: 1px;
+      @include page-header;
     }
 
     @at-root .planning-title {
@@ -40,12 +35,13 @@
       gap: space(3);
       max-width: 42rem;
       margin-inline: auto;
-      padding: space(6);
+      @include page-padding;
     }
 
     /* Overrides of ui components use two classes to beat their base styles. */
     .planning-tab {
       padding: space(1) space(3);
+      white-space: nowrap;
       border-radius: radius('md');
       color: color(muted-foreground);
       @include text('sm');
@@ -180,14 +176,10 @@
     .planning-card-delete {
       flex-shrink: 0;
       color: color(muted-foreground);
-      opacity: 0;
+      @include reveal-on-hover;
 
       &:hover {
         color: palette('red-500');
-      }
-
-      &:focus-visible {
-        opacity: 1;
       }
     }
 
@@ -202,6 +194,7 @@
 
     @at-root .planning-card-dates {
       display: flex;
+      flex-wrap: wrap;
       align-items: center;
       gap: space(2);
       color: color(muted-foreground);
@@ -211,15 +204,8 @@
     .planning-date,
     .planning-description,
     .planning-initiative {
-      width: auto;
-      min-height: 0;
-      padding: 0 0 space(0.5);
-      border-width: 0 0 1px;
-      border-color: color(input);
-      border-radius: 0;
-      background: transparent;
-      outline: none;
-      cursor: pointer;
+      @include field-underline;
+
       @include text('xs');
     }
 

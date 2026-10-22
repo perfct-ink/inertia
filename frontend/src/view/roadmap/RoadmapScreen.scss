@@ -8,7 +8,7 @@
       display: flex;
       flex-direction: column;
       gap: space(8);
-      padding: space(6);
+      @include page-padding;
     }
 
     // Same max width as the Timeline chart, so the header ends with the axis.
@@ -52,7 +52,7 @@
       display: grid;
       grid-template-columns: repeat(3, minmax(0, 1fr));
       gap: space(4);
-      padding: space(6);
+      @include page-padding;
 
       @media (width <= 768px) {
         grid-template-columns: minmax(0, 1fr);
@@ -150,13 +150,8 @@
 
     // Compact select (two classes beat the shared control styles).
     .roadmap-card-horizon {
-      min-height: 0;
-      padding: 0 0 space(0.5);
-      border-width: 0 0 1px;
-      border-color: color(input);
-      border-radius: 0;
-      background: transparent;
-      cursor: pointer;
+      @include field-underline;
+
       @include text('xs');
     }
   }

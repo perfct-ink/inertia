@@ -39,11 +39,13 @@
       border-bottom-width: 1px;
     }
 
+    // The toolbar scrolls sideways on a phone; its buttons keep their size.
     & .document-toolbar_button {
+      flex-shrink: 0;
       padding: space(1.5);
       border-radius: radius();
       color: color(muted-foreground);
-      transition: color 150ms, background-color 150ms;
+      @include transition(color, background-color);
 
       &:hover:not(:disabled) {
         background: color(accent);
@@ -104,7 +106,11 @@
     @at-root .document-page {
       max-width: 48rem;
       margin: 0 auto;
-      padding: space(12) space(8);
+      padding: space(8) space(4);
+
+      @include up('md') {
+        padding: space(12) space(8);
+      }
     }
 
     // Tasks only: fold every top-level block except headings and task lists in place.

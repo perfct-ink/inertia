@@ -1,6 +1,6 @@
 import { useMemo, useState, type ComponentType } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
-import { DndContext, PointerSensor, useDraggable, useDroppable, useSensor, useSensors, type DragEndEvent } from '@dnd-kit/core'
+import { DndContext, PointerSensor, useDndContext, useDraggable, useDroppable, useSensor, useSensors, type DragEndEvent } from '@dnd-kit/core'
 import { ChevronRight, Milestone as MilestoneIcon, Flag, Target, CheckSquare, Loader2 } from 'lucide-react'
 import { classNames } from '@/components/ui'
 import WorkspaceLayout from '@/components/WorkspaceLayout'
@@ -22,12 +22,14 @@ const KIND_ICON: Record<HierarchyKind, ComponentType<{ className?: string }>> = 
 }
 
 // Drop zone that detaches whatever lands on it from every parent. Always
-// rendered so there is somewhere to drop even when nothing is unassigned yet.
-function UnassignedZone({ children }: { children?: React.ReactNode }) {
+// rendered so there is somewhere to drop even when nothing is unassigned yet,
+// but its label only shows when it holds something or a drag is under way.
+function UnassignedZone({ count, children }: { count: number; children?: React.ReactNode }) {
   const { setNodeRef, isOver } = useDroppable({ id: 'unassigned' })
+  const { active } = useDndContext()
   return (
     <div ref={setNodeRef} className={classNames('hierarchy-unassigned', isOver && 'hierarchy-unassigned--over')}>
-      <div className="hierarchy-section_label">Unassigned</div>
+      {(count > 0 || active) && <div className="hierarchy-section_label">Unassigned</div>}
       {children}
     </div>
   )
@@ -150,7 +152,7 @@ export default function HierarchyScreen() {
             ))}
 
             {!isLoading && (
-              <UnassignedZone>
+              <UnassignedZone count={unassigned.length}>
                 {unassigned.map((node) => (
                   <HierarchyRow key={node.key} node={node} depth={0} expanded={expanded} onToggle={toggle} />
                 ))}

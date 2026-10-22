@@ -11,9 +11,9 @@
     .create_item-folder {
       max-width: space(40);
       min-height: 0;
-      padding: space(1.5) space(2);
+      padding: space(1.5) $select-chevron-room space(1.5) space(2);
       border-radius: radius();
-      background: color(background);
+      background-color: color('background');
     }
 
     .create_item-button {

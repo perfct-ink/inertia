@@ -59,8 +59,12 @@
   padding: space($py) space($px);
   border-radius: $radius;
   border-color: color(input);
-  background: color($bg);
+  background-color: color($bg);
   outline: none;
+
+  &.ui-select {
+    padding-right: $select-chevron-room;
+  }
 
   &:focus {
     outline: none;

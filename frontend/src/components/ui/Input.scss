@@ -16,17 +16,9 @@
       opacity: 0.5;
     }
 
-    /* Checkboxes and radios keep their compact native size. */
+    // Checkboxes and radios keep a compact size but are drawn by the app.
     &--checkable {
-      min-height: 0;
-      width: auto;
-      padding: 0;
-      border-width: 0;
-      accent-color: color(primary);
-
-      &:focus-visible {
-        @include focus-ring;
-      }
+      @include checkable;
     }
   }
 }

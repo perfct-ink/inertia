@@ -1,17 +1,30 @@
 @use 'tokens' as *;
 
+// Browsers draw their own select arrow, so the native one is replaced with a
+// chevron that looks the same everywhere (design principle 2). The chevron is
+// two background gradients; views that restyle a select set `background-color`
+// (not the `background` shorthand) and keep $select-chevron-room on the right.
 @layer app.ui {
   .ui-select {
     min-height: space(10);
-    padding: space(2) space(3);
+    padding: space(2) $select-chevron-room space(2) space(3);
     border-width: 1px;
     border-radius: radius('md');
-    background: color(card);
+    background-color: color(card);
+    background-image:
+      linear-gradient(45deg, transparent 50%, color(muted-foreground) 50%),
+      linear-gradient(135deg, color(muted-foreground) 50%, transparent 50%);
+    background-position: calc(100% - 14px) 50%, calc(100% - 9px) 50%;
+    background-repeat: no-repeat;
+    background-size: 5px 5px;
     outline: none;
+    cursor: pointer;
+    appearance: none;
     @include field-text;
     @include field-states;
 
     &:disabled {
+      cursor: not-allowed;
       opacity: 0.5;
     }
   }

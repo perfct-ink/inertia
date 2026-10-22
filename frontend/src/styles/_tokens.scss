@@ -145,6 +145,62 @@ $breakpoints: (
   }
 }
 
+// Checkbox and radio drawn by the app, so they look the same in every browser
+// (design principle 2). Used by the ui Input and by native inputs that
+// libraries render (e.g. TipTap's task list checkboxes).
+@mixin checkable {
+  border-width: 1px;
+  border-style: solid;
+  flex-shrink: 0;
+  min-height: 0;
+  width: space(4);
+  height: space(4);
+  padding: 0;
+  border-color: color(border-strong);
+  border-radius: radius('sm');
+  background-color: color('background');
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: 100%;
+  cursor: pointer;
+  appearance: none;
+
+  &[type='radio'] {
+    border-radius: radius('full');
+  }
+
+  &:hover:not(:disabled) {
+    border-color: color(primary);
+    background-color: color('background');
+  }
+
+  &:checked,
+  &:checked:hover:not(:disabled) {
+    border-color: color(primary);
+    background-color: color(primary);
+  }
+
+  &[type='checkbox']:checked {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M4 8.5l2.5 2.5L12 5.5' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  }
+
+  &[type='radio']:checked {
+    background-image: radial-gradient(circle, white 0 28%, transparent 32%);
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+  }
+
+  &:focus {
+    box-shadow: none;
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+}
+
 @mixin focus-ring {
   outline: none;
   box-shadow: 0 0 0 2px color(background), 0 0 0 4px color(primary);
@@ -159,6 +215,81 @@ $breakpoints: (
 // Rotating spinner (pair with a lucide Loader2 icon). Keyframes live in _animations.scss.
 @mixin spin {
   animation: spin 1s linear infinite;
+}
+
+// Controls that appear when their row is hovered. Touch screens can't hover,
+// so there they always show (design principle 1: nothing depends on hover alone).
+@mixin reveal-on-hover {
+  opacity: 0;
+
+  &:focus-visible,
+  &:focus-within {
+    opacity: 1;
+  }
+
+  @media (hover: none) {
+    opacity: 1;
+  }
+}
+
+// Right padding a .ui-select needs for its chevron (Select.scss). Restate it
+// after any `padding` shorthand that overrides a select's padding.
+$select-chevron-room: space(6);
+
+// A compact field drawn as an underline (dates, statuses and pickers inside
+// cards). Views include it on a class added to a ui Input or Select.
+@mixin field-underline {
+  width: auto;
+  min-height: 0;
+  padding: 0 0 space(0.5);
+  border-width: 0 0 1px;
+  border-color: color(input);
+  border-radius: 0;
+  background-color: transparent;
+
+  &[type='date'],
+  &.ui-select {
+    cursor: pointer;
+  }
+
+  &:hover:not(:disabled) {
+    border-color: color(muted-foreground);
+    background-color: transparent;
+  }
+
+  &:focus {
+    border-color: color(primary);
+  }
+
+  &.ui-select {
+    padding-right: space(4);
+    background-position: calc(100% - 6px) 50%, calc(100% - 1px) 50%;
+  }
+}
+
+// The bar at the top of a page: title, view tabs, then actions. On a phone it
+// wraps onto a second line instead of running off the screen.
+@mixin page-header($gap: space(4)) {
+  display: flex;
+  flex-shrink: 0;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: space(2) $gap;
+  padding: space(3) space(4);
+  border-bottom-width: 1px;
+
+  @include up('md') {
+    padding: space(3) space(6);
+  }
+}
+
+// Padding around a page's content, lined up with page-header.
+@mixin page-padding {
+  padding: space(4);
+
+  @include up('md') {
+    padding: space(6);
+  }
 }
 
 // Muted text/icon that turns to full foreground on hover.

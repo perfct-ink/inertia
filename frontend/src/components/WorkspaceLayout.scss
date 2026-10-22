@@ -3,7 +3,7 @@
 @layer app.components {
   .view-workspace_layout {
     display: flex;
-    height: 100vh;
+    height: 100dvh;
 
     @at-root .workspace_layout-main {
       display: flex;

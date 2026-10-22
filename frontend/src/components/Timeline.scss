@@ -29,7 +29,7 @@
         height: 100%;
         border-radius: radius('full');
         background: color(primary);
-        transition: all 150ms cubic-bezier(0.4, 0, 0.2, 1);
+        @include transition(all);
       }
     }
 
@@ -40,8 +40,11 @@
 
     // Month labels sit over the track column only (same offsets as the
     // today overlay), so a label starts where its month's bars start.
+    // The last month can run past the chart's end; clip it there rather than
+    // let its label reach the edge of the screen.
     @at-root .timeline-months {
       display: flex;
+      overflow: hidden;
       margin: 0 calc(#{space(14)} + #{space(3)}) space(3) calc(#{space(36)} + #{space(3)});
       border-bottom-width: 1px;
     }

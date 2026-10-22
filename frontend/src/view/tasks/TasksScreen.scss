@@ -8,12 +8,7 @@
     overflow: hidden;
 
     @at-root .tasks-header {
-      display: flex;
-      flex-shrink: 0;
-      align-items: center;
-      gap: space(4);
-      padding: space(3) space(6);
-      border-bottom-width: 1px;
+      @include page-header;
     }
 
     @at-root .tasks-title {
@@ -29,6 +24,7 @@
 
     @at-root .tasks-tab {
       padding: space(1) space(3);
+      white-space: nowrap;
       border-radius: radius('md');
       @include text('sm');
       @include muted-link;
@@ -157,10 +153,10 @@
     .tasks-filter_select {
       width: auto;
       min-height: 0;
-      padding: space(1) space(2);
+      padding: space(1) $select-chevron-room space(1) space(2);
       border-color: color(input);
       border-radius: radius();
-      background: color(card);
+      background-color: color(card);
       @include text('sm');
     }
 
@@ -378,7 +374,7 @@
     @at-root .tasks-backlog_inner {
       max-width: 42rem;
       margin: 0 auto;
-      padding: space(6);
+      @include page-padding;
     }
 
     @at-root .tasks-backlog_header {
@@ -412,10 +408,12 @@
       }
     }
 
+    // On a phone the epic and document drop below the title.
     @at-root .tasks-row {
       display: flex;
+      flex-wrap: wrap;
       align-items: center;
-      gap: space(3);
+      gap: space(1) space(3);
       padding: space(2) 0;
 
       &:hover .tasks-row_actions,
@@ -425,7 +423,8 @@
     }
 
     @at-root .tasks-row_title {
-      flex: 1 1 0%;
+      flex: 1 1 12rem;
+      min-width: 0;
       @include text('sm');
     }
 
@@ -434,7 +433,7 @@
       flex-shrink: 0;
       align-items: center;
       gap: space(1);
-      opacity: 0;
+      @include reveal-on-hover;
     }
 
     @at-root .tasks-row_action {
