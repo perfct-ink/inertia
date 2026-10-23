@@ -162,7 +162,7 @@ jobs:
     runs-on: macos-15
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Native model and file-format tests
         run: swift test --package-path macos
       - name: Build native app and file association
