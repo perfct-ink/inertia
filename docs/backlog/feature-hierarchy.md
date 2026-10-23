@@ -14,6 +14,8 @@ Default: each feature is a document plus an optional `parent_feature` link, so a
 
 Alex (2026-10-22): every feature requires a requirements document; a feature can't exist without one. The user flow (create, write tasks, check off, collapse to tasks) is in `features-with-requirements-docs.md`.
 
+**Superseded default (Alex, 2026-10-23):** features are epics with a required requirements document (see `features-with-requirements-docs.md`). Rework this task on that basis before building it.
+
 ## Context
 
 Section "Feature folders" of the retired shared backlog.

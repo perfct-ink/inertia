@@ -12,6 +12,8 @@ Link features to the planning hierarchy (a feature can belong to an epic, initia
 
 Ties into the planning hierarchy (`docs/features/hierarchy_tree_view.md`).
 
+**Superseded default (Alex, 2026-10-23):** features are epics with a required requirements document (see `features-with-requirements-docs.md`). Rework this task on that basis before building it.
+
 ## Context
 
 Section "Feature folders" of the retired shared backlog.

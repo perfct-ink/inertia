@@ -13,6 +13,8 @@ components: [backend]
 
 Default: a `kind` column on `folders` (`regular` / `feature`) rather than a new table, so existing folder nesting, sharing and archiving keep working.
 
+**Superseded default (Alex, 2026-10-23):** features are epics with a required requirements document (see `features-with-requirements-docs.md`). Rework this task on that basis before building it.
+
 ## Context
 
 Section "Feature folders" of the retired shared backlog.
