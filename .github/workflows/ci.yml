@@ -174,9 +174,8 @@ jobs:
 
   # Production is Coolify (coolify.homecloud.one). Its GitHub App gives it the
   # repo, but Auto Deploy is off, so this job is the only thing that deploys,
-  # and only after every job above passed on main. Needs the COOLIFY_WEBHOOK
-  # (the resource's deploy URL) and COOLIFY_TOKEN (a Coolify API token with
-  # deploy permission) secrets.
+  # and only after every job above passed on main. Needs the COOLIFY_API_TOKEN secret (a Coolify API token with deploy
+  # permission); the deploy URL is built in, or COOLIFY_WEBHOOK overrides it.
   deploy:
     name: Deploy to Coolify
     needs: [backend, brakeman, rubocop, frontend, collab, native-macos]
@@ -186,7 +185,7 @@ jobs:
     steps:
       - name: Trigger the Coolify deploy
         env:
-          COOLIFY_WEBHOOK: ${{ secrets.COOLIFY_WEBHOOK }}
-          COOLIFY_TOKEN: ${{ secrets.COOLIFY_TOKEN }}
+          COOLIFY_WEBHOOK: ${{ secrets.COOLIFY_WEBHOOK || 'https://coolify.homecloud.one/api/v1/deploy?uuid=smu9zcyqqxhwhd7fybqqmn7j&force=false' }}
+          COOLIFY_TOKEN: ${{ secrets.COOLIFY_API_TOKEN || secrets.COOLIFY_TOKEN }}
         run: |
           curl --fail-with-body -sS -X POST -H "Authorization: Bearer $COOLIFY_TOKEN" "$COOLIFY_WEBHOOK"
