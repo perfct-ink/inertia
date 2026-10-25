@@ -1,17 +1,23 @@
-# MySQL. Versions 5.7 and up are supported.
+# PostgreSQL. Development and test use the `postgres` service from
+# docker-compose.yml (or any local server via the DATABASE_* variables).
 #
-# Install the mysql2 driver:
-#   gem install mysql2
+# Production uses the shared PostgreSQL in Coolify's "Shared Infrastructure"
+# project: DATABASE_URL (set in Coolify's Environment Variables tab) holds
+# the whole connection string, and Rails merges it over the block below.
+# See docs/deployment.md.
 #
-# Configure Using Gemfile
-# gem "mysql2"
-#
+# Until DATABASE_URL is set, production stays on the old DigitalOcean managed
+# MySQL cluster, whose connection info lives in the encrypted Rails
+# credentials (config/credentials.yml.enc, decrypted via RAILS_MASTER_KEY).
+# The same credentials are the source for `bin/rails db:import_mysql`, which
+# copies that data into PostgreSQL. Drop the MySQL branch after cutover
+# (docs/backlog/remove-mysql-after-postgres-cutover.md).
 default: &default
-  adapter: mysql2
-  encoding: utf8mb4
+  adapter: postgresql
+  encoding: unicode
   pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
-  host: <%= ENV.fetch("DATABASE_HOST", "mysql") %>
-  username: <%= ENV.fetch("DATABASE_USERNAME", "root") %>
+  host: <%= ENV.fetch("DATABASE_HOST", "postgres") %>
+  username: <%= ENV.fetch("DATABASE_USERNAME", "postgres") %>
   password: <%= ENV.fetch("DATABASE_PASSWORD", "password") %>
 
 development:
@@ -22,17 +28,18 @@ test:
   <<: *default
   database: inertia_test
 
-# Production reads its connection info from Rails' encrypted credentials
-# (config/credentials.yml.enc, decrypted via RAILS_MASTER_KEY) instead of
-# plain environment variables — the only production secret passed in
-# directly is RAILS_MASTER_KEY itself. Explicit host/username/password
-# here (rather than relying on the `default` block's ENV-based ones) also
-# means production can never accidentally inherit dev/test's connection
-# info, or vice versa.
+<% if ENV["DATABASE_URL"].present? %>
 production:
   <<: *default
+  url: <%= ENV["DATABASE_URL"] %>
+<% else %>
+production:
+  adapter: mysql2
+  encoding: utf8mb4
+  pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
   database: inertia_production
   host: <%= Rails.application.credentials.dig(:database, :host) %>
   port: <%= Rails.application.credentials.dig(:database, :port) %>
   username: <%= Rails.application.credentials.dig(:database, :username) %>
   password: <%= Rails.application.credentials.dig(:database, :password) %>
+<% end %>

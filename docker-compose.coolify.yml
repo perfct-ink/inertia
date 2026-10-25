@@ -3,14 +3,18 @@
 # domain (set on the `web` service in Coolify) to web:80 through its proxy,
 # which also handles TLS. See docs/deployment.md for the setup steps.
 #
-# The database stays on the DigitalOcean managed MySQL cluster, so there's no
-# db service; its connection details come from the encrypted Rails
-# credentials that RAILS_MASTER_KEY decrypts. No Redis either: ActionCable is
+# There's no db service: the database is the shared PostgreSQL in Coolify's
+# "Shared Infrastructure" project, reached by its container name through
+# Coolify's predefined network (the app's "Connect To Predefined Network"
+# setting) with DATABASE_URL. Until DATABASE_URL is set, the api stays on
+# the old DigitalOcean MySQL cluster from the encrypted Rails credentials
+# that RAILS_MASTER_KEY decrypts. No Redis either: ActionCable is
 # unused (config/cable.yml's production adapter is `async`), and document
 # collaboration is the separate collab service below.
 #
 # ${VAR} values show up in Coolify's Environment Variables tab. The defaults
-# are for inertia.it.com; only RAILS_MASTER_KEY has to be set there.
+# are for inertia.it.com; only RAILS_MASTER_KEY and DATABASE_URL have to be
+# set there.
 services:
   web:
     build:
@@ -41,6 +45,8 @@ services:
     environment:
       RAILS_ENV: production
       RAILS_MASTER_KEY: ${RAILS_MASTER_KEY:?}
+      # postgres://<user>:<password>@<shared-postgresql uuid>:5432/inertia_production
+      DATABASE_URL: ${DATABASE_URL:-}
       # Used for absolute Active Storage URLs from background jobs, which have
       # no request to take a host from.
       APP_URL: ${APP_URL:-https://inertia.it.com}
@@ -55,14 +61,20 @@ services:
       APPLE_PRIVATE_KEY: ${APPLE_PRIVATE_KEY:-}
     volumes:
       - storage:/rails/storage
-    # bin/docker-entrypoint runs db:prepare before the server starts, so the
-    # first check waits out migrations.
+    # Coolify's own network, where the shared PostgreSQL container lives.
+    # Coolify still adds the stack's network, so web and collab reach this
+    # service as `api` as before.
+    networks:
+      - default
+      - coolify
+    # bin/docker-entrypoint runs db:prepare (and, once, the MySQL import)
+    # before the server starts, so the first check waits those out.
     healthcheck:
       test: ["CMD", "curl", "-fsS", "http://127.0.0.1:3000/up"]
       interval: 10s
       timeout: 5s
       retries: 5
-      start_period: 60s
+      start_period: 120s
 
   # Real-time collaborative editing (Yjs/Hocuspocus). Holds no secrets:
   # onAuthenticate asks `api` whether the user may open the document.
@@ -90,3 +102,7 @@ volumes:
   storage:
     external: true
     name: inertiaitcom_storage
+
+networks:
+  coolify:
+    external: true
