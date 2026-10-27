@@ -1,6 +1,6 @@
 # Deploying with Coolify
 
-Production runs on a [Coolify](https://coolify.io) server as one Docker Compose resource built from `docker-compose.coolify.yml`. Coolify clones the repo, builds the images on its own server, routes `inertia.it.com` to the stack through its proxy (Traefik) and issues the TLS certificate. The database is the shared PostgreSQL 16 in Coolify's **Shared Infrastructure** project (`shared-postgresql`); until `DATABASE_URL` is set, the app keeps using the old DigitalOcean managed MySQL cluster. See [Database](#database-shared-postgresql).
+Production runs on a [Coolify](https://coolify.io) server as one Docker Compose resource built from `docker-compose.coolify.yml`. Coolify clones the repo, builds the images on its own server, routes `inertia.it.com` to the stack through its proxy (Traefik) and issues the TLS certificate. The database is the shared PostgreSQL 16 in Coolify's **Shared Infrastructure** project (`shared-postgres`); until `DATABASE_URL` is set, the app keeps using the old DigitalOcean managed MySQL cluster. See [Database](#database-shared-postgres).
 
 Cutover finished on 2026-10-21: `inertia.it.com` and `www.inertia.it.com` are served by the `inertia` resource (Inertia project, `production` environment, uuid `smu9zcyqqxhwhd7fybqqmn7j`) on `https://coolify.homecloud.one`.
 
@@ -39,7 +39,7 @@ Set these in the resource's **Environment Variables** tab in Coolify. Only `RAIL
 | Variable | Used by | Notes |
 | --- | --- | --- |
 | `RAILS_MASTER_KEY` | api | Contents of `backend/config/master.key`. Decrypts `config/credentials.yml.enc` (`secret_key_base`, `jwt_secret_key`, the `database:` connection). Mark it as a secret. |
-| `DATABASE_URL` | api | `postgres://<user>:<password>@fb4qbpbr4o4mvdneoxkzws73:5432/inertia_production`: the shared PostgreSQL's internal URL from its Coolify page with the database name changed. Mark it as a secret. While it's empty, production stays on MySQL. |
+| `DATABASE_URL` | api | `postgres://<user>:<password>@ueatxx7exko0js1mqgkcs0wn:5432/inertia_production`: the shared PostgreSQL's internal URL from its Coolify page with the database name changed. Mark it as a secret. While it's empty, production stays on MySQL. |
 | `APP_URL` | web (build), api | Public origin. Baked into the frontend bundle as `API_URL`, and used for Active Storage URLs from background jobs. |
 | `COLLAB_URL` | web (build) | Public WebSocket URL, `wss://inertia.it.com/collab`. |
 | `CORS_ORIGINS` | api | Defaults to the public origin plus `capacitor://localhost` (iOS app). |
@@ -73,11 +73,11 @@ Keep the `inertiaitcom_storage` volume: Coolify uses it.
 
 ## Database (shared PostgreSQL)
 
-The database is `inertia_production` on `shared-postgresql` (uuid `fb4qbpbr4o4mvdneoxkzws73`, image `postgres:16-alpine`) in Coolify's Shared Infrastructure project, production environment. It isn't public; the `api` container reaches it on the `coolify` Docker network by its container name, which is the uuid.
+The database is `inertia_production` on `shared-postgres` (uuid `ueatxx7exko0js1mqgkcs0wn`, image `postgres:16-alpine`) in Coolify's Shared Infrastructure project, production environment. It isn't public; the `api` container reaches it on the `coolify` Docker network by its container name, which is the uuid.
 
 ### Cutover from MySQL
 
-1. In Coolify, open Shared Infrastructure → production → `shared-postgresql` and copy the **Postgres URL (internal)**. Change the database at the end from `/postgres` to `/inertia_production`.
+1. In Coolify, open Shared Infrastructure → production → `shared-postgres` and copy the **Postgres URL (internal)**. Change the database at the end from `/takeover_production` to `/inertia_production`.
 2. In the `inertia` resource → Environment Variables, set `DATABASE_URL` (Coolify lists it already, possibly empty; an empty value means MySQL) with that value, marked as a secret, and redeploy.
 3. On boot, `db:prepare` creates the database and loads the schema, then `bin/rails db:import_mysql` copies every table from the MySQL database in the Rails credentials (`app/services/mysql_import.rb`). It runs once: it records `mysql_imported_at` in `ar_internal_metadata`, refuses to write into tables that already hold data, and stops the boot if the copy fails, so the app never serves an empty database. The deploy log lists the rows copied per table.
 4. Check sign-in and a few documents on `inertia.it.com`.

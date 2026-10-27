@@ -5,7 +5,7 @@ Inertia's data lives in PostgreSQL 16. Production uses the shared PostgreSQL in 
 ## How it works
 
 - `backend/config/database.yml`: the `postgresql` adapter for every environment. In production, `DATABASE_URL` holds the connection. While `DATABASE_URL` is unset, production falls back to the old DigitalOcean MySQL cluster from the Rails credentials, so code that supports PostgreSQL could ship before the cutover.
-- `docker-compose.coolify.yml`: `api` joins Coolify's external `coolify` network, where the shared PostgreSQL container (`fb4qbpbr4o4mvdneoxkzws73`) is reachable by name.
+- `docker-compose.coolify.yml`: `api` joins Coolify's external `coolify` network, where the shared PostgreSQL container (`ueatxx7exko0js1mqgkcs0wn`) is reachable by name.
 - `backend/app/services/mysql_import.rb` and `bin/rails db:import_mysql`: a one-time copy of every table from MySQL into an empty PostgreSQL database, run by `bin/docker-entrypoint` after `db:prepare`. It skips when the app isn't on PostgreSQL, when no MySQL source is configured, and after it has run once (`mysql_imported_at` in `ar_internal_metadata`). It refuses to write into tables that already have rows, copies inside one transaction with foreign key checks deferred to the end (`check_all_foreign_keys_valid!`), resets id sequences, and stops the boot on any failure. `MYSQL_IMPORT_URL` overrides the source.
 - `Task.title_matching` replaces the raw `LIKE` in the task search, because PostgreSQL's `LIKE` is case-sensitive. It uses ILIKE and escapes `%` and `_`.
 
