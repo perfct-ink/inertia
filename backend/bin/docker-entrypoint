@@ -5,6 +5,11 @@ if [ -z "${LD_PRELOAD+x}" ] && [ -f /usr/lib/*/libjemalloc.so.2 ]; then
   export LD_PRELOAD="$(echo /usr/lib/*/libjemalloc.so.2)"
 fi
 
+# Coolify passes every variable in the resource to the container, so a
+# DATABASE_URL added but left empty arrives as "". Rails refuses to boot
+# with an empty DATABASE_URL; unset means "stay on MySQL" instead.
+[ -z "${DATABASE_URL}" ] && unset DATABASE_URL
+
 # If running the rails server then create or migrate existing database
 if [ "${1}" == "./bin/rails" ] && [ "${2}" == "server" ]; then
   ./bin/rails db:prepare
