@@ -1,6 +1,6 @@
 ## Running locally
 
-Everything runs in Docker (Colima, not Docker Desktop). You don't need Ruby or PostgreSQL on the host.
+Everything runs in Docker (Colima, not Docker Desktop). You don't need Ruby or MySQL on the host.
 
 ```sh
 make up            # db + api (:3000) + web (:5173); dev startup runs db:prepare + idempotent seeds

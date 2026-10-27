@@ -12,13 +12,13 @@ services:
     ports:
       - "3000:3000"
     depends_on:
-      postgres:
+      mysql:
         condition: service_healthy
       redis:
         condition: service_healthy
     environment:
-      DATABASE_HOST: postgres
-      DATABASE_USERNAME: postgres
+      DATABASE_HOST: mysql
+      DATABASE_USERNAME: root
       DATABASE_PASSWORD: password
       REDIS_URL: redis://redis:6379
       RAILS_ENV: development
@@ -41,21 +41,20 @@ services:
       - ./backend:/rails
       - backend_bundle:/usr/local/bundle
 
-  # Same major version as the shared PostgreSQL that production uses.
-  postgres:
-    image: postgres:16-alpine
+  mysql:
+    image: mysql:8.0
     environment:
-      POSTGRES_PASSWORD: password
-      POSTGRES_DB: inertia_development
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: inertia_development
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - mysql_data:/var/lib/mysql
     healthcheck:
-      test: ["CMD", "pg_isready", "-U", "postgres"]
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-ppassword"]
       interval: 5s
       timeout: 5s
       retries: 5
     ports:
-      - "5432:5432"
+      - "3306:3306"
 
   redis:
     image: redis:7
@@ -112,7 +111,7 @@ services:
       - collab_node_modules:/app/node_modules
 
 volumes:
-  postgres_data:
+  mysql_data:
   redis_data:
   backend_bundle:
   frontend_node_modules:

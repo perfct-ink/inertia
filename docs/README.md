@@ -27,7 +27,7 @@ docker compose up --build
 |---------|-----|
 | Frontend | http://localhost:5174 |
 | API | http://localhost:3000 |
-| PostgreSQL | localhost:5432 |
+| MySQL | localhost:3306 |
 | Redis | localhost:6379 |
 
 ## Project structure
@@ -97,7 +97,7 @@ GET    /shared/:token
 
 ## Deploy
 
-Production runs on **Coolify**: one Docker Compose resource (`docker-compose.coolify.yml`) with an nginx `web` service for the frontend, the Rails `api` and the `collab` WebSocket service, behind Coolify's TLS proxy. The database is the shared PostgreSQL in Coolify's Shared Infrastructure project (`DATABASE_URL`), and the other production secret is `RAILS_MASTER_KEY`, which decrypts `backend/config/credentials.yml.enc`. A push to `main` deploys through Coolify once CI passes. Setup, configuration, cutover and rollback are in [deployment.md](deployment.md).
+Production runs on **Coolify**: one Docker Compose resource (`docker-compose.coolify.yml`) with an nginx `web` service for the frontend, the Rails `api` and the `collab` WebSocket service, behind Coolify's TLS proxy. The database stays on the DigitalOcean managed MySQL cluster, and the only production secret is `RAILS_MASTER_KEY`, which decrypts `backend/config/credentials.yml.enc`. A push to `main` deploys through Coolify once CI passes. Setup, configuration, cutover and rollback are in [deployment.md](deployment.md).
 
 ### Native macOS preview (SwiftUI)
 

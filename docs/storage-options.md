@@ -13,7 +13,7 @@ The decision is primarily about **who owns the authoritative copy and how people
 
 ## What exists today
 
-- The Rails app stores document content as JSON in PostgreSQL. Tasks, epics, events, users, folders, and associations are database records. See [Document](../backend/app/models/document.rb) and [the schema](../backend/db/schema.rb).
+- The Rails app stores document content as JSON in MySQL. Tasks, epics, events, users, folders, and associations are database records. See [Document](../backend/app/models/document.rb) and [the schema](../backend/db/schema.rb).
 - Attachments use Active Storage; the configured storage services are currently disk-based, not a live object-store deployment. See [storage configuration](../backend/config/storage.yml).
 - The native app opens local task files using the same public entity shapes. Files remain independent of server records. Milestones are events; sprints and comments are file extensions.
 - The [v4 task format](task-file-format.md) is not a complete workspace archive: referenced requirements documents, folders, and attachments are not bundled. Shared models do not yet provide import/export or synchronization.
@@ -22,7 +22,7 @@ The decision is primarily about **who owns the authoritative copy and how people
 
 | Approach | Authoritative data | Main advantage | Main cost |
 | --- | --- | --- | --- |
-| Database entities | PostgreSQL rows and document JSON | Queries, relationships, server authorization | Offline editing needs a cache and synchronization protocol |
+| Database entities | MySQL rows and document JSON | Queries, relationships, server authorization | Offline editing needs a cache and synchronization protocol |
 | Whole file in a database | One JSON/BLOB value per file | Central management of a self-contained file | Still requires parsing/indexing for task-level queries |
 | Whole file in blob/object storage | Object bytes, usually with database metadata | Good fit for attachments, exports, snapshots | Task queries and concurrent edits need additional systems |
 | User-owned files | Files opened through the operating system | Portability, local use, choice of sync provider | Conflicts, availability, discovery, and cross-file links |
@@ -49,7 +49,7 @@ To find all tasks due tomorrow, the server must either read and parse each relev
 
 For updates, write an immutable revision and conditionally advance the current revision pointer. A database transaction cannot atomically commit an external object upload; handle failed uploads, unreferenced objects, retry idempotency, and cleanup. Amazon S3 supports conditional writes using ETags to reject stale overwrites; that detects a conflict but does not merge edits. Other S3-compatible providers must be checked for the exact operations used. [AWS conditional writes](https://docs.aws.amazon.com/AmazonS3/latest/userguide/conditional-writes.html).
 
-Putting the same file into a database BLOB instead makes metadata and bytes transactionally manageable together, but increases database backup/replication volume. A JSON column permits some structured queries, yet a single whole-workspace JSON document still requires deliberate indexing and concurrency design. Neither option automatically behaves like normalized Task/Event records.
+Putting the same file into a MySQL BLOB instead makes metadata and bytes transactionally manageable together, but increases database backup/replication volume. A JSON column permits some structured queries, yet a single whole-workspace JSON document still requires deliberate indexing and concurrency design. Neither option automatically behaves like normalized Task/Event records.
 
 **Best fit:** attachments, immutable history, portable exports, and infrequently edited documents. I would not move Inertia's live task graph into blobs merely to support Dropbox.
 
@@ -100,7 +100,7 @@ For now, keep one task collection per task file. Before promising portable requi
 
 ## A reversible implementation sequence
 
-1. Keep hosted data authoritative in PostgreSQL. Use object storage for attachments and generated exports when operationally justified.
+1. Keep hosted data authoritative in MySQL. Use object storage for attachments and generated exports when operationally justified.
 2. Harden native file handling: save/reopen, external changes, moved files, missing downloads, conflicting versions, and recovery. Test real iCloud and Dropbox locations before claiming supported sync.
 3. Add explicit “Export a copy” and “Import as a new project.” Preserve relationships by remapping file IDs to newly created database IDs. Embedded user names/emails must not silently become authenticated users or invitations.
 4. Clearly label local files versus hosted workspaces. An exported copy is independent; editing it does not update the original.

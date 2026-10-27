@@ -8,10 +8,6 @@ fi
 # If running the rails server then create or migrate existing database
 if [ "${1}" == "./bin/rails" ] && [ "${2}" == "server" ]; then
   ./bin/rails db:prepare
-  # One-time copy of the old MySQL data once production is on PostgreSQL; a
-  # no-op before that and after it has run. A failed copy stops the boot
-  # rather than serving an empty database.
-  ./bin/rails db:import_mysql
 fi
 
 exec "${@}"

@@ -31,10 +31,6 @@ class Task < ApplicationRecord
 
   default_scope { order(:position) }
 
-  # Case-insensitive title search. Arel's matches is ILIKE on PostgreSQL (and
-  # LIKE on MySQL), and the input is escaped so % and _ match literally.
-  scope :title_matching, ->(query) { where(arel_table[:title].matches("%#{sanitize_sql_like(query)}%")) }
-
   # How many levels below a top-level task this one sits (0 = top-level,
   # 1 = subtask, 2 = sub-subtask, ...) — what TasksPage.tsx's "hide level 2
   # / level 3" controls filter on. A plain Ruby walk up :parent, not a

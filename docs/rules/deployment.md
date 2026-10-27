@@ -15,4 +15,4 @@ Production runs on Coolify from `docker-compose.coolify.yml`; [docs/deployment.m
 - Public routes are decided in `frontend/nginx/default.conf`. A new Rails-rendered page or API prefix needs a location there.
 - A new runtime setting goes in `docker-compose.coolify.yml` (as `${NAME:-default}` so it appears in Coolify), in `docs/deployment.md`'s configuration table and in `docs/services.md`, in the same commit.
 - Rails runs `db:prepare` on every boot, so migrations deploy with the code. Keep them backward compatible with the previous release, since Coolify rollbacks don't reverse them.
-- The database is the shared PostgreSQL in Coolify's Shared Infrastructure project (Alex, 2026-10-25), reached through `DATABASE_URL`. Don't add a database container to the production stack unless the user asks.
+- The database stays on the DigitalOcean managed MySQL cluster. Don't add a database container to the production stack unless the user asks.

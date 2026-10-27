@@ -1,9 +1,6 @@
 source "https://rubygems.org"
 
 gem "rails", "~> 8.1.4"
-gem "pg", "~> 1.5"
-# Only for copying the old MySQL data into PostgreSQL (lib/tasks/mysql_import.rake)
-# and for production until DATABASE_URL points at PostgreSQL. Remove after cutover.
 gem "mysql2", "~> 0.5"
 gem "puma", ">= 5.0"
 gem "bootsnap", require: false
