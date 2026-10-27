@@ -1,7 +1,7 @@
 ## Repo Layout
 
 ```
-backend/          Rails 8 API (api_only), Ruby 3.3.5, MySQL 8.4
+backend/          Rails 8 API (api_only), Ruby 3.3.5, PostgreSQL 16
   app/controllers/api/v1/   all REST endpoints (routes under /api/v1)
   app/channels/             ActionCable: chat, DMs, script_channel (Yjs byte relay)
   app/lib/                  PDF generation (Prawn), screenplay parsing (PDF/FDX/Fountain), storage migrator
@@ -17,7 +17,7 @@ web/              React 19 + TypeScript + Vite 8 + Tailwind v4
 deploy/           server_setup.sh (creates the app database on the managed cluster)
 docs/             rules/ (agent rules), backlog/ (one file per open task), features/ (one doc per shipped feature), pricing-model.md, CLAUDE.md.template (see below)
 docker-compose.yml       local dev: db + api + web
-docker-compose.coolify.yml  prod on Coolify: web + api + collab (the database is managed MySQL)
+docker-compose.coolify.yml  prod on Coolify: web + api + collab (the database is the shared PostgreSQL on Coolify)
 Makefile          local-dev wrapper around docker compose
 ```
 

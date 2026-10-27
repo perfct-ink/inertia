@@ -1,6 +1,6 @@
 # Deploying with Coolify
 
-Production runs on a [Coolify](https://coolify.io) server as one Docker Compose resource built from `docker-compose.coolify.yml`. Coolify clones the repo, builds the images on its own server, routes `inertia.it.com` to the stack through its proxy (Traefik) and issues the TLS certificate. The database stays on the DigitalOcean managed MySQL cluster.
+Production runs on a [Coolify](https://coolify.io) server as one Docker Compose resource built from `docker-compose.coolify.yml`. Coolify clones the repo, builds the images on its own server, routes `inertia.it.com` to the stack through its proxy (Traefik) and issues the TLS certificate. The database is the shared PostgreSQL 16 in Coolify's **Shared Infrastructure** project (`shared-postgresql`); until `DATABASE_URL` is set, the app keeps using the old DigitalOcean managed MySQL cluster. See [Database](#database-shared-postgresql).
 
 Cutover finished on 2026-10-21: `inertia.it.com` and `www.inertia.it.com` are served by the `inertia` resource (Inertia project, `production` environment, uuid `smu9zcyqqxhwhd7fybqqmn7j`) on `https://coolify.homecloud.one`.
 
@@ -12,7 +12,7 @@ browser ──https──▶ Coolify proxy (Traefik, TLS)
                         ▼
                   web (nginx :80) ── static webpack build
                    ├── / /features /pricing /about /robots.txt /sitemap.xml,
-                   │   /api/*, /rails/active_storage/*  ──▶ api (Rails :3000) ──▶ managed MySQL
+                   │   /api/*, /rails/active_storage/*  ──▶ api (Rails :3000) ──▶ shared PostgreSQL
                    └── /collab (WebSocket)              ──▶ collab (Hocuspocus :1234) ──▶ api
 ```
 
@@ -22,7 +22,7 @@ browser ──https──▶ Coolify proxy (Traefik, TLS)
 | `api` | `backend/Dockerfile`; `bin/docker-entrypoint` runs `db:prepare` before the server starts, so migrations run on every deploy | `GET /up` |
 | `collab` | `collab-server/Dockerfile` | `GET /` on port 1234 |
 
-Only `web` gets a domain. `api` and `collab` are reachable only inside the stack's network. Uploads (Active Storage, disk service) live in the `inertiaitcom_storage` Docker volume, the one the old droplet stack created; the compose file mounts it as an external volume, so it must exist before the first deploy.
+Only `web` gets a domain. `api` and `collab` are reachable only inside the stack's network; `api` also joins Coolify's external `coolify` network to reach the shared PostgreSQL container by its name. Uploads (Active Storage, disk service) live in the `inertiaitcom_storage` Docker volume, the one the old droplet stack created; the compose file mounts it as an external volume, so it must exist before the first deploy.
 
 `config.assume_ssl` is on in production: every public request arrives through Coolify's TLS proxy, and the collab service and health checks call `http://api:3000` directly, which `force_ssl` would otherwise redirect.
 
@@ -34,11 +34,12 @@ To deploy by hand, use **Deploy** on the resource in Coolify.
 
 ## Configuration
 
-Set these in the resource's **Environment Variables** tab in Coolify. Only `RAILS_MASTER_KEY` is required; the rest default to the `inertia.it.com` values in `docker-compose.coolify.yml`.
+Set these in the resource's **Environment Variables** tab in Coolify. Only `RAILS_MASTER_KEY` and `DATABASE_URL` are required; the rest default to the `inertia.it.com` values in `docker-compose.coolify.yml`.
 
 | Variable | Used by | Notes |
 | --- | --- | --- |
 | `RAILS_MASTER_KEY` | api | Contents of `backend/config/master.key`. Decrypts `config/credentials.yml.enc` (`secret_key_base`, `jwt_secret_key`, the `database:` connection). Mark it as a secret. |
+| `DATABASE_URL` | api | `postgres://<user>:<password>@fb4qbpbr4o4mvdneoxkzws73:5432/inertia_production`: the shared PostgreSQL's internal URL from its Coolify page with the database name changed. Mark it as a secret. While it's empty, production stays on MySQL. |
 | `APP_URL` | web (build), api | Public origin. Baked into the frontend bundle as `API_URL`, and used for Active Storage URLs from background jobs. |
 | `COLLAB_URL` | web (build) | Public WebSocket URL, `wss://inertia.it.com/collab`. |
 | `CORS_ORIGINS` | api | Defaults to the public origin plus `capacitor://localhost` (iOS app). |
@@ -51,7 +52,7 @@ CI's deploy job needs two GitHub secrets: `COOLIFY_WEBHOOK` (`https://coolify.ho
 ## One-time setup
 
 1. **Server.** Coolify (`https://coolify.homecloud.one`) runs on the droplet itself (104.131.183.186) as the `localhost` server; its Traefik proxy holds ports 80/443 and passes hosts it doesn't route on to the host nginx, which still serves other sites. The resource lives in the **Inertia** project, `production` environment.
-2. **Database access.** Nothing to add: the droplet's IP is already in the MySQL cluster's Trusted Sources, and the credentials in `config/credentials.yml.enc` keep working unchanged.
+2. **Database.** Set `DATABASE_URL` (above). The first boot creates `inertia_production` on the shared PostgreSQL and loads the schema.
 3. **Repository.** In Coolify: Sources → add a GitHub App with access to `perfct-ink/inertia`.
 4. **Resource.** New resource → the GitHub App source → `perfct-ink/inertia`, branch `main`, build pack **Docker Compose**, compose file `/docker-compose.coolify.yml`.
 5. **Domain.** On the `web` service, set the domain to `https://inertia.it.com,https://www.inertia.it.com`. Leave `api` and `collab` without a domain.
@@ -70,10 +71,25 @@ cd /var/www/inertia.it.com && docker compose down
 
 Keep the `inertiaitcom_storage` volume: Coolify uses it.
 
+## Database (shared PostgreSQL)
+
+The database is `inertia_production` on `shared-postgresql` (uuid `fb4qbpbr4o4mvdneoxkzws73`, image `postgres:16-alpine`) in Coolify's Shared Infrastructure project, production environment. It isn't public; the `api` container reaches it on the `coolify` Docker network by its container name, which is the uuid.
+
+### Cutover from MySQL
+
+1. In Coolify, open Shared Infrastructure → production → `shared-postgresql` and copy the **Postgres URL (internal)**. Change the database at the end from `/postgres` to `/inertia_production`.
+2. In the `inertia` resource → Environment Variables, add `DATABASE_URL` with that value, marked as a secret, and redeploy.
+3. On boot, `db:prepare` creates the database and loads the schema, then `bin/rails db:import_mysql` copies every table from the MySQL database in the Rails credentials (`app/services/mysql_import.rb`). It runs once: it records `mysql_imported_at` in `ar_internal_metadata`, refuses to write into tables that already hold data, and stops the boot if the copy fails, so the app never serves an empty database. The deploy log lists the rows copied per table.
+4. Check sign-in and a few documents on `inertia.it.com`.
+
+The copy runs while the old containers still serve traffic, so anything saved during the deploy's last minute can be missing. The superuser URL is used because the copy turns off foreign key triggers while it loads (`disable_referential_integrity`), which needs superuser rights; a dedicated role is a backlog item (`docs/backlog/dedicated-postgres-role-for-inertia.md`).
+
+To go back to MySQL, delete `DATABASE_URL` and redeploy: the MySQL database is untouched. To redo the copy, drop `inertia_production` on the shared PostgreSQL first.
+
 ## Rollback
 
 In Coolify, the resource's **Deployments** tab can redeploy any earlier successful deployment. Migrations don't roll back automatically, so keep schema changes backward compatible or plan their reversal.
 
 ## Running the production stack locally
 
-`make build-coolify` builds the three production images. To run them, supply `RAILS_MASTER_KEY` (or `SECRET_KEY_BASE`, `JWT_SECRET_KEY` and a `DATABASE_URL` for a local MySQL) and publish `web`'s port 80.
+`make build-coolify` builds the three production images. To run them, supply `RAILS_MASTER_KEY` (or `SECRET_KEY_BASE`, `JWT_SECRET_KEY` and a `DATABASE_URL` for a local PostgreSQL), create the external network once with `docker network create coolify`, and publish `web`'s port 80.
