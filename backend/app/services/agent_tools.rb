@@ -77,7 +77,7 @@ module AgentTools
     folder_ids = token.folder_ids
     folder_ids &= [ args["folder_id"].to_i ] if args["folder_id"]
     scope = Document.where(folder_id: folder_ids, doc_type: DOC_TYPES.map { |t| Document.doc_types[t] }).order(:title).limit(200)
-    scope = scope.where("documents.title LIKE ?", "%#{Document.sanitize_sql_like(args['query'].to_s)}%") if args["query"].present?
+    scope = scope.where(Document.arel_table[:title].matches("%#{Document.sanitize_sql_like(args['query'].to_s)}%")) if args["query"].present?
     scope.map { |d| { id: d.id, title: d.title, type: d.doc_type, folder_id: d.folder_id, updated_at: d.updated_at } }
   end
 
