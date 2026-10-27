@@ -78,7 +78,7 @@ The database is `inertia_production` on `shared-postgresql` (uuid `fb4qbpbr4o4mv
 ### Cutover from MySQL
 
 1. In Coolify, open Shared Infrastructure → production → `shared-postgresql` and copy the **Postgres URL (internal)**. Change the database at the end from `/postgres` to `/inertia_production`.
-2. In the `inertia` resource → Environment Variables, add `DATABASE_URL` with that value, marked as a secret, and redeploy.
+2. In the `inertia` resource → Environment Variables, set `DATABASE_URL` (Coolify lists it already, possibly empty; an empty value means MySQL) with that value, marked as a secret, and redeploy.
 3. On boot, `db:prepare` creates the database and loads the schema, then `bin/rails db:import_mysql` copies every table from the MySQL database in the Rails credentials (`app/services/mysql_import.rb`). It runs once: it records `mysql_imported_at` in `ar_internal_metadata`, refuses to write into tables that already hold data, and stops the boot if the copy fails, so the app never serves an empty database. The deploy log lists the rows copied per table.
 4. Check sign-in and a few documents on `inertia.it.com`.
 
