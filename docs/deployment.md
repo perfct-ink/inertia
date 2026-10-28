@@ -77,12 +77,12 @@ The database is `inertia_production` on `shared-postgres` (uuid `ueatxx7exko0js1
 
 ### Cutover from MySQL
 
-1. In Coolify, open Shared Infrastructure → production → `shared-postgres` and copy the **Postgres URL (internal)**. Change the database at the end from `/takeover_production` to `/inertia_production`.
-2. In the `inertia` resource → Environment Variables, set `DATABASE_URL` (Coolify lists it already, possibly empty; an empty value means MySQL) with that value, marked as a secret, and redeploy.
-3. On boot, `db:prepare` creates the database and loads the schema, then `bin/rails db:import_mysql` copies every table from the MySQL database in the Rails credentials (`app/services/mysql_import.rb`). It runs once: it records `mysql_imported_at` in `ar_internal_metadata`, refuses to write into tables that already hold data, and stops the boot if the copy fails, so the app never serves an empty database. The deploy log lists the rows copied per table.
+1. The shared PostgreSQL has a dedicated `inertia` role that owns the `inertia_production` database (other apps can't connect to it).
+2. In the `inertia` resource → Environment Variables, set `DATABASE_URL` (Coolify lists it already, possibly empty; an empty value means MySQL) to `postgres://inertia:<password>@ueatxx7exko0js1mqgkcs0wn:5432/inertia_production`, marked as a secret, and redeploy.
+3. On boot, `bin/rails db:import_mysql` loads the schema into the empty database and copies every table from the MySQL database in the Rails credentials (the `mysql_import` entry in `config/database.yml`; `app/services/mysql_import.rb`), then `db:prepare` runs as usual. It runs once: it records `mysql_imported_at` in `ar_internal_metadata`, refuses to write into tables that already hold data, and stops the boot if the copy fails, so the app never serves an empty database. The deploy log lists the rows copied per table.
 4. Check sign-in and a few documents on `inertia.it.com`.
 
-The copy runs while the old containers still serve traffic, so anything saved during the deploy's last minute can be missing. The superuser URL is used because the copy turns off foreign key triggers while it loads (`disable_referential_integrity`), which needs superuser rights; a dedicated role is a backlog item (`docs/backlog/dedicated-postgres-role-for-inertia.md`).
+The copy runs while the old containers still serve traffic, so anything saved during the deploy's last minute can be missing. It drops the foreign keys for the load and adds them back at the end (which checks every row), so the table owner's rights are enough; no superuser is needed.
 
 To go back to MySQL, delete `DATABASE_URL` and redeploy: the MySQL database is untouched. To redo the copy, drop `inertia_production` on the shared PostgreSQL first.
 

@@ -28,12 +28,10 @@ test:
   <<: *default
   database: inertia_test
 
-<% if ENV["DATABASE_URL"].present? %>
-production:
-  <<: *default
-  url: <%= ENV["DATABASE_URL"] %>
-<% else %>
-production:
+# The managed MySQL database production used before PostgreSQL. It stays the
+# production database until DATABASE_URL is set; after that it is only read
+# once, by `rails db:import_mysql` (app/services/mysql_import.rb).
+mysql_import: &mysql
   adapter: mysql2
   encoding: utf8mb4
   pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
@@ -42,4 +40,14 @@ production:
   port: <%= Rails.application.credentials.dig(:database, :port) %>
   username: <%= Rails.application.credentials.dig(:database, :username) %>
   password: <%= Rails.application.credentials.dig(:database, :password) %>
+
+<% if ENV["DATABASE_URL"].present? %>
+production:
+  adapter: postgresql
+  encoding: unicode
+  pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
+  url: <%= ENV["DATABASE_URL"] %>
+<% else %>
+production:
+  <<: *mysql
 <% end %>
