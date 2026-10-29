@@ -4,11 +4,13 @@
   .view-workspace_layout {
     display: flex;
     height: 100dvh;
+    overflow: hidden;
 
     @at-root .workspace_layout-main {
       display: flex;
       flex: 1 1 0%;
       flex-direction: column;
+      min-width: 0;
       overflow: hidden;
     }
 

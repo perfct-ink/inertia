@@ -2,38 +2,119 @@
 
 @layer view {
   .view-workspace {
-    display: flex;
     flex: 1 1 0%;
-    align-items: center;
-    justify-content: center;
+    overflow-y: auto;
+    padding: space(6);
+    background: color(muted, 0.2);
 
-    // The checklist can be taller than the screen, so it scrolls from the top.
+    @include up('md') {
+      padding: space(16) space(10);
+    }
+
     &--onboarding {
-      align-items: flex-start;
-      overflow-y: auto;
       padding: space(4);
 
       @include up('md') {
         padding: space(8);
       }
     }
+  }
 
-    @at-root .workspace-empty {
-      text-align: center;
+  .workspace-welcome {
+    width: 100%;
+    max-width: 48rem;
+    margin: 0 auto;
+  }
 
-      > * + * {
-        margin-top: space(2);
-      }
+  .workspace-eyebrow {
+    color: color(primary);
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+  }
+
+  .workspace-title {
+    margin-top: space(4);
+    font-size: 2rem;
+    font-weight: 600;
+    line-height: 1.2;
+    letter-spacing: -0.025em;
+  }
+
+  .workspace-hint {
+    max-width: 32rem;
+    margin-top: space(4);
+    color: color(muted-foreground);
+    line-height: 1.6;
+  }
+
+  .workspace-destinations {
+    display: grid;
+    gap: space(3);
+    margin-top: space(10);
+
+    @include up('md') {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+
+  .workspace-destination {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    padding: space(5);
+    border: 1px solid color(border);
+    border-radius: radius('xl');
+    background: color(card);
+    @include transition(border-color, background-color);
+
+    &:hover {
+      border-color: color(primary, 0.4);
+      background: color(accent, 0.3);
     }
 
-    @at-root .workspace-title {
-      font-weight: 500;
-      @include text('lg');
+    &:focus-visible {
+      outline: 2px solid color(primary);
+      outline-offset: 3px;
     }
+  }
 
-    @at-root .workspace-hint {
+  .workspace-destination_icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: space(10);
+    height: space(10);
+    margin-bottom: space(6);
+    border-radius: radius('lg');
+    background: color(accent);
+    color: color(accent-foreground);
+
+    svg {
+      width: space(5);
+      height: space(5);
+    }
+  }
+
+  .workspace-destination_title {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: space(3);
+    font-weight: 600;
+    @include text('sm');
+
+    svg {
+      width: space(4);
+      height: space(4);
       color: color(muted-foreground);
-      @include text('sm');
     }
+  }
+
+  .workspace-destination_description {
+    margin-top: space(2);
+    color: color(muted-foreground);
+    @include text('sm');
   }
 }

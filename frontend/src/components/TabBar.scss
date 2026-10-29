@@ -5,10 +5,10 @@
     display: flex;
     flex-shrink: 0;
     align-items: flex-end;
-    height: space(9);
+    height: space(11);
     overflow-x: auto;
     border-bottom-width: 1px;
-    background: color(muted, 0.1);
+    background: color(muted, 0.3);
 
     @at-root .tab_bar-tab {
       position: relative;
@@ -32,7 +32,7 @@
 
       &--active,
       &--active:hover {
-        margin-bottom: -1px;
+        box-shadow: inset 0 2px 0 color(primary);
         border-bottom-color: color(canvas);
         background: color(background);
         color: color(foreground);
@@ -69,7 +69,7 @@
       border-radius: radius();
       color: color(muted-foreground);
       cursor: pointer;
-      @include reveal-on-hover;
+      opacity: 0.6;
 
       &:focus-visible,
       &:hover {

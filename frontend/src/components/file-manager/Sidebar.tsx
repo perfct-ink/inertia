@@ -61,6 +61,7 @@ function RailButton({ icon: Icon, label, active, onClick }: {
       onClick={onClick}
       title={label}
       aria-label={label}
+      aria-current={active ? 'page' : undefined}
       className={`sidebar-rail_button${active ? ' sidebar-rail_button--active' : ''}`}
     >
       <Icon className="sidebar-icon--md" />
