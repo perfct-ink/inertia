@@ -19,7 +19,6 @@ The Docker frontend starts through `frontend/scripts/start-dev.sh`. It compares 
 | Service | Why | Notes |
 | --- | --- | --- |
 | PostgreSQL 16 | Primary database for all workspace data. | Dev and CI: `postgres:16-alpine` container. Production: `inertia_production` on the shared PostgreSQL in Coolify's Shared Infrastructure project, via `DATABASE_URL`. |
-| MySQL 8 (being retired) | The old production database, kept until the PostgreSQL cutover is done. | DigitalOcean managed cluster, connection in the Rails credentials. Read once by `bin/rails db:import_mysql`. |
 | Redis 7 | Development container only. | Not used in production: `config/cable.yml` uses the in-process `async` adapter because no feature broadcasts yet. |
 | Active Storage (local disk) | File and media uploads attached to documents. | |
 
@@ -32,7 +31,7 @@ The Docker frontend starts through `frontend/scripts/start-dev.sh`. It compares 
 | Anthropic API (planned) | The AI worker's language model calls, once the adapter exists. Needs the official `anthropic` Ruby gem and `ANTHROPIC_API_KEY`; neither is wired up yet. Default model `claude-opus-5-5`. Task text is sent to Anthropic, so say so wherever workers are shown to users. | `backend/app/services/ai_workers.rb` (the client seam) |
 | Quip API | Importing a user's Quip folders and documents. The user supplies their own Quip token per import; it is not stored as app config. | `backend/app/services/quip/` |
 | Coolify | Builds and runs the production stack from `docker-compose.coolify.yml`, routes the domain and issues TLS certificates (Traefik + Let's Encrypt). | `docker-compose.coolify.yml`, [deployment.md](deployment.md) |
-| DigitalOcean | The droplet Coolify runs on, and the old managed MySQL cluster (retiring). | `deploy/server_setup.sh` |
+| DigitalOcean | The droplet Coolify runs on. The old managed MySQL cluster is no longer used. | |
 | GitHub Actions | CI (`.github/workflows/ci.yml`). Its last job deploys `main` through Coolify's API once every other job passes; Coolify's Auto Deploy is off. | |
 | Public npm registry | Installs frontend and collab dependencies locally and in CI. Lockfile URLs must use `registry.npmjs.org`, with no private registry credentials required. | `frontend/package-lock.json`, `collab-server/package-lock.json` |
 | nginx | Serves the static frontend and proxies the marketing pages, `/api`, Active Storage and `/collab` (the `web` service). | `frontend/nginx/default.conf` |
@@ -48,8 +47,7 @@ See [Mac social sign-in](mac-social-sign-in.md) for provider setup steps.
 | `RAILS_MASTER_KEY` | Decrypts `config/credentials.yml.enc` (production secrets: `secret_key_base`, `jwt_secret_key`, database credentials). | Required in production. The only secret passed to the production container. |
 | `JWT_SECRET_KEY` | Signs auth tokens (Devise JWT). | Required in dev. Tests supply a test-only default before boot. In production it comes from credentials. |
 | `DATABASE_HOST`, `DATABASE_USERNAME`, `DATABASE_PASSWORD` | PostgreSQL connection in dev and test. | Dev compose: `postgres` / `postgres` / `password`. |
-| `DATABASE_URL` | Production PostgreSQL connection (shared PostgreSQL on Coolify). | Required in production; while unset, production uses the MySQL connection in the credentials. |
-| `MYSQL_IMPORT_URL` | Overrides the MySQL source for `bin/rails db:import_mysql`. | Optional; defaults to the credentials' `database:` block. |
+| `DATABASE_URL` | Production PostgreSQL connection (shared PostgreSQL on Coolify). | Required in production. |
 | `RAILS_MAX_THREADS`, `PORT`, `RAILS_LOG_LEVEL` | Puma/Rails runtime tuning. | Optional. |
 | `CORS_ORIGINS` | Comma-separated origins allowed to call the API. | Dev: `http://localhost:5174,capacitor://localhost` (the iOS WKWebView origin). |
 | `APP_URL` | Public base URL of the API. | Dev: `http://localhost:3000`. |

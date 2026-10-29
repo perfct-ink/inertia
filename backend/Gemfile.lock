@@ -164,8 +164,6 @@ GEM
       prism (~> 1.5)
     minitest-mock (5.27.0)
     msgpack (1.8.6)
-    mysql2 (0.5.7)
-      bigdecimal
     net-imap (0.6.7)
       date
       net-protocol
@@ -329,7 +327,6 @@ DEPENDENCIES
   image_processing (~> 2.2)
   kaminari
   minitest-mock
-  mysql2 (~> 0.5)
   nokogiri
   pg (~> 1.5)
   puma (>= 5.0)

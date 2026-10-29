@@ -4,11 +4,8 @@
 # which also handles TLS. See docs/deployment.md for the setup steps.
 #
 # There's no db service: the database is the shared PostgreSQL in Coolify's
-# "Shared Infrastructure" project, reached by its container name through
-# Coolify's predefined network (the app's "Connect To Predefined Network"
-# setting) with DATABASE_URL. Until DATABASE_URL is set, the api stays on
-# the old DigitalOcean MySQL cluster from the encrypted Rails credentials
-# that RAILS_MASTER_KEY decrypts. No Redis either: ActionCable is
+# "Shared Infrastructure" project (shared-postgres), reached by its container
+# name on Coolify's `coolify` network with DATABASE_URL. No Redis either: ActionCable is
 # unused (config/cable.yml's production adapter is `async`), and document
 # collaboration is the separate collab service below.
 #
@@ -46,7 +43,7 @@ services:
       RAILS_ENV: production
       RAILS_MASTER_KEY: ${RAILS_MASTER_KEY:?}
       # postgres://<user>:<password>@<shared-postgres uuid>:5432/inertia_production
-      DATABASE_URL: ${DATABASE_URL:-}
+      DATABASE_URL: ${DATABASE_URL:?}
       # Used for absolute Active Storage URLs from background jobs, which have
       # no request to take a host from.
       APP_URL: ${APP_URL:-https://inertia.it.com}
@@ -67,8 +64,8 @@ services:
     networks:
       - default
       - coolify
-    # bin/docker-entrypoint runs db:prepare (and, once, the MySQL import)
-    # before the server starts, so the first check waits those out.
+    # bin/docker-entrypoint runs db:prepare before the server starts, so the
+    # first check waits out migrations.
     healthcheck:
       test: ["CMD", "curl", "-fsS", "http://127.0.0.1:3000/up"]
       interval: 10s

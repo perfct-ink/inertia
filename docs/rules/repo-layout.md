@@ -14,7 +14,6 @@ web/              React 19 + TypeScript + Vite 8 + Tailwind v4
   src/pages/      one folder per feature (screenplays, shotlists, budget, callsheets, ...)
   src/lib/productionNav.ts  production sidebar/tabs; BUILT_TABS is the parity checklist
   src/marketing/  static prerendered / and /pricing (see web/README.md "Public pages and SEO")
-deploy/           server_setup.sh (creates the app database on the managed cluster)
 docs/             rules/ (agent rules), backlog/ (one file per open task), features/ (one doc per shipped feature), pricing-model.md, CLAUDE.md.template (see below)
 docker-compose.yml       local dev: db + api + web
 docker-compose.coolify.yml  prod on Coolify: web + api + collab (the database is the shared PostgreSQL on Coolify)

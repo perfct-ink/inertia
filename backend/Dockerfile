@@ -13,7 +13,7 @@ WORKDIR /rails
 
 # Install base packages
 RUN apt-get update -qq && \
-    apt-get install --no-install-recommends -y curl libjemalloc2 libvips libpq5 postgresql-client default-mysql-client && \
+    apt-get install --no-install-recommends -y curl libjemalloc2 libvips libpq5 postgresql-client && \
     rm -rf /var/lib/apt/lists /var/cache/apt/archives
 
 # Set production environment
@@ -35,7 +35,7 @@ FROM base AS build
 # transitive dependency of railties itself (railties -> irb -> rdoc ->
 # psych) — needed unconditionally, not just for the dev/test groups.
 RUN apt-get update -qq && \
-    apt-get install --no-install-recommends -y build-essential git libpq-dev default-libmysqlclient-dev pkg-config libyaml-dev && \
+    apt-get install --no-install-recommends -y build-essential git libpq-dev pkg-config libyaml-dev && \
     rm -rf /var/lib/apt/lists /var/cache/apt/archives
 
 # Install application gems
