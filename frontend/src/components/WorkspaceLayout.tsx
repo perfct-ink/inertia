@@ -12,9 +12,9 @@ export default function WorkspaceLayout({ children }: { children: React.ReactNod
   }
 
   return (
-    <div className="flex h-screen">
+    <div className="flex h-screen h-[100dvh] overflow-hidden">
       <Sidebar />
-      <div className="flex-1 flex flex-col overflow-hidden">
+      <div className="min-w-0 flex-1 flex flex-col overflow-hidden">
         {/* Mobile-only top bar — below md the Sidebar becomes an off-canvas
             drawer with nothing else providing a way back into it. */}
         <div

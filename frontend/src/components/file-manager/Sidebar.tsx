@@ -59,8 +59,10 @@ function RailButton({ icon: Icon, label, active, onClick }: {
     <button
       onClick={onClick}
       title={label}
+      aria-label={label}
+      aria-current={active ? 'page' : undefined}
       className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${
-        active ? 'bg-accent text-foreground' : 'text-muted-foreground hover:bg-accent hover:text-foreground'
+        active ? 'bg-accent text-accent-foreground shadow-sm' : 'text-muted-foreground hover:bg-accent hover:text-foreground'
       }`}
     >
       <Icon className="w-4 h-4" />
