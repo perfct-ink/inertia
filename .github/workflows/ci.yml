@@ -50,9 +50,11 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      # pg's native extension needs libpq headers to compile.
-      - name: Install PostgreSQL client library
-        run: sudo apt-get update && sudo apt-get install -y libpq-dev
+      # pg's native extension needs libpq headers to compile, and ruby-vips
+      # (loaded by Bundler.require at boot) needs libvips, as in the Docker
+      # image.
+      - name: Install system libraries
+        run: sudo apt-get update && sudo apt-get install -y libpq-dev libvips42
 
       - uses: ruby/setup-ruby@v1
         with:
