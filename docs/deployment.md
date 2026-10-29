@@ -79,7 +79,7 @@ It connects as the instance's `takeover` user (the image's superuser), so the fi
 
 ### Switch from MySQL (2026-10-29)
 
-Production moved from the DigitalOcean managed MySQL cluster to `inertia_production` on shared-postgres on 2026-10-29. Alex chose not to copy the MySQL data, so the PostgreSQL database started empty and accounts and documents from before then aren't in it. The MySQL cluster was left untouched; deleting it is Alex's call.
+Production moved from the DigitalOcean managed MySQL cluster to `inertia_production` on shared-postgres on 2026-10-29. Alex chose not to copy the MySQL data, so the PostgreSQL database started empty and accounts and documents from before then aren't in it. At Alex's request the old `inertia_production` database was then dropped from the DigitalOcean MySQL cluster (`db-mysql-nyc3-18456`); the cluster itself stays, since other apps' databases live there. The `database:` block in the Rails credentials is now unused.
 
 ## Rollback
 
