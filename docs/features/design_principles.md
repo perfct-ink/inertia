@@ -21,7 +21,7 @@ Alex's nine design principles (`docs/rules/product.md`, "Design principles") as 
 | 4. Global / App / View | Unchanged: the `libraries`, `app.*`, `view` cascade layers in `styles/app.scss`. The new shared rules sit in `libraries` (reset) and `app.ui`; views only add layout. |
 | 5. Text off the edge | `page-header` and `page-padding`; the Timeline clips a month label that runs past the chart instead of letting it reach the screen edge. |
 | 6. 150ms animations | Every `transition` goes through the `transition` mixin (`--v-anim-speed`, 150ms). The sidebar drawer (was 200ms) and onboarding progress bar (was 300ms) now match; Fortune Sheet's own 100–300ms transitions are set to 150ms in `SpreadsheetEditor.scss`. The loading spinner's 1s rotation is a continuous indicator, not a state change, and is unchanged. |
-| 7. Hover never moves things | Audited: no app hover rule changes size, padding, margin, border width or position. (`.tab_bar-tab--active:hover` repeats the active tab's own `margin-bottom`, so nothing moves.) |
+| 7. Hover never moves things | Audited: no app hover rule changes size, padding, margin, border width or position. (the active tab uses an inset accent line without changing its dimensions.) |
 | 8. No selecting control text | `_reset.scss`: `user-select: none` on `button`, `select`, `label`, `summary`, `svg` and `[role=button|tab|menuitem|option]`. |
 | 9. Only things of value | The app has no pagination. The Hierarchy screen's "Unassigned" label now shows only when something is unassigned or a drag is under way (the drop zone is still there). |
 
@@ -43,3 +43,5 @@ Shared mixins added to `_tokens.scss`: `page-header`, `page-padding`, `reveal-on
 ## History
 
 - Implemented 2026-10-22: shared rules above, view fixes, Hierarchy test. Deployed by the push to `main` (Coolify deploys once CI passes).
+
+- Integrated 2026-10-29: the Space landing page offers Documents, Tasks and Events while preserving onboarding; tabs have a persistent close affordance and active accent line, navigation exposes the current page, and shared text contrast is stronger. Frontend build, tests and lint verified; this integration was not checked in a browser.

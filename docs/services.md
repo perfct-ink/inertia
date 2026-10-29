@@ -89,3 +89,12 @@ See [Mac social sign-in](mac-social-sign-in.md) for provider setup steps.
 | `COOLIFY_WEBHOOK`, `COOLIFY_TOKEN` | CI's deploy job: the resource's deploy URL and a Coolify API token with deploy permission. Coolify still pulls the repo through its GitHub App. |
 
 Production runtime variables on Coolify (`RAILS_MASTER_KEY`, `APP_URL`, `COLLAB_URL`, `CORS_ORIGINS`, social sign-in) are listed in [deployment.md](deployment.md#configuration).
+
+
+## Dependency integration (2026-10-29)
+
+Dependabot branches were consolidated, retaining newer versions already present on main and keeping removed workflows and Tailwind removed. React and React DOM move together to 19.3.1. Tiptap stays on its shared v2 schema across the web editor and collaboration server. The `image_processing` 2 update requires an explicit `ruby-vips` dependency; Docker images already install libvips.
+
+Two major updates remain deferred: TypeScript 7 is outside `typescript-eslint` 8.72's supported range (`<6.1`), and Babel 8 left TypeScript generic syntax in the existing Jest transform, failing the test suites. The supported TypeScript 5 and Babel 7 toolchains remain in use. Their historical Dependabot branches are integrated in Git ancestry, but these incompatible version changes are deliberately not activated.
+
+Older bot branches that proposed versions below those already in main do not downgrade installed versions. No backlog feature branch is included in this dependency integration.

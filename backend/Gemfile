@@ -24,6 +24,8 @@ gem "kaminari"
 
 # File uploads
 gem "image_processing", "~> 2.2"
+# image_processing 2 no longer installs a backend; Active Storage uses libvips.
+gem "ruby-vips", "~> 2.3"
 
 # JSON serialization
 gem "blueprinter"
