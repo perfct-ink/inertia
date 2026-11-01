@@ -1,7 +1,7 @@
 # Space switcher
 
 ## What it does
-The sidebar header shows "Inertia" with the current Space name as a button (`aria-label` "Space: <name>. Switch space"). Clicking opens a modal titled "Spaces" that lists the user's Spaces with role (or "personal") and a check on the current one. Choosing one switches Space. Under the list are "New space" (opens a name prompt, creates the Space and switches to it) and "Members" (opens the members dialog for the current Space). Switching behaviour is described in `docs/spaces.md`.
+The sidebar header shows "Inertia" with the current Space name as a button (`aria-label` "Space: <name>. Switch space"). Clicking opens a modal titled "Spaces" that lists the user's Spaces with role (or "personal") and a check on the current one. Choosing one switches Space. Under the list are "New space" (opens a name prompt, creates the Space and switches to it), "Members" (opens the members dialog for the current Space) and, in a shared Space, "Teams" (opens the teams dialog, see `teams.md`). Switching behaviour is described in `docs/spaces.md`.
 
 ## API and models
 `useWorkspaces`, `useCreateWorkspace` (`frontend/src/api/workspaces.ts`); see `docs/spaces.md`.

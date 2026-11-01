@@ -67,7 +67,7 @@ module Api
       private
 
       def roles
-        current_user.workspace_memberships.to_h { |m| [ m.workspace_id, m.role ] }
+        workspace_access.transform_values(&:role)
       end
 
       def workspace_params

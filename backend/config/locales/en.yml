@@ -38,6 +38,12 @@ en:
       workspace_membership:
         one: "Space membership"
         other: "Space memberships"
+      team:
+        one: "Team"
+        other: "Teams"
+      team_membership:
+        one: "Team membership"
+        other: "Team memberships"
     attributes:
       folder:
         workspace: "Space"
@@ -52,5 +58,7 @@ en:
       initiative:
         workspace: "Space"
       workspace_membership:
+        workspace: "Space"
+      team:
         workspace: "Space"
 

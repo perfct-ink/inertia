@@ -3,6 +3,7 @@ class Workspace < ApplicationRecord
   belongs_to :user
   has_many :memberships, class_name: "WorkspaceMembership", dependent: :destroy
   has_many :members, through: :memberships, source: :user
+  has_many :teams, dependent: :destroy
   belongs_to :root_folder, class_name: "Folder", optional: true
   has_many :folders, dependent: :destroy
   has_many :documents, through: :folders
@@ -34,6 +35,12 @@ class Workspace < ApplicationRecord
       end
       root_folder
     end
+  end
+
+  # Whether the user has any role here, through their own membership or a team.
+  def accessible_by?(user_id)
+    memberships.exists?(user_id: user_id) ||
+      TeamMembership.joins(:team).exists?(user_id: user_id, teams: { workspace_id: id })
   end
 
   private

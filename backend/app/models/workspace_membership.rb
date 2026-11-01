@@ -1,4 +1,6 @@
 class WorkspaceMembership < ApplicationRecord
+  include RoleCapabilities
+
   belongs_to :workspace
   belongs_to :user
 
@@ -10,16 +12,6 @@ class WorkspaceMembership < ApplicationRecord
   validate :personal_workspace_is_not_shared, on: :create
   before_destroy :keep_an_owner, unless: :destroyed_by_association
   before_update :keep_an_owner_on_demotion
-
-  # Members and above can change content; viewers only read.
-  def can_write?
-    !viewer?
-  end
-
-  # Admins and owners manage the workspace's members and settings.
-  def can_manage?
-    admin? || owner?
-  end
 
   private
 

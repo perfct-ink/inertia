@@ -1,15 +1,17 @@
 import { useState } from 'react'
-import { Check, ChevronsUpDown, Plus, Users } from 'lucide-react'
+import { Check, ChevronsUpDown, Plus, Users, UsersRound } from 'lucide-react'
 import { Button, Modal, PromptDialog } from '@/components/ui'
 import { useWorkspace } from '@/api/workspace'
 import { useCreateWorkspace, useWorkspaces } from '@/api/workspaces'
 import { useSwitchWorkspace } from '@/hooks/useSwitchWorkspace'
 import type { WorkspaceSummary } from '@/types'
 import { WorkspaceMembers } from './WorkspaceMembers'
+import { WorkspaceTeams } from './WorkspaceTeams'
 import './WorkspaceSwitcher.scss'
 
 // The sidebar header's workspace name, which opens a list to switch between
-// workspaces (projects with their own people), create one, or manage members.
+// workspaces (projects with their own people), create one, or manage members
+// and teams.
 export function WorkspaceSwitcher() {
   const switchWorkspace = useSwitchWorkspace()
   const { data: current } = useWorkspace()
@@ -18,6 +20,7 @@ export function WorkspaceSwitcher() {
   const [listOpen, setListOpen] = useState(false)
   const [creating, setCreating] = useState(false)
   const [membersOpen, setMembersOpen] = useState(false)
+  const [teamsOpen, setTeamsOpen] = useState(false)
 
   function switchTo(workspace: WorkspaceSummary) {
     setListOpen(false)
@@ -63,11 +66,17 @@ export function WorkspaceSwitcher() {
               <Users className="workspace_switcher-icon" /> Members
             </Button>
           )}
+          {current && !current.personal && (
+            <Button variant="secondary" onClick={() => { setListOpen(false); setTeamsOpen(true) }}>
+              <UsersRound className="workspace_switcher-icon" /> Teams
+            </Button>
+          )}
         </div>
       </Modal>
 
       <PromptDialog open={creating} title="New space" label="Space name" placeholder="e.g. Website relaunch" submitLabel="Create" onSubmit={create} onClose={() => setCreating(false)} />
       {current && <WorkspaceMembers workspace={current} open={membersOpen} onClose={() => setMembersOpen(false)} />}
+      {current && !current.personal && <WorkspaceTeams workspace={current} open={teamsOpen} onClose={() => setTeamsOpen(false)} />}
     </>
   )
 }
