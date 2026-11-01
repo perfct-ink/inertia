@@ -50,14 +50,6 @@ const NEXT_STATUS: Record<Task['status'], Task['status'] | null> = {
   done: null,
 }
 
-const STATUS_LABEL: Record<Task['status'], string> = {
-  backlog: 'Backlog',
-  todo: 'To Do',
-  in_progress: 'In Progress',
-  in_review: 'In Review',
-  done: 'Done',
-}
-
 function isColumnId(id: UniqueIdentifier): id is Task['status'] {
   return KANBAN_KEYS.includes(id as Task['status'])
 }
@@ -98,7 +90,7 @@ function TaskCard({ task, onNext, onNavigate, epicTitle, overlay }: Omit<CardPro
           <Button
             onClick={onNext}
             className="tasks-next"
-            title={`Move to ${STATUS_LABEL[NEXT_STATUS[task.status]!]}`}
+            title={`Move to ${TASK_STATUS_LABELS[NEXT_STATUS[task.status]!]}`}
           >
             <ArrowRight className="tasks-icon" />
           </Button>

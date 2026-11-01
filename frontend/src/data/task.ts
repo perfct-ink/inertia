@@ -1,5 +1,14 @@
 import type { Task } from '@/types'
 
+// What a task's status is called on screen and in exports.
+export const TASK_STATUS_LABELS: Record<Task['status'], string> = {
+  backlog: 'Backlog',
+  todo: 'To Do',
+  in_progress: 'In Progress',
+  in_review: 'In Review',
+  done: 'Done',
+}
+
 export interface TaskNode extends Task { children: TaskNode[] }
 
 // Nests tasks under their parent task to any depth. A task whose parent is
