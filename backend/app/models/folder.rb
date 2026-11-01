@@ -6,6 +6,7 @@ class Folder < ApplicationRecord
   has_many :tasks, dependent: :nullify
   has_many :events, dependent: :destroy
   has_many :epics, dependent: :nullify
+  has_many :task_status_settings, dependent: :delete_all
   has_many :shares, as: :shareable, dependent: :destroy
 
   # A project is a folder of docs shown on the Projects screen.

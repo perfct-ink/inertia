@@ -38,6 +38,9 @@ en:
       workspace_membership:
         one: "Space membership"
         other: "Space memberships"
+      task_status_setting:
+        one: "Task status setting"
+        other: "Task status settings"
     attributes:
       folder:
         workspace: "Space"
@@ -52,5 +55,7 @@ en:
       initiative:
         workspace: "Space"
       workspace_membership:
+        workspace: "Space"
+      task_status_setting:
         workspace: "Space"
 

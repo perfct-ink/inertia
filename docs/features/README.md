@@ -21,3 +21,4 @@ One file per implemented feature, written from the code (see `docs/rules/feature
 | Collections naming (tables are called Collections in the UI) | [collections.md](collections.md) |
 | Design principles applied across the web app (responsive, styled controls, hover, 150ms motion) | [design_principles.md](design_principles.md) |
 | PostgreSQL database: shared-postgres on Coolify | [postgresql_database.md](postgresql_database.md) |
+| Configurable statuses: rename and recolor the task statuses per Space or folder | [configurable_statuses.md](configurable_statuses.md) |

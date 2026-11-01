@@ -3,16 +3,10 @@ import { NodeViewWrapper, NodeViewContent, type NodeViewProps } from '@tiptap/re
 import { format, parseISO } from 'date-fns'
 import { CalendarDays } from 'lucide-react'
 import { useTasks, useUpdateTask } from '@/api/tasks'
-import { Button, Input } from '@/components/ui'
+import { Button, Input, StatusDot, classNames } from '@/components/ui'
+import { useStatusesForFolder } from '@/hooks/useBoardStatuses'
+import { taskFolderId } from '@/data/task'
 import './WorkspaceTaskItemView.scss'
-
-const STATUS_DOT: Record<string, string> = {
-  backlog: 'task_item-dot--backlog',
-  todo: 'task_item-dot--todo',
-  in_progress: 'task_item-dot--in_progress',
-  in_review: 'task_item-dot--in_review',
-  done: 'task_item-dot--done',
-}
 
 // Lets a task item written inline in a document (a product requirements doc,
 // say) carry a due date without leaving the editor — the same due_date field
@@ -52,14 +46,15 @@ export default function WorkspaceTaskItemView({ node }: NodeViewProps) {
   const { data: tasks = [] } = useTasks()
   const taskId = node.attrs.taskId as number | null
   const task = tasks.find((t) => t.id === taskId)
-  const status = task?.status ?? 'backlog'
-  const dotClass = STATUS_DOT[status] ?? 'task_item-dot--backlog'
+  const statusesFor = useStatusesForFolder()
+  const { label, color } = statusesFor(task ? taskFolderId(task) : null)[task?.status ?? 'backlog']
 
   return (
     <NodeViewWrapper as="li" className="view-task_item">
-      <span
-        className={`task_item-dot ${dotClass} ${!taskId ? 'task_item-dot--unsaved' : ''}`}
-        title={task ? `Status: ${status.replace('_', ' ')}` : 'Unsaved task'}
+      <StatusDot
+        color={color}
+        className={classNames('task_item-dot', !taskId && 'task_item-dot--unsaved')}
+        title={task ? `Status: ${label}` : 'Unsaved task'}
       />
       <div className="task_item-body">
         <NodeViewContent as="div" />

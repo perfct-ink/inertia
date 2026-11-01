@@ -1,7 +1,7 @@
-import { Button, Input, Select, classNames } from '@/components/ui'
+import { Button, Input, Select, StatusDot, classNames } from '@/components/ui'
 import { useState, useRef, useEffect } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { Plus, X, ArrowRight, Play, Loader2, Search, Filter, Target } from 'lucide-react'
+import { Plus, X, ArrowRight, Play, Loader2, Search, Filter, Target, Palette } from 'lucide-react'
 import {
   DndContext,
   DragOverlay,
@@ -26,40 +26,20 @@ import { CSS } from '@dnd-kit/utilities'
 import WorkspaceLayout from '@/components/WorkspaceLayout'
 import { useTasks, useCreateTask, useUpdateTask, useDeleteTask, type TaskFilters } from '@/api/tasks'
 import { useWorkspace } from '@/api/workspace'
+import { canWriteWorkspace } from '@/api/workspaces'
 import { useEpics } from '@/api/epics'
 import { useSprints } from '@/api/sprints'
 import { useMilestones } from '@/api/milestones'
-import type { Task, Epic, Sprint, Milestone } from '@/types'
+import type { Task, Epic, Sprint, Milestone, TaskStatus, TaskStatusColor } from '@/types'
 import './TasksScreen.scss'
 import { usePageTitle } from '@/hooks/usePageTitle'
+import { useBoardStatuses } from '@/hooks/useBoardStatuses'
+import { StatusSettings } from '@/components/workspace/StatusSettings'
+import { BOARD_STATUSES, NEXT_STATUS, TASK_STATUSES, nextStatusLabel } from '@/data/task_status'
+import { flattenFolders } from '@/data/folder'
 
-const KANBAN_STATUSES: { key: Task['status']; label: string; dot: string }[] = [
-  { key: 'todo', label: 'To Do', dot: '' },
-  { key: 'in_progress', label: 'In Progress', dot: 'blue' },
-  { key: 'in_review', label: 'In Review', dot: 'yellow' },
-  { key: 'done', label: 'Done', dot: 'green' },
-]
-
-const KANBAN_KEYS = KANBAN_STATUSES.map((s) => s.key)
-
-const NEXT_STATUS: Record<Task['status'], Task['status'] | null> = {
-  backlog: 'todo',
-  todo: 'in_progress',
-  in_progress: 'in_review',
-  in_review: 'done',
-  done: null,
-}
-
-const STATUS_LABEL: Record<Task['status'], string> = {
-  backlog: 'Backlog',
-  todo: 'To Do',
-  in_progress: 'In Progress',
-  in_review: 'In Review',
-  done: 'Done',
-}
-
-function isColumnId(id: UniqueIdentifier): id is Task['status'] {
-  return KANBAN_KEYS.includes(id as Task['status'])
+function isColumnId(id: UniqueIdentifier): id is TaskStatus {
+  return BOARD_STATUSES.includes(id as TaskStatus)
 }
 
 // ── Card ─────────────────────────────────────────────────────────────────────
@@ -68,12 +48,14 @@ interface CardProps {
   task: Task
   onDelete?: () => void
   onNext: (() => void) | null
+  // Name of the status onNext moves the task to.
+  nextLabel?: string | null
   onNavigate: () => void
   epicTitle?: string
   overlay?: boolean
 }
 
-function TaskCard({ task, onNext, onNavigate, epicTitle, overlay }: Omit<CardProps, 'onDelete'>) {
+function TaskCard({ task, onNext, nextLabel, onNavigate, epicTitle, overlay }: Omit<CardProps, 'onDelete'>) {
   return (
     <div className={classNames('tasks-card', overlay && 'tasks-card--overlay')}>
       <div className="tasks-card_title_row">
@@ -98,7 +80,8 @@ function TaskCard({ task, onNext, onNavigate, epicTitle, overlay }: Omit<CardPro
           <Button
             onClick={onNext}
             className="tasks-next"
-            title={`Move to ${STATUS_LABEL[NEXT_STATUS[task.status]!]}`}
+            title={`Move to ${nextLabel}`}
+            aria-label={`Move to ${nextLabel}`}
           >
             <ArrowRight className="tasks-icon" />
           </Button>
@@ -123,10 +106,10 @@ function SortableCard(props: Omit<CardProps, 'onDelete'>) {
 
 // ── Column ────────────────────────────────────────────────────────────────────
 
-function KanbanColumn({ status, label, dot, tasks, children }: {
-  status: Task['status']
+function KanbanColumn({ status, label, color, tasks, children }: {
+  status: TaskStatus
   label: string
-  dot: string
+  color: TaskStatusColor
   tasks: Task[]
   children: React.ReactNode
 }) {
@@ -134,7 +117,7 @@ function KanbanColumn({ status, label, dot, tasks, children }: {
   return (
     <div className="tasks-column">
       <div className="tasks-column_header">
-        <span className={classNames('tasks-dot', dot && `tasks-dot--${dot}`)} />
+        <StatusDot color={color} />
         <span className="tasks-column_label">{label}</span>
         <span className="tasks-count">{tasks.length}</span>
       </div>
@@ -292,6 +275,10 @@ export default function TasksScreen() {
   const [showFilters, setShowFilters] = useState(false)
   const [searchQ, setSearchQ] = useState('')
   const { data: workspace } = useWorkspace()
+  // The board is the folder being filtered to, else the whole Space.
+  const { statuses } = useBoardStatuses(filters.folder_id)
+  const [showStatuses, setShowStatuses] = useState(false)
+  const boardFolder = filters.folder_id ? flattenFolders(workspace?.folders ?? []).find((f) => f.id === filters.folder_id) : undefined
   const { data: epics = [] } = useEpics()
   const { data: sprints = [] } = useSprints()
   const { data: milestones = [] } = useMilestones()
@@ -319,7 +306,7 @@ export default function TasksScreen() {
   const updateTask = useUpdateTask()
   const deleteTask = useDeleteTask()
 
-  const [addingTo, setAddingTo] = useState<Task['status'] | null>(null)
+  const [addingTo, setAddingTo] = useState<TaskStatus | null>(null)
 
   useEffect(() => {
     if (searchParams.get('new') === '1') setAddingTo('backlog')
@@ -416,7 +403,7 @@ export default function TasksScreen() {
     setLocalTasksState(tasks)
   }
 
-  function createTaskWith(status: Task['status'], fields: NewTaskFields) {
+  function createTaskWith(status: TaskStatus, fields: NewTaskFields) {
     createTask.mutate({ ...fields, status, folder_id: filters.folder_id })
   }
 
@@ -449,6 +436,16 @@ export default function TasksScreen() {
                 className="tasks-search_input"
               />
             </div>
+            {canWriteWorkspace(workspace?.role) && (
+              <Button
+                onClick={() => setShowStatuses(true)}
+                className="tasks-filter_button"
+                title="Rename and recolor the statuses"
+              >
+                <Palette className="tasks-icon" />
+                Statuses
+              </Button>
+            )}
             <Button
               onClick={() => setShowFilters((o) => !o)}
               className={classNames('tasks-filter_button', !!(showFilters || filters.folder_id || filters.status || filters.epic_id || filters.sprint_id) && 'tasks-filter_button--active')}
@@ -480,11 +477,9 @@ export default function TasksScreen() {
               onChange={(e) => setFilters((f) => ({ ...f, status: e.target.value || undefined }))}
             >
               <option value="">Any status</option>
-              <option value="backlog">Backlog</option>
-              <option value="todo">To Do</option>
-              <option value="in_progress">In Progress</option>
-              <option value="in_review">In Review</option>
-              <option value="done">Done</option>
+              {TASK_STATUSES.map((status) => (
+                <option key={status} value={status}>{statuses[status].label}</option>
+              ))}
             </Select>
             <span className="tasks-filter_label">Epic</span>
             <Select
@@ -536,15 +531,16 @@ export default function TasksScreen() {
           >
             <div className="tasks-board">
               <div className="tasks-columns">
-                {KANBAN_STATUSES.map(({ key, label, dot }) => {
+                {BOARD_STATUSES.map((key) => {
                   const colTasks = localTasks.filter((t) => t.status === key)
                   return (
-                    <KanbanColumn key={key} status={key} label={label} dot={dot} tasks={colTasks}>
+                    <KanbanColumn key={key} status={key} label={statuses[key].label} color={statuses[key].color} tasks={colTasks}>
                       {colTasks.map((task) => (
                         <SortableCard
                           key={task.id}
                           task={task}
                           onNext={NEXT_STATUS[task.status] ? () => updateTask.mutate({ id: task.id, status: NEXT_STATUS[task.status]! }) : null}
+                          nextLabel={nextStatusLabel(statuses, task.status)}
                           onNavigate={() => navigate(`/documents/${task.document_id}`)}
                           epicTitle={task.epic_id ? epicById.get(task.epic_id)?.title : undefined}
                         />
@@ -592,8 +588,8 @@ export default function TasksScreen() {
             <div className="tasks-backlog_inner">
               <div className="tasks-backlog_header">
                 <div className="tasks-backlog_title">
-                  <span className="tasks-dot" />
-                  <span className="tasks-column_label">Backlog</span>
+                  <StatusDot color={statuses.backlog.color} />
+                  <span className="tasks-column_label">{statuses.backlog.label}</span>
                   <span className="tasks-count">{tasks.filter((t) => t.status === 'backlog').length}</span>
                 </div>
                 <Button
@@ -638,7 +634,8 @@ export default function TasksScreen() {
                     <div className="tasks-row_actions">
                       <Button
                         onClick={() => updateTask.mutate({ id: task.id, status: 'todo' })}
-                        title="Move to To Do"
+                        title={`Move to ${statuses.todo.label}`}
+                        aria-label={`Move to ${statuses.todo.label}`}
                         className="tasks-row_action tasks-row_action--start"
                       >
                         <Play className="tasks-icon" />
@@ -655,12 +652,18 @@ export default function TasksScreen() {
                   </div>
                 ))}
                 {tasks.filter((t) => t.status === 'backlog').length === 0 && !addingTo && (
-                  <p className="tasks-empty">No backlog items</p>
+                  <p className="tasks-empty">No tasks in {statuses.backlog.label}</p>
                 )}
               </div>
             </div>
           </div>
         )}
+        <StatusSettings
+          open={showStatuses}
+          folderId={filters.folder_id ?? null}
+          boardName={boardFolder?.name ?? workspace?.name ?? 'this Space'}
+          onClose={() => setShowStatuses(false)}
+        />
       </div>
     </WorkspaceLayout>
   )

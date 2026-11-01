@@ -37,6 +37,7 @@
 
     @at-root .tasks-tools {
       display: flex;
+      flex-wrap: wrap;
       align-items: center;
       gap: space(2);
       margin-left: auto;
@@ -186,26 +187,6 @@
       align-items: center;
       gap: space(2);
       margin-bottom: space(2);
-    }
-
-    @at-root .tasks-dot {
-      flex-shrink: 0;
-      width: space(2);
-      height: space(2);
-      border-radius: radius('full');
-      background: color(muted-foreground);
-
-      &--blue {
-        background: palette('blue-500');
-      }
-
-      &--yellow {
-        background: palette('yellow-500');
-      }
-
-      &--green {
-        background: palette('green-500');
-      }
     }
 
     @at-root .tasks-column_label {

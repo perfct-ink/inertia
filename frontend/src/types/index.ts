@@ -57,11 +57,26 @@ export interface WorkspaceMember {
   user: { id: number; name: string; email: string }
 }
 
+// The fixed set every task is in. A board can call each one something else
+// and colour it (see TaskStatusSetting), but a task is always one of these.
+export type TaskStatus = 'todo' | 'in_progress' | 'in_review' | 'done' | 'backlog'
+export type TaskStatusColor = 'gray' | 'blue' | 'yellow' | 'green' | 'orange' | 'red' | 'purple'
+
+// One board's label and/or colour for one status. folder_id null is the Space
+// default; a folder's rows apply to its board and the folders nested in it.
+export interface TaskStatusSetting {
+  id: number
+  folder_id: number | null
+  status: TaskStatus
+  label: string | null
+  color: TaskStatusColor | null
+}
+
 export interface Task {
   id: number
   title: string
   description: string | null
-  status: 'todo' | 'in_progress' | 'in_review' | 'done' | 'backlog'
+  status: TaskStatus
   start_date?: string | null
   due_date: string | null
   position: number

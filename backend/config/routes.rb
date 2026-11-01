@@ -59,6 +59,10 @@ Rails.application.routes.draw do
       resources :milestones, only: [ :index, :create, :update, :destroy ]
 
       resources :sprints, only: [ :index, :create, :update, :destroy ]
+      # How a board labels and colours task statuses; ?folder_id= picks the board (none = the Space default).
+      get "task_status_settings", to: "task_status_settings#index"
+      put "task_status_settings", to: "task_status_settings#update"
+      delete "task_status_settings", to: "task_status_settings#destroy"
       resources :task_dependencies, only: [ :index, :create, :destroy ]
       resources :ai_workers, only: [ :index, :create, :update, :destroy ]
       resources :ai_runs, only: [ :index, :create ]

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_18_000003) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_01_010001) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -300,6 +300,20 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_18_000003) do
     t.index ["workspace_id"], name: "index_task_dependencies_on_workspace_id"
   end
 
+  create_table "task_status_settings", force: :cascade do |t|
+    t.bigint "workspace_id", null: false
+    t.bigint "folder_id"
+    t.integer "status", null: false
+    t.string "label"
+    t.string "color"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["folder_id", "status"], name: "index_task_status_settings_on_folder_and_status", unique: true, where: "(folder_id IS NOT NULL)"
+    t.index ["folder_id"], name: "index_task_status_settings_on_folder_id"
+    t.index ["workspace_id", "status"], name: "index_task_status_settings_on_space_default", unique: true, where: "(folder_id IS NULL)"
+    t.index ["workspace_id"], name: "index_task_status_settings_on_workspace_id"
+  end
+
   create_table "tasks", force: :cascade do |t|
     t.string "title", null: false
     t.text "description"
@@ -405,6 +419,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_18_000003) do
   add_foreign_key "task_dependencies", "tasks", column: "predecessor_id"
   add_foreign_key "task_dependencies", "tasks", column: "successor_id"
   add_foreign_key "task_dependencies", "workspaces"
+  add_foreign_key "task_status_settings", "folders"
+  add_foreign_key "task_status_settings", "workspaces"
   add_foreign_key "tasks", "documents"
   add_foreign_key "tasks", "epics"
   add_foreign_key "tasks", "folders"
