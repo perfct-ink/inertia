@@ -64,6 +64,13 @@ Rails.application.routes.draw do
       resources :ai_runs, only: [ :index, :create ]
       resources :objectives, only: [ :index, :create, :update, :destroy ]
       resources :key_results, only: [ :create, :update, :destroy ]
+      resources :project_requests, only: [ :index, :create, :update, :destroy ] do
+        member do
+          post :approve
+          post :decline
+          post :reopen
+        end
+      end
 
       resources :uploads, only: [ :create ]
 

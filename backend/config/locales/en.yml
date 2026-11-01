@@ -38,6 +38,9 @@ en:
       workspace_membership:
         one: "Space membership"
         other: "Space memberships"
+      project_request:
+        one: "Project request"
+        other: "Project requests"
     attributes:
       folder:
         workspace: "Space"
@@ -53,4 +56,7 @@ en:
         workspace: "Space"
       workspace_membership:
         workspace: "Space"
+      project_request:
+        workspace: "Space"
+        decision_note: "Reason"
 

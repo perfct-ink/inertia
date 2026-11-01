@@ -9,7 +9,7 @@ import { useSidebarStore } from '@/store/sidebar'
 import {
   FolderPlus, CheckSquare, FilePlus, FileText,
   Table as TableIcon, Pin, Folder, Loader2, CalendarDays,
-  Plus, Target, Flag, FolderKanban, Milestone, Rocket, ListTree, Map as MapIcon, Goal, Archive, ArchiveRestore, Keyboard, Download,
+  Plus, Target, Flag, FolderKanban, ClipboardList, Milestone, Rocket, ListTree, Map as MapIcon, Goal, Archive, ArchiveRestore, Keyboard, Download,
 } from 'lucide-react'
 import {
   useWorkspace, useCreateFolder, useCreateDocument, usePinDocument, usePinFolder,
@@ -280,6 +280,7 @@ export default function Sidebar() {
         <div className="sidebar-rail_group">
           <RailButton icon={FileText} label="All files" active={isDocumentsSection} onClick={() => navigate('/documents')} />
           <RailButton icon={FolderKanban} label="Projects" active={location.pathname === '/projects'} onClick={() => navigate('/projects')} />
+          <RailButton icon={ClipboardList} label="Project requests" active={location.pathname === '/project-requests'} onClick={() => navigate('/project-requests')} />
           <RailButton icon={CheckSquare} label="Tasks" active={location.pathname === '/tasks'} onClick={() => navigate('/tasks?view=backlog')} />
           <RailButton icon={CalendarDays} label="Events" active={location.pathname === '/events'} onClick={() => navigate('/events?view=list')} />
           <RailButton icon={Target} label="Epics" active={location.pathname === '/epics'} onClick={() => navigate('/epics')} />
