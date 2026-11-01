@@ -13,9 +13,11 @@ module Api
       end
 
       def show
+        records = @table.table_records.order(:id).includes(:table_cells).to_a
+        mirrors = TableMirrors.new(@table).values_for(records)
         render json: {
-          fields: @table.table_fields.order(:id).as_json(only: [ :id, :name, :data_type, :relation_table_id ]),
-          records: @table.table_records.order(:id).includes(:table_cells).map(&:as_table_json)
+          fields: @table.table_fields.order(:id).as_json(only: [ :id, :name, :data_type, :relation_table_id, :mirror_relation_field_id, :mirror_field_id ]),
+          records: records.map { |record| record.as_table_json.merge(mirrors: mirrors.fetch(record.id, {})) }
         }
       end
 
@@ -61,7 +63,7 @@ module Api
       end
 
       def field_params
-        params.require(:field).permit(:name, :data_type, :relation_table_id)
+        params.require(:field).permit(:name, :data_type, :relation_table_id, :mirror_relation_field_id, :mirror_field_id)
       end
 
       def write_values(record)

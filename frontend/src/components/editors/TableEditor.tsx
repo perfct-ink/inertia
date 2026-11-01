@@ -11,10 +11,17 @@ import { useTabsStore } from '@/store/tabs'
 import './TableEditor.scss'
 import { usePageTitle } from '@/hooks/usePageTitle'
 import { flattenFolders } from '@/data/folder'
+import { mirrorParams, mirrorSource, mirrorSummary, mirrorText } from '@/data/mirror'
+import MirrorFieldForm from './MirrorFieldForm'
 
-const types: DataType[] = ['text', 'integer', 'number', 'boolean', 'date', 'datetime', 'relation']
+const types: DataType[] = ['text', 'integer', 'number', 'boolean', 'date', 'datetime', 'relation', 'mirror']
 const inputClass = 'table_editor-input'
 const fieldInputClass = `${inputClass} table_editor-input--field`
+
+// A mirror is read-only: the linked record's value, or a dash when there is none.
+function MirrorValue({ text }: { text: string }) {
+  return <div className="table_editor-mirror">{text || <span className="table_editor-mirror_empty" aria-hidden="true">—</span>}</div>
+}
 
 function RecordRow({ record, fields, relations, busy, onSave, onDelete }: {
   record?: TableRecord; fields: TableField[]; relations: Map<number, TableData>; busy: boolean
@@ -37,7 +44,7 @@ function RecordRow({ record, fields, relations, busy, onSave, onDelete }: {
       const value = values[field.id]
       const target = field.relation_table_id ? relations.get(field.relation_table_id) : undefined
       return <td key={field.id} className="table_editor-cell">
-        {field.data_type === 'boolean' ? <Select aria-label={field.name} className={inputClass} value={value == null ? '' : String(value)} onChange={e => set(field, e.target.value === '' ? null : e.target.value === 'true')}>
+        {field.data_type === 'mirror' ? <MirrorValue text={mirrorText(record?.mirrors?.[field.id], mirrorSource(field, fields, relations)?.data_type)} /> : field.data_type === 'boolean' ? <Select aria-label={field.name} className={inputClass} value={value == null ? '' : String(value)} onChange={e => set(field, e.target.value === '' ? null : e.target.value === 'true')}>
           <option value="">Empty</option><option value="true">True</option><option value="false">False</option>
         </Select> : field.data_type === 'relation' ? <Select aria-label={field.name} className={inputClass} value={value == null ? '' : String(value)} onChange={e => set(field, e.target.value ? Number(e.target.value) : null)}>
           <option value="">{target ? 'No linked record' : 'Loading records…'}</option>
@@ -80,6 +87,8 @@ export default function TableEditor({ doc }: { doc: Document }) {
   const [name, setName] = useState('')
   const [type, setType] = useState<DataType>('text')
   const [relationTable, setRelationTable] = useState('')
+  const [mirrorVia, setMirrorVia] = useState('')
+  const [mirrorShown, setMirrorShown] = useState('')
   const tables = flattenFolders(workspace?.folders ?? []).flatMap(f => f.documents ?? []).filter(d => d.doc_type === 'table')
   const targetIds = [...new Set((data?.fields ?? []).flatMap(f => f.relation_table_id ? [f.relation_table_id] : []))]
   const queries = useQueries({ queries: targetIds.map(tableQuery) })
@@ -98,12 +107,14 @@ export default function TableEditor({ doc }: { doc: Document }) {
   }
   function fieldForm(field?: TableField) {
     setEditingField(field ?? null); setName(field?.name ?? ''); setType(field?.data_type ?? 'text')
-    setRelationTable(field?.relation_table_id ? String(field.relation_table_id) : ''); setShowForm(true); setError('')
+    setRelationTable(field?.relation_table_id ? String(field.relation_table_id) : '')
+    setMirrorVia(field?.mirror_relation_field_id ? String(field.mirror_relation_field_id) : ''); setMirrorShown(field?.mirror_field_id ? String(field.mirror_field_id) : '')
+    setShowForm(true); setError('')
   }
   async function saveField(e: React.FormEvent) {
     e.preventDefault()
     try {
-      await action(editingField ? `fields/${editingField.id}` : 'fields', editingField ? 'patch' : 'post', { field: { name: name.trim(), data_type: type, relation_table_id: type === 'relation' ? Number(relationTable) : null } })
+      await action(editingField ? `fields/${editingField.id}` : 'fields', editingField ? 'patch' : 'post', { field: { name: name.trim(), data_type: type, relation_table_id: type === 'relation' ? Number(relationTable) : null, ...(type === 'mirror' && mirrorParams(mirrorVia, mirrorShown)) } })
       setShowForm(false)
     } catch (e) { setError(errorMessage(e)) }
   }
@@ -125,14 +136,15 @@ export default function TableEditor({ doc }: { doc: Document }) {
         <label className="table_editor-field_form_label">Field name<Input required maxLength={255} autoFocus className={`${fieldInputClass}`} value={name} onChange={e => setName(e.target.value)} /></label>
         <label className="table_editor-field_form_label">Data type<Select className={`${fieldInputClass}`} value={type} onChange={e => setType(e.target.value as DataType)}>{types.map(t => <option key={t} value={t}>{t[0].toUpperCase() + t.slice(1)}</option>)}</Select></label>
         {type === 'relation' && <label className="table_editor-field_form_label">Related collection<Select required className={`${fieldInputClass}`} value={relationTable} onChange={e => setRelationTable(e.target.value)}><option value="">Choose a collection</option>{tables.map(t => <option key={t.id} value={t.id}>{t.title}</option>)}</Select></label>}
-        <Button variant="primary" disabled={busy || !name.trim()} className="table_editor-field_form_button">{editingField ? 'Save field' : 'Create field'}</Button>
+        {type === 'mirror' && <MirrorFieldForm fields={data?.fields ?? []} linked={relations} relationFieldId={mirrorVia} sourceFieldId={mirrorShown} onRelationFieldChange={setMirrorVia} onSourceFieldChange={setMirrorShown} selectClassName={fieldInputClass} />}
+        <Button variant="primary" disabled={busy || !name.trim() || (type === 'mirror' && !(mirrorVia && mirrorShown))} className="table_editor-field_form_button">{editingField ? 'Save field' : 'Create field'}</Button>
         <Button type="button" onClick={() => setShowForm(false)} className="table_editor-cancel_button">Cancel</Button>
         {editingField && <p className="table_editor-field_form_hint">Clear this field’s values before changing its data type or related collection.</p>}
       </form>}
-      {isLoading ? <Loader2 className="table_editor-spinner" /> : data && data.fields.length === 0 ? <div className="table_editor-empty"><Database className="table_editor-empty_icon" /><p className="table_editor-empty_title">Define your collection’s fields</p><p className="table_editor-empty_text">Add text, numbers, dates, booleans, or a relation to another collection.</p><Button variant="secondary" onClick={() => fieldForm()} className="table_editor-empty_button">Add first field</Button></div> : data && <div className="table_editor-grid">
+      {isLoading ? <Loader2 className="table_editor-spinner" /> : data && data.fields.length === 0 ? <div className="table_editor-empty"><Database className="table_editor-empty_icon" /><p className="table_editor-empty_title">Define your collection’s fields</p><p className="table_editor-empty_text">Add text, numbers, dates, booleans, a relation to another collection, or a mirror of a field from a related record.</p><Button variant="secondary" onClick={() => fieldForm()} className="table_editor-empty_button">Add first field</Button></div> : data && <div className="table_editor-grid">
         <table className="table_editor-table">
           <thead className="table_editor-table_head"><tr><th className="table_editor-column_head table_editor-column_head--id">Record ID</th>
-            {data.fields.map(field => <th key={field.id} className="table_editor-column_head"><div className="table_editor-column_head_main"><Button onClick={() => fieldForm(field)} className="table_editor-column_name_button"><span>{field.name}</span><Pencil className="table_editor-column_edit_icon" /></Button><Button aria-label={`Delete field ${field.name}`} disabled={busy} onClick={() => remove(`fields/${field.id}`, `Delete “${field.name}” and all its values?`)} className="table_editor-icon_button table_editor-icon_button--column"><Trash2 className="table_editor-icon_button_icon table_editor-icon_button_icon--sm" /></Button></div><span className="table_editor-column_type">{field.data_type}{field.relation_table_id ? ` → ${tables.find(t => t.id === field.relation_table_id)?.title ?? 'Table'}` : ''}</span></th>)}
+            {data.fields.map(field => <th key={field.id} className="table_editor-column_head"><div className="table_editor-column_head_main"><Button onClick={() => fieldForm(field)} className="table_editor-column_name_button"><span>{field.name}</span><Pencil className="table_editor-column_edit_icon" /></Button><Button aria-label={`Delete field ${field.name}`} disabled={busy} onClick={() => remove(`fields/${field.id}`, `Delete “${field.name}” and all its values?`)} className="table_editor-icon_button table_editor-icon_button--column"><Trash2 className="table_editor-icon_button_icon table_editor-icon_button_icon--sm" /></Button></div><span className="table_editor-column_type">{field.data_type}{field.relation_table_id ? ` → ${tables.find(t => t.id === field.relation_table_id)?.title ?? 'Table'}` : ''}{field.data_type === 'mirror' ? ` → ${mirrorSummary(field, data.fields, relations, id => tables.find(t => t.id === id)?.title)}` : ''}</span></th>)}
             <th className="table_editor-column_head table_editor-column_head--actions">Actions</th>
           </tr></thead>
           <tbody>{data.records.map(record => <RecordRow key={record.id} record={record} fields={data.fields} relations={relations} busy={busy} onSave={values => action(`records/${record.id}`, 'patch', { record: { values } })} onDelete={() => remove(`records/${record.id}`, `Delete record #${record.id}?`)} />)}

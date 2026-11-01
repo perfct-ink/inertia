@@ -80,6 +80,21 @@
       }
     }
 
+    /* A mirror's value is read-only text, so it carries no hover state. */
+    @at-root .table_editor-mirror {
+      min-width: space(32);
+      padding: space(1.5) space(2);
+      border-radius: radius();
+      background: color(muted, 0.3);
+      @include text('sm');
+
+      overflow-wrap: anywhere;
+    }
+
+    @at-root .table_editor-mirror_empty {
+      color: color(muted-foreground);
+    }
+
     @at-root .table_editor-field_form {
       display: flex;
       flex-wrap: wrap;

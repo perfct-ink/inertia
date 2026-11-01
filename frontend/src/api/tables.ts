@@ -1,9 +1,11 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import api from '@/lib/api'
 
-export type DataType = 'text' | 'integer' | 'number' | 'boolean' | 'date' | 'datetime' | 'relation'
-export interface TableField { id: number; name: string; data_type: DataType; relation_table_id: number | null }
-export interface TableRecord { id: number; values: Record<string, string | number | boolean | null> }
+export type DataType = 'text' | 'integer' | 'number' | 'boolean' | 'date' | 'datetime' | 'relation' | 'mirror'
+// A mirror (data_type 'mirror') shows `mirror_field_id` of the collection that its relation field `mirror_relation_field_id` links to.
+export interface TableField { id: number; name: string; data_type: DataType; relation_table_id: number | null; mirror_relation_field_id?: number | null; mirror_field_id?: number | null }
+// `mirrors` holds each mirror field's values for the record, a list per field id (empty when nothing is linked).
+export interface TableRecord { id: number; values: Record<string, string | number | boolean | null>; mirrors?: Record<string, Array<string | number | boolean>> }
 export interface TableData { fields: TableField[]; records: TableRecord[] }
 export const tableQuery = (id: number) => ({
   queryKey: ['table', id],
