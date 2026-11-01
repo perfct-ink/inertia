@@ -1,12 +1,12 @@
 // Schema-only mirror of frontend/src/pages/workspace/DocumentPage.tsx's editor
 // `extensions` array, plus frontend/src/extensions/{WorkspaceTaskList,
-// WorkspaceTaskItem,Video}. y-prosemirror's JSON<->Yjs conversion only cares
+// WorkspaceTaskItem,Video,Attachment}. y-prosemirror's JSON<->Yjs conversion only cares
 // about node/mark SHAPE (name, group, content, attrs) — NodeView renderers,
 // parseHTML/renderHTML, keyboard shortcuts, and toolbar commands are UI
 // concerns and are deliberately omitted here. That's why this list is
 // shorter than the frontend's: standard nodes are the exact same versioned
 // @tiptap/extension-* packages in both places (can't drift), so only the
-// three app-specific custom nodes need hand-copying.
+// app-specific custom nodes need hand-copying.
 //
 // KEEP IN SYNC with DocumentPage.tsx's extensions array whenever a node/mark
 // is added, removed, or gets a new attribute — schema.test.ts asserts the
@@ -65,12 +65,39 @@ const Video = Node.create({
   },
 });
 
+// Matches frontend/src/extensions/Attachment.ts exactly (shape only): an audio
+// player and a file card share these four attributes.
+const attachmentAttributes = {
+  src: { default: null },
+  name: { default: null },
+  size: { default: null },
+  type: { default: null },
+};
+
+const AudioAttachment = Node.create({
+  name: "audio",
+  group: "block",
+  atom: true,
+  addAttributes() {
+    return attachmentAttributes;
+  },
+});
+
+const FileAttachment = Node.create({
+  name: "fileAttachment",
+  group: "block",
+  atom: true,
+  addAttributes() {
+    return attachmentAttributes;
+  },
+});
+
 export const schemaExtensions = [
   CustomDocument, Paragraph, Text, HardBreak,
   Bold, Italic, Underline, Strike, Code,
   Heading, BulletList, OrderedList, ListItem,
   WorkspaceTaskList, WorkspaceTaskItem,
-  CodeBlock, HorizontalRule, Image, Link, Video,
+  CodeBlock, HorizontalRule, Image, Link, Video, AudioAttachment, FileAttachment,
   Table, TableRow, TableCell, TableHeader,
 ];
 

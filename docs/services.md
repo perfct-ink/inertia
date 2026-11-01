@@ -20,7 +20,7 @@ The Docker frontend starts through `frontend/scripts/start-dev.sh`. It compares 
 | --- | --- | --- |
 | PostgreSQL 16 | Primary database for all workspace data. | Dev and CI: `postgres:16-alpine` container. Production: `inertia_production` on the shared PostgreSQL in Coolify's Shared Infrastructure project, via `DATABASE_URL`. |
 | Redis 7 | Development container only. | Not used in production: `config/cable.yml` uses the in-process `async` adapter because no feature broadcasts yet. |
-| Active Storage (local disk) | File and media uploads attached to documents. | |
+| Active Storage (local disk) | Files embedded in documents: images, video, audio and any other file type, up to 100 MB each (`POST /api/v1/uploads`, see `features/embedded_files.md`). | Files live in `backend/storage` (the `storage` volume in `docker-compose.coolify.yml`). Its tables come from the `create_active_storage_tables` migration. nginx allows 105 MB request bodies on `/api/` (`frontend/nginx/default.conf`). No virus scanning or quota. |
 
 ## External services
 

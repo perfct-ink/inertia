@@ -1,4 +1,5 @@
-export { Button } from './Button'
+export { Button, ButtonLink } from './Button'
+export { AttachmentCard } from './AttachmentCard'
 export { Input } from './Input'
 export { Select } from './Select'
 export { Textarea } from './Textarea'
