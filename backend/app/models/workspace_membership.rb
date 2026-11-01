@@ -6,10 +6,15 @@ class WorkspaceMembership < ApplicationRecord
   # this list (lower number) can.
   enum :role, { viewer: 0, member: 1, admin: 2, owner: 3 }
 
+  # Hours in a week: the most anyone can be allocated or have as capacity.
+  MAX_WEEKLY_HOURS = 168
+
   validates :user_id, uniqueness: { scope: :workspace_id }
+  validates :weekly_capacity_hours, numericality: { greater_than_or_equal_to: 0, less_than_or_equal_to: MAX_WEEKLY_HOURS }
   validate :personal_workspace_is_not_shared, on: :create
   before_destroy :keep_an_owner, unless: :destroyed_by_association
   before_update :keep_an_owner_on_demotion
+  after_destroy :remove_resource_allocations
 
   # Members and above can change content; viewers only read.
   def can_write?
@@ -26,6 +31,11 @@ class WorkspaceMembership < ApplicationRecord
   def personal_workspace_is_not_shared
     return unless workspace&.personal?
     errors.add(:base, "A personal space cannot be shared") unless user_id == workspace.user_id
+  end
+
+  # Someone who leaves a space is no longer planned onto its projects.
+  def remove_resource_allocations
+    workspace.resource_allocations.where(user_id: user_id).delete_all
   end
 
   def last_owner?

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_18_000003) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_01_110002) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -198,6 +198,20 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_18_000003) do
     t.index ["workspace_id"], name: "index_quip_imports_on_workspace_id"
   end
 
+  create_table "resource_allocations", force: :cascade do |t|
+    t.bigint "workspace_id", null: false
+    t.bigint "user_id", null: false
+    t.bigint "folder_id", null: false
+    t.decimal "hours_per_week", precision: 5, scale: 2, null: false
+    t.date "start_date"
+    t.date "end_date"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["folder_id"], name: "index_resource_allocations_on_folder_id"
+    t.index ["user_id"], name: "index_resource_allocations_on_user_id"
+    t.index ["workspace_id"], name: "index_resource_allocations_on_workspace_id"
+  end
+
   create_table "shares", force: :cascade do |t|
     t.string "token", null: false
     t.integer "permission", default: 0, null: false
@@ -347,6 +361,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_18_000003) do
     t.integer "role", default: 1, null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.decimal "weekly_capacity_hours", precision: 5, scale: 2, default: "40.0", null: false
     t.index ["user_id"], name: "index_workspace_memberships_on_user_id"
     t.index ["workspace_id", "user_id"], name: "index_workspace_memberships_on_workspace_id_and_user_id", unique: true
     t.index ["workspace_id"], name: "index_workspace_memberships_on_workspace_id"
@@ -391,6 +406,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_18_000003) do
   add_foreign_key "objectives", "workspaces"
   add_foreign_key "quip_imports", "folders", column: "destination_folder_id"
   add_foreign_key "quip_imports", "workspaces"
+  add_foreign_key "resource_allocations", "folders"
+  add_foreign_key "resource_allocations", "users"
+  add_foreign_key "resource_allocations", "workspaces"
   add_foreign_key "shares", "users", column: "created_by_id"
   add_foreign_key "social_identities", "users"
   add_foreign_key "social_login_attempts", "users"

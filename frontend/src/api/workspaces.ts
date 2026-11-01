@@ -44,7 +44,11 @@ function useMemberMutation<T>(workspaceId: number, request: (vars: T) => Promise
   const qc = useQueryClient()
   return useMutation({
     mutationFn: request,
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['workspace-members', workspaceId] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['workspace-members', workspaceId] })
+      // Someone who leaves loses their project allocations.
+      qc.invalidateQueries({ queryKey: ['resource-allocations'] })
+    },
   })
 }
 
@@ -56,6 +60,11 @@ export function useAddMember(workspaceId: number) {
 export function useUpdateMemberRole(workspaceId: number) {
   return useMemberMutation(workspaceId, ({ id, role }: { id: number; role: WorkspaceRole }) =>
     api.patch(`/api/v1/workspaces/${workspaceId}/members/${id}`, { role }))
+}
+
+export function useUpdateMemberCapacity(workspaceId: number) {
+  return useMemberMutation(workspaceId, ({ id, hours }: { id: number; hours: number }) =>
+    api.patch(`/api/v1/workspaces/${workspaceId}/members/${id}`, { weekly_capacity_hours: hours }))
 }
 
 export function useRemoveMember(workspaceId: number) {

@@ -54,7 +54,22 @@ export interface WorkspaceMember {
   id: number
   role: WorkspaceRole
   user_id: number
+  // Hours this person can work in a week (resource planning compares allocations with it).
+  weekly_capacity_hours: number
   user: { id: number; name: string; email: string }
+}
+
+// A person's planned time on a project (a folder with kind "project"). No
+// start means already under way; no end means ongoing.
+export interface ResourceAllocation {
+  id: number
+  user_id: number
+  folder_id: number
+  hours_per_week: number
+  start_date: string | null
+  end_date: string | null
+  created_at: string
+  updated_at: string
 }
 
 export interface Task {

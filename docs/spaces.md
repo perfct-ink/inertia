@@ -14,7 +14,7 @@ A space holds its own folders (under one permanent Root), documents, tasks, epic
 | Table | Purpose |
 | --- | --- |
 | `workspaces` | `name`, `personal`, `user_id` (the creator; access does not depend on it), `root_folder_id`. |
-| `workspace_memberships` | `workspace_id`, `user_id`, `role`. One row per member; unique per workspace and user. |
+| `workspace_memberships` | `workspace_id`, `user_id`, `role`, `weekly_capacity_hours` (decimal, default 40, 0 to 168; see `features/resource_management.md`). One row per member; unique per workspace and user. |
 
 Roles, from least to most privileged:
 
@@ -44,7 +44,7 @@ PATCH  /api/v1/workspace                       # rename (admin or owner)
 
 GET    /api/v1/workspaces/:id/members
 POST   /api/v1/workspaces/:id/members          # { email, role } - an existing user; admin or owner
-PATCH  /api/v1/workspaces/:id/members/:member  # { role }
+PATCH  /api/v1/workspaces/:id/members/:member  # { role } and/or { weekly_capacity_hours }; admin or owner
 DELETE /api/v1/workspaces/:id/members/:member  # admin/owner removes anyone; anyone can leave
 ```
 

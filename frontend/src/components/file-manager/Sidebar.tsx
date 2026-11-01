@@ -9,7 +9,7 @@ import { useSidebarStore } from '@/store/sidebar'
 import {
   FolderPlus, CheckSquare, FilePlus, FileText,
   Table as TableIcon, Pin, Folder, Loader2, CalendarDays,
-  Plus, Target, Flag, FolderKanban, Milestone, Rocket, ListTree, Map as MapIcon, Goal, Archive, ArchiveRestore, Keyboard, Download,
+  Plus, Target, Flag, FolderKanban, Milestone, Rocket, ListTree, Map as MapIcon, Goal, Users, Archive, ArchiveRestore, Keyboard, Download,
 } from 'lucide-react'
 import {
   useWorkspace, useCreateFolder, useCreateDocument, usePinDocument, usePinFolder,
@@ -289,6 +289,7 @@ export default function Sidebar() {
           <RailButton icon={Goal} label="OKRs" active={location.pathname === '/okrs'} onClick={() => navigate('/okrs')} />
           <RailButton icon={MapIcon} label="Roadmap" active={location.pathname === '/roadmap'} onClick={() => navigate('/roadmap')} />
           <RailButton icon={ListTree} label="Hierarchy" active={location.pathname === '/hierarchy'} onClick={() => navigate('/hierarchy')} />
+          <RailButton icon={Users} label="Resources" active={location.pathname === '/resources'} onClick={() => navigate('/resources')} />
         </div>
         <div className="sidebar-rail_spacer sidebar-drag" />
         <div className="sidebar-rail_group">

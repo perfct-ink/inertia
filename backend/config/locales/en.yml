@@ -38,6 +38,9 @@ en:
       workspace_membership:
         one: "Space membership"
         other: "Space memberships"
+      resource_allocation:
+        one: "Allocation"
+        other: "Allocations"
     attributes:
       folder:
         workspace: "Space"
@@ -53,4 +56,10 @@ en:
         workspace: "Space"
       workspace_membership:
         workspace: "Space"
+        weekly_capacity_hours: "Weekly capacity"
+      resource_allocation:
+        workspace: "Space"
+        user: "Person"
+        folder: "Project"
+        hours_per_week: "Hours per week"
 
