@@ -72,8 +72,17 @@ export interface Task {
   sprint_id?: number | null
   parent_id: number | null
   folder_id: number | null
+  // Custom field values by field id, only for the fields this task has a
+  // value for. Sent by GET/POST/PATCH /api/v1/tasks, not by folders or events.
+  custom_fields?: Record<string, CustomFieldValue>
   document?: Document
 }
+
+// A custom field a Space defines for its tasks (backend TaskField). The types
+// are the scalar Collection field types.
+export type TaskFieldType = 'text' | 'integer' | 'number' | 'boolean' | 'date' | 'datetime'
+export interface TaskField { id: number; name: string; data_type: TaskFieldType }
+export type CustomFieldValue = string | number | boolean
 
 // Gantt link (PM-13): the successor waits on the predecessor.
 export type DependencyKind = 'finish_to_start' | 'start_to_start' | 'finish_to_finish' | 'start_to_finish'

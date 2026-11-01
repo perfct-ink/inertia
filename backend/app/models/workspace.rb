@@ -8,6 +8,7 @@ class Workspace < ApplicationRecord
   has_many :documents, through: :folders
   has_many :task_dependencies, dependent: :delete_all
   has_many :tasks, dependent: :destroy
+  has_many :task_fields, dependent: :destroy
   has_many :ai_workers, dependent: :destroy
   has_many :ai_runs, dependent: :destroy
   has_many :events, dependent: :destroy

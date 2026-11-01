@@ -15,4 +15,16 @@ class TaskBlueprint < Blueprinter::Base
       task.document
     end
   end
+
+  # { "<task field id>" => value } for the fields the task has a value for.
+  # Only the tasks API renders these (it preloads :task_field_values), so tasks
+  # embedded in folders and events don't query them one by one.
+  view :with_custom_fields do
+    field :custom_fields
+  end
+
+  view :with_document_and_custom_fields do
+    include_view :with_document
+    include_view :with_custom_fields
+  end
 end

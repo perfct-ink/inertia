@@ -1,0 +1,52 @@
+@use 'tokens' as *;
+
+@layer app.components {
+  .task_fields_cell {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: space(1);
+    min-width: 0;
+    max-width: 100%;
+
+    // Read-only tags: no hover state, they are not clickable.
+    &-tag {
+      display: inline-flex;
+      gap: space(1);
+      min-width: 0;
+      max-width: 100%;
+      padding: 0 space(1.5);
+      border-width: 1px;
+      border-radius: radius('md');
+      background: color(muted, 0.4);
+      @include text('xs');
+    }
+
+    &-name {
+      flex-shrink: 0;
+      color: color(muted-foreground);
+    }
+
+    &-value {
+      @include truncate;
+    }
+
+    &-edit {
+      color: color(muted-foreground);
+
+      &:hover:not(:disabled) {
+        color: color(foreground);
+      }
+
+      @media (pointer: coarse) {
+        min-width: space(10);
+        min-height: space(10);
+      }
+    }
+
+    &-icon {
+      width: space(3.5);
+      height: space(3.5);
+    }
+  }
+}

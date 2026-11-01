@@ -1,6 +1,7 @@
 class Task < ApplicationRecord
   include SameWorkspace
   include BelongsToMilestone
+  include HasCustomFields
 
   belongs_to :workspace
   belongs_to :document, optional: true

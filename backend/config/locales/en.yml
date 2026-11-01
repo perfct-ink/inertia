@@ -38,12 +38,17 @@ en:
       workspace_membership:
         one: "Space membership"
         other: "Space memberships"
+      task_field:
+        one: "Custom field"
+        other: "Custom fields"
     attributes:
       folder:
         workspace: "Space"
       document:
         workspace: "Space"
       task:
+        workspace: "Space"
+      task_field:
         workspace: "Space"
       epic:
         workspace: "Space"

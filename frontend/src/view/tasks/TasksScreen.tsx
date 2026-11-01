@@ -1,7 +1,7 @@
 import { Button, Input, Select, classNames } from '@/components/ui'
 import { useState, useRef, useEffect } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { Plus, X, ArrowRight, Play, Loader2, Search, Filter, Target } from 'lucide-react'
+import { Plus, X, ArrowRight, Play, Loader2, Search, Filter, Target, SlidersHorizontal } from 'lucide-react'
 import {
   DndContext,
   DragOverlay,
@@ -24,8 +24,11 @@ import {
 } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import WorkspaceLayout from '@/components/WorkspaceLayout'
+import { TaskFieldsCell } from '@/components/tasks/TaskFieldsCell'
+import { TaskFieldsManager } from '@/components/tasks/TaskFieldsManager'
 import { useTasks, useCreateTask, useUpdateTask, useDeleteTask, type TaskFilters } from '@/api/tasks'
 import { useWorkspace } from '@/api/workspace'
+import { canManageWorkspace } from '@/api/workspaces'
 import { useEpics } from '@/api/epics'
 import { useSprints } from '@/api/sprints'
 import { useMilestones } from '@/api/milestones'
@@ -85,6 +88,7 @@ function TaskCard({ task, onNext, onNavigate, epicTitle, overlay }: Omit<CardPro
           <span className="tasks-epic_title">{epicTitle}</span>
         </div>
       )}
+      <TaskFieldsCell task={task} readOnly={overlay} className="tasks-fields tasks-fields--card" />
       <div className="tasks-card_footer">
         {task.document && (
           <Button
@@ -291,6 +295,7 @@ export default function TasksScreen() {
   })
   const [showFilters, setShowFilters] = useState(false)
   const [searchQ, setSearchQ] = useState('')
+  const [managingFields, setManagingFields] = useState(false)
   const { data: workspace } = useWorkspace()
   const { data: epics = [] } = useEpics()
   const { data: sprints = [] } = useSprints()
@@ -449,6 +454,12 @@ export default function TasksScreen() {
                 className="tasks-search_input"
               />
             </div>
+            {canManageWorkspace(workspace?.role) && (
+              <Button onClick={() => setManagingFields(true)} className="tasks-fields_button" aria-haspopup="dialog">
+                <SlidersHorizontal className="tasks-icon" />
+                Fields
+              </Button>
+            )}
             <Button
               onClick={() => setShowFilters((o) => !o)}
               className={classNames('tasks-filter_button', !!(showFilters || filters.folder_id || filters.status || filters.epic_id || filters.sprint_id) && 'tasks-filter_button--active')}
@@ -635,6 +646,7 @@ export default function TasksScreen() {
                         {task.document.title}
                       </Button>
                     )}
+                    <TaskFieldsCell task={task} className="tasks-fields tasks-fields--row" />
                     <div className="tasks-row_actions">
                       <Button
                         onClick={() => updateTask.mutate({ id: task.id, status: 'todo' })}
@@ -661,6 +673,7 @@ export default function TasksScreen() {
             </div>
           </div>
         )}
+        <TaskFieldsManager open={managingFields} onClose={() => setManagingFields(false)} />
       </div>
     </WorkspaceLayout>
   )

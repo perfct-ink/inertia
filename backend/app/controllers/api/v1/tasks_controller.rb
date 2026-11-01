@@ -5,7 +5,7 @@ module Api
       before_action :set_task, only: [ :update, :destroy ]
 
       def index
-        tasks = current_workspace.tasks.includes(:document)
+        tasks = current_workspace.tasks.includes(:document, :task_field_values)
         tasks = tasks.where(document_id: params[:document_id]) if params[:document_id]
         tasks = tasks.where(status: params[:status]) if params[:status]
         tasks = tasks.where(epic_id: params[:epic_id]) if params[:epic_id]
@@ -18,22 +18,24 @@ module Api
             .where("tasks.folder_id = :fid OR documents.folder_id = :fid", fid: params[:folder_id])
         end
         tasks = tasks.title_matching(params[:q]) if params[:q]
-        render json: TaskBlueprint.render(tasks, view: :with_document)
+        render json: TaskBlueprint.render(tasks, view: :with_document_and_custom_fields)
       end
 
       def create
         task = current_workspace.tasks.build(task_params)
+        task.custom_fields = custom_field_params if custom_field_params
         task.document_id = params[:document_id] if params[:document_id].present?
         if task.save
-          render json: TaskBlueprint.render(task), status: :created
+          render json: TaskBlueprint.render(task, view: :with_custom_fields), status: :created
         else
           render json: { errors: task.errors.full_messages }, status: :unprocessable_entity
         end
       end
 
       def update
+        @task.custom_fields = custom_field_params if custom_field_params
         if @task.update(task_params)
-          render json: TaskBlueprint.render(@task)
+          render json: TaskBlueprint.render(@task, view: :with_custom_fields)
         else
           render json: { errors: @task.errors.full_messages }, status: :unprocessable_entity
         end
@@ -52,6 +54,11 @@ module Api
 
       def task_params
         params.require(:task).permit(:title, :description, :status, :start_date, :due_date, :position, :assignee_id, :epic_id, :sprint_id, :milestone_id, :folder_id, :parent_id)
+      end
+
+      # { "<task field id>" => value }; nil or "" clears a value. See HasCustomFields.
+      def custom_field_params
+        params.require(:task).permit(custom_fields: {})[:custom_fields]
       end
     end
   end

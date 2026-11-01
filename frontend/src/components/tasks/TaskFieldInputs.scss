@@ -1,0 +1,29 @@
+@use 'tokens' as *;
+
+@layer app.components {
+  .task_field_inputs {
+    display: flex;
+    flex-direction: column;
+    gap: space(3);
+
+    // Up to 30 fields: scroll inside the dialog rather than past the screen.
+    // The padding keeps the focus ring of the edge fields from being clipped.
+    max-height: 55vh;
+    margin-top: space(3);
+    padding: space(1);
+    overflow-y: auto;
+
+    &-field {
+      display: flex;
+      flex-direction: column;
+      gap: space(1);
+    }
+
+    &-name {
+      @include text('sm');
+
+      color: color(muted-foreground);
+      font-weight: 500;
+    }
+  }
+}

@@ -37,6 +37,7 @@
 
     @at-root .tasks-tools {
       display: flex;
+      flex-wrap: wrap;
       align-items: center;
       gap: space(2);
       margin-left: auto;
@@ -73,7 +74,8 @@
       }
     }
 
-    @at-root .tasks-filter_button {
+    @at-root .tasks-filter_button,
+    .tasks-fields_button {
       display: flex;
       align-items: center;
       gap: space(1.5);
@@ -284,6 +286,16 @@
 
     @at-root .tasks-epic_title {
       @include truncate;
+    }
+
+    @at-root .tasks-fields {
+      &--card {
+        margin-top: space(2);
+      }
+
+      &--row {
+        flex-shrink: 1;
+      }
     }
 
     @at-root .tasks-card_footer {

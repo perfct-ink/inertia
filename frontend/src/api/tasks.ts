@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import api from '@/lib/api'
 import type { Task } from '@/types'
+import type { CustomFieldChanges } from '@/data/taskField'
 
 export interface TaskFilters {
   q?: string
@@ -33,7 +34,8 @@ export function useCreateTask() {
 export function useUpdateTask() {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: ({ id, ...data }: Partial<Task> & { id: number }) =>
+    // custom_fields is the changes to make (null clears a value), not the task's full set.
+    mutationFn: ({ id, ...data }: Partial<Omit<Task, 'custom_fields'>> & { id: number; custom_fields?: CustomFieldChanges }) =>
       api.patch(`/api/v1/tasks/${id}`, { task: data }).then((r) => r.data as Task),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['tasks'] }),
   })

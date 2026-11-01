@@ -51,6 +51,7 @@ Rails.application.routes.draw do
       delete "tables/:id/records/:record_id", to: "tables#destroy_record"
 
       resources :tasks, only: [ :index, :create, :update, :destroy ]
+      resources :task_fields, only: [ :index, :create, :update, :destroy ]
 
       resources :epics, only: [ :index, :create, :update, :destroy ]
 
