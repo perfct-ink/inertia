@@ -30,6 +30,8 @@ The Docker frontend starts through `frontend/scripts/start-dev.sh`. It compares 
 | Sign in with Apple | "Continue with Apple" sign-in. | `backend/app/services/auth/social_sign_in.rb` |
 | Anthropic API (planned) | The AI worker's language model calls, once the adapter exists. Needs the official `anthropic` Ruby gem and `ANTHROPIC_API_KEY`; neither is wired up yet. Default model `claude-opus-5-5`. Task text is sent to Anthropic, so say so wherever workers are shown to users. | `backend/app/services/ai_workers.rb` (the client seam) |
 | Quip API | Importing a user's Quip folders and documents. The user supplies their own Quip token per import; it is not stored as app config. | `backend/app/services/quip/` |
+| Map tile server (optional, none chosen) | Base-map imagery under the pins of a Collection's Map view. Off unless `MAP_TILE_URL` is set at build time; without it the map is a plain latitude/longitude grid and the browser makes no request to any map server. When set, every visitor's browser requests tiles from that server (it sees their IP address and the area viewed, not the page URL: tiles are fetched with `referrerpolicy="no-referrer"`). Which provider to use, its terms, attribution and cost are undecided. OpenStreetMap's public tile servers are not meant for heavy use; a hosted provider with a key would also need the key handled (a key in `MAP_TILE_URL` ships to every browser). | `frontend/src/components/editors/CollectionMap.tsx` |
+| openstreetmap.org (link only) | The "Open in OpenStreetMap" link on a map pin opens the record's coordinates on openstreetmap.org in a new tab. Nothing is called by the app; coordinates leave only when a person clicks. | `frontend/src/util/geo.ts` (`openStreetMapUrl`) |
 | Coolify | Builds and runs the production stack from `docker-compose.coolify.yml`, routes the domain and issues TLS certificates (Traefik + Let's Encrypt). | `docker-compose.coolify.yml`, [deployment.md](deployment.md) |
 | DigitalOcean | The droplet Coolify runs on. Inertia no longer uses the managed MySQL cluster; its database there was dropped on 2026-10-29. | |
 | GitHub Actions | CI (`.github/workflows/ci.yml`). Its last job deploys `main` through Coolify's API once every other job passes; Coolify's Auto Deploy is off. | |
@@ -66,6 +68,8 @@ See [Mac social sign-in](mac-social-sign-in.md) for provider setup steps.
 | `COLLAB_URL` | WebSocket URL of the collab server. |
 | `BYPASS_AUTH` | Skips the login screen in development. |
 | `ELECTRON_DEV_SERVER_URL` | Dev server the Electron shell loads (`npm run electron:dev`). |
+| `MAP_TILE_URL` | Optional. An https tile template with `{z}`, `{x}` and `{y}` for the Collection map's base map, for example `https://tiles.example.com/{z}/{x}/{y}.png`. Unset or invalid means no tiles. Public: baked into the bundle, so never put a secret in it. Read by `webpack.config.js`; the production Dockerfile and `docker-compose.coolify.yml` do not pass it through yet. |
+| `MAP_TILE_ATTRIBUTION` | Optional. The credit line the tile provider requires, shown in the corner of the map when tiles are on. |
 
 ### Collab server (`collab-server/`)
 

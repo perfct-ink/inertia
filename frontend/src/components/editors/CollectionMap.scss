@@ -1,0 +1,383 @@
+@use 'tokens' as *;
+
+// Map tiles are 256px squares (TILE_SIZE in util/geo.ts).
+$tile-size: 256px;
+
+// The map view of a Collection (CollectionMap.tsx), shown inside the Collection page.
+@layer app.components {
+  .view-collection_map {
+    display: flex;
+    flex: 1 1 0%;
+    flex-direction: column;
+    gap: space(4);
+    overflow: auto;
+    padding: 0 space(6) space(6);
+
+    @include up('lg') {
+      flex-direction: row;
+      align-items: flex-start;
+    }
+
+    @at-root .collection_map-main {
+      display: flex;
+      flex-direction: column;
+      gap: space(2);
+      min-width: 0;
+
+      @include up('lg') {
+        flex: 1 1 0%;
+      }
+    }
+
+    /* ── The map ─────────────────────────────────────────────────────────────── */
+
+    @at-root .collection_map-canvas {
+      position: relative;
+      height: clamp(18rem, 60dvh, 36rem);
+      overflow: hidden;
+      border-width: 1px;
+      border-radius: radius('lg');
+      background: color(muted);
+      cursor: grab;
+      touch-action: none;
+      user-select: none;
+
+      &:active {
+        cursor: grabbing;
+      }
+
+      &:focus-visible {
+        @include focus-ring;
+      }
+    }
+
+    @at-root .collection_map-tile {
+      position: absolute;
+      width: $tile-size;
+      max-width: none;
+      height: $tile-size;
+      pointer-events: none;
+    }
+
+    @at-root .collection_map-grid {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+    }
+
+    @at-root .collection_map-grid_line {
+      stroke: color(border);
+      stroke-width: 1;
+
+      &--origin {
+        stroke: color(border-strong);
+      }
+    }
+
+    @at-root .collection_map-grid_label {
+      fill: color(muted-foreground);
+      @include text('xs');
+    }
+
+    @at-root .collection_map-attribution {
+      position: absolute;
+      right: 0;
+      bottom: 0;
+      padding: 0 space(1.5);
+      background: color(background, 0.8);
+      color: color(muted-foreground);
+      @include text('xs');
+    }
+
+    @at-root .collection_map-help {
+      color: color(muted-foreground);
+      @include text('xs');
+    }
+
+    /* ── Pins and controls ───────────────────────────────────────────────────── */
+
+    // The pin's point is the place; the button is a 44px target around it.
+    // --pin-fill is the colour inside the pin; hover and selection change it.
+    & .collection_map-pin {
+      --pin-fill: #{color(background)};
+
+      position: absolute;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      width: space(11);
+      height: space(11);
+      padding: 0;
+      color: color(primary);
+      transform: translate(-50%, -100%);
+
+      &:hover {
+        --pin-fill: #{color(accent)};
+      }
+
+      &--selected,
+      &--selected:hover {
+        --pin-fill: #{color(primary)};
+
+        z-index: 1;
+        color: color(primary-hover);
+      }
+    }
+
+    @at-root .collection_map-pin_icon {
+      width: space(8);
+      height: space(8);
+      fill: var(--pin-fill);
+      filter: drop-shadow(0 1px 1px rgb(0 0 0 / 0.35));
+      @include transition(fill);
+    }
+
+    @at-root .collection_map-controls {
+      position: absolute;
+      z-index: 2;
+      top: space(2);
+      right: space(2);
+      display: flex;
+      flex-direction: column;
+      gap: space(1);
+    }
+
+    & .collection_map-control {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: space(10);
+      padding: 0;
+    }
+
+    @at-root .collection_map-control_icon {
+      width: space(4);
+      height: space(4);
+    }
+
+    /* ── The selected pin's details ──────────────────────────────────────────── */
+
+    @at-root .collection_map-callout {
+      position: absolute;
+      z-index: 2;
+      right: space(14);
+      bottom: space(2);
+      left: space(2);
+      max-width: 22rem;
+      max-height: 60%;
+      padding: space(3);
+      overflow: auto;
+      border-width: 1px;
+      border-radius: radius('lg');
+      background: color(card);
+      box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+      cursor: auto;
+      user-select: text;
+    }
+
+    @at-root .collection_map-callout_head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: space(2);
+    }
+
+    @at-root .collection_map-callout_title {
+      min-width: 0;
+      overflow-wrap: anywhere;
+      font-weight: 600;
+      @include text('sm');
+    }
+
+    // A 40px target that sits in the callout's corner without growing it.
+    & .collection_map-callout_close {
+      display: flex;
+      flex-shrink: 0;
+      align-items: center;
+      justify-content: center;
+      width: space(10);
+      height: space(10);
+      margin: calc(-1 * #{space(2.5)}) calc(-1 * #{space(2.5)}) calc(-1 * #{space(2.5)}) 0;
+      border-radius: radius('md');
+      color: color(muted-foreground);
+
+      &:hover:not(:disabled) {
+        background: color(accent);
+        color: color(foreground);
+      }
+    }
+
+    @at-root .collection_map-callout_close_icon {
+      width: space(4);
+      height: space(4);
+    }
+
+    @at-root .collection_map-callout_place {
+      color: color(muted-foreground);
+      @include text('xs');
+    }
+
+    @at-root .collection_map-fields {
+      display: flex;
+      flex-direction: column;
+      gap: space(1);
+      margin-top: space(2);
+    }
+
+    @at-root .collection_map-fields_row {
+      display: flex;
+      gap: space(2);
+      @include text('xs');
+    }
+
+    @at-root .collection_map-fields_name {
+      flex-shrink: 0;
+      width: space(20);
+      color: color(muted-foreground);
+    }
+
+    @at-root .collection_map-fields_value {
+      min-width: 0;
+      overflow-wrap: anywhere;
+    }
+
+    @at-root .collection_map-link {
+      display: inline-flex;
+      align-items: center;
+      gap: space(1);
+      margin-top: space(2);
+      color: color(primary);
+      @include text('xs');
+
+      &:hover {
+        color: color(primary-hover);
+        text-decoration: underline;
+      }
+    }
+
+    @at-root .collection_map-link_icon {
+      width: space(3);
+      height: space(3);
+    }
+
+    /* ── Side panel ──────────────────────────────────────────────────────────── */
+
+    @at-root .collection_map-side {
+      display: flex;
+      flex-direction: column;
+      gap: space(3);
+      min-width: 0;
+
+      @include up('lg') {
+        flex-shrink: 0;
+        width: 20rem;
+      }
+    }
+
+    @at-root .collection_map-field {
+      @include text('sm');
+    }
+
+    & .collection_map-select {
+      margin-top: space(1);
+    }
+
+    @at-root .collection_map-count {
+      color: color(muted-foreground);
+      @include text('xs');
+    }
+
+    @at-root .collection_map-list {
+      display: flex;
+      flex-direction: column;
+      gap: space(1);
+
+      @include up('lg') {
+        max-height: clamp(12rem, 45dvh, 28rem);
+        overflow: auto;
+      }
+    }
+
+    & .collection_map-item_button {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      width: 100%;
+      padding: space(2) space(3);
+      border-radius: radius('md');
+      text-align: left;
+
+      &:hover:not(:disabled),
+      &--selected {
+        background: color(accent);
+      }
+    }
+
+    @at-root .collection_map-item_label {
+      max-width: 100%;
+      font-weight: 500;
+      @include text('sm');
+      @include truncate;
+    }
+
+    @at-root .collection_map-item_place {
+      color: color(muted-foreground);
+      @include text('xs');
+    }
+
+    @at-root .collection_map-unplaced {
+      display: flex;
+      flex-direction: column;
+      gap: space(1);
+      padding-top: space(3);
+      border-top-width: 1px;
+    }
+
+    @at-root .collection_map-unplaced_title {
+      font-weight: 600;
+      @include text('sm');
+    }
+
+    @at-root .collection_map-unplaced_text,
+    .collection_map-unplaced_value {
+      color: color(muted-foreground);
+      @include text('xs');
+    }
+
+    @at-root .collection_map-unplaced_item {
+      overflow-wrap: anywhere;
+      @include text('xs');
+    }
+
+    /* ── Nothing to show ─────────────────────────────────────────────────────── */
+
+    @at-root .collection_map-empty {
+      padding: space(8) space(4);
+      border-width: 1px;
+      border-radius: radius('lg');
+      text-align: center;
+
+      @include up('md') {
+        padding: space(12);
+      }
+    }
+
+    @at-root .collection_map-empty_icon {
+      display: block;
+      width: space(8);
+      height: space(8);
+      margin: 0 auto space(3);
+      color: color(muted-foreground);
+    }
+
+    @at-root .collection_map-empty_title {
+      font-weight: 500;
+    }
+
+    @at-root .collection_map-empty_text {
+      margin-top: space(2);
+      color: color(muted-foreground);
+      @include text('sm');
+    }
+  }
+}

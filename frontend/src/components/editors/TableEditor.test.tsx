@@ -60,3 +60,25 @@ test('failed record saves display an error and retain the entered values', async
   await waitFor(() => expect(within(row).getByRole('alert')).toHaveTextContent('Unable to save'))
   expect(screen.getByLabelText('Age')).toHaveValue(21)
 })
+
+test('the Map view shows the collection’s places and the Grid view brings the records back', () => {
+  mockData = {
+    fields: [{ id: 1, name: 'Name', data_type: 'text', relation_table_id: null }, { id: 2, name: 'Where', data_type: 'text', relation_table_id: null }],
+    records: [{ id: 10, values: { 1: 'Cafe Paris', 2: '48.8584, 2.2945' } }],
+  }
+  render(<TableEditor doc={doc} />)
+  expect(screen.getByRole('button', { name: 'Grid' })).toHaveAttribute('aria-pressed', 'true')
+  expect(screen.queryByRole('group', { name: /Map of/ })).not.toBeInTheDocument()
+  fireEvent.click(screen.getByRole('button', { name: 'Map' }))
+  expect(screen.getByRole('button', { name: 'Map' })).toHaveAttribute('aria-pressed', 'true')
+  expect(screen.getByRole('group', { name: 'Map of Where' })).toBeInTheDocument()
+  expect(screen.queryByRole('button', { name: 'Add record' })).not.toBeInTheDocument()
+  fireEvent.click(screen.getByRole('button', { name: 'Grid' }))
+  expect(screen.getByRole('button', { name: 'Add record' })).toBeInTheDocument()
+})
+
+test('the view switch only appears once the collection has fields', () => {
+  mockData = { fields: [], records: [] }
+  render(<TableEditor doc={doc} />)
+  expect(screen.queryByRole('button', { name: 'Map' })).not.toBeInTheDocument()
+})

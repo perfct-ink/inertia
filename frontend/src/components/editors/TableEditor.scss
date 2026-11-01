@@ -49,6 +49,31 @@
       padding-bottom: space(1.5);
     }
 
+    @at-root .table_editor-modes {
+      display: flex;
+      gap: space(1);
+      padding: space(3) space(6) 0;
+    }
+
+    & .table_editor-mode_button {
+      display: flex;
+      align-items: center;
+      gap: space(1.5);
+      min-height: space(10);
+      padding: space(1) space(3);
+      border-radius: radius('md');
+      @include text('sm');
+
+      &:hover:not(:disabled),
+      &--active {
+        background: color(accent);
+      }
+    }
+
+    @at-root .table_editor-mode_icon {
+      @include icon(space(4));
+    }
+
     @at-root .table_editor-summary {
       padding: space(3) space(6);
       @include text('xs');
