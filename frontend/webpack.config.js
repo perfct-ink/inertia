@@ -6,16 +6,22 @@ const ReactRefreshWebpackPlugin = require('@pmmmwh/react-refresh-webpack-plugin'
 
 module.exports = (_env, argv) => {
   const isDev = argv.mode !== 'production'
+  // BUILD_TARGET=native is the bundle Electron and the Capacitor iOS app load
+  // off disk (see `npm run build:native`); everything else is the web build.
+  const isNative = process.env.BUILD_TARGET === 'native'
 
   return {
     entry: './src/main.tsx',
     output: {
       path: path.resolve(__dirname, 'dist'),
       filename: isDev ? '[name].js' : '[name].[contenthash].js',
-      // Relative asset paths in production so the bundle also works loaded
-      // via file:// in the packaged Electron app. webpack-dev-server needs
-      // an absolute root instead, or its request routing breaks.
-      publicPath: isDev ? '/' : './',
+      // The web build is served at real paths (/shared/abc, /documents/7),
+      // so its assets need the absolute root or a deep link would look for
+      // them under /shared/. The native build is loaded via file:// (Electron)
+      // or capacitor://localhost (iOS), where only relative paths resolve.
+      // webpack-dev-server needs the absolute root too, or its request routing
+      // breaks.
+      publicPath: isDev || !isNative ? '/' : './',
       clean: true,
     },
     resolve: {

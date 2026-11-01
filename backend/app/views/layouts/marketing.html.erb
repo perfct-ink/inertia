@@ -8,10 +8,21 @@
         // localStorage, under the same key frontend/src/store/auth.ts's
         // zustand `persist` middleware uses — there's no session cookie to
         // check server-side). So an already-logged-in visitor hitting "/"
-        // bounces to the dashboard here, client-side, before the marketing
+        // bounces to the app here, client-side, before the marketing
         // page paints; a crawler or logged-out visitor has no such entry and
         // just sees the real marketing HTML below.
         (function () {
+          // Links from before clean URLs kept the route in the hash ("/#/space",
+          // or "/index.html#/signup", which nginx sends here as "/#/signup").
+          // The server never receives a fragment, so this page forwards them
+          // to the real path first. Same rule as legacyUrlTarget in
+          // frontend/src/util/route.ts: only a path on this site, never
+          // "//host" or "/\host".
+          var hash = window.location.hash
+          if (/^#\/(?![\/\\])[^\s\\]+$/.test(hash)) {
+            window.location.replace(hash.slice(1))
+            return
+          }
           try {
             var raw = localStorage.getItem('inertia-auth')
             var parsed = raw && JSON.parse(raw)

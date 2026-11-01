@@ -42,10 +42,11 @@ export default function App() {
         <Route path="/signup" element={<SignupScreen />} />
         <Route path="/shared/:token" element={<SharedScreen />} />
         {/* Rails owns "/" in production for the marketing homepage (see
-            backend/app/controllers/marketing_controller.rb and the nginx vhost
-            under deploy/) — this route only matters for local dev (no Rails
-            marketing page competing there) and for in-app client-side nav,
-            which never leaves the already-loaded SPA. */}
+            backend/app/controllers/marketing_controller.rb and
+            frontend/nginx/default.conf), and sends a signed-in visitor on to
+            /space from there. This route matters for local dev, the
+            Electron/iOS shells (where "/" is the app), and in-app
+            client-side nav, which never leaves the already-loaded SPA. */}
         <Route path="/" element={<Navigate to="/space" replace />} />
         {/* Old links from before workspaces were renamed to spaces. */}
         <Route path="/workspace" element={<Navigate to="/space" replace />} />

@@ -3,10 +3,11 @@ Rails.application.routes.draw do
 
   # The only HTML this API renders: public marketing/SEO pages. nginx proxies
   # just these exact paths to Rails (see frontend/nginx/default.conf);
-  # everything else at the root still falls through to
-  # the static SPA build. Electron and the Capacitor iOS app never hit these —
-  # both load frontend/dist/index.html straight off disk and never make a
-  # network request for HTML — so these pages are web-only by construction.
+  # everything else at the root falls through to the SPA shell, which serves
+  # the app at real paths (/space, /documents/7). Electron and the Capacitor
+  # iOS app never hit these — both load frontend/dist/index.html straight off
+  # disk and never make a network request for HTML — so these pages are
+  # web-only by construction.
   root "marketing#home"
   get "features", to: "marketing#features"
   get "pricing", to: "marketing#pricing"
@@ -77,4 +78,7 @@ Rails.application.routes.draw do
       get "shared/:token", to: "shares#access", as: :shared_access
     end
   end
+
+  # Keep last: any /api path above that didn't match is a JSON 404.
+  match "api/*path", to: "api/v1/not_found#show", via: :all, format: false
 end

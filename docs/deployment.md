@@ -13,7 +13,8 @@ browser ──https──▶ Coolify proxy (Traefik, TLS)
                   web (nginx :80) ── static webpack build
                    ├── / /features /pricing /about /robots.txt /sitemap.xml,
                    │   /api/*, /rails/active_storage/*  ──▶ api (Rails :3000) ──▶ shared PostgreSQL
-                   └── /collab (WebSocket)              ──▶ collab (Hocuspocus :1234) ──▶ api
+                   ├── /collab (WebSocket)              ──▶ collab (Hocuspocus :1234) ──▶ api
+                   └── any other path that is not a built file ──▶ index.html (the app's router takes over)
 ```
 
 | Service | Built from | Health check |
@@ -25,6 +26,36 @@ browser ──https──▶ Coolify proxy (Traefik, TLS)
 Only `web` gets a domain. `api` and `collab` are reachable only inside the stack's network; `api` also joins Coolify's external `coolify` network to reach the shared PostgreSQL container by its name. Uploads (Active Storage, disk service) live in the `inertiaitcom_storage` Docker volume, the one the old droplet stack created; the compose file mounts it as an external volume, so it must exist before the first deploy.
 
 `config.assume_ssl` is on in production: every public request arrives through Coolify's TLS proxy, and the collab service and health checks call `http://api:3000` directly, which `force_ssl` would otherwise redirect.
+
+## URLs and the web server
+
+The web app uses real paths (`/space`, `/documents/7`, `/shared/<token>`), not `/#/...` (see [clean_urls.md](features/clean_urls.md)). `frontend/nginx/default.conf` decides what answers each path, in this order:
+
+| Path | Answered by |
+| --- | --- |
+| `/healthz` | nginx itself |
+| `/`, `/features`, `/pricing`, `/about`, `/robots.txt`, `/sitemap.xml` | Rails (marketing pages) |
+| `/api/*`, `/rails/active_storage/*` | Rails; an unknown `/api` path is a JSON 404 from Rails (`Api::V1::NotFoundController`), never HTML |
+| `/collab` | the collab service (WebSocket) |
+| a file in the build with a known asset extension | nginx, cached for a year (missing ones are a 404) |
+| `/index.html` | `301` to `/` (a `#fragment` survives, so an old `/index.html#/signup` link ends up at `/signup`) |
+| anything else | `index.html` with `Cache-Control: no-cache`; the JS router renders the path |
+
+What changed on 2026-11-01: the last rule used to be `try_files $uri $uri/ /index.html`, which was only a refresh-safety net because the app lived behind a `#`. It is now `try_files $uri @spa` (a named location that rewrites to `/index.html` without re-entering the `/index.html` redirect), `/index.html` redirects to `/`, and the bundles load from the absolute root (`publicPath: '/'`; see `docs/services.md`). Electron and the iOS app are built with `npm run build:native` and keep relative paths and the hash router.
+
+A signed-in visitor who opens `/` gets the Rails marketing page, whose inline script sends them to `/space` (Rails cannot read the localStorage login). This is an open question for Alex: a cookie nginx can check, or moving the marketing page off `/`, would remove the extra response but changes auth storage or the public URL, so neither is done.
+
+### Checks after the first deploy
+
+```bash
+curl -sI https://inertia.it.com/index.html            # 301, Location: /
+curl -s  https://inertia.it.com/space | head -c 200   # the SPA shell, not marketing HTML
+curl -s  https://inertia.it.com/shared/abc            # the SPA shell
+curl -si https://inertia.it.com/api/v1/nope           # 404, application/json
+curl -s  https://inertia.it.com/ | grep -c "hash.slice" # 1: the marketing page rewrites /#/route
+```
+
+Then load `/#/space` (should end at `/space`), `/login` and a deep link in a browser and refresh on each. Hard-refresh once after the deploy: a cached `index.html` from before points at relative bundle paths.
 
 ## Deploys
 

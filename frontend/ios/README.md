@@ -9,13 +9,20 @@ then rebuild and re-sync here.
 
 ```bash
 cd frontend
-npm run build            # sets API_URL/COLLAB_URL — see below
+npm run build:native     # sets API_URL/COLLAB_URL — see below
 npx cap sync ios         # copies dist/ into ios/App/App/public, updates deps
 npx cap open ios         # opens the Xcode project
 ```
 
 `npx cap copy ios` is a faster alternative to `sync` when you haven't added
 a Capacitor plugin — it skips the native dependency-resolution step.
+
+Use `build:native`, not `build`: the web build (`npm run build`) loads its
+assets from the absolute `/`, which only resolves on a web server, while the
+native build uses relative paths so `capacitor://localhost` finds them. The
+app also keeps the hash router (`#/space`) here, since a loaded-from-disk
+page can't resolve real paths; the web app uses clean paths (`/space`). See
+`docs/features/clean_urls.md`.
 
 ### Two build targets
 
@@ -26,19 +33,19 @@ you're doing:
 
 - **Against the deployed API** (what should actually ship):
   ```bash
-  API_URL=https://inertia.it.com COLLAB_URL=wss://inertia.it.com/collab npm run build
+  API_URL=https://inertia.it.com COLLAB_URL=wss://inertia.it.com/collab npm run build:native
   ```
 - **Against your local dev stack** (`docker compose up` running):
   - iOS **Simulator** shares the host's network, so `http://localhost:3000`
     works directly:
     ```bash
-    API_URL=http://localhost:3000 COLLAB_URL=ws://localhost:1234 npm run build
+    API_URL=http://localhost:3000 COLLAB_URL=ws://localhost:1234 npm run build:native
     ```
   - A **real device** can't reach `localhost` (that's the phone's own
     loopback) — use your Mac's LAN IP instead, and make sure your phone is
     on the same Wi-Fi:
     ```bash
-    API_URL=http://<your-mac-lan-ip>:3000 COLLAB_URL=ws://<your-mac-lan-ip>:1234 npm run build
+    API_URL=http://<your-mac-lan-ip>:3000 COLLAB_URL=ws://<your-mac-lan-ip>:1234 npm run build:native
     ```
     Add that origin to `docker-compose.yml`'s backend `CORS_ORIGINS` too,
     e.g. `http://192.168.1.23:5174,capacitor://localhost` (comma-separated,

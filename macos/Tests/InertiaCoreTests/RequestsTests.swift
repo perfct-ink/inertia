@@ -14,12 +14,28 @@ final class RequestsTests: XCTestCase {
     func testWorkspaceOpensDocumentsWithSharedNavigationAndKeepsTokenOutOfURL() {
         let base = URL(string: "https://inertia.it.com?native=1#/tasks")!
         let url = Requests.workspaceURL(base: base)
-        XCTAssertEqual(url.path, "/index.html")
-        XCTAssertEqual(url.fragment, "/documents")
+        XCTAssertEqual(url.path, "/documents")
+        XCTAssertNil(url.fragment)
         XCTAssertNil(url.query)
         XCTAssertTrue(Requests.sameOrigin(base, url))
         XCTAssertFalse(Requests.sameOrigin(base, URL(string: "https://inertia.it.com.evil.example")!))
         XCTAssertFalse(Requests.sameOrigin(base, URL(string: "http://inertia.it.com")!))
+    }
+    func testWorkspaceViewShowsOnlySameOriginAppPaths() {
+        let base = URL(string: "https://inertia.it.com")!
+        func shown(_ string: String) -> Bool { Requests.isWorkspaceURL(URL(string: string)!, base: base) }
+        XCTAssertTrue(shown("https://inertia.it.com/documents"))
+        XCTAssertTrue(shown("https://inertia.it.com/documents/7"))
+        XCTAssertTrue(shown("https://inertia.it.com/space"))
+        XCTAssertTrue(shown("https://inertia.it.com/shared/abc123"))
+        XCTAssertFalse(shown("https://inertia.it.com"))
+        XCTAssertFalse(shown("https://inertia.it.com/"))
+        XCTAssertFalse(shown("https://inertia.it.com/index.html"))
+        XCTAssertFalse(shown("https://inertia.it.com/pricing"))
+        XCTAssertFalse(shown("https://inertia.it.com/api/v1/tasks"))
+        XCTAssertFalse(shown("https://inertia.it.com/rails/active_storage/blobs/x"))
+        XCTAssertFalse(shown("https://example.com/documents"))
+        XCTAssertFalse(shown("http://inertia.it.com/documents"))
     }
     func testNestedFoldersAndNullableDatesDecode() throws {
         let data = Data(#"{"folders":[{"id":1,"name":"Project","children":[{"id":2,"name":"Component","children":[],"documents":[]}],"documents":[{"id":3,"title":"Requirements","doc_type":"document"}]}]}"#.utf8)

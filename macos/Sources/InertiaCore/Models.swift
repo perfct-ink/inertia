@@ -48,11 +48,19 @@ public enum Requests {
     }
     public static func workspaceURL(base: URL) -> URL {
         var parts = URLComponents(url: base, resolvingAgainstBaseURL: false)!
-        // Use the SPA entry explicitly: the site root serves marketing HTML.
-        parts.path = "/index.html"
+        // The web app lives at real paths; the site root serves marketing HTML.
+        parts.path = "/documents"
         parts.query = nil
-        parts.fragment = "/documents"
+        parts.fragment = nil
         return parts.url!
+    }
+    /// Pages the workspace web view shows itself: same-origin app paths. The
+    /// marketing pages, the API, uploads and collaboration socket are not the app.
+    public static func isWorkspaceURL(_ url: URL, base: URL) -> Bool {
+        guard sameOrigin(url, base) else { return false }
+        let marketing = ["", "/", "/index.html", "/features", "/pricing", "/about", "/robots.txt", "/sitemap.xml"]
+        let services = ["/api/", "/rails/", "/collab"]
+        return !marketing.contains(url.path) && !services.contains { url.path.hasPrefix($0) }
     }
     public static func sameOrigin(_ lhs: URL, _ rhs: URL) -> Bool {
         lhs.scheme == rhs.scheme && lhs.host == rhs.host && lhs.port == rhs.port

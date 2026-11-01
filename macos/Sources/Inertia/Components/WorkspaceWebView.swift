@@ -80,7 +80,7 @@ struct WorkspaceWebView: NSViewRepresentable {
         }
 
         private func isWorkspace(_ url: URL) -> Bool {
-            Requests.sameOrigin(url, session.web) && url.path == "/index.html"
+            Requests.isWorkspaceURL(url, base: session.web)
         }
 
         func webView(_ webView: WKWebView, decidePolicyFor action: WKNavigationAction, decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {

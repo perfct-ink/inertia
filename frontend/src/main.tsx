@@ -3,9 +3,10 @@ import '@/styles/app.scss'
 import React from 'react'
 import ReactDOM from 'react-dom/client'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { HashRouter } from 'react-router-dom'
 import App from './App'
+import AppRouter from '@/components/AppRouter'
 import TitleBarDragRegion from '@/components/TitleBarDragRegion'
+import { redirectLegacyUrl } from '@/util/route'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -18,13 +19,17 @@ const queryClient = new QueryClient({
   },
 })
 
+// Old /#/route links and /index.html become the equivalent path before the
+// router reads the address (web only; the hash-router shells are untouched).
+redirectLegacyUrl()
+
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <QueryClientProvider client={queryClient}>
-      <HashRouter>
+      <AppRouter>
         <TitleBarDragRegion />
         <App />
-      </HashRouter>
+      </AppRouter>
     </QueryClientProvider>
   </React.StrictMode>
 )

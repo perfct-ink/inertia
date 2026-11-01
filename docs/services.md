@@ -34,7 +34,7 @@ The Docker frontend starts through `frontend/scripts/start-dev.sh`. It compares 
 | DigitalOcean | The droplet Coolify runs on. Inertia no longer uses the managed MySQL cluster; its database there was dropped on 2026-10-29. | |
 | GitHub Actions | CI (`.github/workflows/ci.yml`). Its last job deploys `main` through Coolify's API once every other job passes; Coolify's Auto Deploy is off. | |
 | Public npm registry | Installs frontend and collab dependencies locally and in CI. Lockfile URLs must use `registry.npmjs.org`, with no private registry credentials required. | `frontend/package-lock.json`, `collab-server/package-lock.json` |
-| nginx | Serves the static frontend and proxies the marketing pages, `/api`, Active Storage and `/collab` (the `web` service). | `frontend/nginx/default.conf` |
+| nginx | Serves the static frontend and proxies the marketing pages, `/api`, Active Storage and `/collab` (the `web` service). Any other path that is not a built file gets the SPA shell, so the web app can use real paths; `/index.html` redirects to `/` (see [deployment.md](deployment.md#urls-and-the-web-server)). | `frontend/nginx/default.conf` |
 
 See [Mac social sign-in](mac-social-sign-in.md) for provider setup steps.
 
@@ -66,6 +66,7 @@ See [Mac social sign-in](mac-social-sign-in.md) for provider setup steps.
 | `COLLAB_URL` | WebSocket URL of the collab server. |
 | `BYPASS_AUTH` | Skips the login screen in development. |
 | `ELECTRON_DEV_SERVER_URL` | Dev server the Electron shell loads (`npm run electron:dev`). |
+| `BUILD_TARGET` | Set to `native` by `npm run build:native` (used by `electron:build-mac` and `cap:sync`). The native bundle uses relative asset paths and the hash router because Electron and the iOS app load it off disk; without it (the web image, `npm run build`) assets load from the absolute `/` so deep links like `/shared/abc` find them. |
 
 ### Collab server (`collab-server/`)
 
