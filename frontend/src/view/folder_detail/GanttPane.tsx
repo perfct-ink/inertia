@@ -33,11 +33,15 @@ export default function GanttPane({ folderId, dependencyMode, epics, tasks, mile
 
   // Rows are keyed `task-<id>` / `epic-<id>`; a task's end is due_date, an epic's is target_date.
   // Task moves go through the folder's dependency mode (PM-14), which may block
-  // the move or add the tasks that have to shift with it.
+  // the move or add the tasks that have to shift with it. The server applies the
+  // mode too and can refuse, so a failed save shows its message.
   function reschedule(item: Scheduled, startDate: string, endDate: string) {
     const id = Number(item.key?.split('-')[1])
     // The chart reads from the folder's contents, which the update hooks don't refresh.
-    const options = { onSettled: () => qc.invalidateQueries({ queryKey: ['folder-contents'] }) }
+    const options = {
+      onSettled: () => qc.invalidateQueries({ queryKey: ['folder-contents'] }),
+      onError: (error: unknown) => setMoveError(errorMessage(error)),
+    }
     setMoveError(null)
     if (item.key?.startsWith('task-')) {
       const plan = planReschedule(tasks, dependencies, id, startDate, endDate, dependencyMode)

@@ -31,11 +31,15 @@ module Api
         end
       end
 
+      # Moving a task's dates obeys the dependency mode of its folder (PM-14):
+      # strict can answer 422, flexible also moves the tasks that wait on it and
+      # lists them as `rescheduled`.
       def update
-        if @task.update(task_params)
-          render json: TaskBlueprint.render(@task)
+        scheduling = Scheduling::TaskUpdate.new(@task)
+        if scheduling.call(task_params)
+          render json: TaskBlueprint.render_as_hash(@task).merge(rescheduled: TaskBlueprint.render_as_hash(scheduling.rescheduled))
         else
-          render json: { errors: @task.errors.full_messages }, status: :unprocessable_entity
+          render json: { errors: scheduling.errors }, status: :unprocessable_entity
         end
       end
 
