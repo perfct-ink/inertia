@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_18_000003) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_01_030002) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -300,6 +300,28 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_18_000003) do
     t.index ["workspace_id"], name: "index_task_dependencies_on_workspace_id"
   end
 
+  create_table "task_field_values", force: :cascade do |t|
+    t.bigint "task_id", null: false
+    t.bigint "task_field_id", null: false
+    t.json "value", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["task_field_id"], name: "index_task_field_values_on_task_field_id"
+    t.index ["task_id", "task_field_id"], name: "index_task_field_values_on_task_id_and_task_field_id", unique: true
+    t.index ["task_id"], name: "index_task_field_values_on_task_id"
+  end
+
+  create_table "task_fields", force: :cascade do |t|
+    t.bigint "workspace_id", null: false
+    t.string "name", null: false
+    t.string "field_type", null: false
+    t.json "options", default: [], null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["workspace_id", "name"], name: "index_task_fields_on_workspace_id_and_name", unique: true
+    t.index ["workspace_id"], name: "index_task_fields_on_workspace_id"
+  end
+
   create_table "tasks", force: :cascade do |t|
     t.string "title", null: false
     t.text "description"
@@ -405,6 +427,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_18_000003) do
   add_foreign_key "task_dependencies", "tasks", column: "predecessor_id"
   add_foreign_key "task_dependencies", "tasks", column: "successor_id"
   add_foreign_key "task_dependencies", "workspaces"
+  add_foreign_key "task_field_values", "task_fields"
+  add_foreign_key "task_field_values", "tasks"
+  add_foreign_key "task_fields", "workspaces"
   add_foreign_key "tasks", "documents"
   add_foreign_key "tasks", "epics"
   add_foreign_key "tasks", "folders"

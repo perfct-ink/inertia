@@ -21,3 +21,4 @@ One file per implemented feature, written from the code (see `docs/rules/feature
 | Collections naming (tables are called Collections in the UI) | [collections.md](collections.md) |
 | Design principles applied across the web app (responsive, styled controls, hover, 150ms motion) | [design_principles.md](design_principles.md) |
 | PostgreSQL database: shared-postgres on Coolify | [postgresql_database.md](postgresql_database.md) |
+| Task fields: tags, dropdown, checkbox, rating and vote on tasks | [task_fields.md](task_fields.md) |

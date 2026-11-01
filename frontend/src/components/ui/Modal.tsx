@@ -2,6 +2,7 @@ import { useEffect, useState, type FormEvent, type ReactNode } from 'react'
 import * as Dialog from '@radix-ui/react-dialog'
 import { Button } from './Button'
 import { Input } from './Input'
+import { classNames } from './classNames'
 import './Modal.scss'
 
 type ModalProps = {
@@ -9,18 +10,20 @@ type ModalProps = {
   title: string
   description?: string
   onClose: () => void
+  // Contextual overrides, e.g. a wider dialog for a form with many fields.
+  className?: string
   children?: ReactNode
 }
 
 // Accessible modal (focus trap, Esc to close, aria labelling from Radix).
 // Replaces native window.alert/confirm/prompt dialogs.
-export function Modal({ open, title, description, onClose, children }: ModalProps) {
+export function Modal({ open, title, description, onClose, className, children }: ModalProps) {
   return (
     <Dialog.Root open={open} onOpenChange={(next) => { if (!next) onClose() }}>
       <Dialog.Portal>
         <Dialog.Overlay className="ui-modal-overlay" />
         <Dialog.Content
-          className="ui-modal-content"
+          className={classNames('ui-modal-content', className)}
         >
           <Dialog.Title className="ui-modal-title">{title}</Dialog.Title>
           {description

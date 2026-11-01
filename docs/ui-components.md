@@ -32,7 +32,7 @@ The React frontend uses SCSS (compiled by webpack's `sass-loader`); Tailwind is 
 - Classes passed to a `ui-` component do not override its base styles on their own. Views are in a later cascade layer, so a single view class is enough to override it.
 - Light and dark mode come from the Volta tokens (`prefers-color-scheme`, or `data-theme="dark"` on `<html>`), set to Inertia's theme in `_theme.scss`. Use `color()` tokens rather than hardcoded colors. Add a `dark` mixin block only for fixed palette colors.
 - Inline `style` is reserved for computed values (percent widths, nesting depth, drag transforms).
-- Use the `Modal`, `ConfirmDialog` and `PromptDialog` components instead of `window.alert`, `confirm` or `prompt`.
+- Use the `Modal`, `ConfirmDialog` and `PromptDialog` components instead of `window.alert`, `confirm` or `prompt`. `Modal` takes an optional `className` for contextual overrides, such as a wider, scrollable dialog (`task_fields-modal`).
 
 ## Design system: Volta
 

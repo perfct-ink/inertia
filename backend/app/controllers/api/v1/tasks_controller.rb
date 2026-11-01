@@ -5,7 +5,7 @@ module Api
       before_action :set_task, only: [ :update, :destroy ]
 
       def index
-        tasks = current_workspace.tasks.includes(:document)
+        tasks = current_workspace.tasks.includes(:document, :field_values)
         tasks = tasks.where(document_id: params[:document_id]) if params[:document_id]
         tasks = tasks.where(status: params[:status]) if params[:status]
         tasks = tasks.where(epic_id: params[:epic_id]) if params[:epic_id]
@@ -18,7 +18,7 @@ module Api
             .where("tasks.folder_id = :fid OR documents.folder_id = :fid", fid: params[:folder_id])
         end
         tasks = tasks.title_matching(params[:q]) if params[:q]
-        render json: TaskBlueprint.render(tasks, view: :with_document)
+        render json: TaskBlueprint.render(tasks, view: :with_document_and_field_values)
       end
 
       def create
