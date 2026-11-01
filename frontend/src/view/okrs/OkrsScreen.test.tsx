@@ -22,6 +22,8 @@ jest.mock('@/api/objectives', () => ({
   useCreateObjective: () => mockMutation,
   useUpdateObjective: () => mockMutation,
   useDeleteObjective: () => mockMutation,
+}))
+jest.mock('@/api/keyResults', () => ({
   useCreateKeyResult: () => mockCreateKr,
   useUpdateKeyResult: () => mockUpdateKr,
   useDeleteKeyResult: () => mockMutation,

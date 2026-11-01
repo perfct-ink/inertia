@@ -1,20 +1,35 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import api from '@/lib/api'
+import { ApiResource } from './base'
 
 export type DataType = 'text' | 'integer' | 'number' | 'boolean' | 'date' | 'datetime' | 'relation'
 export interface TableField { id: number; name: string; data_type: DataType; relation_table_id: number | null }
 export interface TableRecord { id: number; values: Record<string, string | number | boolean | null> }
 export interface TableData { fields: TableField[]; records: TableRecord[] }
+
+export class TableApi extends ApiResource<TableData> {
+  constructor() {
+    super('/api/v1/tables', 'table', 'table')
+  }
+
+  // Fields and records are edited through the table, and each call answers with the whole table.
+  edit(id: number, path: string, method: 'post' | 'patch' | 'delete', data?: unknown) {
+    return api.request<TableData>({ url: `${this.url(id)}/${path}`, method, data }).then((r) => r.data)
+  }
+}
+
+export const tableApi = new TableApi()
+
 export const tableQuery = (id: number) => ({
-  queryKey: ['table', id],
-  queryFn: () => api.get<TableData>(`/api/v1/tables/${id}`).then(r => r.data),
+  queryKey: [tableApi.queryKey, id],
+  queryFn: () => tableApi.find(id),
 })
 export function useTable(id: number) { return useQuery(tableQuery(id)) }
 export function useEditTable(id: number) {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: ({ path, method, data }: { path: string; method: 'post' | 'patch' | 'delete'; data?: unknown }) =>
-      api.request<TableData>({ url: `/api/v1/tables/${id}/${path}`, method, data }).then(r => r.data),
+      tableApi.edit(id, path, method, data),
     onSuccess: data => {
       qc.setQueryData(['table', id], data)
       qc.invalidateQueries({ queryKey: ['table'] })

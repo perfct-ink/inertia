@@ -11,10 +11,9 @@ import {
   Table as TableIcon, Pin, Folder, Loader2, CalendarDays,
   Plus, Target, Flag, FolderKanban, Milestone, Rocket, ListTree, Map as MapIcon, Goal, Archive, ArchiveRestore, Keyboard, Download,
 } from 'lucide-react'
-import {
-  useWorkspace, useCreateFolder, useCreateDocument, usePinDocument, usePinFolder,
-  useArchivedFolders, useUpdateFolder,
-} from '@/api/workspace'
+import { useWorkspace } from '@/api/workspace'
+import { useArchivedFolders, useCreateFolder, usePinFolder, useUpdateFolder } from '@/api/folders'
+import { useCreateDocument, usePinDocument } from '@/api/documents'
 import { useCreateTask } from '@/api/tasks'
 import { useCreateEvent } from '@/api/events'
 import { useEpics } from '@/api/epics'

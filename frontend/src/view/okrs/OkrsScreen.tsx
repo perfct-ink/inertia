@@ -3,10 +3,8 @@ import { Goal, Loader2, Plus, X } from 'lucide-react'
 import { Button, FormError, HealthBadge, Input, Select } from '@/components/ui'
 import WorkspaceLayout from '@/components/WorkspaceLayout'
 import { ProgressBar } from '@/components/Timeline'
-import {
-  useCreateKeyResult, useCreateObjective, useDeleteKeyResult, useDeleteObjective, useObjectives,
-  useUpdateKeyResult, useUpdateObjective,
-} from '@/api/objectives'
+import { useCreateObjective, useDeleteObjective, useObjectives, useUpdateObjective } from '@/api/objectives'
+import { useCreateKeyResult, useDeleteKeyResult, useUpdateKeyResult } from '@/api/keyResults'
 import { useInitiatives } from '@/api/initiatives'
 import { formatScore, keyResultMeasure } from '@/data/okr'
 import { usePageTitle } from '@/hooks/usePageTitle'

@@ -10,7 +10,7 @@
 ## API and models
 - `objectives` (`workspace_id`, `owner_id` nullable, `status`, `start_date`, `target_date`, title, description) and `key_results` (`objective_id`, `initiative_id` nullable, nullified when the initiative is deleted, `start_value`, `target_value`, `current_value`, `unit`, `position`).
 - Validations: title required; objective target not before start; owner must be a Space member; target value required unless linked and must differ from start; linked initiative must be in the same Space.
-- `GET/POST /api/v1/objectives`, `PATCH/DELETE /api/v1/objectives/:id` (key results nested in responses, ordered by position), `POST /api/v1/key_results` (with `objective_id`), `PATCH/DELETE /api/v1/key_results/:id`. Frontend: `api/objectives.ts`.
+- `GET/POST /api/v1/objectives`, `PATCH/DELETE /api/v1/objectives/:id` (key results nested in responses, ordered by position), `POST /api/v1/key_results` (with `objective_id`), `PATCH/DELETE /api/v1/key_results/:id`. Frontend: `api/objectives.ts` and `api/keyResults.ts`.
 
 ## Who can view and change
 Scoped to the current Space; a key result of another Space's objective is 404. I did not check for role-based limits.
