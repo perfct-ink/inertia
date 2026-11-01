@@ -19,6 +19,9 @@ class Document < ApplicationRecord
   validates :title, presence: true
   validates :doc_type, presence: true
 
+  include Sluggable
+  slugged_by :title, within: :folder
+
   before_save :update_content_updated_at, if: :content_changed?
 
   private

@@ -1,6 +1,6 @@
 class DocumentBlueprint < Blueprinter::Base
   identifier :id
-  fields :title, :doc_type, :pinned, :created_at, :updated_at, :content_updated_at
+  fields :title, :slug, :doc_type, :pinned, :created_at, :updated_at, :content_updated_at
 
   field :folder_id
 

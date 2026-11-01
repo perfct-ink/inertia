@@ -42,6 +42,9 @@ Rails.application.routes.draw do
         resources :tasks, only: [ :index, :create ], shallow: true
       end
 
+      # Hierarchical URLs: ?path=acme/product/specs -> the folder or document.
+      get "paths", to: "paths#show"
+
       get "tables/:id", to: "tables#show"
       post "tables/:id/fields", to: "tables#create_field"
       patch "tables/:id/fields/:field_id", to: "tables#update_field"
