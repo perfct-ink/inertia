@@ -5,6 +5,7 @@ import { FolderKanban, Loader2, Plus } from 'lucide-react'
 import { Button, FormError, Input } from '@/components/ui'
 import WorkspaceLayout from '@/components/WorkspaceLayout'
 import CreateItem from '@/components/CreateItem'
+import TemplatePicker from '@/components/TemplatePicker'
 import DocTypeIcon from '@/components/DocTypeIcon'
 import { useCreateFolder, useWorkspace } from '@/api/workspace'
 import { errorMessage } from '@/api/tables'
@@ -38,6 +39,7 @@ export default function ProjectsScreen() {
       <div className="view-projects">
         <div className="projects-header">
           <h1 className="projects-title">Projects</h1>
+          <TemplatePicker kind="project" />
           <Button variant="primary" onClick={() => setAdding(true)} className="projects-new">
             <Plus className="projects-icon" aria-hidden="true" />
             New project

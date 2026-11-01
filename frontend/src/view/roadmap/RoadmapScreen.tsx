@@ -15,6 +15,7 @@ import { format, parseISO } from 'date-fns'
 import { Flag, Loader2, Map as MapIcon, Target } from 'lucide-react'
 import { Button, HealthBadge, Select, classNames } from '@/components/ui'
 import WorkspaceLayout from '@/components/WorkspaceLayout'
+import TemplatePicker from '@/components/TemplatePicker'
 import { ProgressBar, Timeline } from '@/components/Timeline'
 import { useMilestones } from '@/api/milestones'
 import { useInitiatives, useUpdateInitiative } from '@/api/initiatives'
@@ -57,6 +58,7 @@ export default function RoadmapScreen() {
               </Button>
             ))}
           </div>
+          <TemplatePicker kind="roadmap" className="planning-new" />
         </div>
 
         <div className="planning-body">

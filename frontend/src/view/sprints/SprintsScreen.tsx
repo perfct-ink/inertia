@@ -2,6 +2,7 @@ import { useRef, useState } from 'react'
 import { Plus, X, Rocket, Loader2 } from 'lucide-react'
 import { Button, Input, Select } from '@/components/ui'
 import WorkspaceLayout from '@/components/WorkspaceLayout'
+import TemplatePicker from '@/components/TemplatePicker'
 import { ProgressBar } from '@/components/Timeline'
 import { useSprints, useCreateSprint, useUpdateSprint, useDeleteSprint } from '@/api/sprints'
 import { PLANNING_STATUSES } from '@/data/milestone'
@@ -30,6 +31,7 @@ export default function SprintsScreen() {
       <div className="view-sprints">
         <div className="sprints-header">
           <h1 className="sprints-title">Sprints</h1>
+          <TemplatePicker kind="sprint" />
           <Button variant="primary" onClick={() => setAdding(true)} className="sprints-new">
             <Plus className="sprints-icon" />
             New sprint

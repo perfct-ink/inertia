@@ -3,6 +3,7 @@ import { fireEvent, render, screen } from '@testing-library/react'
 import RoadmapScreen from './RoadmapScreen'
 
 jest.mock('@/components/WorkspaceLayout', () => function LayoutMock({ children }: { children: React.ReactNode }) { return <div>{children}</div> })
+jest.mock('@/components/TemplatePicker', () => function TemplatePickerMock() { return null })
 
 let mockView = 'board'
 const mockNavigate = jest.fn()

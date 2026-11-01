@@ -19,7 +19,7 @@ Scoped to the current Space. I did not check role-based limits on changing `kind
 `backend/test/models/folder_test.rb` ("a folder can be a project, but the document root cannot"), `frontend/src/data/folder.test.ts`, `frontend/src/view/projects/ProjectsScreen.test.tsx` (lists projects with nested docs; creates a project).
 
 ## Known limits
-- Only two kinds exist; there are no project types or templates.
+- Only two kinds exist; there are no project types. A project can be started from a built-in template instead (see [item_templates.md](item_templates.md)).
 - Nested projects are listed flat (each active project appears on its own).
 - The "Make Project" menu entry has no test.
 
