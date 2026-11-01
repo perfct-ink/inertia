@@ -7,21 +7,25 @@ import { useUpdateTask } from '@/api/tasks'
 import { useUpdateEpic } from '@/api/epics'
 import { useUpdateFolder } from '@/api/workspace'
 import { useCreateTaskDependency, useDeleteTaskDependency, useTaskDependencies } from '@/api/taskDependencies'
-import { ganttTaskKey, groupGanttRows, type Scheduled } from '@/data/schedule'
+import { ganttTaskKey, groupGanttRows, type GanttGroups, type Scheduled } from '@/data/schedule'
 import { DEPENDENCY_KINDS, DEPENDENCY_LABEL, DEPENDENCY_MODES, DEPENDENCY_MODE_LABEL, drivingPath, planReschedule } from '@/data/dependency'
 import { errorMessage } from '@/util/errorMessage'
 import type { DependencyKind, DependencyMode, Epic, Task, TaskDependency } from '@/types'
 import './GanttPane.scss'
 
-// The folder's Gantt tab: epics and dated tasks, dependency arrows between
-// this folder's tasks (PM-13), the driving path highlighted (PM-15), and a
-// small editor for the links underneath.
-export default function GanttPane({ folderId, dependencyMode, epics, tasks, milestones }: {
+// The folder's Gantt tab: epics and dated tasks under the initiatives and
+// milestones they belong to, dependency arrows between this folder's tasks
+// (PM-13), the driving path highlighted (PM-15), and a small editor for the
+// links underneath. `milestones` are the diamonds; `groups` are the Space's
+// initiatives and milestones, of which only those with an epic or task in this
+// folder get a row.
+export default function GanttPane({ folderId, dependencyMode, epics, tasks, milestones, groups }: {
   folderId: number
   dependencyMode: DependencyMode
   epics: Epic[]
   tasks: Task[]
   milestones: TimelineMilestone[]
+  groups?: GanttGroups
 }) {
   const { data: allDependencies = [] } = useTaskDependencies()
   const [showCritical, setShowCritical] = useState(true)
@@ -31,7 +35,8 @@ export default function GanttPane({ folderId, dependencyMode, epics, tasks, mile
   const updateFolder = useUpdateFolder()
   const [moveError, setMoveError] = useState<string | null>(null)
 
-  // Rows are keyed `task-<id>` / `epic-<id>`; a task's end is due_date, an epic's is target_date.
+  // Rows are keyed `task-<id>` / `epic-<id>` (milestone and initiative rows are
+  // not draggable); a task's end is due_date, an epic's is target_date.
   // Task moves go through the folder's dependency mode (PM-14), which may block
   // the move or add the tasks that have to shift with it.
   function reschedule(item: Scheduled, startDate: string, endDate: string) {
@@ -83,7 +88,7 @@ export default function GanttPane({ folderId, dependencyMode, epics, tasks, mile
         </Select>
       </div>
       <FormError message={moveError} />
-      <Timeline milestones={milestones} items={groupGanttRows(epics, tasks, critical)} links={links} onReschedule={reschedule} />
+      <Timeline milestones={milestones} items={groupGanttRows(epics, tasks, critical, groups)} links={links} onReschedule={reschedule} />
       <DependencyEditor tasks={tasks} dependencies={dependencies} />
     </div>
   )

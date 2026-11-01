@@ -7,7 +7,8 @@ import { useEpics, useCreateEpic, useUpdateEpic, useDeleteEpic } from '@/api/epi
 import { useInitiatives } from '@/api/initiatives'
 import { useMilestones } from '@/api/milestones'
 import '../planning/PlanningScreen.scss'
-import { ProgressBar, Timeline } from '@/components/Timeline'
+import { ProgressBar } from '@/components/Timeline'
+import PlanningTimeline from '@/components/PlanningTimeline'
 import { usePageTitle } from '@/hooks/usePageTitle'
 import { donePercent } from '@/data/schedule'
 
@@ -113,7 +114,7 @@ export default function EpicsScreen() {
               </div>
             )}
 
-            {!isLoading && epics.length > 0 && view === 'timeline' && <Timeline items={epics} />}
+            {!isLoading && epics.length > 0 && view === 'timeline' && <PlanningTimeline epics={epics} />}
 
             {!isLoading && view === 'list' && epics.map((epic) => (
               <div

@@ -1,5 +1,7 @@
 import { addDays, format, parseISO } from 'date-fns'
 import type { MilestoneHealth } from '@/types'
+import { compareByTargetDate } from '@/data/milestone'
+import { groupBy } from '@/util/collection'
 
 // "A title, an optional start/target date, and a tasks_count/done_tasks_count
 // rollup" - shared by epics, initiatives and folder timelines.
@@ -19,6 +21,9 @@ export interface Scheduled {
   health?: MilestoneHealth
   // On the driving (critical) path of a Gantt chart.
   critical?: boolean
+  // A milestone or initiative row heading the epics under it (Gantt): drawn
+  // bolder and, as its dates are a roll-up, not draggable.
+  group?: boolean
 }
 
 // Whole-number percentage of an item's tasks that are done. Narrower than
@@ -29,45 +34,193 @@ export function donePercent(item: { tasks_count: number; done_tasks_count: numbe
   return item.tasks_count > 0 ? Math.round((item.done_tasks_count / item.tasks_count) * 100) : 0
 }
 
-type Epicish = Scheduled
-type TaskLike = { id: number; title: string; status: string; epic_id: number | null; start_date?: string | null; due_date: string | null }
+type Epicish = Scheduled & { initiative_id?: number | null; milestone_id?: number | null }
+type TaskLike = {
+  id: number
+  title: string
+  status: string
+  epic_id: number | null
+  milestone_id?: number | null
+  start_date?: string | null
+  due_date: string | null
+}
+
+// What can head a group of Gantt rows (see groupGanttRows).
+export type GanttInitiative = Scheduled & { milestone_id?: number | null }
+export type GanttMilestone = {
+  id: number
+  title: string
+  target_date: string | null
+  tasks_count: number
+  done_tasks_count: number
+  health?: MilestoneHealth
+}
+export interface GanttGroups {
+  initiatives?: GanttInitiative[]
+  milestones?: GanttMilestone[]
+  // Keep an initiative that has no epic or task under it (the Initiatives
+  // page lists every initiative); otherwise empty ones are left off.
+  keepEmptyInitiatives?: boolean
+}
 
 // Row key for a task on the Gantt, so dependency links can name their ends.
 export function ganttTaskKey(taskId: number): string {
   return `task-${taskId}`
 }
 
-// Flat Gantt rows grouped by hierarchy: each epic followed by its dated tasks
-// (depth 1), then tasks with no epic. Tasks without a due_date are skipped, as
-// they have no end to draw. Epic and task ids are independent sequences, so
-// rows carry a `key` (epic-1, task-1) that Timeline uses for React keys and
-// dependency links; task ids also stay negated for anything still keying on
-// id. `critical` flags tasks on the driving path. A task whose epic
-// has no dates (so it won't be drawn) stays top level instead of nesting under
-// a missing parent.
-export function groupGanttRows(epics: Epicish[], tasks: TaskLike[], critical: Set<number> = new Set()): Scheduled[] {
-  const toRow = (t: TaskLike, depth: number): Scheduled => ({
-    id: -t.id,
-    key: ganttTaskKey(t.id),
-    critical: critical.has(t.id),
-    title: t.title,
-    start_date: t.start_date ?? null,
-    target_date: t.due_date,
-    tasks_count: 1,
-    done_tasks_count: t.status === 'done' ? 1 : 0,
-    depth,
+type Span = { start: string; end: string }
+type GanttNode = { kind: 'milestone' | 'initiative' | 'epic' | 'task'; row: Scheduled; children: GanttNode[] }
+
+const isGroup = (node: GanttNode) => node.kind === 'milestone' || node.kind === 'initiative'
+// Both ends set: the only rows Timeline can draw.
+const ownSpan = (row: Scheduled): Span | null => (row.start_date && row.target_date ? { start: row.start_date, end: row.target_date } : null)
+// ISO dates compare as strings.
+const merge = (a: Span | null, b: Span | null): Span | null => {
+  if (!a || !b) return a ?? b
+  return { start: a.start < b.start ? a.start : b.start, end: a.end > b.end ? a.end : b.end }
+}
+
+// Every date a node and the rows under it are drawn at. A group counts a lone
+// start or target date too (a milestone only has a target).
+function coverage(node: GanttNode): Span | null {
+  let span = ownSpan(node.row)
+  if (isGroup(node)) {
+    for (const date of [node.row.start_date, node.row.target_date]) if (date) span = merge(span, { start: date, end: date })
+  }
+  return node.children.reduce((acc, child) => merge(acc, coverage(child)), span)
+}
+
+// The dates a group row is drawn with: its own when it has both (an
+// initiative's plan), otherwise rolled up from what is under it.
+const groupSpan = (node: GanttNode): Span | null => ownSpan(node.row) ?? coverage(node)
+
+// Flattens the tree into rows. A group with nothing under it, or with no dates
+// to draw, adds no row, and its children take its place without the indent.
+function emitRows(node: GanttNode, depth: number, keepEmptyInitiatives: boolean, out: Scheduled[]) {
+  if (!isGroup(node)) {
+    out.push({ ...node.row, depth })
+    node.children.forEach((child) => emitRows(child, depth + 1, keepEmptyInitiatives, out))
+    return
+  }
+  const span = groupSpan(node)
+  const listed = keepEmptyInitiatives && node.kind === 'initiative'
+  if (!listed && (!span || node.children.length === 0)) {
+    node.children.forEach((child) => emitRows(child, depth, keepEmptyInitiatives, out))
+    return
+  }
+  out.push(span ? { ...node.row, start_date: span.start, target_date: span.end, depth } : { ...node.row, depth })
+  node.children.forEach((child) => emitRows(child, depth + 1, keepEmptyInitiatives, out))
+}
+
+// Flat Gantt rows grouped by hierarchy: milestone > initiative > epic > task,
+// each level indented one step. Without `groups` it is epic > task: each epic
+// followed by its dated tasks, then tasks with no epic. Tasks without a
+// due_date are skipped, as they have no end to draw. Row ids are independent
+// sequences, so rows carry a `key` (epic-1, task-1) that Timeline uses for
+// React keys and dependency links; task ids also stay negated for anything
+// still keying on id. `critical` flags tasks on the driving path.
+//
+// Nesting follows the structural parent first, as the hierarchy view does: an
+// epic goes under its initiative, else under its own milestone; an initiative
+// under its milestone; a task under its epic, else under its own milestone. A
+// parent that is not in `groups` (or an epic with no dates, which won't be
+// drawn) is treated as absent, so the item stays at the level above instead of
+// nesting under a missing row. Milestones come first by target date, then
+// whatever has no milestone. A group with its own start and target date (an
+// initiative) keeps them; otherwise it spans the rows under it, and a
+// milestone also reaches its target date.
+export function groupGanttRows(
+  epics: Epicish[],
+  tasks: TaskLike[],
+  critical: Set<number> = new Set(),
+  groups: GanttGroups = {},
+): Scheduled[] {
+  const taskNode = (t: TaskLike): GanttNode => ({
+    kind: 'task',
+    children: [],
+    row: {
+      id: -t.id,
+      key: ganttTaskKey(t.id),
+      critical: critical.has(t.id),
+      title: t.title,
+      start_date: t.start_date ?? null,
+      target_date: t.due_date,
+      tasks_count: 1,
+      done_tasks_count: t.status === 'done' ? 1 : 0,
+    },
   })
   const dated = tasks.filter((t) => t.due_date)
   const drawnEpics = new Set(epics.filter((e) => e.start_date && e.target_date).map((e) => e.id))
-  const rows: Scheduled[] = []
-  for (const epic of epics) {
-    rows.push({ ...epic, key: `epic-${epic.id}`, depth: 0 })
-    if (drawnEpics.has(epic.id)) {
-      dated.filter((t) => t.epic_id === epic.id).forEach((t) => rows.push(toRow(t, 1)))
-    }
+  const tasksByEpic = groupBy(dated.filter((t) => t.epic_id !== null && drawnEpics.has(t.epic_id)), (t) => t.epic_id)
+
+  const milestones = [...(groups.milestones ?? [])].sort(compareByTargetDate)
+  const milestoneIds = new Set(milestones.map((m) => m.id))
+  const milestoneOf = (id: number | null | undefined) => (id != null && milestoneIds.has(id) ? id : null)
+  // What sits directly under each milestone (null: under none), in the order
+  // initiatives, epics with no initiative, tasks with no drawn epic.
+  const under = new Map<number | null, GanttNode[]>()
+  const place = (milestoneId: number | null, node: GanttNode) => {
+    const list = under.get(milestoneId) ?? []
+    list.push(node)
+    under.set(milestoneId, list)
   }
-  dated.filter((t) => t.epic_id === null || !drawnEpics.has(t.epic_id)).forEach((t) => rows.push(toRow(t, 0)))
+
+  const initiativeNodes = new Map<number, GanttNode>()
+  for (const initiative of groups.initiatives ?? []) {
+    const node: GanttNode = { kind: 'initiative', children: [], row: { ...initiative, key: `initiative-${initiative.id}`, group: true } }
+    initiativeNodes.set(initiative.id, node)
+    place(milestoneOf(initiative.milestone_id), node)
+  }
+  for (const epic of epics) {
+    const node: GanttNode = {
+      kind: 'epic',
+      row: { ...epic, key: `epic-${epic.id}` },
+      children: (tasksByEpic.get(epic.id) ?? []).map(taskNode),
+    }
+    const initiativeNode = epic.initiative_id != null ? initiativeNodes.get(epic.initiative_id) : undefined
+    if (initiativeNode) initiativeNode.children.push(node)
+    else place(milestoneOf(epic.milestone_id), node)
+  }
+  dated
+    .filter((t) => t.epic_id === null || !drawnEpics.has(t.epic_id))
+    .forEach((t) => place(milestoneOf(t.milestone_id), taskNode(t)))
+
+  const roots: GanttNode[] = milestones.map((m) => ({
+    kind: 'milestone',
+    children: under.get(m.id) ?? [],
+    row: {
+      id: m.id,
+      key: `milestone-${m.id}`,
+      title: m.title,
+      start_date: null,
+      target_date: m.target_date,
+      tasks_count: m.tasks_count,
+      done_tasks_count: m.done_tasks_count,
+      group: true,
+      ...(m.health && { health: m.health }),
+    },
+  }))
+  const rows: Scheduled[] = []
+  const top = [...roots, ...(under.get(null) ?? [])]
+  top.forEach((node) => emitRows(node, 0, Boolean(groups.keepEmptyInitiatives), rows))
   return rows
+}
+
+// The milestone > initiative > epic > task rows of the Space-wide Epics and
+// Initiatives timelines. Only tasks under one of the listed epics are drawn:
+// loose tasks belong to the folder Gantt and would bury the epics here.
+export function planningGanttRows(
+  plan: { milestones: GanttMilestone[]; initiatives: GanttInitiative[]; epics: Epicish[]; tasks: TaskLike[] },
+  keepEmptyInitiatives = false,
+): Scheduled[] {
+  const epicIds = new Set(plan.epics.map((e) => e.id))
+  const tasks = plan.tasks.filter((t) => t.epic_id !== null && epicIds.has(t.epic_id))
+  return groupGanttRows(plan.epics, tasks, undefined, { initiatives: plan.initiatives, milestones: plan.milestones, keepEmptyInitiatives })
+}
+
+// Diamonds for a Timeline's marker row: the milestones that have a date.
+export function milestoneMarkers(milestones: { id: number; title: string; target_date: string | null }[]): { id: number; title: string; target_date: string }[] {
+  return milestones.flatMap((m) => (m.target_date ? [{ id: m.id, title: m.title, target_date: m.target_date }] : []))
 }
 
 export type DragMode = 'move' | 'start' | 'end'

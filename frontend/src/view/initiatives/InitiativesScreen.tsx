@@ -8,7 +8,8 @@ import { useWorkspace } from '@/api/workspace'
 import { useWorkspaceMembers } from '@/api/workspaces'
 import { useInitiatives, useCreateInitiative, useUpdateInitiative, useDeleteInitiative } from '@/api/initiatives'
 import '../planning/PlanningScreen.scss'
-import { ProgressBar, Timeline } from '@/components/Timeline'
+import { ProgressBar } from '@/components/Timeline'
+import PlanningTimeline from '@/components/PlanningTimeline'
 import { usePageTitle } from '@/hooks/usePageTitle'
 import { donePercent } from '@/data/schedule'
 import type { PlanningStatus } from '@/types'
@@ -95,7 +96,7 @@ export default function InitiativesScreen() {
               </div>
             )}
 
-            {!isLoading && initiatives.length > 0 && view === 'timeline' && <Timeline items={initiatives} />}
+            {!isLoading && initiatives.length > 0 && view === 'timeline' && <PlanningTimeline keepEmptyInitiatives />}
 
             {!isLoading && view === 'list' && initiatives.map((initiative) => (
               <div

@@ -18,10 +18,11 @@ import { ProgressBar } from '@/components/Timeline'
 import { useFolderContents, useUpdateFolder } from '@/api/workspace'
 import { useUpdateTask } from '@/api/tasks'
 import { useMilestones } from '@/api/milestones'
+import { useInitiatives } from '@/api/initiatives'
 import type { Task, WorkspaceEvent, Epic } from '@/types'
 import './FolderDetailScreen.scss'
 import { usePageTitle } from '@/hooks/usePageTitle'
-import { donePercent } from '@/data/schedule'
+import { donePercent, milestoneMarkers } from '@/data/schedule'
 import GanttPane from './GanttPane'
 import { buildTaskTree, type TaskNode } from '@/data/task'
 
@@ -396,6 +397,7 @@ export default function FolderDetailScreen() {
   const updateFolder = useUpdateFolder()
   const updateTask = useUpdateTask()
   const { data: allMilestones = [] } = useMilestones()
+  const { data: initiatives = [] } = useInitiatives()
   usePageTitle(data?.folder.name)
 
   if (isLoading || !data) {
@@ -409,9 +411,7 @@ export default function FolderDetailScreen() {
   }
 
   const { folder, documents, tasks, events, epics } = data
-  const milestones = allMilestones
-    .filter((m) => m.folder_id === folderId && m.target_date)
-    .map((m) => ({ id: m.id, title: m.title, target_date: m.target_date! }))
+  const milestones = milestoneMarkers(allMilestones.filter((m) => m.folder_id === folderId))
 
   return (
     <WorkspaceLayout>
@@ -479,7 +479,14 @@ export default function FolderDetailScreen() {
         {view === 'calendar' && <CalendarView events={events} />}
         {view === 'gantt' && (
           <div className="folder_detail-pane">
-            <GanttPane folderId={folderId} dependencyMode={folder.dependency_mode ?? 'none'} milestones={milestones} epics={epics} tasks={tasks} />
+            <GanttPane
+              folderId={folderId}
+              dependencyMode={folder.dependency_mode ?? 'none'}
+              milestones={milestones}
+              groups={{ initiatives, milestones: allMilestones }}
+              epics={epics}
+              tasks={tasks}
+            />
           </div>
         )}
       </div>
