@@ -1,4 +1,4 @@
-import { Button, Input, classNames } from '@/components/ui'
+import { Button, Input, classNames, DatePicker } from '@/components/ui'
 import { useState, useRef, useEffect } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import {
@@ -176,8 +176,7 @@ function EventSidebar({ state, onClose }: { state: SidebarState; onClose: () => 
           />
           <div className="events-form-field">
             <label className="events-muted">Date</label>
-            <Input
-              type="date"
+            <DatePicker
               required
               className="events-field_input"
               value={date}

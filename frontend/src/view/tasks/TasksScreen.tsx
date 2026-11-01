@@ -1,4 +1,4 @@
-import { Button, Input, Select, classNames } from '@/components/ui'
+import { Button, Input, Select, classNames, DatePicker } from '@/components/ui'
 import { useState, useRef, useEffect } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { Plus, X, ArrowRight, Play, Loader2, Search, Filter, Target } from 'lucide-react'
@@ -210,8 +210,7 @@ function AddTaskInput({ onAdd, onCancel, epics, sprints, milestones }: AddTaskIn
         }}
         onBlur={handleBlur}
       />
-      <Input
-        type="date"
+      <DatePicker
         aria-label="Start date"
         className="tasks-add_field"
         value={startDate}
@@ -219,8 +218,7 @@ function AddTaskInput({ onAdd, onCancel, epics, sprints, milestones }: AddTaskIn
         onBlur={handleBlur}
       />
       <span>&rarr;</span>
-      <Input
-        type="date"
+      <DatePicker
         aria-label="Due date"
         className="tasks-add_field"
         value={dueDate}

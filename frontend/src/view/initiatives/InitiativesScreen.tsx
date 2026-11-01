@@ -1,4 +1,4 @@
-import { Button, Input, Select } from '@/components/ui'
+import { Button, Input, Select, DatePicker } from '@/components/ui'
 import { useState, useRef } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { Plus, X, Flag, Loader2 } from 'lucide-react'
@@ -118,15 +118,13 @@ export default function InitiativesScreen() {
                   </Button>
                 </div>
                 <div className="planning-card-dates" onClick={(e) => e.stopPropagation()}>
-                  <Input
-                    type="date"
+                  <DatePicker
                     value={initiative.start_date ?? ''}
                     onChange={(e) => updateInitiative.mutate({ id: initiative.id, start_date: e.target.value || null })}
                     className="planning-date"
                   />
                   <span>&rarr;</span>
-                  <Input
-                    type="date"
+                  <DatePicker
                     value={initiative.target_date ?? ''}
                     onChange={(e) => updateInitiative.mutate({ id: initiative.id, target_date: e.target.value || null })}
                     className="planning-date"

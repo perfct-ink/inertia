@@ -2,6 +2,7 @@
 priority: p2
 depends_on: []
 components: [frontend]
+branch: backlog/styled-date-picker
 ---
 # Styled date picker
 
@@ -22,3 +23,6 @@ Date fields are still `<Input type="date">`. Since 2026-10-22 they follow the li
 - Every date field in the web app uses the shared picker and looks the same in Chrome, Safari and Firefox.
 - Typing a date, picking one and clearing one all still save.
 - Tests cover value round-tripping and clearing; `docs/features/design_principles.md` is updated and this file is removed.
+
+## Blocked
+Built `DatePicker` and swapped every date field (9 files); see "Date picker" in `docs/features/design_principles.md`. Not run (no network or `node_modules`): `cd frontend && npm install && npm run lint && npx tsc -b && npm test`, then look at Tasks (add row), Epics, Initiatives, Milestones, Sprints, OKRs, Events, the sidebar quick add and a document task due date in Chrome, Safari and Firefox at 375px and desktop, light and dark: the calendar should sit under the field, flip above near the screen bottom, stay 16px from the edge and take no focus from the field. Ran: `util/calendar.test.ts` with plain Node, a babel import/undefined-name check and a sass compile. Then remove this file and merge.

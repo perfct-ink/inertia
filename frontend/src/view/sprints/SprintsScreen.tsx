@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react'
 import { Plus, X, Rocket, Loader2 } from 'lucide-react'
-import { Button, Input, Select } from '@/components/ui'
+import { Button, Input, Select, DatePicker } from '@/components/ui'
 import WorkspaceLayout from '@/components/WorkspaceLayout'
 import { ProgressBar } from '@/components/Timeline'
 import { useSprints, useCreateSprint, useUpdateSprint, useDeleteSprint } from '@/api/sprints'
@@ -85,8 +85,7 @@ export default function SprintsScreen() {
                 <div className="sprints-card-fields">
                   <label className="sprints-field">
                     <span>Start</span>
-                    <Input
-                      type="date"
+                    <DatePicker
                       value={sprint.start_date ?? ''}
                       onChange={(e) => updateSprint.mutate({ id: sprint.id, start_date: e.target.value || null })}
                       className="sprints-date"
@@ -94,8 +93,7 @@ export default function SprintsScreen() {
                   </label>
                   <label className="sprints-field">
                     <span>End</span>
-                    <Input
-                      type="date"
+                    <DatePicker
                       value={sprint.end_date ?? ''}
                       onChange={(e) => updateSprint.mutate({ id: sprint.id, end_date: e.target.value || null })}
                       className="sprints-date"
