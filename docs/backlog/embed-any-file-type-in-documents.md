@@ -35,7 +35,7 @@ Today: `UploadsController` already stores images and video in ActiveStorage (100
 
 Built on branch `backlog/embed-any-file-type-in-documents`, not merged: no network, `node_modules` or database were available, so the checks below could not run. Feature doc: `docs/features/embedded_files.md`.
 
-Done: `POST /api/v1/uploads` accepts any type (100 MB cap, Space member role, returns filename/type/size); Active Storage tables migration `20261101080001` (main had none); nginx `client_max_body_size`; `audio` and `fileAttachment` editor nodes with an `AttachmentCard` (icon, name, type, size, player, Preview for images/PDF, Download, Remove); drop, paste and toolbar picker upload any file; collab-server schema mirrors the new nodes; tests written for all of it.
+Done: `POST /api/v1/uploads` accepts any type (100 MB cap, Space member role, returns filename/type/size); Active Storage tables migration `20261019000023` (main had none; same file as on the upload-files branch); nginx `client_max_body_size`; `audio` and `fileAttachment` editor nodes with an `AttachmentCard` (icon, name, type, size, player, Preview for images/PDF, Download, Remove); drop, paste and toolbar picker upload any file; collab-server schema mirrors the new nodes; tests written for all of it.
 
 Ran: `ruby -c` on changed Ruby files, sass compile of changed stylesheets, the static import/syntax check, and the pure `data/attachment.test.ts` (15 passed) in the stand-in runner.
 

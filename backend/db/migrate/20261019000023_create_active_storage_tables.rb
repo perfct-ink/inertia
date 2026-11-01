@@ -1,8 +1,7 @@
 # Active Storage's tables (what `rails active_storage:install` generates). The app
-# stores embedded images and video with Active Storage (UploadsController), but no
-# migration for its tables existed in the repository, so a database built from
-# db/schema.rb had none. The guards make this safe to run on a database that
-# already has them.
+# has used Active Storage for embedded images since before this migration, but
+# no migration for its tables existed in the repository; the guards below make it
+# safe to run on a database that already has them.
 class CreateActiveStorageTables < ActiveRecord::Migration[7.2]
   def change
     create_table :active_storage_blobs, if_not_exists: true do |t|
