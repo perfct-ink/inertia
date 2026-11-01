@@ -41,6 +41,10 @@ POST   /api/v1/workspaces                      # create (caller becomes owner)
 DELETE /api/v1/workspaces/:id                  # owner only; not personal
 GET    /api/v1/workspace                       # the active workspace (header) with its folder tree
 PATCH  /api/v1/workspace                       # rename (admin or owner)
+GET    /api/v1/workspaces/:id/folders          # one Space's active folders, flat (to choose a move/copy destination)
+
+POST   /api/v1/documents/:id/copy|move         # { target_folder_id }: into a folder of another Space
+POST   /api/v1/folders/:id/copy|move           # { target_folder_id }
 
 GET    /api/v1/workspaces/:id/members
 POST   /api/v1/workspaces/:id/members          # { email, role } - an existing user; admin or owner
@@ -56,6 +60,10 @@ DELETE /api/v1/workspaces/:id/members/:member  # admin/owner removes anyone; any
 
 `20261015000001_rename_personal_workspaces_to_spaces` renames personal workspaces still called "<name>'s Workspace" to "<name>'s Space". `20261014000001_create_workspace_memberships` adds `workspaces.personal`, creates `workspace_memberships`, makes every existing workspace's user its owner, and marks all existing workspaces personal.
 
+## Moving and copying content
+
+A document or folder can be moved or copied into a folder of another Space the user can write in, from the sidebar menus; see [features/space_transfer.md](features/space_transfer.md). Everything else stays in its Space: a record never points across Spaces, so a move takes a document's tasks along but clears their epic, sprint, milestone and links.
+
 ## Not built yet
 
-Teams (groups of users granted access together), invitations for people without an account, per-folder permissions, and moving content between workspaces. See `docs/backlog/teams-with-space-roles.md`, `docs/backlog/invite-people-without-an-account.md` `docs/backlog/guests-and-per-folder-permissions.md` and `docs/backlog/move-or-copy-content-between-spaces.md`.
+Teams (groups of users granted access together), invitations for people without an account, and per-folder permissions. See `docs/backlog/teams-with-space-roles.md`, `docs/backlog/invite-people-without-an-account.md` and `docs/backlog/guests-and-per-folder-permissions.md`.

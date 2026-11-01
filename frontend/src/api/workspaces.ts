@@ -2,11 +2,8 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import api from '@/lib/api'
 import type { WorkspaceSummary, WorkspaceMember, WorkspaceRole } from '@/types'
 
-// Order matters: a role can do everything the roles before it can.
-export const WORKSPACE_ROLES: WorkspaceRole[] = ['viewer', 'member', 'admin', 'owner']
-
-export const canManageWorkspace = (role: WorkspaceRole | null | undefined) => role === 'admin' || role === 'owner'
-export const canWriteWorkspace = (role: WorkspaceRole | null | undefined) => !!role && role !== 'viewer'
+// Role rules are plain data and live in data/workspace.ts.
+export { WORKSPACE_ROLES, canManageWorkspace, canWriteWorkspace } from '@/data/workspace'
 
 // Every workspace the user belongs to.
 export function useWorkspaces() {

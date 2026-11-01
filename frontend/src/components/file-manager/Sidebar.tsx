@@ -1,5 +1,6 @@
 import { flattenFolders } from '@/data/folder'
 import { WorkspaceSwitcher } from '@/components/workspace/WorkspaceSwitcher'
+import { TransferHost } from '@/components/workspace/TransferDialog'
 import { Button, Input, Select } from '@/components/ui'
 import './Sidebar.scss'
 import { Database } from 'lucide-react'
@@ -631,6 +632,9 @@ export default function Sidebar() {
           </div>
         </div>
       )}
+
+      {/* Move or copy to another Space — opened from the tree's menus */}
+      <TransferHost />
 
       {/* Keyboard shortcuts modal */}
       {shortcutsOpen && (

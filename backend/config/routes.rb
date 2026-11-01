@@ -30,12 +30,22 @@ Rails.application.routes.draw do
       # The workspace named by the X-Workspace-Id header (default: personal).
       resource :workspace, as: :current_workspace, only: [ :show, :update ]
       resources :workspaces, only: [ :index, :create, :destroy ] do
+        get :folders, on: :member
         resources :members, controller: "workspace_members", only: [ :index, :create, :update, :destroy ]
       end
 
       resources :folders do
-        resources :documents, shallow: true
-        member { get :contents }
+        resources :documents, shallow: true do
+          member do
+            post :copy
+            post :move
+          end
+        end
+        member do
+          get :contents
+          post :copy
+          post :move
+        end
       end
 
       resources :documents, only: [] do
