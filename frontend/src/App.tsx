@@ -9,6 +9,7 @@ import DocumentsIndexScreen from '@/view/documents_index/DocumentsIndexScreen'
 import TasksScreen from '@/view/tasks/TasksScreen'
 import EventsScreen from '@/view/events/EventsScreen'
 import EpicsScreen from '@/view/epics/EpicsScreen'
+import EpicPlanScreen from '@/view/epic_plan/EpicPlanScreen'
 import InitiativesScreen from '@/view/initiatives/InitiativesScreen'
 import MilestonesScreen from '@/view/milestones/MilestonesScreen'
 import SprintsScreen from '@/view/sprints/SprintsScreen'
@@ -94,6 +95,14 @@ export default function App() {
           element={
             <PrivateRoute>
               <EpicsScreen />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/plan"
+          element={
+            <PrivateRoute>
+              <EpicPlanScreen />
             </PrivateRoute>
           }
         />
