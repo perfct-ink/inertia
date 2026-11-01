@@ -111,6 +111,8 @@ export interface Epic {
   tasks_count: number
   done_tasks_count: number
   horizon: RoadmapHorizon | null
+  // Order among the epics of one initiative (or milestone); see data/hierarchy.ts.
+  position: number
   created_at: string
   updated_at: string
 }
@@ -152,6 +154,8 @@ export interface Initiative {
   tasks_count: number
   done_tasks_count: number
   horizon: RoadmapHorizon | null
+  // Order among the initiatives of one milestone; see data/hierarchy.ts.
+  position: number
   health: MilestoneHealth
   created_at: string
   updated_at: string

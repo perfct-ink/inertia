@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_18_000003) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_01_140001) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -67,6 +67,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_18_000003) do
     t.bigint "initiative_id"
     t.bigint "milestone_id"
     t.integer "horizon"
+    t.integer "position", default: 0, null: false
     t.index ["folder_id"], name: "index_epics_on_folder_id"
     t.index ["initiative_id"], name: "index_epics_on_initiative_id"
     t.index ["milestone_id"], name: "index_epics_on_milestone_id"
@@ -126,6 +127,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_18_000003) do
     t.integer "status", default: 0, null: false
     t.bigint "owner_id"
     t.integer "horizon"
+    t.integer "position", default: 0, null: false
     t.index ["milestone_id"], name: "index_initiatives_on_milestone_id"
     t.index ["owner_id"], name: "index_initiatives_on_owner_id"
     t.index ["workspace_id"], name: "index_initiatives_on_workspace_id"

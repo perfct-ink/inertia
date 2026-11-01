@@ -47,7 +47,7 @@ Volta's components are not used directly because the library isn't published to 
 
 ## API error handling
 
-`frontend/src/lib/api.ts` is the middleware for every API call. A failed call pushes its message to `store/notifications`, which `ToastRegion` (mounted in `App.tsx`) shows as an alert. Pass `{ silent: true }` when the caller renders the error itself (the login and signup forms do). A 401 clears the stored session, so the route guard sends the user to `/login`, and shows a "session expired" notice.
+`frontend/src/lib/api.ts` is the middleware for every API call. A failed call pushes its message to `store/notifications`, which `ToastRegion` (mounted in `App.tsx`) shows as an alert. Pass `{ silent: true }` when the caller renders the error itself (the login and signup forms do). Pass `{ failureContext: 'Couldn\'t move "Ship"' }` to name the action that failed; the notice then reads `Couldn't move "Ship": <reason>` (the Hierarchy page does this for moves). The server's word "workspace" is shown as "Space" (`util/errorMessage.ts`). A 401 clears the stored session, so the route guard sends the user to `/login`, and shows a "session expired" notice.
 
 ## Verification
 
