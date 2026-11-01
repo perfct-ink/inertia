@@ -1,20 +1,32 @@
 import { Button, Input, Select, FormError, ConfirmDialog } from '@/components/ui'
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useQueries } from '@tanstack/react-query'
 import { Database, Loader2, Pencil, Trash2 } from 'lucide-react'
 import WorkspaceLayout from '@/components/WorkspaceLayout'
+import FormulaInput from '@/components/editors/FormulaInput'
 import { useWorkspace } from '@/api/workspace'
 import { useUpdateDocument } from '@/api/documents'
-import { useTable, useEditTable, tableQuery, errorMessage, type TableData, type TableField, type TableRecord, type DataType } from '@/api/tables'
+import { useTable, useEditTable, tableQuery, errorMessage, type TableData, type TableField, type TableRecord, type FieldDataType } from '@/api/tables'
 import type { Document } from '@/types'
 import { useTabsStore } from '@/store/tabs'
 import './TableEditor.scss'
 import { usePageTitle } from '@/hooks/usePageTitle'
 import { flattenFolders } from '@/data/folder'
+import { checkFormula, computeFormulas, formatResult, isFormulaField, type FormulaResult } from '@/data/formula'
 
-const types: DataType[] = ['text', 'integer', 'number', 'boolean', 'date', 'datetime', 'relation']
+const types: FieldDataType[] = ['text', 'integer', 'number', 'boolean', 'date', 'datetime', 'relation', 'formula']
 const inputClass = 'table_editor-input'
 const fieldInputClass = `${inputClass} table_editor-input--field`
+
+// A formula field's value for one record: worked out live from the row's other
+// fields (including edits not saved yet), never typed in.
+function FormulaCell({ field, result }: { field: TableField; result: FormulaResult }) {
+  const failure = 'error' in result ? result : null
+  return <output aria-label={field.name} className={`table_editor-formula_result${failure ? ' table_editor-formula_result--error' : ''}`}>
+    {formatResult(result)}
+    {failure && <span className="table_editor-formula_message">{failure.message}</span>}
+  </output>
+}
 
 function RecordRow({ record, fields, relations, busy, onSave, onDelete }: {
   record?: TableRecord; fields: TableField[]; relations: Map<number, TableData>; busy: boolean
@@ -25,15 +37,17 @@ function RecordRow({ record, fields, relations, busy, onSave, onDelete }: {
   const savedValues = JSON.stringify(record?.values ?? {})
   useEffect(() => { setValues(JSON.parse(savedValues)) }, [savedValues])
   const dirty = JSON.stringify(values) !== JSON.stringify(record?.values ?? {})
+  const formulas = useMemo(() => computeFormulas(fields, values), [fields, values])
   async function save() {
     setError('')
-    const liveValues = Object.fromEntries(Object.entries(values).filter(([id]) => fields.some(field => String(field.id) === id)))
+    const liveValues = Object.fromEntries(Object.entries(values).filter(([id]) => fields.some(field => String(field.id) === id && !isFormulaField(field))))
     try { await onSave(liveValues); if (!record) setValues({}) } catch (e) { setError(errorMessage(e)) }
   }
   function set(field: TableField, value: string | number | boolean | null) { setValues(prev => ({ ...prev, [field.id]: value })) }
   return <tr className="table_editor-row">
     <td className="table_editor-cell table_editor-cell--id">{record ? `#${record.id}` : 'New'}</td>
     {fields.map(field => {
+      if (isFormulaField(field)) return <td key={field.id} className="table_editor-cell"><FormulaCell field={field} result={formulas.get(field.id)!} /></td>
       const value = values[field.id]
       const target = field.relation_table_id ? relations.get(field.relation_table_id) : undefined
       return <td key={field.id} className="table_editor-cell">
@@ -78,8 +92,12 @@ export default function TableEditor({ doc }: { doc: Document }) {
   const [editingField, setEditingField] = useState<TableField | null>(null)
   const [showForm, setShowForm] = useState(false)
   const [name, setName] = useState('')
-  const [type, setType] = useState<DataType>('text')
+  const [type, setType] = useState<FieldDataType>('text')
   const [relationTable, setRelationTable] = useState('')
+  const [formula, setFormula] = useState('')
+  const [formulaTouched, setFormulaTouched] = useState(false)
+  const otherFields = (data?.fields ?? []).filter(f => f.id !== editingField?.id)
+  const formulaProblem = type === 'formula' && formula.trim() ? checkFormula(name.trim(), formula.trim(), otherFields) : null
   const tables = flattenFolders(workspace?.folders ?? []).flatMap(f => f.documents ?? []).filter(d => d.doc_type === 'table')
   const targetIds = [...new Set((data?.fields ?? []).flatMap(f => f.relation_table_id ? [f.relation_table_id] : []))]
   const queries = useQueries({ queries: targetIds.map(tableQuery) })
@@ -99,11 +117,13 @@ export default function TableEditor({ doc }: { doc: Document }) {
   function fieldForm(field?: TableField) {
     setEditingField(field ?? null); setName(field?.name ?? ''); setType(field?.data_type ?? 'text')
     setRelationTable(field?.relation_table_id ? String(field.relation_table_id) : ''); setShowForm(true); setError('')
+    setFormula(field?.formula ?? ''); setFormulaTouched(false)
   }
   async function saveField(e: React.FormEvent) {
     e.preventDefault()
+    if (formulaProblem) { setFormulaTouched(true); return }
     try {
-      await action(editingField ? `fields/${editingField.id}` : 'fields', editingField ? 'patch' : 'post', { field: { name: name.trim(), data_type: type, relation_table_id: type === 'relation' ? Number(relationTable) : null } })
+      await action(editingField ? `fields/${editingField.id}` : 'fields', editingField ? 'patch' : 'post', { field: { name: name.trim(), data_type: type, relation_table_id: type === 'relation' ? Number(relationTable) : null, ...(type === 'formula' && { formula: formula.trim() }) } })
       setShowForm(false)
     } catch (e) { setError(errorMessage(e)) }
   }
@@ -123,16 +143,17 @@ export default function TableEditor({ doc }: { doc: Document }) {
       <FormError message={error || (loadError ? errorMessage(loadError) : null)} className="table_editor-error" />
       {showForm && <form onSubmit={saveField} className="table_editor-field_form">
         <label className="table_editor-field_form_label">Field name<Input required maxLength={255} autoFocus className={`${fieldInputClass}`} value={name} onChange={e => setName(e.target.value)} /></label>
-        <label className="table_editor-field_form_label">Data type<Select className={`${fieldInputClass}`} value={type} onChange={e => setType(e.target.value as DataType)}>{types.map(t => <option key={t} value={t}>{t[0].toUpperCase() + t.slice(1)}</option>)}</Select></label>
+        <label className="table_editor-field_form_label">Data type<Select className={`${fieldInputClass}`} value={type} onChange={e => setType(e.target.value as FieldDataType)}>{types.map(t => <option key={t} value={t}>{t[0].toUpperCase() + t.slice(1)}</option>)}</Select></label>
         {type === 'relation' && <label className="table_editor-field_form_label">Related collection<Select required className={`${fieldInputClass}`} value={relationTable} onChange={e => setRelationTable(e.target.value)}><option value="">Choose a collection</option>{tables.map(t => <option key={t.id} value={t.id}>{t.title}</option>)}</Select></label>}
+        {type === 'formula' && <FormulaInput value={formula} onChange={setFormula} onBlur={() => setFormulaTouched(true)} fields={otherFields} problem={formulaProblem} showProblem={formulaTouched} inputClassName={fieldInputClass} />}
         <Button variant="primary" disabled={busy || !name.trim()} className="table_editor-field_form_button">{editingField ? 'Save field' : 'Create field'}</Button>
         <Button type="button" onClick={() => setShowForm(false)} className="table_editor-cancel_button">Cancel</Button>
         {editingField && <p className="table_editor-field_form_hint">Clear this field’s values before changing its data type or related collection.</p>}
       </form>}
-      {isLoading ? <Loader2 className="table_editor-spinner" /> : data && data.fields.length === 0 ? <div className="table_editor-empty"><Database className="table_editor-empty_icon" /><p className="table_editor-empty_title">Define your collection’s fields</p><p className="table_editor-empty_text">Add text, numbers, dates, booleans, or a relation to another collection.</p><Button variant="secondary" onClick={() => fieldForm()} className="table_editor-empty_button">Add first field</Button></div> : data && <div className="table_editor-grid">
+      {isLoading ? <Loader2 className="table_editor-spinner" /> : data && data.fields.length === 0 ? <div className="table_editor-empty"><Database className="table_editor-empty_icon" /><p className="table_editor-empty_title">Define your collection’s fields</p><p className="table_editor-empty_text">Add text, numbers, dates, booleans, a relation to another collection, or a formula that works out a value from the other fields.</p><Button variant="secondary" onClick={() => fieldForm()} className="table_editor-empty_button">Add first field</Button></div> : data && <div className="table_editor-grid">
         <table className="table_editor-table">
           <thead className="table_editor-table_head"><tr><th className="table_editor-column_head table_editor-column_head--id">Record ID</th>
-            {data.fields.map(field => <th key={field.id} className="table_editor-column_head"><div className="table_editor-column_head_main"><Button onClick={() => fieldForm(field)} className="table_editor-column_name_button"><span>{field.name}</span><Pencil className="table_editor-column_edit_icon" /></Button><Button aria-label={`Delete field ${field.name}`} disabled={busy} onClick={() => remove(`fields/${field.id}`, `Delete “${field.name}” and all its values?`)} className="table_editor-icon_button table_editor-icon_button--column"><Trash2 className="table_editor-icon_button_icon table_editor-icon_button_icon--sm" /></Button></div><span className="table_editor-column_type">{field.data_type}{field.relation_table_id ? ` → ${tables.find(t => t.id === field.relation_table_id)?.title ?? 'Table'}` : ''}</span></th>)}
+            {data.fields.map(field => <th key={field.id} className="table_editor-column_head"><div className="table_editor-column_head_main"><Button onClick={() => fieldForm(field)} className="table_editor-column_name_button"><span>{field.name}</span><Pencil className="table_editor-column_edit_icon" /></Button><Button aria-label={`Delete field ${field.name}`} disabled={busy} onClick={() => remove(`fields/${field.id}`, `Delete “${field.name}” and all its values?`)} className="table_editor-icon_button table_editor-icon_button--column"><Trash2 className="table_editor-icon_button_icon table_editor-icon_button_icon--sm" /></Button></div><span className="table_editor-column_type">{field.data_type}{field.relation_table_id ? ` → ${tables.find(t => t.id === field.relation_table_id)?.title ?? 'Table'}` : ''}</span>{field.formula && <code className="table_editor-column_formula" title={field.formula}>= {field.formula}</code>}</th>)}
             <th className="table_editor-column_head table_editor-column_head--actions">Actions</th>
           </tr></thead>
           <tbody>{data.records.map(record => <RecordRow key={record.id} record={record} fields={data.fields} relations={relations} busy={busy} onSave={values => action(`records/${record.id}`, 'patch', { record: { values } })} onDelete={() => remove(`records/${record.id}`, `Delete record #${record.id}?`)} />)}
