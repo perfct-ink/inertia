@@ -8,6 +8,7 @@ import { useState, useRef, useEffect, type ComponentType } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useSidebarStore } from '@/store/sidebar'
 import { useActiveOnboarding, useOnboardingStore } from '@/store/onboarding'
+import AppearanceDialog from '@/components/AppearanceDialog'
 import {
   FolderPlus, CheckSquare, FilePlus, FileText,
   Table as TableIcon, Pin, Folder, Loader2, CalendarDays,
@@ -91,6 +92,7 @@ export default function Sidebar() {
   const { data: archivedFolders = [] } = useArchivedFolders()
   const [accountOpen, setAccountOpen] = useState(false)
   const onboardingVisible = useActiveOnboarding(user?.id) !== null
+  const [appearanceOpen, setAppearanceOpen] = useState(false)
   const [shortcutsOpen, setShortcutsOpen] = useState(false)
   const [quipImportOpen, setQuipImportOpen] = useState(false)
   const [quipToken, setQuipToken] = useState('')
@@ -538,6 +540,12 @@ export default function Sidebar() {
                 </Button>
               )}
               <Button variant="secondary"
+                onClick={() => { setAccountOpen(false); setAppearanceOpen(true) }}
+                className="sidebar-wide_button"
+              >
+                Appearance
+              </Button>
+              <Button variant="secondary"
                 onClick={handleLogout}
                 className="sidebar-wide_button sidebar-signout"
               >
@@ -646,6 +654,7 @@ export default function Sidebar() {
 
       {/* Move or copy to another Space — opened from the tree's menus */}
       <TransferHost />
+      <AppearanceDialog open={appearanceOpen} onClose={() => setAppearanceOpen(false)} />
 
       {/* Keyboard shortcuts modal */}
       {shortcutsOpen && (

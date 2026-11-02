@@ -22,6 +22,7 @@ import ProjectsScreen from '@/view/projects/ProjectsScreen'
 import ProjectRequestsScreen from '@/view/project_requests/ProjectRequestsScreen'
 import FolderDetailScreen from '@/view/folder_detail/FolderDetailScreen'
 import SharedScreen from '@/view/shared/SharedScreen'
+import AppearanceEffect from '@/components/AppearanceEffect'
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
   const token = useAuthStore((s) => s.token)
@@ -41,6 +42,7 @@ function DocumentRoute() {
 export default function App() {
   return (
     <>
+      <AppearanceEffect />
       <Routes>
         <Route path="/login" element={<LoginScreen />} />
         <Route path="/signup" element={<SignupScreen />} />
