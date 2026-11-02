@@ -23,6 +23,7 @@ import TimelineScreen from '@/view/timeline/TimelineScreen'
 import IdeasScreen from '@/view/ideas/IdeasScreen'
 import IoMapScreen from '@/view/io_map/IoMapScreen'
 import ReleasesScreen from '@/view/releases/ReleasesScreen'
+import CalendarScreen from '@/view/calendar/CalendarScreen'
 import ProjectsScreen from '@/view/projects/ProjectsScreen'
 import ProjectRequestsScreen from '@/view/project_requests/ProjectRequestsScreen'
 import FolderDetailScreen from '@/view/folder_detail/FolderDetailScreen'
@@ -195,6 +196,14 @@ export default function App() {
           element={
             <PrivateRoute>
               <ReleasesScreen />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/calendar"
+          element={
+            <PrivateRoute>
+              <CalendarScreen />
             </PrivateRoute>
           }
         />
