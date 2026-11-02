@@ -228,6 +228,20 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_01_140001) do
     t.index ["workspace_id"], name: "index_quip_imports_on_workspace_id"
   end
 
+  create_table "resource_allocations", force: :cascade do |t|
+    t.bigint "workspace_id", null: false
+    t.bigint "user_id", null: false
+    t.bigint "folder_id", null: false
+    t.decimal "hours_per_week", precision: 5, scale: 2, null: false
+    t.date "start_date"
+    t.date "end_date"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["folder_id"], name: "index_resource_allocations_on_folder_id"
+    t.index ["user_id"], name: "index_resource_allocations_on_user_id"
+    t.index ["workspace_id"], name: "index_resource_allocations_on_workspace_id"
+  end
+
   create_table "shares", force: :cascade do |t|
     t.string "token", null: false
     t.integer "permission", default: 0, null: false
@@ -331,6 +345,28 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_01_140001) do
     t.index ["workspace_id"], name: "index_task_dependencies_on_workspace_id"
   end
 
+  create_table "task_field_values", force: :cascade do |t|
+    t.bigint "task_id", null: false
+    t.bigint "task_field_id", null: false
+    t.json "value", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["task_field_id"], name: "index_task_field_values_on_task_field_id"
+    t.index ["task_id", "task_field_id"], name: "index_task_field_values_on_task_id_and_task_field_id", unique: true
+    t.index ["task_id"], name: "index_task_field_values_on_task_id"
+  end
+
+  create_table "task_fields", force: :cascade do |t|
+    t.bigint "workspace_id", null: false
+    t.string "name", null: false
+    t.string "field_type", null: false
+    t.json "options", default: [], null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["workspace_id", "name"], name: "index_task_fields_on_workspace_id_and_name", unique: true
+    t.index ["workspace_id"], name: "index_task_fields_on_workspace_id"
+  end
+
   create_table "tasks", force: :cascade do |t|
     t.string "title", null: false
     t.text "description"
@@ -398,6 +434,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_01_140001) do
     t.integer "role", default: 1, null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.decimal "weekly_capacity_hours", precision: 5, scale: 2, default: "40.0", null: false
     t.index ["user_id"], name: "index_workspace_memberships_on_user_id"
     t.index ["workspace_id", "user_id"], name: "index_workspace_memberships_on_workspace_id_and_user_id", unique: true
     t.index ["workspace_id"], name: "index_workspace_memberships_on_workspace_id"
@@ -444,6 +481,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_01_140001) do
   add_foreign_key "objectives", "workspaces"
   add_foreign_key "quip_imports", "folders", column: "destination_folder_id"
   add_foreign_key "quip_imports", "workspaces"
+  add_foreign_key "resource_allocations", "folders"
+  add_foreign_key "resource_allocations", "users"
+  add_foreign_key "resource_allocations", "workspaces"
   add_foreign_key "shares", "users", column: "created_by_id"
   add_foreign_key "social_identities", "users"
   add_foreign_key "social_login_attempts", "users"
@@ -458,6 +498,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_01_140001) do
   add_foreign_key "task_dependencies", "tasks", column: "predecessor_id"
   add_foreign_key "task_dependencies", "tasks", column: "successor_id"
   add_foreign_key "task_dependencies", "workspaces"
+  add_foreign_key "task_field_values", "task_fields"
+  add_foreign_key "task_field_values", "tasks"
+  add_foreign_key "task_fields", "workspaces"
   add_foreign_key "tasks", "documents"
   add_foreign_key "tasks", "epics"
   add_foreign_key "tasks", "folders"
