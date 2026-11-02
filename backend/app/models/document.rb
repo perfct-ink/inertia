@@ -23,10 +23,24 @@ class Document < ApplicationRecord
   validate :file_documents_have_a_file
 
   before_save :update_content_updated_at, if: :content_changed?
+  # A deleted file leaves any collection file fields that held it.
+  before_destroy :remove_from_collection_cells, if: -> { doc_type == "file" }
 
   MAX_FILE_SIZE = 100.megabytes
 
   private
+
+  def remove_from_collection_cells
+    TableCell.joins(:table_field).where(table_fields: { data_type: %w[file files] }).find_each do |cell|
+      case cell.value
+      when Integer then cell.destroy! if cell.value == id
+      when Array
+        remaining = cell.value - [ id ]
+        next if remaining.size == cell.value.size
+        remaining.empty? ? cell.destroy! : cell.update!(value: remaining)
+      end
+    end
+  end
 
   def file_documents_have_a_file
     return unless doc_type == "file"

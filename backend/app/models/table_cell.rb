@@ -5,7 +5,16 @@ class TableCell < ApplicationRecord
   validates :table_field_id, uniqueness: { scope: :table_record_id }
   validate :valid_value
 
+  MAX_FILES = 50
+
   private
+
+  # Every id is an uploaded file item in the same Space as the collection.
+  def files_in_space?(ids)
+    return true if ids.empty?
+    workspace_id = table_field.document.folder.workspace_id
+    Document.joins(:folder).where(id: ids, doc_type: :file, folders: { workspace_id: workspace_id }).count == ids.size
+  end
 
   def valid_value
     return unless table_field && table_record
@@ -18,6 +27,8 @@ class TableCell < ApplicationRecord
     when "date" then valid_date?(value)
     when "datetime" then value.is_a?(String) && valid_datetime?(value)
     when "relation" then value.nil? && related_record&.document_id == table_field.relation_table_id
+    when "file" then value.is_a?(Integer) && files_in_space?([ value ])
+    when "files" then value.is_a?(Array) && value.size <= MAX_FILES && value.all?(Integer) && value.uniq.size == value.size && files_in_space?(value)
     else false
     end
     valid &&= related_record_id.nil? unless table_field.data_type == "relation"

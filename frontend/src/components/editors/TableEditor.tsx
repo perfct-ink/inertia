@@ -8,6 +8,7 @@ import { useWorkspace } from '@/api/workspace'
 import { useUpdateDocument } from '@/api/documents'
 import { useTable, useEditTable, tableQuery, errorMessage, type TableData, type TableField, type TableRecord, type FieldDataType } from '@/api/tables'
 import type { Document } from '@/types'
+import FileCell from './FileCell'
 import { useTabsStore } from '@/store/tabs'
 import './TableEditor.scss'
 import { usePageTitle } from '@/hooks/usePageTitle'
@@ -15,7 +16,7 @@ import { flattenFolders } from '@/data/folder'
 import { checkFormula, computeFormulas, formatResult, isFormulaField, type FormulaResult } from '@/data/formula'
 import CollectionMap from './CollectionMap'
 
-const types: FieldDataType[] = ['text', 'integer', 'number', 'boolean', 'date', 'datetime', 'relation', 'formula']
+const types: FieldDataType[] = ['text', 'integer', 'number', 'boolean', 'date', 'datetime', 'relation', 'file', 'files', 'formula']
 const inputClass = 'table_editor-input'
 const fieldInputClass = `${inputClass} table_editor-input--field`
 
@@ -29,8 +30,8 @@ function FormulaCell({ field, result }: { field: TableField; result: FormulaResu
   </output>
 }
 
-function RecordRow({ record, fields, relations, busy, onSave, onDelete }: {
-  record?: TableRecord; fields: TableField[]; relations: Map<number, TableData>; busy: boolean
+function RecordRow({ record, fields, relations, files, busy, onSave, onDelete }: {
+  record?: TableRecord; fields: TableField[]; relations: Map<number, TableData>; files: Document[]; busy: boolean
   onSave: (values: TableRecord['values']) => Promise<void>; onDelete?: () => void
 }) {
   const [values, setValues] = useState<TableRecord['values']>(record?.values ?? {})
@@ -38,13 +39,14 @@ function RecordRow({ record, fields, relations, busy, onSave, onDelete }: {
   const savedValues = JSON.stringify(record?.values ?? {})
   useEffect(() => { setValues(JSON.parse(savedValues)) }, [savedValues])
   const dirty = JSON.stringify(values) !== JSON.stringify(record?.values ?? {})
-  const formulas = useMemo(() => computeFormulas(fields, values), [fields, values])
+  // File fields hold lists of file ids, which formulas can't use, so they count as empty.
+  const formulas = useMemo(() => computeFormulas(fields, Object.fromEntries(Object.entries(values).map(([id, v]) => [id, Array.isArray(v) ? null : v]))), [fields, values])
   async function save() {
     setError('')
     const liveValues = Object.fromEntries(Object.entries(values).filter(([id]) => fields.some(field => String(field.id) === id && !isFormulaField(field))))
     try { await onSave(liveValues); if (!record) setValues({}) } catch (e) { setError(errorMessage(e)) }
   }
-  function set(field: TableField, value: string | number | boolean | null) { setValues(prev => ({ ...prev, [field.id]: value })) }
+  function set(field: TableField, value: string | number | boolean | number[] | null) { setValues(prev => ({ ...prev, [field.id]: value })) }
   return <tr className="table_editor-row">
     <td className="table_editor-cell table_editor-cell--id">{record ? `#${record.id}` : 'New'}</td>
     {fields.map(field => {
@@ -54,7 +56,7 @@ function RecordRow({ record, fields, relations, busy, onSave, onDelete }: {
       return <td key={field.id} className="table_editor-cell">
         {field.data_type === 'boolean' ? <Select aria-label={field.name} className={inputClass} value={value == null ? '' : String(value)} onChange={e => set(field, e.target.value === '' ? null : e.target.value === 'true')}>
           <option value="">Empty</option><option value="true">True</option><option value="false">False</option>
-        </Select> : field.data_type === 'relation' ? <Select aria-label={field.name} className={inputClass} value={value == null ? '' : String(value)} onChange={e => set(field, e.target.value ? Number(e.target.value) : null)}>
+        </Select> : field.data_type === 'file' || field.data_type === 'files' ? <FileCell label={field.name} many={field.data_type === 'files'} value={value as number | number[] | null | undefined} files={files} onChange={v => set(field, v)} /> : field.data_type === 'relation' ? <Select aria-label={field.name} className={inputClass} value={value == null ? '' : String(value)} onChange={e => set(field, e.target.value ? Number(e.target.value) : null)}>
           <option value="">{target ? 'No linked record' : 'Loading records…'}</option>
           {target?.records.map(row => {
             const labelField = target.fields.find(f => f.data_type === 'text')
@@ -105,6 +107,7 @@ export default function TableEditor({ doc }: { doc: Document }) {
   const queries = useQueries({ queries: targetIds.map(tableQuery) })
   const relations = new Map(targetIds.flatMap((id, i) => queries[i].data ? [[id, queries[i].data!] as const] : []))
   const busy = edit.isPending
+  const uploadedFiles = flattenFolders(workspace?.folders ?? []).flatMap(f => f.documents ?? []).filter(d => d.doc_type === 'file')
 
   async function action(path: string, method: 'post' | 'patch' | 'delete', body?: unknown) {
     setError('')
@@ -162,8 +165,8 @@ export default function TableEditor({ doc }: { doc: Document }) {
             {data.fields.map(field => <th key={field.id} className="table_editor-column_head"><div className="table_editor-column_head_main"><Button onClick={() => fieldForm(field)} className="table_editor-column_name_button"><span>{field.name}</span><Pencil className="table_editor-column_edit_icon" /></Button><Button aria-label={`Delete field ${field.name}`} disabled={busy} onClick={() => remove(`fields/${field.id}`, `Delete “${field.name}” and all its values?`)} className="table_editor-icon_button table_editor-icon_button--column"><Trash2 className="table_editor-icon_button_icon table_editor-icon_button_icon--sm" /></Button></div><span className="table_editor-column_type">{field.data_type}{field.relation_table_id ? ` → ${tables.find(t => t.id === field.relation_table_id)?.title ?? 'Table'}` : ''}</span>{field.formula && <code className="table_editor-column_formula" title={field.formula}>= {field.formula}</code>}</th>)}
             <th className="table_editor-column_head table_editor-column_head--actions">Actions</th>
           </tr></thead>
-          <tbody>{data.records.map(record => <RecordRow key={record.id} record={record} fields={data.fields} relations={relations} busy={busy} onSave={values => action(`records/${record.id}`, 'patch', { record: { values } })} onDelete={() => remove(`records/${record.id}`, `Delete record #${record.id}?`)} />)}
-            <RecordRow fields={data.fields} relations={relations} busy={busy} onSave={values => action('records', 'post', { record: { values } })} />
+          <tbody>{data.records.map(record => <RecordRow key={record.id} record={record} fields={data.fields} relations={relations} files={uploadedFiles} busy={busy} onSave={values => action(`records/${record.id}`, 'patch', { record: { values } })} onDelete={() => remove(`records/${record.id}`, `Delete record #${record.id}?`)} />)}
+            <RecordRow fields={data.fields} relations={relations} files={uploadedFiles} busy={busy} onSave={values => action('records', 'post', { record: { values } })} />
           </tbody>
         </table>
       </div>}

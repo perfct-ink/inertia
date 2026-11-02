@@ -70,7 +70,7 @@ module Api
           field = @table.table_fields.find(field_id)
           reject_computed!(field)
           cell = record.table_cells.find_or_initialize_by(table_field: field)
-          if value.nil? || value == ""
+          if value.nil? || value == "" || value == []
             cell.destroy! if cell.persisted?
           else
             cell.value = field.data_type == "relation" ? nil : value
