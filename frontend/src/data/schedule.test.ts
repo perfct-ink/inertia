@@ -1,4 +1,7 @@
-import { axisTicks, donePercent, groupGanttRows, milestoneMarkers, planningGanttRows, shiftedRange, trackWidthPx, weekendSpans, type Scheduled, flatTaskRows } from './schedule'
+import {
+  axisTicks, barKeyAction, donePercent, drawnRange, groupGanttRows, milestoneMarkers, planningGanttRows, rowKeyParts, shiftedRange, trackWidthPx, weekendSpans,
+  type Scheduled, flatTaskRows,
+} from './schedule'
 
 const item = (tasks_count: number, done_tasks_count: number) =>
   ({ id: 1, title: 'x', start_date: null, target_date: null, tasks_count, done_tasks_count }) as Scheduled
@@ -133,6 +136,66 @@ test('shiftedRange moves both ends or resizes one edge without crossing', () => 
   expect(shiftedRange('2026-01-10', '2026-01-20', 'end', -30)).toEqual({ start: '2026-01-10', end: '2026-01-10' })
   expect(shiftedRange('2026-01-10', '2026-01-20', 'start', 30)).toEqual({ start: '2026-01-20', end: '2026-01-20' })
   expect(shiftedRange('2026-01-10', '2026-01-20', 'start', -2)).toEqual({ start: '2026-01-08', end: '2026-01-20' })
+})
+
+test('barKeyAction maps arrows to a day, Page keys to a week, and modifiers to the edge', () => {
+  expect(barKeyAction({ key: 'ArrowRight' })).toEqual({ mode: 'move', delta: 1 })
+  expect(barKeyAction({ key: 'ArrowLeft' })).toEqual({ mode: 'move', delta: -1 })
+  expect(barKeyAction({ key: 'PageDown' })).toEqual({ mode: 'move', delta: 7 })
+  expect(barKeyAction({ key: 'PageUp' })).toEqual({ mode: 'move', delta: -7 })
+  expect(barKeyAction({ key: 'ArrowRight', shiftKey: true })).toEqual({ mode: 'end', delta: 1 })
+  expect(barKeyAction({ key: 'ArrowLeft', altKey: true })).toEqual({ mode: 'start', delta: -1 })
+  expect(barKeyAction({ key: 'PageDown', shiftKey: true })).toEqual({ mode: 'end', delta: 7 })
+})
+
+test('barKeyAction leaves other keys and browser shortcuts alone', () => {
+  expect(barKeyAction({ key: 'a' })).toBe(null)
+  expect(barKeyAction({ key: 'ArrowUp' })).toBe(null)
+  expect(barKeyAction({ key: 'Enter' })).toBe(null)
+  expect(barKeyAction({ key: 'ArrowLeft', metaKey: true })).toBe(null)
+  expect(barKeyAction({ key: 'ArrowLeft', ctrlKey: true })).toBe(null)
+  expect(barKeyAction({ key: 'ArrowLeft', shiftKey: true, altKey: true })).toBe(null)
+})
+
+test('repeated key presses build on each other through shiftedRange and never invert a bar', () => {
+  let range = { start: '2026-11-01', end: '2026-11-03' }
+  const press = (e: Parameters<typeof barKeyAction>[0]) => {
+    const action = barKeyAction(e)
+    if (action) range = shiftedRange(range.start, range.end, action.mode, action.delta)
+  }
+  press({ key: 'ArrowRight' })
+  press({ key: 'ArrowRight' })
+  expect(range).toEqual({ start: '2026-11-03', end: '2026-11-05' })
+  press({ key: 'ArrowLeft', shiftKey: true })
+  expect(range).toEqual({ start: '2026-11-03', end: '2026-11-04' })
+  press({ key: 'PageUp', shiftKey: true })
+  expect(range).toEqual({ start: '2026-11-03', end: '2026-11-03' })
+  press({ key: 'ArrowRight', altKey: true })
+  expect(range).toEqual({ start: '2026-11-03', end: '2026-11-03' })
+})
+
+test('drawnRange uses a live edit only while the saved dates are the ones it started from', () => {
+  const row = { key: 'epic-2', id: 2, start_date: '2026-11-01', target_date: '2026-11-05' }
+  const live = { key: 'epic-2', range: { start: '2026-11-03', end: '2026-11-07' }, base: { start: '2026-11-01', end: '2026-11-05' } }
+  expect(drawnRange(row, live)).toEqual({ start: '2026-11-03', end: '2026-11-07' })
+  expect(drawnRange(row, null)).toEqual({ start: '2026-11-01', end: '2026-11-05' })
+  // Another row's edit, or one whose base no longer matches (the save landed), is ignored.
+  expect(drawnRange({ ...row, key: 'epic-3', id: 3 }, live)).toEqual({ start: '2026-11-01', end: '2026-11-05' })
+  expect(drawnRange({ ...row, start_date: '2026-11-03', target_date: '2026-11-07' }, live)).toEqual({ start: '2026-11-03', end: '2026-11-07' })
+  expect(drawnRange({ ...row, start_date: '2026-11-04' }, live)).toEqual({ start: '2026-11-04', end: '2026-11-05' })
+  // A row without a key is named by its id.
+  expect(drawnRange({ id: 7, start_date: '2026-01-01', target_date: '2026-01-02' }, { key: '7', range: { start: '2026-01-02', end: '2026-01-03' }, base: { start: '2026-01-01', end: '2026-01-02' } }))
+    .toEqual({ start: '2026-01-02', end: '2026-01-03' })
+})
+
+test('rowKeyParts reads the kind and id from a row key', () => {
+  expect(rowKeyParts('epic-12')).toEqual({ kind: 'epic', id: 12 })
+  expect(rowKeyParts('initiative-5')).toEqual({ kind: 'initiative', id: 5 })
+  expect(rowKeyParts('task-9')).toEqual({ kind: 'task', id: 9 })
+  expect(rowKeyParts('milestone-3')).toEqual({ kind: 'milestone', id: 3 })
+  expect(rowKeyParts('no-milestone')).toBe(null)
+  expect(rowKeyParts('epic-x')).toBe(null)
+  expect(rowKeyParts(undefined)).toBe(null)
 })
 
 describe('gantt zoom axis', () => {
