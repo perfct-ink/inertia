@@ -54,6 +54,8 @@ en:
         workspace: "Space"
       task:
         workspace: "Space"
+      task_field:
+        workspace: "Space"
       epic:
         workspace: "Space"
       event:

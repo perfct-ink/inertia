@@ -35,8 +35,10 @@
       }
     }
 
+    // Wraps on a phone, where search plus two buttons are wider than the screen.
     @at-root .tasks-tools {
       display: flex;
+      flex-wrap: wrap;
       align-items: center;
       gap: space(2);
       margin-left: auto;
@@ -310,6 +312,17 @@
       }
     }
 
+    @at-root .tasks-card_actions {
+      display: flex;
+      align-items: center;
+      gap: space(2);
+      margin-left: auto;
+    }
+
+    @at-root .tasks-card_fields {
+      @include muted-link;
+    }
+
     @at-root .tasks-next {
       margin-left: auto;
       @include muted-link;
@@ -438,6 +451,10 @@
 
     @at-root .tasks-row_action {
       color: color(muted-foreground);
+
+      &--fields:hover {
+        color: color(foreground);
+      }
 
       &--start:hover {
         color: palette('blue-500');

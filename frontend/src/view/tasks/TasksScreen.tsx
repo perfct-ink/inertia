@@ -1,7 +1,7 @@
 import { Button, Input, Select, classNames, DatePicker } from '@/components/ui'
 import { useState, useRef, useEffect } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { Plus, X, ArrowRight, Play, Loader2, Search, Filter, Target } from 'lucide-react'
+import { Plus, X, ArrowRight, Play, Loader2, Search, Filter, Target, SlidersHorizontal } from 'lucide-react'
 import {
   DndContext,
   DragOverlay,
@@ -30,7 +30,11 @@ import { useWorkspace } from '@/api/workspace'
 import { useEpics } from '@/api/epics'
 import { useSprints } from '@/api/sprints'
 import { useMilestones } from '@/api/milestones'
-import type { Task, Epic, Sprint, Milestone } from '@/types'
+import { useTaskFields } from '@/api/taskFields'
+import { TaskFieldChips } from '@/components/task-fields/TaskFieldChips'
+import { TaskFieldsDialog } from '@/components/task-fields/TaskFieldsDialog'
+import { ManageTaskFieldsDialog } from '@/components/task-fields/ManageTaskFieldsDialog'
+import type { Task, TaskField, Epic, Sprint, Milestone } from '@/types'
 import './TasksScreen.scss'
 import { usePageTitle } from '@/hooks/usePageTitle'
 
@@ -72,9 +76,12 @@ interface CardProps {
   onNavigate: () => void
   epicTitle?: string
   overlay?: boolean
+  // The Space's custom task fields, shown as chips; the edit button opens them.
+  fields?: TaskField[]
+  onEditFields?: () => void
 }
 
-function TaskCard({ task, onNext, onNavigate, epicTitle, overlay }: Omit<CardProps, 'onDelete'>) {
+function TaskCard({ task, onNext, onNavigate, epicTitle, overlay, fields = [], onEditFields }: Omit<CardProps, 'onDelete'>) {
   return (
     <div className={classNames('tasks-card', overlay && 'tasks-card--overlay')}>
       <div className="tasks-card_title_row">
@@ -86,6 +93,7 @@ function TaskCard({ task, onNext, onNavigate, epicTitle, overlay }: Omit<CardPro
           <span className="tasks-epic_title">{epicTitle}</span>
         </div>
       )}
+      <TaskFieldChips fields={fields} task={task} />
       <div className="tasks-card_footer">
         {task.document && (
           <Button
@@ -95,15 +103,27 @@ function TaskCard({ task, onNext, onNavigate, epicTitle, overlay }: Omit<CardPro
             {task.document.title}
           </Button>
         )}
-        {onNext && !overlay && (
-          <Button
-            onClick={onNext}
-            className="tasks-next"
-            title={`Move to ${STATUS_LABEL[NEXT_STATUS[task.status]!]}`}
-          >
-            <ArrowRight className="tasks-icon" />
-          </Button>
-        )}
+        <div className="tasks-card_actions">
+          {onEditFields && fields.length > 0 && !overlay && (
+            <Button
+              onClick={onEditFields}
+              className="tasks-card_fields"
+              title="Edit fields"
+              aria-label={`Edit fields of ${task.title}`}
+            >
+              <SlidersHorizontal className="tasks-icon" />
+            </Button>
+          )}
+          {onNext && !overlay && (
+            <Button
+              onClick={onNext}
+              className="tasks-next"
+              title={`Move to ${STATUS_LABEL[NEXT_STATUS[task.status]!]}`}
+            >
+              <ArrowRight className="tasks-icon" />
+            </Button>
+          )}
+        </div>
       </div>
     </div>
   )
@@ -319,6 +339,10 @@ export default function TasksScreen() {
   const deleteTask = useDeleteTask()
 
   const [addingTo, setAddingTo] = useState<Task['status'] | null>(null)
+  const { data: taskFields = [] } = useTaskFields()
+  const [managingFields, setManagingFields] = useState(false)
+  const [fieldsTaskId, setFieldsTaskId] = useState<number | null>(null)
+  const fieldsTask = tasks.find((t) => t.id === fieldsTaskId) ?? null
 
   useEffect(() => {
     if (searchParams.get('new') === '1') setAddingTo('backlog')
@@ -449,6 +473,14 @@ export default function TasksScreen() {
               />
             </div>
             <Button
+              onClick={() => setManagingFields(true)}
+              className="tasks-filter_button"
+              title="Add or change the fields tasks carry, such as tags or a rating"
+            >
+              <SlidersHorizontal className="tasks-icon" />
+              Fields
+            </Button>
+            <Button
               onClick={() => setShowFilters((o) => !o)}
               className={classNames('tasks-filter_button', !!(showFilters || filters.folder_id || filters.status || filters.epic_id || filters.sprint_id) && 'tasks-filter_button--active')}
             >
@@ -550,6 +582,8 @@ export default function TasksScreen() {
                           onNext={NEXT_STATUS[task.status] ? () => updateTask.mutate({ id: task.id, status: NEXT_STATUS[task.status]! }) : null}
                           onNavigate={() => navigate(`/documents/${task.document_id}`)}
                           epicTitle={task.epic_id ? epicById.get(task.epic_id)?.title : undefined}
+                          fields={taskFields}
+                          onEditFields={() => setFieldsTaskId(task.id)}
                         />
                       ))}
                       {addingTo === key ? (
@@ -583,6 +617,7 @@ export default function TasksScreen() {
                   task={activeTask}
                   onNext={null}
                   onNavigate={() => {}}
+                  fields={taskFields}
                   overlay
                 />
               )}
@@ -639,6 +674,16 @@ export default function TasksScreen() {
                       </Button>
                     )}
                     <div className="tasks-row_actions">
+                      {taskFields.length > 0 && (
+                        <Button
+                          onClick={() => setFieldsTaskId(task.id)}
+                          title="Edit fields"
+                          aria-label={`Edit fields of ${task.title}`}
+                          className="tasks-row_action tasks-row_action--fields"
+                        >
+                          <SlidersHorizontal className="tasks-icon" />
+                        </Button>
+                      )}
                       <Button
                         onClick={() => updateTask.mutate({ id: task.id, status: 'todo' })}
                         title="Move to To Do"
@@ -655,6 +700,7 @@ export default function TasksScreen() {
                         <X className="tasks-icon" />
                       </Button>
                     </div>
+                    <TaskFieldChips fields={taskFields} task={task} />
                   </div>
                 ))}
                 {tasks.filter((t) => t.status === 'backlog').length === 0 && !addingTo && (
@@ -664,6 +710,9 @@ export default function TasksScreen() {
             </div>
           </div>
         )}
+
+        <TaskFieldsDialog task={fieldsTask} fields={taskFields} onClose={() => setFieldsTaskId(null)} />
+        <ManageTaskFieldsDialog open={managingFields} fields={taskFields} onClose={() => setManagingFields(false)} />
       </div>
     </WorkspaceLayout>
   )

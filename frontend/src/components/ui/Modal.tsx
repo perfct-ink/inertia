@@ -12,18 +12,20 @@ type ModalProps = {
   // A roomy dialog for content such as a file preview (default: a small form-sized one).
   wide?: boolean
   onClose: () => void
+  // Contextual overrides, e.g. a wider dialog for a form with many fields.
+  className?: string
   children?: ReactNode
 }
 
 // Accessible modal (focus trap, Esc to close, aria labelling from Radix).
 // Replaces native window.alert/confirm/prompt dialogs.
-export function Modal({ open, title, description, wide, onClose, children }: ModalProps) {
+export function Modal({ open, title, description, wide, onClose, className, children }: ModalProps) {
   return (
     <Dialog.Root open={open} onOpenChange={(next) => { if (!next) onClose() }}>
       <Dialog.Portal>
         <Dialog.Overlay className="ui-modal-overlay" />
         <Dialog.Content
-          className={classNames('ui-modal-content', wide && 'ui-modal-content--wide')}
+          className={classNames('ui-modal-content', wide && 'ui-modal-content--wide', className)}
         >
           <Dialog.Title className="ui-modal-title">{title}</Dialog.Title>
           {description

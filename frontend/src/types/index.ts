@@ -90,7 +90,26 @@ export interface Task {
   parent_id: number | null
   folder_id: number | null
   document?: Document
+  // Values of the Space's custom task fields, keyed by field id; fields with
+  // no value are absent. Only the task list endpoint includes them.
+  field_values?: TaskFieldValues
 }
+
+// Custom task fields (Monday-style columns), defined once per Space.
+export type TaskFieldType = 'tags' | 'dropdown' | 'checkbox' | 'rating' | 'vote'
+
+export interface TaskField {
+  id: number
+  name: string
+  field_type: TaskFieldType
+  // The choices of a dropdown field; empty for every other kind.
+  options: string[]
+}
+
+// tags: labels. dropdown: the chosen label. checkbox: true. rating: 1 to 5.
+// vote: the ids of the users who voted.
+export type TaskFieldValue = string | string[] | number | number[] | boolean
+export type TaskFieldValues = Record<string, TaskFieldValue>
 
 // Gantt link (PM-13): the successor waits on the predecessor.
 export type DependencyKind = 'finish_to_start' | 'start_to_start' | 'finish_to_finish' | 'start_to_finish'

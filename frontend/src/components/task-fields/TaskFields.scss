@@ -1,0 +1,273 @@
+@use 'tokens' as *;
+
+// Custom task fields: the chips on a task row, the controls that edit a
+// field's value, and the dialogs that define the fields. Colors come from the
+// theme variables, so light and dark both work.
+@layer app.components {
+  .task_fields {
+    // ── Dialogs ──
+    // Wider than the default modal and scrollable, so long field lists fit a phone.
+    &-modal {
+      max-width: 32rem;
+      max-height: calc(100dvh - #{space(8)});
+      overflow-y: auto;
+    }
+
+    &-dialog {
+      display: flex;
+      flex-direction: column;
+      gap: space(3);
+      margin-top: space(3);
+    }
+
+    &-field {
+      display: flex;
+      flex-direction: column;
+      gap: space(1);
+    }
+
+    &-field_name {
+      color: color(muted-foreground);
+      font-weight: 500;
+      @include text('xs');
+    }
+
+    &-select {
+      width: 100%;
+    }
+
+    // Small text and icon buttons still get a full-size tap target.
+    &-touch {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: space(10);
+      min-height: space(10);
+    }
+
+    &-hint {
+      color: color(muted-foreground);
+      @include text('xs');
+    }
+
+    &-icon {
+      flex-shrink: 0;
+      width: space(4);
+      height: space(4);
+
+      &--sm {
+        width: space(3);
+        height: space(3);
+      }
+    }
+
+    // ── Tags ──
+    &-tags {
+      display: flex;
+      flex-direction: column;
+      gap: space(2);
+    }
+
+    &-tag_list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: space(1.5);
+    }
+
+    &-tag {
+      display: inline-flex;
+      align-items: center;
+      max-width: 100%;
+      padding: space(0.5) space(0.5) space(0.5) space(2.5);
+      border-width: 1px;
+      border-radius: radius('full');
+      background: color(muted);
+      @include text('xs');
+    }
+
+    &-tag_text {
+      @include truncate;
+    }
+
+    // Square, so a tag grows by the same amount whether or not it is hovered.
+    &-tag_remove {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: space(7);
+      height: space(7);
+      padding: 0;
+      border-radius: radius('full');
+      color: color(muted-foreground);
+
+      &:hover:not(:disabled) {
+        color: color(foreground);
+      }
+    }
+
+    // ── Rating ──
+    &-rating {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: space(2);
+    }
+
+    &-stars {
+      display: flex;
+      gap: space(0.5);
+    }
+
+    &-star {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: space(10);
+      height: space(10);
+      border-radius: radius('md');
+      color: color(muted-foreground);
+
+      &:hover:not(:disabled) {
+        background: color(accent);
+        color: palette('yellow-500');
+      }
+
+      &--on,
+      &--on:hover:not(:disabled) {
+        color: palette('yellow-500');
+      }
+
+      &--on .task_fields-icon {
+        fill: currentcolor;
+      }
+    }
+
+    // ── Vote ──
+    &-vote {
+      display: inline-flex;
+      align-items: center;
+      gap: space(2);
+      align-self: flex-start;
+
+      &--on,
+      &--on:hover:not(:disabled) {
+        border-color: color(primary);
+        color: color(primary);
+      }
+
+      &--on .task_fields-icon {
+        fill: currentcolor;
+      }
+    }
+
+    &-vote_count {
+      color: color(muted-foreground);
+      font-variant-numeric: tabular-nums;
+    }
+
+    // ── Chips on a task row or card (read-only, so no hover state) ──
+    &-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: space(1);
+      margin-top: space(1.5);
+      flex-basis: 100%;
+    }
+
+    &-chip {
+      display: inline-flex;
+      align-items: baseline;
+      gap: space(1);
+      max-width: 100%;
+      padding: 0 space(2);
+      border-radius: radius('full');
+      background: color(muted);
+      @include text('xs');
+    }
+
+    &-chip_name {
+      flex-shrink: 0;
+      color: color(muted-foreground);
+
+      &::after {
+        content: ':';
+      }
+    }
+
+    &-chip_value {
+      @include truncate;
+    }
+
+    &-visually_hidden {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip-path: inset(50%);
+      white-space: nowrap;
+    }
+
+    // ── Defining fields ──
+    &-manage_list {
+      display: flex;
+      flex-direction: column;
+      gap: space(3);
+      margin-top: space(3);
+    }
+
+    &-manage_row {
+      padding-bottom: space(3);
+      border-bottom-width: 1px;
+    }
+
+    &-manage_form {
+      display: flex;
+      flex-direction: column;
+      gap: space(2);
+    }
+
+    &-manage_top {
+      display: flex;
+      align-items: center;
+      gap: space(2);
+
+      .ui-input {
+        flex: 1 1 0%;
+        min-width: 0;
+      }
+    }
+
+    &-manage_type {
+      flex-shrink: 0;
+      color: color(muted-foreground);
+      @include text('xs');
+    }
+
+    &-manage_actions {
+      display: flex;
+      justify-content: flex-end;
+    }
+
+    &-new {
+      display: flex;
+      flex-direction: column;
+      gap: space(2);
+      margin-top: space(4);
+    }
+
+    &-new_title {
+      font-weight: 600;
+      @include text('sm');
+    }
+
+    &-new_row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: space(2);
+
+      .ui-input {
+        flex: 1 1 10rem;
+      }
+    }
+  }
+}
