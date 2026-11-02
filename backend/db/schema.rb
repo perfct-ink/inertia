@@ -211,6 +211,28 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_01_140001) do
     t.index ["workspace_id"], name: "index_objectives_on_workspace_id"
   end
 
+  create_table "project_requests", force: :cascade do |t|
+    t.bigint "workspace_id", null: false
+    t.bigint "requested_by_id"
+    t.bigint "decided_by_id"
+    t.bigint "project_id"
+    t.string "name", null: false
+    t.text "description"
+    t.text "justification"
+    t.integer "priority", default: 1, null: false
+    t.date "start_date"
+    t.date "target_date"
+    t.integer "status", default: 0, null: false
+    t.text "decision_note"
+    t.datetime "decided_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["decided_by_id"], name: "index_project_requests_on_decided_by_id"
+    t.index ["project_id"], name: "index_project_requests_on_project_id"
+    t.index ["requested_by_id"], name: "index_project_requests_on_requested_by_id"
+    t.index ["workspace_id"], name: "index_project_requests_on_workspace_id"
+  end
+
   create_table "quip_imports", force: :cascade do |t|
     t.bigint "workspace_id", null: false
     t.bigint "destination_folder_id"
@@ -479,6 +501,10 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_01_140001) do
   add_foreign_key "milestones", "workspaces"
   add_foreign_key "objectives", "users", column: "owner_id", on_delete: :nullify
   add_foreign_key "objectives", "workspaces"
+  add_foreign_key "project_requests", "folders", column: "project_id", on_delete: :nullify
+  add_foreign_key "project_requests", "users", column: "decided_by_id", on_delete: :nullify
+  add_foreign_key "project_requests", "users", column: "requested_by_id", on_delete: :nullify
+  add_foreign_key "project_requests", "workspaces"
   add_foreign_key "quip_imports", "folders", column: "destination_folder_id"
   add_foreign_key "quip_imports", "workspaces"
   add_foreign_key "resource_allocations", "folders"

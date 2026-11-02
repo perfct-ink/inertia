@@ -1,0 +1,131 @@
+@use 'tokens' as *;
+
+/* Project requests reuse the Planning screen's header, tabs, list and empty state. */
+
+@layer view {
+  .view-project_requests {
+    @at-root .project_requests-card {
+      display: flex;
+      flex-direction: column;
+      gap: space(2);
+      padding: space(4);
+      border-width: 1px;
+      border-radius: radius('lg');
+      background: color(card);
+
+      &-top {
+        display: flex;
+        align-items: center;
+        gap: space(2);
+      }
+
+      &-title {
+        flex: 1 1 0%;
+        min-width: 0;
+        font-weight: 600;
+        overflow-wrap: anywhere;
+      }
+    }
+
+    @at-root .project_requests-status {
+      flex-shrink: 0;
+      padding: space(0.5) space(2);
+      border-radius: radius('full');
+      font-weight: 500;
+      white-space: nowrap;
+      @include text('xs');
+
+      &--pending {
+        background: palette('yellow-500', 0.15);
+        color: palette('yellow-500');
+      }
+
+      &--approved {
+        background: palette('green-500', 0.15);
+        color: palette('green-500');
+      }
+
+      &--declined {
+        background: palette('red-500', 0.15);
+        color: palette('red-500');
+      }
+    }
+
+    @at-root .project_requests-meta {
+      color: color(muted-foreground);
+      @include text('xs');
+    }
+
+    @at-root .project_requests-label {
+      margin-top: space(1);
+      color: color(muted-foreground);
+      font-weight: 500;
+      @include text('xs');
+    }
+
+    @at-root .project_requests-text {
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+      @include text('sm');
+    }
+
+    @at-root .project_requests-decision {
+      display: flex;
+      flex-direction: column;
+      gap: space(1);
+      padding: space(2) space(3);
+      border-left: 2px solid color(border-strong);
+      color: color(muted-foreground);
+      @include text('sm');
+    }
+
+    @at-root .project_requests-link {
+      align-self: flex-start;
+      color: color(primary);
+      @include text('sm');
+
+      &:hover {
+        text-decoration: underline;
+      }
+    }
+
+    @at-root .project_requests-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: space(2);
+      margin-top: space(1);
+
+      &:empty {
+        display: none;
+      }
+    }
+
+    @at-root .project_requests-form {
+      display: flex;
+      flex-direction: column;
+      gap: space(3);
+
+      &-row {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+        gap: space(3);
+      }
+
+      &-actions {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+        gap: space(2);
+      }
+    }
+
+    @at-root .project_requests-field {
+      display: flex;
+      flex-direction: column;
+      gap: space(1);
+      min-width: 0;
+      color: color(muted-foreground);
+      @include text('sm');
+    }
+  }
+}

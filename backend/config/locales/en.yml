@@ -47,6 +47,9 @@ en:
       resource_allocation:
         one: "Allocation"
         other: "Allocations"
+      project_request:
+        one: "Project request"
+        other: "Project requests"
     attributes:
       folder:
         workspace: "Space"
@@ -72,4 +75,7 @@ en:
         user: "Person"
         folder: "Project"
         hours_per_week: "Hours per week"
+      project_request:
+        workspace: "Space"
+        decision_note: "Reason"
 

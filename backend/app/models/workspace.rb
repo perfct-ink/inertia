@@ -20,6 +20,7 @@ class Workspace < ApplicationRecord
   has_many :sprints, dependent: :destroy
   has_many :objectives, dependent: :destroy
   has_many :resource_allocations, dependent: :destroy
+  has_many :project_requests, dependent: :destroy
   has_many :quip_imports, dependent: :destroy
 
   validates :name, presence: true

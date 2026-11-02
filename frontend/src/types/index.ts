@@ -275,3 +275,28 @@ export interface FolderContents {
   events: WorkspaceEvent[]
   epics: Epic[]
 }
+
+// Project intake: a member asks for a project; an admin or owner approves it
+// (which creates the project folder, project_id) or declines it with a reason.
+export type ProjectRequestStatus = 'pending' | 'approved' | 'declined'
+export type ProjectRequestPriority = 'low' | 'medium' | 'high'
+
+export interface ProjectRequest {
+  id: number
+  name: string
+  description: string | null
+  justification: string | null
+  priority: ProjectRequestPriority
+  status: ProjectRequestStatus
+  start_date: string | null
+  target_date: string | null
+  decision_note: string | null
+  decided_at: string | null
+  project_id: number | null
+  requested_by_id: number | null
+  requested_by_name: string | null
+  decided_by_id: number | null
+  decided_by_name: string | null
+  created_at: string
+  updated_at: string
+}
