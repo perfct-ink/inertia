@@ -49,3 +49,4 @@ One file per implemented feature, written from the code (see `docs/rules/feature
 | Cards view of a folder's tasks | [cards_view.md](cards_view.md) |
 | Task priority, effort estimate and story points | [task_estimates.md](task_estimates.md) |
 | Clean URLs: real paths on the web (`/login`, `/space`), hashes only in the native apps | [clean_urls.md](clean_urls.md) |
+| Recurring tasks: repeat on a schedule or after completion | [recurring_tasks.md](recurring_tasks.md) |

@@ -1,7 +1,7 @@
 import { Button, Input, Select, StatusDot, classNames, DatePicker } from '@/components/ui'
 import { useState, useRef, useEffect } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { Plus, X, ArrowRight, Play, Loader2, Search, Filter, Target, SlidersHorizontal, Palette } from 'lucide-react'
+import { Plus, X, ArrowRight, Play, Loader2, Search, Filter, Target, SlidersHorizontal, Palette, Repeat } from 'lucide-react'
 import {
   DndContext,
   DragOverlay,
@@ -26,6 +26,7 @@ import { CSS } from '@dnd-kit/utilities'
 import WorkspaceLayout from '@/components/WorkspaceLayout'
 import SprintHeader from '@/components/SprintHeader'
 import { TASK_PRIORITIES, estimateLabel, pointsLabel, priorityLabel } from '@/data/task'
+import { RECURRENCE_OPTIONS, recurrenceLabel } from '@/data/recurrence'
 import { useTasks, useCreateTask, useUpdateTask, useDeleteTask, type TaskFilters } from '@/api/tasks'
 import { useWorkspace } from '@/api/workspace'
 import { canWriteWorkspace } from '@/api/workspaces'
@@ -84,6 +85,12 @@ function TaskCard({ task, onNext, nextLabel, onNavigate, epicTitle, overlay, fie
         {priorityLabel(task.priority) && <span className={`tasks-priority tasks-priority--${task.priority}`}>{priorityLabel(task.priority)}</span>}
         {pointsLabel(task) && <span className="tasks-meta">{pointsLabel(task)}</span>}
         {estimateLabel(task.estimate_hours) && <span className="tasks-meta">{estimateLabel(task.estimate_hours)}</span>}
+        {recurrenceLabel(task.recurrence) && (
+          <span className="tasks-repeat" title={`Repeats: ${recurrenceLabel(task.recurrence)}`}>
+            <Repeat className="tasks-icon tasks-icon--sm" aria-hidden="true" />
+            {recurrenceLabel(task.recurrence)}
+          </span>
+        )}
         {task.document && (
           <Button
             onClick={onNavigate}
@@ -170,6 +177,7 @@ interface NewTaskFields {
   priority?: TaskPriority
   estimateHours?: number
   storyPoints?: number
+  recurrence?: string
 }
 
 interface AddTaskInputProps {
@@ -190,6 +198,7 @@ function AddTaskInput({ onAdd, onCancel, epics, sprints, milestones }: AddTaskIn
   const [priority, setPriority] = useState<TaskPriority>('none')
   const [estimate, setEstimate] = useState('')
   const [points, setPoints] = useState('')
+  const [recurrence, setRecurrence] = useState('')
   const titleRef = useRef('')
   const containerRef = useRef<HTMLDivElement>(null)
 
@@ -205,6 +214,7 @@ function AddTaskInput({ onAdd, onCancel, epics, sprints, milestones }: AddTaskIn
         priority: priority === 'none' ? undefined : priority,
         estimateHours: estimate === '' ? undefined : Number(estimate),
         storyPoints: points === '' ? undefined : Number(points),
+        recurrence: recurrence || undefined,
       })
     } else onCancel()
   }
@@ -276,6 +286,15 @@ function AddTaskInput({ onAdd, onCancel, epics, sprints, milestones }: AddTaskIn
         onBlur={handleBlur}
         className="tasks-add_field"
       />
+      <Select
+        aria-label="Repeat"
+        value={recurrence}
+        onChange={(e) => setRecurrence(e.target.value)}
+        onBlur={handleBlur}
+        className="tasks-add_field tasks-add_field--select"
+      >
+        {RECURRENCE_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+      </Select>
       {epics.length > 0 && (
         <Select
           value={epicId}

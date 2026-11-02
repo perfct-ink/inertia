@@ -25,6 +25,7 @@ export interface NewTask {
   priority?: Task['priority']
   estimate_hours?: number
   story_points?: number
+  recurrence?: string
 }
 
 export class TaskApi extends ApiResource<Task, NewTask> {

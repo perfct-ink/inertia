@@ -483,6 +483,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_03_120001) do
     t.bigint "parent_id"
     t.bigint "milestone_id"
     t.bigint "sprint_id"
+    t.string "recurrence"
+    t.integer "recurrence_from", default: 0, null: false
     t.integer "priority", default: 0, null: false
     t.decimal "estimate_hours", precision: 7, scale: 2
     t.integer "story_points"

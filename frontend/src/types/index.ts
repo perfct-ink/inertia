@@ -121,6 +121,8 @@ export interface Task {
   estimate_hours?: number | null
   story_points?: number | null
   actual_story_points?: number | null
+  recurrence?: string | null
+  recurrence_from?: 'schedule' | 'completion'
   document?: Document
   // Values of the Space's custom task fields, keyed by field id; fields with
   // no value are absent. Only the task list endpoint includes them.

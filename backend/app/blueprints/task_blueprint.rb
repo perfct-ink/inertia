@@ -13,6 +13,8 @@ class TaskBlueprint < Blueprinter::Base
   field(:estimate_hours) { |task| task.estimate_hours&.to_f }
   field :story_points
   field :actual_story_points
+  field :recurrence
+  field :recurrence_from
 
   view :with_document do
     association :document, blueprint: DocumentBlueprint do |task, _options|
