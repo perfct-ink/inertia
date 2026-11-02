@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_11_01_140001) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_02_030001) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -126,6 +126,19 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_01_140001) do
     t.index ["folder_id"], name: "index_events_on_folder_id"
     t.index ["workspace_id", "date"], name: "index_events_on_workspace_id_and_date"
     t.index ["workspace_id"], name: "index_events_on_workspace_id"
+  end
+
+  create_table "folder_memberships", force: :cascade do |t|
+    t.bigint "folder_id", null: false
+    t.bigint "user_id", null: false
+    t.bigint "invited_by_id"
+    t.integer "role", default: 0, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["folder_id", "user_id"], name: "index_folder_memberships_on_folder_id_and_user_id", unique: true
+    t.index ["folder_id"], name: "index_folder_memberships_on_folder_id"
+    t.index ["invited_by_id"], name: "index_folder_memberships_on_invited_by_id"
+    t.index ["user_id"], name: "index_folder_memberships_on_user_id"
   end
 
   create_table "folders", force: :cascade do |t|
@@ -557,6 +570,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_01_140001) do
   add_foreign_key "event_tasks", "tasks"
   add_foreign_key "events", "folders"
   add_foreign_key "events", "workspaces"
+  add_foreign_key "folder_memberships", "folders"
+  add_foreign_key "folder_memberships", "users"
+  add_foreign_key "folder_memberships", "users", column: "invited_by_id", on_delete: :nullify
   add_foreign_key "folders", "folders", column: "parent_id"
   add_foreign_key "folders", "workspaces"
   add_foreign_key "ideas", "users", column: "submitted_by_id", on_delete: :nullify

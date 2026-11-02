@@ -2,8 +2,10 @@ module Api
   module V1
     class TablesController < ApplicationController
       include WorkspaceScoped
-      # Tables are looked up by id across the user's workspaces; the role is
-      # checked against the table's own workspace in set_table.
+      include FolderCollaboration
+      # Tables are looked up by id across the user's workspaces (and the folders
+      # shared with them); the role is checked against the table's own folder in
+      # set_table.
       skip_before_action :require_current_workspace_write!
       before_action :set_table
       rescue_from ActiveRecord::RecordInvalid, with: :invalid_record
@@ -46,8 +48,8 @@ module Api
       private
 
       def set_table
-        @table = Document.joins(:folder).where(folders: { workspace_id: accessible_workspace_ids }, doc_type: :table).find(params[:id])
-        require_write_in!(@table.folder.workspace_id) unless read_request?
+        @table = find_accessible_document(params[:id], Document.where(doc_type: :table))
+        require_folder_write!(@table.folder) unless read_request?
       end
 
       # Serialize schema/record edits on the parent table so a field cannot
@@ -61,7 +63,27 @@ module Api
       end
 
       def field_params
-        params.require(:field).permit(:name, :data_type, :relation_table_id, :formula)
+        attrs = params.require(:field).permit(:name, :data_type, :relation_table_id, :formula)
+        # Someone invited to a folder can only relate to collections in folders shared with them.
+        attrs.delete(:relation_table_id) if attrs[:relation_table_id].present? && !shared_item?(attrs[:relation_table_id], :table)
+        attrs
+      end
+
+      # For Space members every item is checked against their Space by the
+      # models; for someone invited to a folder it must also be inside the share.
+      def shared_item?(id, doc_type = nil)
+        return true if space_member_of?(@table.folder.workspace_id)
+        items = Document.where(id: id, folder_id: shared_folder_ids)
+        (doc_type ? items.where(doc_type: doc_type) : items).exists?
+      end
+
+      # Cells of someone invited to a folder can only point at items inside it.
+      def reject_outside_share!(field, value)
+        ids = field.data_type == "relation" ? [ field.relation_table_id ] : Array(value)
+        return unless %w[relation file files].include?(field.data_type) && ids.all?(Integer)
+        return if ids.all? { |id| shared_item?(id) }
+        field.errors.add(:base, "#{field.name} can only refer to items in the shared folder")
+        raise ActiveRecord::RecordInvalid, field
       end
 
       def write_values(record)
@@ -69,6 +91,7 @@ module Api
         values.each do |field_id, value|
           field = @table.table_fields.find(field_id)
           reject_computed!(field)
+          reject_outside_share!(field, value)
           cell = record.table_cells.find_or_initialize_by(table_field: field)
           if value.nil? || value == "" || value == []
             cell.destroy! if cell.persisted?

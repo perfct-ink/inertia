@@ -38,6 +38,9 @@ en:
       workspace_membership:
         one: "Space membership"
         other: "Space memberships"
+      folder_membership:
+        one: "Folder access"
+        other: "Folder access"
       team:
         one: "Team"
         other: "Teams"
@@ -56,6 +59,9 @@ en:
     attributes:
       folder:
         workspace: "Space"
+      folder_membership:
+        folder: "Folder"
+        user: "Person"
       document:
         workspace: "Space"
       task:

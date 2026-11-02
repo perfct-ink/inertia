@@ -7,6 +7,12 @@
 // also means any future change to Rails' document-access rules (e.g. wiring
 // the Share model into access) is inherited here automatically, with no
 // collab-server code change.
+//
+// Reading is not editing: Rails also says whether the user may EDIT the
+// document (`can_edit`: a Space viewer, or someone invited to a folder as a
+// viewer or commenter, may not). Those connections are opened read-only, so
+// Hocuspocus drops every update they send instead of broadcasting and storing
+// it. Rails must be deployed before this service for `can_edit` to exist.
 import type { onAuthenticatePayload } from "@hocuspocus/server";
 
 const RAILS_INTERNAL_URL = process.env.RAILS_INTERNAL_URL ?? "http://backend:3000";
@@ -16,6 +22,12 @@ interface RailsDocument {
   title: string;
   doc_type: "document" | "spreadsheet" | "table";
   content: Record<string, unknown>;
+  can_edit?: boolean;
+}
+
+// Fails closed: anything but an explicit `can_edit: true` is read-only.
+export function isReadOnly(doc: Pick<RailsDocument, "can_edit">): boolean {
+  return doc.can_edit !== true;
 }
 
 async function fetchDocument(documentId: string, token: string): Promise<RailsDocument> {
@@ -32,7 +44,7 @@ export interface AuthContext {
   initialContent: Record<string, unknown>;
 }
 
-export async function onAuthenticate({ token, documentName }: onAuthenticatePayload): Promise<AuthContext> {
+export async function onAuthenticate({ token, documentName, connectionConfig }: onAuthenticatePayload): Promise<AuthContext> {
   if (!token) throw new Error("Unauthorized: no token");
 
   // Room name convention: `document-${id}` — see the frontend's
@@ -55,6 +67,8 @@ export async function onAuthenticate({ token, documentName }: onAuthenticatePayl
     // client ever tries.
     throw new Error("Not a collaborative document");
   }
+
+  connectionConfig.readOnly = isReadOnly(doc);
 
   // Returned here, this becomes `context` for onLoadDocument (this
   // connection) and — merged across connections as `lastContext` — for
