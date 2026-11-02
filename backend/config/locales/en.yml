@@ -38,12 +38,29 @@ en:
       workspace_membership:
         one: "Space membership"
         other: "Space memberships"
+      team:
+        one: "Team"
+        other: "Teams"
+      team_membership:
+        one: "Team membership"
+        other: "Team memberships"
+      resource_allocation:
+        one: "Allocation"
+        other: "Allocations"
+      project_request:
+        one: "Project request"
+        other: "Project requests"
+      task_status_setting:
+        one: "Task status setting"
+        other: "Task status settings"
     attributes:
       folder:
         workspace: "Space"
       document:
         workspace: "Space"
       task:
+        workspace: "Space"
+      task_field:
         workspace: "Space"
       epic:
         workspace: "Space"
@@ -52,5 +69,18 @@ en:
       initiative:
         workspace: "Space"
       workspace_membership:
+        workspace: "Space"
+        weekly_capacity_hours: "Weekly capacity"
+      team:
+        workspace: "Space"
+      resource_allocation:
+        workspace: "Space"
+        user: "Person"
+        folder: "Project"
+        hours_per_week: "Hours per week"
+      project_request:
+        workspace: "Space"
+        decision_note: "Reason"
+      task_status_setting:
         workspace: "Space"
 

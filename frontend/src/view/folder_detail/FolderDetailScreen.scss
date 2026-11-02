@@ -89,30 +89,6 @@
       height: space(2);
       border-radius: radius('full');
 
-      &--muted {
-        background: color(muted-foreground);
-      }
-
-      &--backlog {
-        background: palette('zinc-400');
-      }
-
-      &--todo {
-        background: palette('zinc-500');
-      }
-
-      &--in_progress {
-        background: palette('blue-500');
-      }
-
-      &--in_review {
-        background: palette('yellow-500');
-      }
-
-      &--done {
-        background: palette('green-500');
-      }
-
       &--milestone {
         background: palette('purple-500');
       }
@@ -200,12 +176,19 @@
       }
     }
 
-    @at-root .folder_detail-archive {
+    @at-root .folder_detail-actions {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: space(2);
+      margin-left: auto;
+    }
+
+    @at-root .folder_detail-action {
       display: flex;
       flex-shrink: 0;
       align-items: center;
       gap: space(1.5);
-      margin-left: auto;
       @include text('sm');
     }
 

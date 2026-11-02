@@ -28,6 +28,16 @@ test('callers that show their own error can silence the notice', async () => {
   expect(messages()).toEqual([])
 })
 
+test('a failed call names the action it interrupted', async () => {
+  await expect(api.get('/x', { adapter: failWith(422, { errors: ['Parent can\'t be the task itself'] }), failureContext: 'Couldn\'t move "Ship"' })).rejects.toBeDefined()
+  expect(messages()).toEqual(['Couldn\'t move "Ship": Parent can\'t be the task itself'])
+})
+
+test('server messages say Space, not workspace', async () => {
+  await expect(api.get('/x', { adapter: failWith(422, { errors: ['Epic must belong to the same workspace'] }) })).rejects.toBeDefined()
+  expect(messages()).toEqual(['Epic must belong to the same Space'])
+})
+
 test('a 401 signs the user out so they must reauthenticate', async () => {
   await expect(api.get('/x', { adapter: failWith(401) })).rejects.toBeDefined()
   expect(useAuthStore.getState().token).toBeNull()

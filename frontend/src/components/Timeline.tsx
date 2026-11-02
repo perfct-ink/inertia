@@ -1,11 +1,11 @@
-import { useRef, useState, type PointerEvent as ReactPointerEvent } from 'react'
+import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react'
 import {
-  format, parseISO, startOfMonth, endOfMonth, eachMonthOfInterval, differenceInCalendarDays,
+  parseISO, startOfMonth, endOfMonth, differenceInCalendarDays,
 } from 'date-fns'
 import './Timeline.scss'
 import { classNames } from '@/components/ui'
-import { donePercent, shiftedRange, type DragMode, type Scheduled } from '@/data/schedule'
-import { linkSides } from '@/data/dependency'
+import { axisTicks, donePercent, shiftedRange, trackWidthPx, weekendSpans, type DragMode, type GanttZoom, type Scheduled } from '@/data/schedule'
+import { linkSides, type BarSide } from '@/data/dependency'
 import type { DependencyKind } from '@/types'
 
 // Shared by EpicsPage, InitiativesPage, and FolderDetailPage's per-folder
@@ -22,8 +22,9 @@ export function ProgressBar({ percent }: { percent: number }) {
 
 type Dated = Scheduled & { start_date: string; target_date: string }
 
-// Read-only unless `onReschedule` is passed (see TimelineBar); otherwise dates
-// are edited from each page's own List view inputs. Only
+// Read-only unless `onReschedule` is passed (see TimelineBar), and never for
+// group rows (milestones, initiatives), whose dates are a roll-up; otherwise
+// dates are edited from each page's own List view inputs. Only
 // items with both a start and target date can be placed on the month grid;
 // the rest are named below it instead of silently dropped. No charting
 // library — plain CSS percentages against a computed day range.
@@ -40,17 +41,23 @@ const ROW_PITCH_REM = 2.25
 // How far (in % of the track) an arrow leaves its bar before turning.
 const LINK_STUB_PCT = 0.8
 
+// Called when a link is dragged from one bar side onto another bar's side.
+export type TimelineLinkDraw = (from: { key: string; side: BarSide }, to: { key: string; side: BarSide }) => void
+
+type LinkDrag = { key: string; side: BarSide; x1: number; y1: number; x2: number; y2: number }
+
 export type TimelineReschedule = (item: Scheduled, startDate: string, targetDate: string) => void
 
 // One bar. When `onReschedule` is given it can be dragged to move, or by its
 // left/right edge to resize, snapping to whole days; the dates are committed
 // on release. Pointer-based, so it needs no library.
-function TimelineBar({ item, offsetPct, widthPct, totalDays, onReschedule }: {
+function TimelineBar({ item, offsetPct, widthPct, totalDays, onReschedule, onLinkStart }: {
   item: Dated
   offsetPct: number
   widthPct: number
   totalDays: number
   onReschedule?: TimelineReschedule
+  onLinkStart?: (key: string, side: BarSide, e: ReactPointerEvent<HTMLElement>) => void
 }) {
   const barRef = useRef<HTMLDivElement>(null)
   const origin = useRef({ x: 0, trackWidth: 1 })
@@ -88,6 +95,7 @@ function TimelineBar({ item, offsetPct, widthPct, totalDays, onReschedule }: {
         'timeline-bar',
         item.health && `timeline-bar--${item.health}`,
         item.critical && 'timeline-bar--critical',
+        item.group && 'timeline-bar--group',
         onReschedule && 'timeline-bar--editable',
         drag && 'timeline-bar--dragging',
       )}
@@ -105,6 +113,16 @@ function TimelineBar({ item, offsetPct, widthPct, totalDays, onReschedule }: {
           <span className="timeline-bar-handle timeline-bar-handle--end" onPointerDown={(e) => begin(e, 'end')} />
         </>
       )}
+      {onLinkStart && (['start', 'end'] as const).map((side) => (
+        <span
+          key={side}
+          className={`timeline-bar-link timeline-bar-link--${side}`}
+          data-link-key={item.key ?? String(item.id)}
+          data-link-side={side}
+          title={`Drag to another task to link from this task's ${side}`}
+          onPointerDown={(e) => onLinkStart(item.key ?? String(item.id), side, e)}
+        />
+      ))}
     </div>
   )
 }
@@ -113,14 +131,70 @@ function TimelineBar({ item, offsetPct, widthPct, totalDays, onReschedule }: {
 // bars' month range are left off rather than stretching the axis.
 // `range` pins the axis (the roadmap stacks one Timeline per lane and needs
 // their months to line up); without it the axis fits this list's own dates.
-export function Timeline({ items, milestones = [], range, links = [], onReschedule }: {
+export function Timeline({ items, milestones = [], range, links = [], onReschedule, onLink, canLink, zoom = 'month', shadeWeekends = false }: {
   items: Scheduled[]
   milestones?: TimelineMilestone[]
   range?: { start: Date; end: Date }
   links?: TimelineLink[]
   // Makes bars draggable (move / resize); absent keeps the chart read-only.
   onReschedule?: TimelineReschedule
+  // Shows link handles on each bar side; dropping on another bar's side calls this.
+  onLink?: TimelineLinkDraw
+  // Limits which rows get link handles (default: all).
+  canLink?: (item: Scheduled) => boolean
+  // Axis granularity; month (the default) fits the page, the others scroll sideways.
+  zoom?: GanttZoom
+  // Shade Saturdays and Sundays (only drawn at day and week zoom, where they are wide enough to see).
+  shadeWeekends?: boolean
 }) {
+  const rowsRef = useRef<HTMLDivElement>(null)
+  const [linking, setLinking] = useState<LinkDrag | null>(null)
+  const onLinkRef = useRef(onLink)
+  onLinkRef.current = onLink
+  const linkingRef = useRef(linking)
+  linkingRef.current = linking
+
+  // While a link is being dragged, follow the pointer and resolve the drop on release.
+  const isLinking = linking !== null
+  useEffect(() => {
+    if (!isLinking) return
+    const rowsTop = () => rowsRef.current?.getBoundingClientRect()
+    function move(e: PointerEvent) {
+      const box = rowsTop()
+      if (box) setLinking((l) => (l ? { ...l, x2: e.clientX - box.left, y2: e.clientY - box.top } : l))
+    }
+    function up(e: PointerEvent) {
+      const l = linkingRef.current
+      const target = (document.elementFromPoint(e.clientX, e.clientY) as HTMLElement | null)?.closest<HTMLElement>('[data-link-side]')
+      if (l && target?.dataset.linkKey && target.dataset.linkKey !== l.key) {
+        onLinkRef.current?.({ key: l.key, side: l.side }, { key: target.dataset.linkKey, side: target.dataset.linkSide as BarSide })
+      }
+      setLinking(null)
+    }
+    function cancel(e: KeyboardEvent) {
+      if (e.key === 'Escape') setLinking(null)
+    }
+    window.addEventListener('pointermove', move)
+    window.addEventListener('pointerup', up)
+    window.addEventListener('keydown', cancel)
+    return () => {
+      window.removeEventListener('pointermove', move)
+      window.removeEventListener('pointerup', up)
+      window.removeEventListener('keydown', cancel)
+    }
+  }, [isLinking])
+
+  function startLink(key: string, side: BarSide, e: ReactPointerEvent<HTMLElement>) {
+    e.stopPropagation()
+    e.preventDefault()
+    const box = rowsRef.current?.getBoundingClientRect()
+    const handle = e.currentTarget.getBoundingClientRect()
+    if (!box) return
+    const x = handle.left + handle.width / 2 - box.left
+    const y = handle.top + handle.height / 2 - box.top
+    setLinking({ key, side, x1: x, y1: y, x2: x, y2: y })
+  }
+
   const dated = items.filter((e): e is Dated => Boolean(e.start_date && e.target_date))
   const undated = items.filter((e) => !e.start_date || !e.target_date)
 
@@ -136,7 +210,10 @@ export function Timeline({ items, milestones = [], range, links = [], onReschedu
   const rangeStart = range?.start ?? startOfMonth(new Date(Math.min(...dated.map((e) => parseISO(e.start_date).getTime()))))
   const rangeEnd = range?.end ?? endOfMonth(new Date(Math.max(...dated.map((e) => parseISO(e.target_date).getTime()))))
   const totalDays = differenceInCalendarDays(rangeEnd, rangeStart) + 1
-  const months = eachMonthOfInterval({ start: rangeStart, end: rangeEnd })
+  const ticks = axisTicks(rangeStart, rangeEnd, zoom)
+  const weekends = shadeWeekends && (zoom === 'day' || zoom === 'week') ? weekendSpans(rangeStart, rangeEnd) : []
+  // Room for the title and count columns beside the track.
+  const chartWidth = trackWidthPx(totalDays, zoom)
 
   const markers = milestones
     .map((m) => ({ ...m, date: parseISO(m.target_date) }))
@@ -178,20 +255,20 @@ export function Timeline({ items, milestones = [], range, links = [], onReschedu
 
   return (
     <div className="view-timeline">
-      <div className="timeline-chart">
+      <div
+        className={classNames('timeline-chart', zoom !== 'month' && 'timeline-chart--zoomed')}
+        style={chartWidth ? { minWidth: `calc(${chartWidth}px + var(--timeline-side-columns))` } : undefined}
+      >
         <div className="timeline-months">
-          {months.map((m) => {
-            const daysInMonth = differenceInCalendarDays(endOfMonth(m), startOfMonth(m)) + 1
-            return (
-              <div
-                key={m.toISOString()}
-                style={{ width: `${(daysInMonth / totalDays) * 100}%` }}
-                className="timeline-month"
-              >
-                {format(m, 'MMM yyyy')}
-              </div>
-            )
-          })}
+          {ticks.map((tick) => (
+            <div
+              key={tick.key}
+              style={{ width: `${(tick.days / totalDays) * 100}%` }}
+              className={classNames('timeline-month', zoom === 'day' && 'timeline-month--day')}
+            >
+              {tick.label}
+            </div>
+          ))}
         </div>
         {markers.length > 0 && (
           <div className="timeline-row timeline-markers">
@@ -211,7 +288,14 @@ export function Timeline({ items, milestones = [], range, links = [], onReschedu
             <span className="timeline-count" />
           </div>
         )}
-        <div className="timeline-rows">
+        <div className="timeline-rows" ref={rowsRef}>
+          {weekends.length > 0 && (
+            <div className="timeline-today_area" aria-hidden="true">
+              {weekends.map((w) => (
+                <span key={w.offset} className="timeline-weekend" style={{ left: `${(w.offset / totalDays) * 100}%`, width: `${(w.days / totalDays) * 100}%` }} />
+              ))}
+            </div>
+          )}
           {todayPct !== null && (
             <div className="timeline-today_area" aria-hidden="true">
               <span className="timeline-today" style={{ left: `${todayPct}%` }} title="Today" />
@@ -231,18 +315,23 @@ export function Timeline({ items, milestones = [], range, links = [], onReschedu
               ))}
             </div>
           )}
+          {linking && (
+            <svg className="timeline-linking" aria-hidden="true">
+              <line x1={linking.x1} y1={linking.y1} x2={linking.x2} y2={linking.y2} className="timeline-linking-line" />
+            </svg>
+          )}
           {bars.map(({ item, offsetPct, widthPct }) => {
             return (
               <div key={item.key ?? item.id} className="timeline-row">
                 <span
-                  className="timeline-title"
+                  className={classNames('timeline-title', item.group && 'timeline-title--group')}
                   title={item.title}
                   style={item.depth ? { paddingLeft: `${item.depth}rem` } : undefined}
                 >
                   {item.title}
                 </span>
                 <div className="timeline-track">
-                  <TimelineBar item={item} offsetPct={offsetPct} widthPct={widthPct} totalDays={totalDays} onReschedule={onReschedule} />
+                  <TimelineBar item={item} offsetPct={offsetPct} widthPct={widthPct} totalDays={totalDays} onReschedule={item.group ? undefined : onReschedule} onLinkStart={onLink && (!canLink || canLink(item)) ? startLink : undefined} />
                 </div>
                 <span className="timeline-count">
                   {item.done_tasks_count}/{item.tasks_count}

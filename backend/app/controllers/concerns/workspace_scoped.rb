@@ -3,6 +3,9 @@
 # without it the user's personal workspace is used. A workspace the user
 # does not belong to is "not found" (404), never revealed.
 #
+# A user's role in a workspace is the highest of their own membership and the
+# teams they are on (see WorkspaceAccess).
+#
 # Writes (anything but GET/HEAD) require the member role or above. Lookups
 # that start from a record id (documents, tables, shares) search every
 # workspace the user belongs to and check the role of the record's own
@@ -26,13 +29,19 @@ module WorkspaceScoped
     end
   end
 
+  # { workspace_id => WorkspaceAccess } for every workspace the user reaches.
+  def workspace_access
+    @workspace_access ||= WorkspaceAccess.for(current_user)
+  end
+
+  # The user's access (role, can_write?, can_manage?) in the workspace; a
+  # workspace they cannot reach is "not found".
   def membership_in(workspace_id)
-    @memberships ||= current_user.workspace_memberships.index_by(&:workspace_id)
-    @memberships.fetch(workspace_id.to_i) { raise ActiveRecord::RecordNotFound }
+    workspace_access.fetch(workspace_id.to_i) { raise ActiveRecord::RecordNotFound }
   end
 
   def accessible_workspace_ids
-    current_user.workspace_memberships.pluck(:workspace_id)
+    workspace_access.keys
   end
 
   def read_request?

@@ -2,7 +2,8 @@ module Api
   module V1
     class FoldersController < ApplicationController
       include WorkspaceScoped
-      before_action :set_folder, only: [ :show, :update, :destroy, :contents ]
+      include SpaceTransferable
+      before_action :set_folder, only: [ :show, :update, :destroy, :contents, :copy, :move ]
 
       def index
         if params[:archived] == "1"
@@ -91,7 +92,27 @@ module Api
         end
       end
 
+      # Duplicates the folder, its subfolders and their documents into a folder
+      # of any Space the user can write in; the original stays where it is.
+      def copy
+        with_space_transfer do |transfer|
+          render json: transferred(transfer.copy_folder(@folder)), status: :created
+        end
+      end
+
+      # Moves the folder, its subfolders and their documents into a folder of
+      # another Space.
+      def move
+        with_space_transfer do |transfer|
+          render json: transferred(transfer.move_folder(@folder))
+        end
+      end
+
       private
+
+      def transferred(folder)
+        { workspace_id: folder.workspace_id, folder: FolderBlueprint.render_as_hash(folder, root_folder_id: folder.workspace.root_folder_id) }
+      end
 
       def set_folder
         @folder = current_workspace.folders.find(params[:id])
