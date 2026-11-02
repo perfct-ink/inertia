@@ -86,3 +86,14 @@ export function galleryFiles(documents: Document[], filter: GalleryFilter): Docu
     })
     .sort((a, b) => b.updated_at.localeCompare(a.updated_at) || a.title.localeCompare(b.title))
 }
+// A heading in a document, for the outline: its level (1-6), text and position in the editor.
+export interface OutlineHeading { level: number; text: string; pos: number }
+
+// The heading the cursor is under: the last one at or before `selectionPos`, or
+// the first when the cursor is above them all; -1 when there are none.
+export function activeHeadingIndex(headings: OutlineHeading[], selectionPos: number): number {
+  if (headings.length === 0) return -1
+  let active = 0
+  headings.forEach((h, i) => { if (h.pos <= selectionPos) active = i })
+  return active
+}

@@ -67,6 +67,7 @@ import { useWorkspace } from '@/api/workspace'
 import { uploadFile } from '@/api/uploads'
 import FileViewer from '@/components/FileViewer'
 import Breadcrumb from '@/components/Breadcrumb'
+import DocumentOutline from '@/components/DocumentOutline'
 import TableEditor from '@/components/editors/TableEditor'
 import SpreadsheetEditor from '@/components/editors/SpreadsheetEditor'
 import HeadingLinkPicker from '@/components/HeadingLinkPicker'
@@ -709,6 +710,7 @@ export default function DocumentScreen() {
             }
           }}
         >
+          <DocumentOutline editor={editor} />
           <div className={`document-page ${tasksOnly ? 'document-page--tasks_only' : ''}`}>
             <EditorContent editor={editor} />
           </div>
