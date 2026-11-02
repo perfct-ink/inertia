@@ -72,3 +72,17 @@ export function filePreview(contentType: string | undefined): FilePreview {
 
 // One byte formatter for the app (shared with embedded attachments).
 export { formatBytes } from './attachment'
+
+export type GalleryFilter = 'all' | 'image' | 'video' | 'pdf' | 'other'
+
+// The files of a Space, narrowed to one kind (images, videos, PDFs or everything
+// else), newest first. Documents that aren't uploaded files are left out.
+export function galleryFiles(documents: Document[], filter: GalleryFilter): Document[] {
+  return documents
+    .filter((d) => d.doc_type === 'file')
+    .filter((d) => {
+      const kind = filePreview(d.file?.content_type)
+      return filter === 'all' || (filter === 'other' ? kind === 'none' : kind === filter)
+    })
+    .sort((a, b) => b.updated_at.localeCompare(a.updated_at) || a.title.localeCompare(b.title))
+}

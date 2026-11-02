@@ -7,6 +7,7 @@ import DocTypeIcon from '@/components/DocTypeIcon'
 import { useWorkspace } from '@/api/workspace'
 import WorkspaceLayout from '@/components/WorkspaceLayout'
 import CreateItem from '@/components/CreateItem'
+import FilesGallery from '@/components/FilesGallery'
 import { spaceFiles, searchSpaceFiles, filterSpaceFiles, projectsOf, type SpaceFileFilters } from '@/data/folder'
 import { useWorkspaceMembers } from '@/api/workspaceMembers'
 import { useWorkspaceStore } from '@/store/workspaces'
@@ -40,6 +41,7 @@ export default function DocumentsIndexScreen() {
     ownerId: ownerFilter === '' ? undefined : Number(ownerFilter),
   }
   const projects = projectsOf(workspace?.folders ?? [])
+  const [mode, setMode] = useState<'list' | 'gallery'>('list')
 
   const files = spaceFiles(workspace?.folders ?? [])
   const allDocs: Row[] = filterSpaceFiles(searchSpaceFiles(files, query), filters).map((f) => ({
@@ -110,6 +112,11 @@ export default function DocumentsIndexScreen() {
               {members.map((m) => <option key={m.user_id} value={m.user_id}>{m.user.name}</option>)}
             </Select>
           </div>
+          <div className="documents_index-modes" role="group" aria-label="View">
+            <Button aria-pressed={mode === 'list'} onClick={() => setMode('list')}>List</Button>
+            <Button aria-pressed={mode === 'gallery'} onClick={() => setMode('gallery')}>Gallery</Button>
+          </div>
+          {mode === 'gallery' && <FilesGallery documents={sortedDocs} />}
 
           {isLoading && (
             <div className="documents_index-loading">
@@ -117,11 +124,11 @@ export default function DocumentsIndexScreen() {
             </div>
           )}
 
-          {!isLoading && allDocs.length === 0 && (
+          {mode === 'list' && !isLoading && allDocs.length === 0 && (
             <p className="documents_index-empty">{files.length ? 'No files match your search.' : 'No files in this Space yet.'}</p>
           )}
 
-          {!isLoading && allDocs.length > 0 && (
+          {mode === 'list' && !isLoading && allDocs.length > 0 && (
             <div className="documents_index-table">
               <div className="documents_index-head">
                 <span className="documents_index-spacer" />
