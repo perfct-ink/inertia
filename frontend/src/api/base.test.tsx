@@ -89,6 +89,16 @@ describe('resource hooks', () => {
     expect(client.getQueryCache().find({ queryKey: ['things', { q: 'b' }] })?.isStale()).toBe(true)
   })
 
+  test('a disabled list stays idle, and a refetch interval reaches the query', async () => {
+    const idle = renderHook(() => useResourceList(things, { enabled: false }), { wrapper })
+    expect(idle.result.current.fetchStatus).toBe('idle')
+    expect(requests).toEqual([])
+
+    const { result } = renderHook(() => useResourceList(things, { params: { q: 'poll' }, refetchInterval: 1000 }), { wrapper })
+    await waitFor(() => expect(result.current.isSuccess).toBe(true))
+    expect(client.getQueryCache().find({ queryKey: ['things', { q: 'poll' }] })?.observers[0].options.refetchInterval).toBe(1000)
+  })
+
   test('find stays idle until there is an id', () => {
     const { result } = renderHook(() => useResourceFind(things, 0), { wrapper })
     expect(result.current.fetchStatus).toBe('idle')

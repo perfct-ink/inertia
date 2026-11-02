@@ -67,13 +67,20 @@ interface ListOptions {
   params?: object
   // Overrides the app default (60s) when the data changes with other models'.
   staleTime?: number
+  // false holds the fetch back until what the filters need has been chosen.
+  enabled?: boolean
+  // Refetch every this many milliseconds while the page is visible, for lists
+  // left on screen that other people change.
+  refetchInterval?: number
 }
 
-export function useResourceList<Model, Create, Update>(resource: ApiResource<Model, Create, Update>, { params, staleTime }: ListOptions = {}) {
+export function useResourceList<Model, Create, Update>(resource: ApiResource<Model, Create, Update>, { params, staleTime, enabled, refetchInterval }: ListOptions = {}) {
   return useQuery<Model[]>({
     queryKey: params ? [resource.queryKey, params] : [resource.queryKey],
     queryFn: () => resource.list(params),
     ...(staleTime !== undefined && { staleTime }),
+    ...(enabled !== undefined && { enabled }),
+    ...(refetchInterval !== undefined && { refetchInterval }),
   })
 }
 

@@ -47,6 +47,7 @@ import {
   ListChecks,
   ListPlus,
   ListFilter,
+  ClipboardList,
   Code2,
   Minus,
   Table as TableIcon,
@@ -76,6 +77,7 @@ import Video from '@/extensions/Video'
 import { AudioAttachment, FileAttachment } from '@/extensions/Attachment'
 import { WorkspaceTaskList } from '@/extensions/WorkspaceTaskList'
 import { WorkspaceTaskItem } from '@/extensions/WorkspaceTaskItem'
+import { TaskEmbed } from '@/extensions/TaskEmbed'
 import './ProseMirror.scss'
 import './DocumentScreen.scss'
 import { useTabsStore } from '@/store/tabs'
@@ -210,6 +212,7 @@ export default function DocumentScreen() {
       ListItem,
       WorkspaceTaskList,
       WorkspaceTaskItem,
+      TaskEmbed.configure({ documentId: docId }),
       CodeBlock,
       HorizontalRule.extend({
         addCommands() {
@@ -647,6 +650,11 @@ export default function DocumentScreen() {
             onClick={() => setTasksOnly((v) => !v)}
             active={tasksOnly}
             title="Tasks only"
+          />
+          <ToolbarBtn
+            icon={<ClipboardList className="document-toolbar_icon" />}
+            onClick={() => editor.chain().focus().insertContent({ type: 'taskEmbed' }).run()}
+            title="Embed live tasks"
           />
           <Divider />
           <ToolbarBtn

@@ -2,7 +2,7 @@ import {
   addDays, differenceInCalendarDays, eachDayOfInterval, eachMonthOfInterval, eachQuarterOfInterval, eachWeekOfInterval, eachYearOfInterval,
   endOfMonth, endOfQuarter, endOfWeek, endOfYear, format, isWeekend, parseISO, startOfMonth, startOfQuarter, startOfWeek, startOfYear,
 } from 'date-fns'
-import type { MilestoneHealth } from '@/types'
+import type { DependencyKind, MilestoneHealth, TaskDependency } from '@/types'
 import { compareByTargetDate } from '@/data/milestone'
 import { groupBy } from '@/util/collection'
 
@@ -69,6 +69,11 @@ export interface GanttGroups {
 // Row key for a task on the Gantt, so dependency links can name their ends.
 export function ganttTaskKey(taskId: number): string {
   return `task-${taskId}`
+}
+
+// The arrows between task rows for these dependencies, named by row key.
+export function ganttLinks(dependencies: TaskDependency[]): { from: string; to: string; kind: DependencyKind }[] {
+  return dependencies.map((d) => ({ from: ganttTaskKey(d.predecessor_id), to: ganttTaskKey(d.successor_id), kind: d.kind }))
 }
 
 type Span = { start: string; end: string }
@@ -310,13 +315,15 @@ export function trackWidthPx(totalDays: number, zoom: GanttZoom): number {
   return Math.round(totalDays * ZOOM_DAY_PX[zoom])
 }
 // Flat rows for a timeline of tasks: every task with a due date, ordered by
-// start (or due date when it has no start), each one level deep.
-export function flatTaskRows(tasks: TaskLike[]): Scheduled[] {
+// start (or due date when it has no start), each one level deep. `critical`
+// flags the tasks on the driving path.
+export function flatTaskRows(tasks: TaskLike[], critical: Set<number> = new Set()): Scheduled[] {
   const dated = tasks.filter((t) => t.due_date)
   return dated
     .map((t) => ({
       id: -t.id,
       key: ganttTaskKey(t.id),
+      critical: critical.has(t.id),
       title: t.title,
       start_date: t.start_date ?? t.due_date,
       target_date: t.due_date,

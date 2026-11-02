@@ -1,4 +1,4 @@
-import { axisTicks, donePercent, groupGanttRows, milestoneMarkers, planningGanttRows, shiftedRange, trackWidthPx, weekendSpans, type Scheduled, flatTaskRows } from './schedule'
+import { axisTicks, donePercent, ganttLinks, groupGanttRows, milestoneMarkers, planningGanttRows, shiftedRange, trackWidthPx, weekendSpans, type Scheduled, flatTaskRows } from './schedule'
 
 const item = (tasks_count: number, done_tasks_count: number) =>
   ({ id: 1, title: 'x', start_date: null, target_date: null, tasks_count, done_tasks_count }) as Scheduled
@@ -180,4 +180,18 @@ test('flatTaskRows lists dated tasks by start date, a task without a start sitti
   expect(rows.map((r) => r.title)).toEqual(['Early', 'Milestone-ish', 'Late'])
   expect(rows[1]).toMatchObject({ start_date: '2026-11-07', target_date: '2026-11-07', key: 'task-4' })
   expect(rows[0].done_tasks_count).toBe(1)
+  expect(rows.some((r) => r.critical)).toBe(false)
+  // Tasks on the driving path are flagged, by task id.
+  expect(flatTaskRows([task(1, 'A', '2026-11-01', '2026-11-02'), task(2, 'B', '2026-11-03', '2026-11-04')], new Set([2])).map((r) => r.critical)).toEqual([false, true])
+})
+
+test('ganttLinks names each arrow by the rows it joins', () => {
+  expect(ganttLinks([
+    { id: 1, predecessor_id: 4, successor_id: 7, kind: 'finish_to_start', created_at: '' },
+    { id: 2, predecessor_id: 7, successor_id: 9, kind: 'start_to_start', created_at: '' },
+  ])).toEqual([
+    { from: 'task-4', to: 'task-7', kind: 'finish_to_start' },
+    { from: 'task-7', to: 'task-9', kind: 'start_to_start' },
+  ])
+  expect(ganttLinks([])).toEqual([])
 })
