@@ -15,7 +15,8 @@ module Api
       end
 
       def create
-        retrospective = current_workspace.retrospectives.build(create_params.merge(created_by: current_user))
+        retrospective = current_workspace.retrospectives.build(create_params)
+        retrospective.created_by = current_user
         if retrospective.save
           render json: RetrospectiveBlueprint.render(retrospective), status: :created
         else

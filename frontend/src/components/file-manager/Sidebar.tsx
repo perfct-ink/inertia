@@ -12,7 +12,7 @@ import AppearanceDialog from '@/components/AppearanceDialog'
 import {
   FolderPlus, CheckSquare, FilePlus, FileText,
   Table as TableIcon, Pin, Folder, Loader2, CalendarDays,
-  Plus, Target, Flag, FolderKanban, ClipboardList, Milestone, Rocket, ListTree, Map as MapIcon, Goal, Users, Archive, ArchiveRestore, Keyboard, Download, UserCheck, GanttChart, Lightbulb, Network, Disc3, CalendarRange, Table2, Rows3,
+  Plus, Target, Flag, FolderKanban, ClipboardList, Milestone, Rocket, ListTree, Map as MapIcon, Goal, Users, Archive, ArchiveRestore, Keyboard, Download, UserCheck, GanttChart, Lightbulb, Network, Disc3, CalendarRange, Table2, Rows3, MessagesSquare,
 } from 'lucide-react'
 import { useWorkspace } from '@/api/workspace'
 import { useArchivedFolders, useCreateFolder, usePinFolder, useUpdateFolder } from '@/api/folders'
@@ -296,6 +296,7 @@ export default function Sidebar() {
           <RailButton icon={GanttChart} label="Timeline" active={location.pathname === '/timeline'} onClick={() => navigate('/timeline')} />
           <RailButton icon={Milestone} label="Milestones" active={location.pathname === '/milestones'} onClick={() => navigate('/milestones')} />
           <RailButton icon={Rocket} label="Sprints" active={location.pathname === '/sprints'} onClick={() => navigate('/sprints')} />
+          <RailButton icon={MessagesSquare} label="Retrospectives" active={location.pathname.startsWith('/retrospectives')} onClick={() => navigate('/retrospectives')} />
           <RailButton icon={Lightbulb} label="Ideas" active={location.pathname === '/ideas'} onClick={() => navigate('/ideas')} />
           <RailButton icon={Network} label="Objectives map" active={location.pathname === '/objectives-map'} onClick={() => navigate('/objectives-map')} />
           <RailButton icon={Disc3} label="Releases" active={location.pathname === '/releases'} onClick={() => navigate('/releases')} />

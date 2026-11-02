@@ -6,7 +6,8 @@ module Api
 
       def create
         retrospective = current_workspace.retrospectives.find(params.require(:retro_card)[:retrospective_id])
-        card = retrospective.cards.build(card_params.merge(author: current_user))
+        card = retrospective.cards.build(card_params)
+        card.author = current_user
         if card.save
           render json: card_json(card), status: :created
         else

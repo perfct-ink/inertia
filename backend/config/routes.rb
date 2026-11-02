@@ -110,6 +110,11 @@ Rails.application.routes.draw do
       end
       resources :objectives, only: [ :index, :create, :update, :destroy ]
       resources :key_results, only: [ :create, :update, :destroy ]
+      resources :retrospectives, only: [ :index, :show, :create, :update, :destroy ]
+      resources :retro_cards, only: [ :create, :update, :destroy ] do
+        resource :vote, only: [ :create, :destroy ], controller: "retro_votes"
+        resource :task, only: [ :create ], controller: "retro_card_tasks"
+      end
       resources :project_requests, only: [ :index, :create, :update, :destroy ] do
         member do
           post :approve

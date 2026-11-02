@@ -1,6 +1,7 @@
 module Api
   module V1
-    # Add (PUT-like, repeatable) or take back the caller's vote on a card.
+    # Casts or takes back the caller's own vote on a card. Casting twice is
+    # harmless: there is one vote per person per card.
     class RetroVotesController < ApplicationController
       include WorkspaceScoped
       before_action :set_card

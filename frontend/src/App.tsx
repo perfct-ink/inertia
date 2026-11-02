@@ -13,6 +13,8 @@ import EpicPlanScreen from '@/view/epic_plan/EpicPlanScreen'
 import InitiativesScreen from '@/view/initiatives/InitiativesScreen'
 import MilestonesScreen from '@/view/milestones/MilestonesScreen'
 import SprintsScreen from '@/view/sprints/SprintsScreen'
+import RetrospectivesScreen from '@/view/retrospectives/RetrospectivesScreen'
+import RetrospectiveBoardScreen from '@/view/retrospective_board/RetrospectiveBoardScreen'
 import HierarchyScreen from '@/view/hierarchy/HierarchyScreen'
 import RoadmapScreen from '@/view/roadmap/RoadmapScreen'
 import OkrsScreen from '@/view/okrs/OkrsScreen'
@@ -142,6 +144,22 @@ export default function App() {
           element={
             <PrivateRoute>
               <SprintsScreen />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/retrospectives"
+          element={
+            <PrivateRoute>
+              <RetrospectivesScreen />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/retrospectives/:id"
+          element={
+            <PrivateRoute>
+              <RetrospectiveBoardScreen />
             </PrivateRoute>
           }
         />

@@ -1,0 +1,230 @@
+@use 'tokens' as *;
+
+@layer view {
+  .view-retrospective_board {
+    display: flex;
+    flex: 1 1 0%;
+    flex-direction: column;
+    overflow: hidden;
+
+    @at-root .retrospective_board-header {
+      @include page-header;
+    }
+
+    @at-root .retrospective_board-back {
+      display: flex;
+      align-items: center;
+      gap: space(1);
+      text-decoration: none;
+      @include muted-link;
+      @include text('sm');
+      @include transition(color);
+    }
+
+    @at-root .retrospective_board-heading {
+      flex: 1 1 12rem;
+      min-width: 0;
+    }
+
+    @at-root .retrospective_board-title {
+      font-size: 1.25rem;
+      line-height: 1.75rem;
+      font-weight: 600;
+      overflow-wrap: anywhere;
+    }
+
+    @at-root .retrospective_board-meta {
+      color: color(muted-foreground);
+      @include text('xs');
+    }
+
+    @at-root .retrospective_board-sprint {
+      color: inherit;
+      text-decoration: underline;
+      @include transition(color);
+
+      &:hover {
+        color: color(foreground);
+      }
+    }
+
+    @at-root .retrospective_board-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: space(2);
+    }
+
+    // The pressed state is a quiet teal outline; its size never changes.
+    .retrospective_board-actions [aria-pressed='true'] {
+      border-color: color(primary);
+      background: color(accent);
+      color: color(accent-foreground);
+    }
+
+    @at-root .retrospective_board-icon {
+      flex-shrink: 0;
+      width: space(4);
+      height: space(4);
+
+      &--spin {
+        @include spin;
+      }
+    }
+
+    @at-root .retrospective_board-body {
+      flex: 1 1 0%;
+      overflow-y: auto;
+    }
+
+    @at-root .retrospective_board-empty {
+      padding: space(10) space(4);
+      color: color(muted-foreground);
+      text-align: center;
+      @include text('sm');
+    }
+
+    // Columns share the width on a wide screen and stack on a phone: each is
+    // at least 16rem, or the whole width when that does not fit.
+    @at-root .retrospective_board-columns {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr));
+      gap: space(3);
+      align-items: start;
+      @include page-padding;
+    }
+
+    @at-root .retrospective_board-column {
+      display: flex;
+      flex-direction: column;
+      gap: space(2);
+      min-width: 0;
+      padding: space(3);
+      border-width: 1px;
+      border-color: color(border);
+      border-radius: radius('lg');
+      background: color(muted);
+    }
+
+    @at-root .retrospective_board-column_header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: space(2);
+    }
+
+    @at-root .retrospective_board-column_title {
+      font-weight: 600;
+      @include text('sm');
+    }
+
+    @at-root .retrospective_board-count {
+      color: color(muted-foreground);
+      @include text('xs');
+    }
+
+    @at-root .retrospective_board-hint {
+      color: color(muted-foreground);
+      font-style: italic;
+      @include text('xs');
+    }
+
+    @at-root .retrospective_board-cards {
+      display: flex;
+      flex-direction: column;
+      gap: space(2);
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    @at-root .retrospective_board-card {
+      display: flex;
+      flex-direction: column;
+      gap: space(2);
+      padding: space(3);
+      border-width: 1px;
+      border-color: color(border);
+      border-radius: radius('md');
+      background: color(card);
+    }
+
+    @at-root .retrospective_board-card_body {
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+      @include text('sm');
+    }
+
+    @at-root .retrospective_board-card_footer {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: space(1) space(2);
+    }
+
+    // 40px touch targets (a vote, edit and delete are tapped on a phone).
+    @at-root .retrospective_board-vote,
+    .retrospective_board-icon_button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: space(1);
+      min-width: space(10);
+      min-height: space(10);
+      padding: 0 space(2);
+      border: 1px solid transparent;
+      border-radius: radius('md');
+      color: color(muted-foreground);
+      @include text('sm');
+      @include transition(background-color, border-color, color);
+
+      // A vote you cast stays outlined; its size never changes.
+      &[aria-pressed='true'] {
+        border-color: color(primary);
+        background: color(accent);
+        color: color(accent-foreground);
+      }
+
+      &:hover:not(:disabled) {
+        background: color(accent);
+        color: color(foreground);
+      }
+    }
+
+    @at-root .retrospective_board-icon_button--danger:hover:not(:disabled) {
+      color: palette('red-500');
+    }
+
+    // Compact picker that fills the room left in the footer.
+    @at-root .retrospective_board-move {
+      flex: 1 1 6rem;
+      min-width: 0;
+      @include field-underline;
+      @include text('sm');
+    }
+
+    @at-root .retrospective_board-make_task {
+      align-self: flex-start;
+      display: inline-flex;
+      align-items: center;
+      gap: space(1);
+    }
+
+    @at-root .retrospective_board-task {
+      display: flex;
+      align-items: center;
+      gap: space(1);
+      color: color(muted-foreground);
+      @include text('xs');
+    }
+
+    @at-root .retrospective_board-composer {
+      display: flex;
+      gap: space(2);
+
+      .ui-input {
+        flex: 1 1 0%;
+        min-width: 0;
+      }
+    }
+  }
+}

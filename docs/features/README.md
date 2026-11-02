@@ -60,3 +60,4 @@ One file per implemented feature, written from the code (see `docs/rules/feature
 | Feature folders: a folder flagged as holding features | [feature_folders.md](feature_folders.md) |
 | Cards view of a folder's tasks | [cards_view.md](cards_view.md) |
 | Task priority, effort estimate and story points | [task_estimates.md](task_estimates.md) |
+| Retrospective boards: templates, cards, votes, action items to tasks | [retrospective_boards.md](retrospective_boards.md) |
