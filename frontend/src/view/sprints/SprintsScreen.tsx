@@ -6,6 +6,8 @@ import { ProgressBar } from '@/components/Timeline'
 import { useSprints, useCreateSprint, useUpdateSprint, useDeleteSprint } from '@/api/sprints'
 import { PLANNING_STATUSES } from '@/data/milestone'
 import { donePercent } from '@/data/schedule'
+import { Link } from 'react-router-dom'
+import { sprintBoardPath } from '@/data/sprint'
 import { usePageTitle } from '@/hooks/usePageTitle'
 import type { PlanningStatus } from '@/types'
 import './SprintsScreen.scss'
@@ -114,6 +116,7 @@ export default function SprintsScreen() {
                 </div>
 
                 <ProgressBar percent={donePercent(sprint)} />
+                <Link to={sprintBoardPath(sprint.id)} className="sprints-board_link">Open board</Link>
                 <p className="sprints-card-counts">
                   {sprint.done_tasks_count}/{sprint.tasks_count} tasks done
                 </p>

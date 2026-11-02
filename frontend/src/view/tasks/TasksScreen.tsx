@@ -24,6 +24,7 @@ import {
 } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import WorkspaceLayout from '@/components/WorkspaceLayout'
+import SprintHeader from '@/components/SprintHeader'
 import { useTasks, useCreateTask, useUpdateTask, useDeleteTask, type TaskFilters } from '@/api/tasks'
 import { useWorkspace } from '@/api/workspace'
 import { useEpics } from '@/api/epics'
@@ -517,6 +518,10 @@ export default function TasksScreen() {
               </Button>
             )}
           </div>
+        )}
+
+        {view === 'kanban' && filters.sprint_id && sprints.find((sp) => sp.id === filters.sprint_id) && (
+          <SprintHeader sprint={sprints.find((sp) => sp.id === filters.sprint_id) as Sprint} />
         )}
 
         {isLoading && (
