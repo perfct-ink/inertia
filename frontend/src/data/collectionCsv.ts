@@ -11,6 +11,9 @@ const MAX_REPORTED_ISSUES = 100
 // Types a new field made from a column can have (relations need another
 // collection, so they are never guessed or offered).
 export const NEW_FIELD_TYPES: DataType[] = ['text', 'integer', 'number', 'boolean', 'date', 'datetime']
+export const NEW_FIELD_TYPE_LABELS: Partial<Record<DataType, string>> = {
+  text: 'Text', integer: 'Integer', number: 'Number', boolean: 'Boolean', date: 'Date', datetime: 'Date and time',
+}
 
 // What happens to one CSV column on import.
 export type ColumnTarget =
@@ -152,6 +155,21 @@ export function suggestTargets(rows: string[][], fields: TableField[]): ColumnTa
 }
 
 // ── Checking and shaping an import ───────────────────────────────────────────
+
+// A column's target as the value of its <select>: "skip", "field:12" or "new:date".
+export function targetValue(target: ColumnTarget): string {
+  if (target.kind === 'skip') return 'skip'
+  return target.kind === 'field' ? `field:${target.fieldId}` : `new:${target.dataType}`
+}
+
+// The target a <select> value stands for. Choosing a type for a column keeps
+// the name already given to its new field (or the header, or "Column N").
+export function targetFromValue(value: string, current: ColumnTarget, header: string, index: number): ColumnTarget {
+  if (value.startsWith('field:')) return { kind: 'field', fieldId: Number(value.slice('field:'.length)) }
+  if (!value.startsWith('new:')) return { kind: 'skip' }
+  const name = current.kind === 'new' ? current.name : header.trim() || `Column ${index + 1}`
+  return { kind: 'new', name, dataType: value.slice('new:'.length) as DataType }
+}
 
 // Turns the parsed file and the chosen targets into the request body, or the
 // reasons it cannot be imported. Row numbers match a spreadsheet (the header is

@@ -39,7 +39,7 @@ class TableCsvImport
     raise Error, "At most #{MAX_CELLS} cells can be imported at once." if @rows.size * @columns.size > MAX_CELLS
     @rows.each_with_index do |row, index|
       next if row.is_a?(Array) && row.size == @columns.size
-      raise Error, "Row #{index + 2} does not have a value for each of the #{@columns.size} columns."
+      raise Error, "Row #{index + 2} does not have a value for each of the #{@columns.size} #{"column".pluralize(@columns.size)}."
     end
   end
 

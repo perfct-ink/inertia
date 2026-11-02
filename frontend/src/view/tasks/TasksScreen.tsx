@@ -1,7 +1,7 @@
 import { Button, Input, Select, classNames } from '@/components/ui'
 import { useState, useRef, useEffect } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { Plus, X, ArrowRight, Play, Loader2, Search, Filter, Target } from 'lucide-react'
+import { Plus, X, ArrowRight, Play, Loader2, Search, Filter, Target, Download } from 'lucide-react'
 import {
   DndContext,
   DragOverlay,
@@ -29,6 +29,9 @@ import { useWorkspace } from '@/api/workspace'
 import { useEpics } from '@/api/epics'
 import { useSprints } from '@/api/sprints'
 import { useMilestones } from '@/api/milestones'
+import { TASK_STATUS_LABELS } from '@/data/task'
+import { tasksToCsvRows } from '@/data/taskCsv'
+import { downloadCsv } from '@/util/download'
 import type { Task, Epic, Sprint, Milestone } from '@/types'
 import './TasksScreen.scss'
 import { usePageTitle } from '@/hooks/usePageTitle'
@@ -408,6 +411,11 @@ export default function TasksScreen() {
     setLocalTasksState(tasks)
   }
 
+  // The tasks the current filters and search show, as a spreadsheet-ready file.
+  function exportTasks() {
+    downloadCsv('Tasks', tasksToCsvRows(tasks, { epics, sprints, milestones }), 'tasks')
+  }
+
   function createTaskWith(status: Task['status'], fields: NewTaskFields) {
     createTask.mutate({ ...fields, status, folder_id: filters.folder_id })
   }
@@ -448,6 +456,15 @@ export default function TasksScreen() {
               <Filter className="tasks-icon" />
               Filter
               {(filters.folder_id || filters.status || filters.epic_id || filters.sprint_id) && <span className="tasks-filter_dot" />}
+            </Button>
+            <Button
+              onClick={exportTasks}
+              disabled={tasks.length === 0}
+              title="Download the tasks shown here as a CSV file"
+              className="tasks-filter_button"
+            >
+              <Download className="tasks-icon" />
+              Export CSV
             </Button>
           </div>
         </div>

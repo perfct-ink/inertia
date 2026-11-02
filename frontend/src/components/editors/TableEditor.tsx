@@ -11,6 +11,7 @@ import { useTabsStore } from '@/store/tabs'
 import './TableEditor.scss'
 import { usePageTitle } from '@/hooks/usePageTitle'
 import { flattenFolders } from '@/data/folder'
+import CollectionCsv from '@/components/editors/CollectionCsv'
 
 const types: DataType[] = ['text', 'integer', 'number', 'boolean', 'date', 'datetime', 'relation']
 const inputClass = 'table_editor-input'
@@ -119,6 +120,7 @@ export default function TableEditor({ doc }: { doc: Document }) {
         <Input aria-label="Collection title" className="table_editor-title" value={title} onChange={e => setTitle(e.target.value)} onBlur={rename} onKeyDown={e => { if (e.key === 'Enter') e.currentTarget.blur() }} />
         <Button variant="secondary" disabled={busy} onClick={() => fieldForm()} className="table_editor-add_field_button">Add field</Button>
       </div>
+      <CollectionCsv docId={doc.id} title={title} data={data} />
       <div className="table_editor-summary">{data?.records.length ?? 0} records · {data?.fields.length ?? 0} fields · Dates and times use UTC. Save each record after editing.</div>
       <FormError message={error || (loadError ? errorMessage(loadError) : null)} className="table_editor-error" />
       {showForm && <form onSubmit={saveField} className="table_editor-field_form">

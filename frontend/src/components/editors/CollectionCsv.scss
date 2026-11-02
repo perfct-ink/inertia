@@ -1,0 +1,122 @@
+@use 'tokens' as *;
+
+// Import and export buttons above a collection's records, and the import dialog.
+// The dialog is portaled outside the view root, so its classes are @at-root.
+@layer app.components {
+  .view-collection_csv {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: space(2);
+    padding: space(3) space(6) 0;
+
+    @at-root .collection_csv-button {
+      display: inline-flex;
+      align-items: center;
+      gap: space(1.5);
+    }
+
+    @at-root .collection_csv-icon {
+      width: space(4);
+      height: space(4);
+    }
+
+    @at-root .collection_csv-status {
+      @include text('sm');
+
+      color: color(muted-foreground);
+    }
+  }
+
+  .collection_csv-body {
+    display: flex;
+    flex-direction: column;
+    gap: space(3);
+    margin-top: space(3);
+  }
+
+  // Visually hidden: the "Choose a CSV file" button opens it.
+  .collection_csv-file_input {
+    position: absolute;
+    width: 1px;
+    min-height: 0;
+    height: 1px;
+    padding: 0;
+    border: 0;
+    overflow: hidden;
+    clip-path: inset(50%);
+  }
+
+  .collection_csv-file {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: space(2);
+  }
+
+  .collection_csv-file_name {
+    min-width: 0;
+    overflow-wrap: anywhere;
+    @include text('sm');
+
+    color: color(muted-foreground);
+  }
+
+  .collection_csv-hint,
+  .collection_csv-summary,
+  .collection_csv-note {
+    @include text('sm');
+
+    color: color(muted-foreground);
+  }
+
+  .collection_csv-note {
+    color: color(foreground);
+  }
+
+  .collection_csv-columns {
+    display: flex;
+    flex-direction: column;
+    gap: space(3);
+    max-height: 45vh;
+    padding: space(2);
+    overflow-y: auto;
+    border-width: 1px;
+    border-radius: radius('md');
+  }
+
+  .collection_csv-column {
+    display: flex;
+    flex-direction: column;
+    gap: space(1);
+    min-width: 0;
+  }
+
+  .collection_csv-column_name {
+    overflow-wrap: anywhere;
+    @include text('sm');
+
+    font-weight: 500;
+  }
+
+  .collection_csv-column_sample {
+    overflow-wrap: anywhere;
+    @include text('xs');
+
+    color: color(muted-foreground);
+  }
+
+  .collection_csv-issues {
+    padding: space(2) space(3);
+    border-width: 1px;
+    border-color: color(danger);
+    border-radius: radius('md');
+    color: color(danger);
+    list-style: disc inside;
+    @include text('sm');
+  }
+
+  .collection_csv-actions {
+    margin-top: 0;
+  }
+}

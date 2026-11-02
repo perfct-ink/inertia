@@ -2,7 +2,7 @@ import type { TableData, TableField } from '@/api/tables'
 import { parseCsv, toCsv } from '@/util/csv'
 import {
   MAX_IMPORT_CELLS, MAX_IMPORT_ROWS, collectionToCsvRows, convertCell, guessFieldType,
-  normalizeDateTime, planImport, suggestTargets, type ColumnTarget,
+  normalizeDateTime, planImport, suggestTargets, targetFromValue, targetValue, type ColumnTarget,
 } from './collectionCsv'
 
 const fields: TableField[] = [
@@ -140,6 +140,26 @@ describe('suggestTargets', () => {
 
   it('returns nothing for an empty file', () => {
     expect(suggestTargets([], fields)).toEqual([])
+  })
+})
+
+describe('targetValue and targetFromValue', () => {
+  it('round trip every kind of target', () => {
+    const skip: ColumnTarget = { kind: 'skip' }
+    const field: ColumnTarget = { kind: 'field', fieldId: 12 }
+    const created: ColumnTarget = { kind: 'new', name: 'City', dataType: 'date' }
+    expect(targetValue(skip)).toBe('skip')
+    expect(targetValue(field)).toBe('field:12')
+    expect(targetValue(created)).toBe('new:date')
+    expect(targetFromValue('skip', field, 'City', 0)).toEqual(skip)
+    expect(targetFromValue('field:12', skip, 'City', 0)).toEqual(field)
+    expect(targetFromValue('new:date', created, 'City', 0)).toEqual(created)
+  })
+
+  it('keeps the name of a new field when its type changes, else uses the header', () => {
+    expect(targetFromValue('new:integer', { kind: 'new', name: 'Seats', dataType: 'text' }, 'Seats', 2)).toEqual({ kind: 'new', name: 'Seats', dataType: 'integer' })
+    expect(targetFromValue('new:text', { kind: 'skip' }, ' City ', 1)).toEqual({ kind: 'new', name: 'City', dataType: 'text' })
+    expect(targetFromValue('new:text', { kind: 'skip' }, '', 3)).toEqual({ kind: 'new', name: 'Column 4', dataType: 'text' })
   })
 })
 
