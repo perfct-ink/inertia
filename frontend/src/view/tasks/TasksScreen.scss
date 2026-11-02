@@ -310,6 +310,13 @@
       }
     }
 
+    @at-root .tasks-card_actions {
+      display: flex;
+      align-items: center;
+      gap: space(1);
+      margin-left: auto;
+    }
+
     @at-root .tasks-next {
       margin-left: auto;
       @include muted-link;

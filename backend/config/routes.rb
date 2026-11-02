@@ -67,6 +67,8 @@ Rails.application.routes.draw do
 
       resources :uploads, only: [ :create ]
 
+      resources :activities, only: [ :index ]
+
       resources :events do
         resources :event_tasks, only: [ :create, :destroy ]
       end

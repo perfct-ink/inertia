@@ -1,4 +1,8 @@
 class Document < ApplicationRecord
+  include Auditable
+
+  audited :title, :doc_type, :pinned, :folder, valueless: :content
+
   # MySQL rejects a DB-level DEFAULT on JSON columns ("BLOB, TEXT, GEOMETRY
   # or JSON column can't have a default value"), so the {} default that used
   # to live on the column (fine under Postgres' jsonb) has to live here
@@ -20,6 +24,11 @@ class Document < ApplicationRecord
   validates :doc_type, presence: true
 
   before_save :update_content_updated_at, if: :content_changed?
+
+  # Documents have no workspace of their own; the folder they sit in has.
+  def activity_workspace_id
+    folder.workspace_id
+  end
 
   private
 

@@ -3,6 +3,9 @@ class Initiative < ApplicationRecord
   include PlanningHealth
   include BelongsToMilestone
   include RoadmapHorizon
+  include Auditable
+
+  audited :title, :status, :start_date, :target_date, :horizon, :owner, :milestone, valueless: :description
 
   belongs_to :workspace
   has_many :epics, dependent: :nullify

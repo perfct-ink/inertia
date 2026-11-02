@@ -3,6 +3,7 @@ import { Workbook } from '@fortune-sheet/react'
 import './SpreadsheetEditor.scss'
 import { Loader2 } from 'lucide-react'
 import WorkspaceLayout from '@/components/WorkspaceLayout'
+import { ActivityButton } from '@/components/activity/ActivityButton'
 import { useDocument, useUpdateDocument } from '@/api/documents'
 import { useTabsStore } from '@/store/tabs'
 import type { Sheet } from '@fortune-sheet/core'
@@ -71,6 +72,7 @@ export default function SpreadsheetEditor({ docId }: { docId: number }) {
             {saveStatus === 'saving' && <Loader2 className="spreadsheet-status_spinner" />}
             {saveStatus === 'unsaved' && <div className="spreadsheet-status_dot" />}
           </div>
+          {doc && <ActivityButton subjectType="Document" subjectId={doc.id} title={doc.title} />}
         </div>
         <div className="spreadsheet-body">
           <Workbook

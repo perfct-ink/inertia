@@ -231,3 +231,19 @@ export interface FolderContents {
   events: WorkspaceEvent[]
   epics: Epic[]
 }
+
+// The kinds of item that have an activity log (Activity::SUBJECT_TYPES on the server).
+export type ActivitySubjectType = 'Task' | 'Document' | 'Epic' | 'Initiative' | 'Milestone'
+
+export type ActivityValue = string | boolean | null
+
+// One entry of an item's log. `changes` maps a field to its [from, to] values
+// (an association is the record's name), or to null when the field changed
+// but its value is not kept (descriptions, a document's content).
+export interface Activity {
+  id: number
+  action: 'created' | 'updated'
+  actor_name: string | null
+  created_at: string
+  changes: Record<string, [ActivityValue, ActivityValue] | null>
+}

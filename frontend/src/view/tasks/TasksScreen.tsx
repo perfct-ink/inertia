@@ -24,6 +24,7 @@ import {
 } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import WorkspaceLayout from '@/components/WorkspaceLayout'
+import { ActivityButton } from '@/components/activity/ActivityButton'
 import { useTasks, useCreateTask, useUpdateTask, useDeleteTask, type TaskFilters } from '@/api/tasks'
 import { useWorkspace } from '@/api/workspace'
 import { useEpics } from '@/api/epics'
@@ -94,14 +95,19 @@ function TaskCard({ task, onNext, onNavigate, epicTitle, overlay }: Omit<CardPro
             {task.document.title}
           </Button>
         )}
-        {onNext && !overlay && (
-          <Button
-            onClick={onNext}
-            className="tasks-next"
-            title={`Move to ${STATUS_LABEL[NEXT_STATUS[task.status]!]}`}
-          >
-            <ArrowRight className="tasks-icon" />
-          </Button>
+        {!overlay && (
+          <div className="tasks-card_actions">
+            <ActivityButton subjectType="Task" subjectId={task.id} title={task.title} />
+            {onNext && (
+              <Button
+                onClick={onNext}
+                className="tasks-next"
+                title={`Move to ${STATUS_LABEL[NEXT_STATUS[task.status]!]}`}
+              >
+                <ArrowRight className="tasks-icon" />
+              </Button>
+            )}
+          </div>
         )}
       </div>
     </div>
@@ -636,6 +642,7 @@ export default function TasksScreen() {
                       </Button>
                     )}
                     <div className="tasks-row_actions">
+                      <ActivityButton subjectType="Task" subjectId={task.id} title={task.title} className="tasks-row_action" />
                       <Button
                         onClick={() => updateTask.mutate({ id: task.id, status: 'todo' })}
                         title="Move to To Do"

@@ -1,6 +1,9 @@
 class Milestone < ApplicationRecord
   include PlanningItem
   include PlanningHealth
+  include Auditable
+
+  audited :title, :status, :target_date, :owner, :folder, valueless: :description
 
   belongs_to :workspace
   belongs_to :folder, optional: true

@@ -1,6 +1,10 @@
 class Task < ApplicationRecord
   include SameWorkspace
   include BelongsToMilestone
+  include Auditable
+
+  audited :title, :status, :start_date, :due_date, :assignee, :epic, :sprint, :milestone, :folder, :document, :parent,
+    valueless: :description
 
   belongs_to :workspace
   belongs_to :document, optional: true

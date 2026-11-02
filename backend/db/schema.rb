@@ -10,9 +10,22 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_18_000003) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_01_200001) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
+
+  create_table "activities", force: :cascade do |t|
+    t.bigint "workspace_id", null: false
+    t.string "subject_type", null: false
+    t.bigint "subject_id", null: false
+    t.bigint "actor_id"
+    t.integer "action", null: false
+    t.json "field_changes", default: {}, null: false
+    t.datetime "created_at", null: false
+    t.index ["actor_id"], name: "index_activities_on_actor_id"
+    t.index ["subject_type", "subject_id", "created_at"], name: "index_activities_on_subject"
+    t.index ["workspace_id"], name: "index_activities_on_workspace_id"
+  end
 
   create_table "ai_runs", force: :cascade do |t|
     t.bigint "workspace_id", null: false
@@ -363,6 +376,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_18_000003) do
     t.index ["user_id"], name: "index_workspaces_on_user_id"
   end
 
+  add_foreign_key "activities", "users", column: "actor_id", on_delete: :nullify
+  add_foreign_key "activities", "workspaces"
   add_foreign_key "ai_runs", "ai_workers"
   add_foreign_key "ai_runs", "tasks"
   add_foreign_key "ai_runs", "workspaces"

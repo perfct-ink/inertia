@@ -2,6 +2,7 @@ class ApplicationController < ActionController::API
   include Pundit::Authorization
 
   before_action :authenticate_user!
+  before_action :set_current_user
 
   rescue_from Pundit::NotAuthorizedError, with: :forbidden
   rescue_from ActiveRecord::RecordNotFound, with: :not_found
@@ -15,6 +16,11 @@ class ApplicationController < ActionController::API
 
   def current_user
     @bypass_user || super
+  end
+
+  # Who the activity log (Auditable) attributes this request's edits to.
+  def set_current_user
+    Current.user = current_user
   end
 
   def bypass_auth?

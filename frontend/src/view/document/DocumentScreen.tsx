@@ -58,6 +58,7 @@ import {
   Image as ImageIcon,
 } from 'lucide-react'
 import WorkspaceLayout from '@/components/WorkspaceLayout'
+import { ActivityButton } from '@/components/activity/ActivityButton'
 import { useDocument, useUpdateDocument } from '@/api/documents'
 import { useCreateTask } from '@/api/tasks'
 import { useWorkspace } from '@/api/workspace'
@@ -552,6 +553,8 @@ export default function DocumentScreen() {
             hidden
             onChange={handleMediaInputChange}
           />
+          <Divider />
+          <ActivityButton subjectType="Document" subjectId={doc.id} title={doc.title || 'Untitled'} className="document-toolbar_button" />
           <div className="document-status">
             {saveStatus === 'saving' && <Loader2 className="document-status_spinner" />}
             {saveStatus === 'unsaved' && <div className="document-status_dot" />}
