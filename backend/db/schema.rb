@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_18_000003) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_01_210001) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -39,6 +39,32 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_18_000003) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["workspace_id"], name: "index_ai_workers_on_workspace_id"
+  end
+
+  create_table "comment_mentions", force: :cascade do |t|
+    t.bigint "comment_id", null: false
+    t.bigint "user_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["comment_id", "user_id"], name: "index_comment_mentions_on_comment_id_and_user_id", unique: true
+    t.index ["comment_id"], name: "index_comment_mentions_on_comment_id"
+    t.index ["user_id"], name: "index_comment_mentions_on_user_id"
+  end
+
+  create_table "comments", force: :cascade do |t|
+    t.bigint "workspace_id", null: false
+    t.string "commentable_type", null: false
+    t.bigint "commentable_id", null: false
+    t.bigint "author_id"
+    t.bigint "parent_id"
+    t.text "body", null: false
+    t.datetime "edited_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["author_id"], name: "index_comments_on_author_id"
+    t.index ["commentable_type", "commentable_id"], name: "index_comments_on_commentable"
+    t.index ["parent_id"], name: "index_comments_on_parent_id"
+    t.index ["workspace_id"], name: "index_comments_on_workspace_id"
   end
 
   create_table "documents", force: :cascade do |t|
@@ -367,6 +393,11 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_18_000003) do
   add_foreign_key "ai_runs", "tasks"
   add_foreign_key "ai_runs", "workspaces"
   add_foreign_key "ai_workers", "workspaces"
+  add_foreign_key "comment_mentions", "comments"
+  add_foreign_key "comment_mentions", "users"
+  add_foreign_key "comments", "comments", column: "parent_id"
+  add_foreign_key "comments", "users", column: "author_id", on_delete: :nullify
+  add_foreign_key "comments", "workspaces"
   add_foreign_key "documents", "folders"
   add_foreign_key "documents", "users", column: "created_by_id"
   add_foreign_key "epics", "folders"

@@ -1,0 +1,230 @@
+@use 'tokens' as *;
+
+// Comments ("Updates") on a task, epic, initiative or milestone, shown in a
+// dialog opened from the item. Colors come from theme variables, so dark mode
+// needs nothing extra.
+@layer app.components {
+  .comments {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    gap: space(3);
+    min-height: 0;
+    margin-top: space(3);
+
+    &-list {
+      display: flex;
+      flex-direction: column;
+      gap: space(4);
+      min-height: 0;
+      overflow-y: auto;
+      overscroll-behavior: contain;
+    }
+
+    &-thread {
+      display: flex;
+      flex-direction: column;
+      gap: space(2);
+    }
+
+    // Replies sit under their comment, indented behind a rule; the box for
+    // writing a reply lines up with them without the rule.
+    &-replies,
+    &-reply_box {
+      display: flex;
+      flex-direction: column;
+      gap: space(3);
+      margin-left: space(3);
+      padding-left: space(3);
+    }
+
+    &-replies {
+      border-left-width: 2px;
+    }
+
+    &-item {
+      display: flex;
+      flex-direction: column;
+      gap: space(1);
+      min-width: 0;
+
+      &-header {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: baseline;
+        gap: 0 space(2);
+        @include text('sm');
+      }
+
+      &-author {
+        font-weight: 600;
+      }
+
+      &-time,
+      &-edited {
+        color: color(muted-foreground);
+        @include text('xs');
+      }
+
+      // Comment text stays selectable and keeps the writer's line breaks.
+      &-body {
+        overflow-wrap: anywhere;
+        white-space: pre-wrap;
+        @include text('sm');
+      }
+
+      &-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: space(1);
+      }
+    }
+
+    // A highlighted @Name. Not clickable, so it has no hover state.
+    &-mention {
+      border-radius: radius('sm');
+      background: color(accent);
+      color: color(accent-foreground);
+      font-weight: 500;
+    }
+
+    &-action {
+      align-self: flex-start;
+      color: color(muted-foreground);
+
+      &:hover:not(:disabled) {
+        color: color(foreground);
+      }
+
+      &--delete:hover:not(:disabled) {
+        color: palette('red-500');
+      }
+
+      @media (pointer: coarse) {
+        min-height: space(10);
+      }
+    }
+
+    &-composer {
+      display: flex;
+      flex-direction: column;
+      gap: space(2);
+
+      &-field {
+        resize: vertical;
+      }
+
+      &-buttons {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+        gap: space(2);
+      }
+    }
+
+    // The @mention suggestions, directly under the text box.
+    &-suggestions {
+      max-height: space(40);
+      overflow-y: auto;
+      border-width: 1px;
+      border-radius: radius('md');
+      background: color(card);
+    }
+
+    &-suggestion {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: baseline;
+      gap: 0 space(2);
+      min-height: space(10);
+      padding: space(2) space(3);
+      cursor: pointer;
+      @include text('sm');
+      @include transition(background-color);
+
+      &:hover,
+      &--active {
+        background: color(accent);
+      }
+
+      &-name {
+        font-weight: 500;
+      }
+
+      &-email {
+        color: color(muted-foreground);
+        @include text('xs');
+      }
+    }
+
+    &-empty,
+    &-hint {
+      color: color(muted-foreground);
+      @include text('sm');
+    }
+
+    &-empty {
+      padding: space(4) 0;
+      text-align: center;
+    }
+
+    &-spinner {
+      align-self: center;
+      width: space(5);
+      height: space(5);
+      @include spin;
+    }
+  }
+
+  // The button on a card or row that opens the dialog.
+  .comments-trigger {
+    display: inline-flex;
+    flex-shrink: 0;
+  }
+
+  .comments-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: space(8);
+    height: space(8);
+    border-radius: radius('md');
+    @include muted-link;
+    @include transition(background-color, color);
+
+    &:hover {
+      background: color(accent);
+    }
+
+    &:focus-visible {
+      @include focus-ring;
+    }
+
+    @media (pointer: coarse) {
+      width: space(10);
+      height: space(10);
+    }
+  }
+
+  .comments-icon {
+    width: space(4);
+    height: space(4);
+  }
+
+  // The dialog is wider than the default and scrolls inside its list, so the
+  // box never grows past the screen (375px wide phones included).
+  .comments-dialog {
+    display: flex;
+    flex-direction: column;
+    max-width: 36rem;
+    max-height: calc(100dvh - #{space(8)});
+
+    .ui-modal-title {
+      overflow-wrap: anywhere;
+    }
+
+    .ui-modal-actions {
+      flex-shrink: 0;
+    }
+  }
+}

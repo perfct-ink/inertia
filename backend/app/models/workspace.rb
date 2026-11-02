@@ -6,6 +6,7 @@ class Workspace < ApplicationRecord
   belongs_to :root_folder, class_name: "Folder", optional: true
   has_many :folders, dependent: :destroy
   has_many :documents, through: :folders
+  has_many :comments, dependent: :destroy
   has_many :task_dependencies, dependent: :delete_all
   has_many :tasks, dependent: :destroy
   has_many :ai_workers, dependent: :destroy

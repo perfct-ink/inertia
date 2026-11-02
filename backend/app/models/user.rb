@@ -9,6 +9,9 @@ class User < ApplicationRecord
   has_many :workspace_memberships, dependent: :destroy
   has_many :accessible_workspaces, through: :workspace_memberships, source: :workspace
   has_many :created_workspaces, -> { where(personal: false) }, class_name: "Workspace", dependent: :restrict_with_error
+  # Comments outlive their author (the foreign key nullifies); mentions do not.
+  has_many :authored_comments, class_name: "Comment", foreign_key: :author_id, inverse_of: :author, dependent: :nullify
+  has_many :comment_mentions, dependent: :delete_all
   has_many :social_identities, dependent: :destroy
   has_many :social_login_attempts, dependent: :destroy
   after_create :create_default_workspace

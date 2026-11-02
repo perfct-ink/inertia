@@ -38,7 +38,14 @@ en:
       workspace_membership:
         one: "Space membership"
         other: "Space memberships"
+      comment:
+        one: "Comment"
+        other: "Comments"
     attributes:
+      comment:
+        workspace: "Space"
+        commentable: "Item"
+        parent: "Reply target"
       folder:
         workspace: "Space"
       document:
