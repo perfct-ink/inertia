@@ -14,7 +14,6 @@ import Italic from '@tiptap/extension-italic'
 import Underline from '@tiptap/extension-underline'
 import Strike from '@tiptap/extension-strike'
 import Code from '@tiptap/extension-code'
-import Heading from '@tiptap/extension-heading'
 import BulletList from '@tiptap/extension-bullet-list'
 import OrderedList from '@tiptap/extension-ordered-list'
 import ListItem from '@tiptap/extension-list-item'
@@ -54,6 +53,7 @@ import {
   Undo2,
   Redo2,
   Link as LinkIcon,
+  Hash,
   Loader2,
   FileX,
   Paperclip,
@@ -67,6 +67,8 @@ import { useWorkspace } from '@/api/workspace'
 import { uploadFile } from '@/api/uploads'
 import TableEditor from '@/components/editors/TableEditor'
 import SpreadsheetEditor from '@/components/editors/SpreadsheetEditor'
+import HeadingLinkPicker from '@/components/HeadingLinkPicker'
+import { HeadingAnchor, assignHeadingIds, linkToHeading } from '@/extensions/HeadingAnchor'
 import Video from '@/extensions/Video'
 import { AudioAttachment, FileAttachment } from '@/extensions/Attachment'
 import { WorkspaceTaskList } from '@/extensions/WorkspaceTaskList'
@@ -77,6 +79,7 @@ import { useTabsStore } from '@/store/tabs'
 import { useAuthStore } from '@/store/auth'
 import { useNotificationStore } from '@/store/notifications'
 import { usePageTitle } from '@/hooks/usePageTitle'
+import { useFollowDocumentLinks, useScrollToHeading } from '@/hooks/useHeadingLinks'
 import { extractTitle, buildInitialContent, selectionTaskTitle, taskListContent } from '@/data/document'
 import { attachmentContent, pastedFiles, uploadProblem } from '@/data/attachment'
 import { colorForUserId } from '@/util/color'
@@ -131,6 +134,8 @@ export default function DocumentScreen() {
   const user = useAuthStore((s) => s.user)
   const [linkDialogOpen, setLinkDialogOpen] = useState(false)
   const [tasksOnly, setTasksOnly] = useState(false)
+  // The document's content while the "Link to a heading" dialog is open (null when closed).
+  const [headingLinkContent, setHeadingLinkContent] = useState<Record<string, unknown> | null>(null)
   const [saveStatus, setSaveStatus] = useState<'saved' | 'saving' | 'unsaved'>('saved')
   const pendingRef = useRef<{ title?: string; content?: Record<string, unknown> }>({})
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
@@ -196,7 +201,7 @@ export default function DocumentScreen() {
       Underline,
       Strike,
       Code,
-      Heading.configure({ levels: [1, 2, 3, 4, 5] as (1 | 2 | 3 | 4 | 5 | 6)[] }),
+      HeadingAnchor.configure({ levels: [1, 2, 3, 4, 5] as (1 | 2 | 3 | 4 | 5 | 6)[] }),
       BulletList,
       OrderedList,
       ListItem,
@@ -299,6 +304,11 @@ export default function DocumentScreen() {
   useEffect(() => {
     return () => { if (saveTimerRef.current) clearTimeout(saveTimerRef.current) }
   }, [])
+
+  // Heading links ("#/documents/12#launch-plan"): scroll to the heading once the
+  // editor is showing, and open links to documents without reloading the app.
+  useScrollToHeading(editor, !isLoading && doc?.doc_type === 'document')
+  const followDocumentLink = useFollowDocumentLinks()
 
   // Only the "leader" among currently-connected collaborators runs
   // syncTaskNodes — with real-time editing, two people finishing an
@@ -410,6 +420,12 @@ export default function DocumentScreen() {
     setRemovedLineTasks([])
   }, [docId])
 
+  // After each save, give any heading that has text but no id its permanent id, so
+  // links to it survive edits. Like task creation, only one collaborator does it.
+  function syncHeadingIds(currentEditor: ReturnType<typeof useEditor>) {
+    if (currentEditor && isTaskSyncLeader()) assignHeadingIds(currentEditor)
+  }
+
   // scheduleSaveRef lets the stale onUpdate closure always call the current scheduleSave
   const scheduleSaveRef = useRef<(changes: { title?: string; content?: Record<string, unknown> }) => void>(
     () => {},
@@ -431,6 +447,7 @@ export default function DocumentScreen() {
         if (toSave.title) updateTitle(String(docId), toSave.title)
         await syncTaskNodes(currentEditor)
         reconcileTaskLines(currentEditor, true)
+        syncHeadingIds(currentEditor)
       } catch {
         setSaveStatus('unsaved')
       }
@@ -653,6 +670,11 @@ export default function DocumentScreen() {
             title="Link"
           />
           <ToolbarBtn
+            icon={<Hash className="document-toolbar_icon" />}
+            onClick={() => setHeadingLinkContent(editor.getJSON() as Record<string, unknown>)}
+            title="Link to a heading"
+          />
+          <ToolbarBtn
             icon={<Paperclip className="document-toolbar_icon" />}
             onClick={() => fileInputRef.current?.click()}
             title="Insert image, video, audio or file"
@@ -676,6 +698,7 @@ export default function DocumentScreen() {
           onDrop={handleEditorDrop}
           onDragOver={(e) => e.preventDefault()}
           onClick={(e) => {
+            if (followDocumentLink(e)) return
             if (!(e.target as HTMLElement).closest('.ProseMirror')) {
               editor.commands.focus('end')
             }
@@ -706,6 +729,13 @@ export default function DocumentScreen() {
           </Button>
         </div>
       </Modal>
+      <HeadingLinkPicker
+        open={headingLinkContent !== null}
+        currentDocumentId={docId}
+        currentContent={headingLinkContent}
+        onClose={() => { setHeadingLinkContent(null); editor.commands.focus() }}
+        onPick={(picked) => { setHeadingLinkContent(null); linkToHeading(editor, picked) }}
+      />
       <PromptDialog
         open={linkDialogOpen}
         title="Link"

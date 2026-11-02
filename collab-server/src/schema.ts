@@ -21,7 +21,7 @@ import Italic from "@tiptap/extension-italic";
 import Underline from "@tiptap/extension-underline";
 import Strike from "@tiptap/extension-strike";
 import Code from "@tiptap/extension-code";
-import Heading from "@tiptap/extension-heading";
+import BaseHeading from "@tiptap/extension-heading";
 import BulletList from "@tiptap/extension-bullet-list";
 import OrderedList from "@tiptap/extension-ordered-list";
 import ListItem from "@tiptap/extension-list-item";
@@ -37,6 +37,15 @@ import TableHeader from "@tiptap/extension-table-header";
 // Matches DocumentPage.tsx:66 — document always starts with a heading
 // followed by body content.
 const CustomDocument = TiptapDocument.extend({ content: "heading block*" });
+
+// Matches frontend/src/extensions/HeadingAnchor.ts (shape only): every heading
+// can carry a stable `id`, which heading links use as their anchor. Without the
+// attribute here, seeding a document from Rails' JSON would drop the ids.
+const Heading = BaseHeading.extend({
+  addAttributes() {
+    return { ...this.parent?.(), id: { default: null } };
+  },
+});
 
 // Matches frontend/src/extensions/WorkspaceTaskList.ts exactly (shape only).
 const WorkspaceTaskList = Node.create({

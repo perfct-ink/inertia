@@ -19,4 +19,10 @@ describe("schema", () => {
       "bold", "code", "italic", "link", "strike", "underline",
     ]);
   });
+
+  it("keeps the stable id on headings, which heading links point at", () => {
+    const withId = schema.nodeFromJSON({ type: "heading", attrs: { level: 2, id: "launch-plan" } });
+    expect(withId.attrs).toEqual({ level: 2, id: "launch-plan" });
+    expect(schema.nodeFromJSON({ type: "heading", attrs: { level: 2 } }).attrs.id).toBeNull();
+  });
 });
