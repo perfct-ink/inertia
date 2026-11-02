@@ -65,6 +65,7 @@ import { reconcileTitle, removedLineTaskIds } from '@/data/taskLine'
 import type { Task } from '@/types'
 import { useWorkspace } from '@/api/workspace'
 import { uploadFile } from '@/api/uploads'
+import FileViewer from '@/components/FileViewer'
 import TableEditor from '@/components/editors/TableEditor'
 import SpreadsheetEditor from '@/components/editors/SpreadsheetEditor'
 import HeadingLinkPicker from '@/components/HeadingLinkPicker'
@@ -503,6 +504,7 @@ export default function DocumentScreen() {
     )
   }
 
+  if (doc?.doc_type === 'file') return <FileViewer doc={doc} />
   if (doc?.doc_type === 'table') return <TableEditor doc={doc} />
 
   if (doc?.doc_type === 'spreadsheet') {

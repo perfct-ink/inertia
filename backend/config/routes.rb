@@ -53,6 +53,9 @@ Rails.application.routes.draw do
           post :copy
           post :move
         end
+        resources :documents, shallow: true
+        resources :files, only: [ :create ]
+        member { get :contents }
       end
 
       resources :documents, only: [] do

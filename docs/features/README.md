@@ -19,6 +19,7 @@ One file per implemented feature, written from the code (see `docs/rules/feature
 | Checklist lines in documents become Space tasks | [document_task_lines.md](document_task_lines.md) |
 | Switching Spaces from the sidebar | [space_switcher.md](space_switcher.md) |
 | Collections naming (tables are called Collections in the UI) | [collections.md](collections.md) |
+<<<<<<< HEAD
 | Design principles applied across the web app (responsive, styled controls, hover, 150ms motion) | [design_principles.md](design_principles.md) |
 | PostgreSQL database: shared-postgres on Coolify | [postgresql_database.md](postgresql_database.md) |
 <<<<<<< HEAD
@@ -42,3 +43,6 @@ One file per implemented feature, written from the code (see `docs/rules/feature
 =======
 | Configurable statuses: rename and recolor the task statuses per Space or folder | [configurable_statuses.md](configurable_statuses.md) |
 >>>>>>> origin/backlog/configurable-statuses
+=======
+| Uploaded files: any file type as a folder item, with preview and download | [uploaded_files.md](uploaded_files.md) |
+>>>>>>> origin/backlog/upload-files-and-images-into-a-folder

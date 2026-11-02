@@ -1,5 +1,5 @@
 import type { Document } from '@/types'
-import { buildInitialContent, extractTitle, lastModified, selectionTaskTitle, taskListContent, DOC_TYPE_LABELS } from './document'
+import { buildInitialContent, extractTitle, filePreview, lastModified, selectionTaskTitle, taskListContent, DOC_TYPE_LABELS } from './document'
 
 test('extractTitle reads the leading heading', () => {
   expect(extractTitle(buildInitialContent('Launch plan'))).toBe('Launch plan')
@@ -30,4 +30,13 @@ test('taskListContent is a task list with one task line holding the text', () =>
     type: 'workspaceTaskList',
     content: [{ type: 'workspaceTaskItem', content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Export a report' }] }] }],
   })
+})
+
+test('filePreview picks how to show a file (SVG is downloaded, not rendered inline)', () => {
+  expect(filePreview('image/png')).toBe('image')
+  expect(filePreview('image/svg+xml')).toBe('none')
+  expect(filePreview('video/mp4')).toBe('video')
+  expect(filePreview('application/pdf')).toBe('pdf')
+  expect(filePreview('application/zip')).toBe('none')
+  expect(filePreview(undefined)).toBe('none')
 })

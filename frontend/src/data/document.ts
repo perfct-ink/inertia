@@ -36,6 +36,7 @@ export const DOC_TYPE_LABELS: Record<Document['doc_type'], string> = {
   document: 'Document',
   spreadsheet: 'Sheet',
   table: 'Collection',
+  file: 'File',
 }
 
 export function untitledTitle(type: Document['doc_type']): string {
@@ -57,3 +58,17 @@ export function selectionTaskTitle(selected: string): string | null {
   const title = selected.replace(/\s+/g, ' ').trim()
   return title || null
 }
+
+// How a file is shown: an image, a video, a PDF, or just a download.
+export type FilePreview = 'image' | 'video' | 'pdf' | 'none'
+
+export function filePreview(contentType: string | undefined): FilePreview {
+  if (!contentType) return 'none'
+  if (contentType.startsWith('image/') && contentType !== 'image/svg+xml') return 'image'
+  if (contentType.startsWith('video/')) return 'video'
+  if (contentType === 'application/pdf') return 'pdf'
+  return 'none'
+}
+
+// One byte formatter for the app (shared with embedded attachments).
+export { formatBytes } from './attachment'

@@ -1,7 +1,7 @@
-import { useQuery } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import api from '@/lib/api'
 import { useWorkspaceStore } from '@/store/workspaces'
-import type { Workspace } from '@/types'
+import type { Document, Workspace } from '@/types'
 
 // The singleton resource at /api/v1/workspace: the active workspace
 // (X-Workspace-Id) with its folders and documents. The workspaces the user
@@ -28,5 +28,26 @@ export function useWorkspace() {
   return useQuery<Workspace>({
     queryKey: [activeWorkspaceApi.queryKey],
     queryFn: () => activeWorkspaceApi.find(),
+  })
+}
+
+// Uploads files of any type into a folder, each as a file item of its own.
+// Refetches even when one fails, so the files that did upload appear.
+export function useUploadFiles() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: async ({ folderId, files }: { folderId: number; files: File[] }) => {
+      const created: Document[] = []
+      for (const file of files) {
+        const form = new FormData()
+        form.append('file', file)
+        created.push(await api.post<Document>(`/api/v1/folders/${folderId}/files`, form).then((r) => r.data))
+      }
+      return created
+    },
+    onSettled: () => {
+      qc.invalidateQueries({ queryKey: ['workspace'] })
+      qc.invalidateQueries({ queryKey: ['folder-contents'] })
+    },
   })
 }

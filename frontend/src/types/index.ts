@@ -1,10 +1,12 @@
 export interface Document {
   id: number
   title: string
-  doc_type: 'document' | 'spreadsheet' | 'table'
+  doc_type: 'document' | 'spreadsheet' | 'table' | 'file'
   folder_id: number
   // Who made the file; the "owner" shown and filtered on the All files page.
   created_by_id?: number
+  // For doc_type 'file': the uploaded file.
+  file?: { url: string; filename: string; content_type: string; byte_size: number } | null
   pinned: boolean
   created_at: string
   updated_at: string

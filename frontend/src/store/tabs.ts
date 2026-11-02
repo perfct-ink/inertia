@@ -1,10 +1,11 @@
 import { create } from 'zustand'
+import type { Document } from '@/types'
 
 export interface Tab {
   id: string
   path: string
   title: string
-  docType?: 'document' | 'spreadsheet' | 'table'
+  docType?: Document['doc_type']
 }
 
 interface TabsStore {
