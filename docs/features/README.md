@@ -47,3 +47,4 @@ One file per implemented feature, written from the code (see `docs/rules/feature
 | Uploaded files: any file type as a folder item, with preview and download | [uploaded_files.md](uploaded_files.md) |
 >>>>>>> origin/backlog/upload-files-and-images-into-a-folder
 | Appearance: light/dark/system and accent colour | [appearance.md](appearance.md) |
+| Document breadcrumb: Space > folders > document | [document_breadcrumb.md](document_breadcrumb.md) |

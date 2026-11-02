@@ -66,6 +66,7 @@ import type { Task } from '@/types'
 import { useWorkspace } from '@/api/workspace'
 import { uploadFile } from '@/api/uploads'
 import FileViewer from '@/components/FileViewer'
+import Breadcrumb from '@/components/Breadcrumb'
 import TableEditor from '@/components/editors/TableEditor'
 import SpreadsheetEditor from '@/components/editors/SpreadsheetEditor'
 import HeadingLinkPicker from '@/components/HeadingLinkPicker'
@@ -524,6 +525,8 @@ export default function DocumentScreen() {
   return (
     <WorkspaceLayout>
       <div className="view-document">
+        <Breadcrumb folderId={doc.folder_id} title={doc.title} />
+
         {/* Toolbar */}
         <div className="document-toolbar">
           <ToolbarBtn

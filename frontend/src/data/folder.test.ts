@@ -1,5 +1,5 @@
 import type { Document, Folder, SpaceFolder } from '@/types'
-import { documentsIn, filterSpaceFiles, flattenFolders, folderChoices, projectLastModified, projectsOf, searchSpaceFiles, spaceFiles } from './folder'
+import { documentsIn, filterSpaceFiles, flattenFolders, folderChoices, projectLastModified, projectsOf, searchSpaceFiles, spaceFiles, folderTrail } from './folder'
 
 const folder = (id: number, children: Folder[] = []) => ({ id, name: `F${id}`, children }) as unknown as Folder
 
@@ -93,4 +93,11 @@ test('folderChoices orders siblings by position, then name, and skips folders cu
   ]
   expect(folderChoices(folders).map((c) => c.label)).toEqual(['Top level', 'Alpha', 'Zeta'])
   expect(folderChoices([])).toEqual([])
+})
+
+test('folderTrail lists the folders from the top down, without Root', () => {
+  expect(folderTrail(tree(), 3).map((f) => f.name)).toEqual(['Messages', 'Design'])
+  expect(folderTrail(tree(), 2).map((f) => f.name)).toEqual(['Messages'])
+  expect(folderTrail(tree(), 1)).toEqual([])
+  expect(folderTrail(tree(), 99)).toEqual([])
 })
