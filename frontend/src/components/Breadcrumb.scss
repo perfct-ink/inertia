@@ -1,0 +1,48 @@
+@use 'tokens' as *;
+
+@layer app.components {
+  .ui-breadcrumb {
+    padding: space(2) space(4);
+    border-bottom-width: 1px;
+    color: color(muted-foreground);
+    @include text('sm');
+
+    @at-root .ui-breadcrumb-list {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: space(1);
+    }
+
+    @at-root .ui-breadcrumb-item {
+      display: flex;
+      align-items: center;
+      gap: space(1);
+      min-width: 0;
+    }
+
+    @at-root .ui-breadcrumb-separator {
+      width: space(3.5);
+      height: space(3.5);
+      flex-shrink: 0;
+    }
+
+    @at-root .ui-breadcrumb-link {
+      @include truncate;
+
+      max-width: 12rem;
+
+      &:hover {
+        color: color(foreground);
+        text-decoration: underline;
+      }
+    }
+
+    @at-root .ui-breadcrumb-current {
+      @include truncate;
+
+      max-width: 16rem;
+      color: color(foreground);
+    }
+  }
+}

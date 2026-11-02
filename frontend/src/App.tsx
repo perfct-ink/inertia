@@ -9,15 +9,29 @@ import DocumentsIndexScreen from '@/view/documents_index/DocumentsIndexScreen'
 import TasksScreen from '@/view/tasks/TasksScreen'
 import EventsScreen from '@/view/events/EventsScreen'
 import EpicsScreen from '@/view/epics/EpicsScreen'
+import EpicPlanScreen from '@/view/epic_plan/EpicPlanScreen'
 import InitiativesScreen from '@/view/initiatives/InitiativesScreen'
 import MilestonesScreen from '@/view/milestones/MilestonesScreen'
 import SprintsScreen from '@/view/sprints/SprintsScreen'
 import HierarchyScreen from '@/view/hierarchy/HierarchyScreen'
 import RoadmapScreen from '@/view/roadmap/RoadmapScreen'
 import OkrsScreen from '@/view/okrs/OkrsScreen'
+import SprintBoardScreen from '@/view/sprint_board/SprintBoardScreen'
+import ResourcesScreen from '@/view/resources/ResourcesScreen'
+import MyWorkScreen from '@/view/my_work/MyWorkScreen'
+import TimelineScreen from '@/view/timeline/TimelineScreen'
+import IdeasScreen from '@/view/ideas/IdeasScreen'
+import IoMapScreen from '@/view/io_map/IoMapScreen'
+import ReleasesScreen from '@/view/releases/ReleasesScreen'
+import CalendarScreen from '@/view/calendar/CalendarScreen'
+import PivotScreen from '@/view/pivot/PivotScreen'
+import TaskTableScreen from '@/view/task_table/TaskTableScreen'
 import ProjectsScreen from '@/view/projects/ProjectsScreen'
+import ProjectRequestsScreen from '@/view/project_requests/ProjectRequestsScreen'
 import FolderDetailScreen from '@/view/folder_detail/FolderDetailScreen'
 import SharedScreen from '@/view/shared/SharedScreen'
+import AppearanceEffect from '@/components/AppearanceEffect'
+import OnboardingSync from '@/components/onboarding/OnboardingSync'
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
   const token = useAuthStore((s) => s.token)
@@ -37,6 +51,8 @@ function DocumentRoute() {
 export default function App() {
   return (
     <>
+      <AppearanceEffect />
+      <OnboardingSync />
       <Routes>
         <Route path="/login" element={<LoginScreen />} />
         <Route path="/signup" element={<SignupScreen />} />
@@ -98,6 +114,14 @@ export default function App() {
           }
         />
         <Route
+          path="/plan"
+          element={
+            <PrivateRoute>
+              <EpicPlanScreen />
+            </PrivateRoute>
+          }
+        />
+        <Route
           path="/initiatives"
           element={
             <PrivateRoute>
@@ -130,10 +154,90 @@ export default function App() {
           }
         />
         <Route
+          path="/task-table"
+          element={
+            <PrivateRoute>
+              <TaskTableScreen />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/pivot"
+          element={
+            <PrivateRoute>
+              <PivotScreen />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/sprint-board"
+          element={
+            <PrivateRoute>
+              <SprintBoardScreen />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/my-work"
+          element={
+            <PrivateRoute>
+              <MyWorkScreen />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/timeline"
+          element={
+            <PrivateRoute>
+              <TimelineScreen />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/ideas"
+          element={
+            <PrivateRoute>
+              <IdeasScreen />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/objectives-map"
+          element={
+            <PrivateRoute>
+              <IoMapScreen />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/releases"
+          element={
+            <PrivateRoute>
+              <ReleasesScreen />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/calendar"
+          element={
+            <PrivateRoute>
+              <CalendarScreen />
+            </PrivateRoute>
+          }
+        />
+        <Route
           path="/okrs"
           element={
             <PrivateRoute>
               <OkrsScreen />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/resources"
+          element={
+            <PrivateRoute>
+              <ResourcesScreen />
             </PrivateRoute>
           }
         />
@@ -150,6 +254,14 @@ export default function App() {
           element={
             <PrivateRoute>
               <ProjectsScreen />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/project-requests"
+          element={
+            <PrivateRoute>
+              <ProjectRequestsScreen />
             </PrivateRoute>
           }
         />

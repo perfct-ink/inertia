@@ -9,4 +9,5 @@ class EpicBlueprint < Blueprinter::Base
   field :tasks_count
   field :done_tasks_count
   field :horizon
+  field :position
 end

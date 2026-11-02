@@ -1,6 +1,6 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import api from '@/lib/api'
 import type { Task } from '@/types'
+import { ApiResource, useResourceCreate, useResourceDelete, useResourceList, useResourceUpdate } from './base'
 
 export interface TaskFilters {
   q?: string
@@ -11,42 +11,39 @@ export interface TaskFilters {
   sprint_id?: number
 }
 
-export function useTasks(filters: TaskFilters = {}) {
-  return useQuery<Task[]>({
-    queryKey: ['tasks', filters],
-    queryFn: () => api.get('/api/v1/tasks', { params: filters }).then((r) => r.data),
-  })
+export interface NewTask {
+  title: string
+  status?: Task['status']
+  startDate?: string
+  dueDate?: string
+  documentId?: number
+  folder_id?: number
+  epicId?: number
+  sprintId?: number
+  milestoneId?: number
+  parentId?: number
+  priority?: Task['priority']
+  estimate_hours?: number
+  story_points?: number
 }
 
-export function useCreateTask() {
-  const qc = useQueryClient()
-  return useMutation({
-    mutationFn: (data: { title: string; status?: Task['status']; startDate?: string; dueDate?: string; documentId?: number; folder_id?: number; epicId?: number; sprintId?: number; milestoneId?: number; parentId?: number }) => {
-      const { documentId, startDate, dueDate, epicId, sprintId, milestoneId, parentId, ...rest } = data
-      const url = documentId ? `/api/v1/documents/${documentId}/tasks` : '/api/v1/tasks'
-      return api.post(url, { task: { ...rest, start_date: startDate, due_date: dueDate, epic_id: epicId, sprint_id: sprintId, milestone_id: milestoneId, parent_id: parentId } }).then((r) => r.data as Task)
-    },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['tasks'] }),
-  })
+export class TaskApi extends ApiResource<Task, NewTask> {
+  constructor() {
+    super('/api/v1/tasks', 'task', 'tasks')
+  }
+
+  // The form uses camelCase; a task made from a document is created under it.
+  create({ documentId, startDate, dueDate, epicId, sprintId, milestoneId, parentId, ...rest }: NewTask) {
+    const url = documentId ? `/api/v1/documents/${documentId}/tasks` : this.path
+    const task = { ...rest, start_date: startDate, due_date: dueDate, epic_id: epicId, sprint_id: sprintId, milestone_id: milestoneId, parent_id: parentId }
+    return api.post<Task>(url, this.body(task)).then((r) => r.data)
+  }
 }
 
-export function useUpdateTask() {
-  const qc = useQueryClient()
-  return useMutation({
-    mutationFn: ({ id, ...data }: Partial<Task> & { id: number }) =>
-      api.patch(`/api/v1/tasks/${id}`, { task: data }).then((r) => r.data as Task),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['tasks'] }),
-  })
-}
+export const taskApi = new TaskApi()
 
-export function useDeleteTask() {
-  const qc = useQueryClient()
-  return useMutation({
-    mutationFn: (id: number) => api.delete(`/api/v1/tasks/${id}`),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['tasks'] })
-      // The server drops a deleted task's Gantt links with it.
-      qc.invalidateQueries({ queryKey: ['task_dependencies'] })
-    },
-  })
-}
+export const useTasks = (filters: TaskFilters = {}) => useResourceList(taskApi, { params: filters })
+export const useCreateTask = () => useResourceCreate(taskApi)
+export const useUpdateTask = () => useResourceUpdate(taskApi)
+// The server drops a deleted task's Gantt links with it.
+export const useDeleteTask = () => useResourceDelete(taskApi, ['task_dependencies'])

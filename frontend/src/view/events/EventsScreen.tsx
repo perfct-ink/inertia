@@ -1,4 +1,4 @@
-import { Button, Input, classNames } from '@/components/ui'
+import { Button, Input, StatusDot, classNames, DatePicker } from '@/components/ui'
 import { useState, useRef, useEffect } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import {
@@ -19,9 +19,14 @@ import type { WorkspaceEvent, Task } from '@/types'
 import './EventsScreen.scss'
 import { usePageTitle } from '@/hooks/usePageTitle'
 import { dateStatus, todayISO } from '@/util/date'
+import { useStatusesForFolder } from '@/hooks/useBoardStatuses'
+import { taskFolderId } from '@/data/task'
 
-function StatusDot({ status }: { status: Task['status'] }) {
-  return <span className={`events-status events-status--${status}`} />
+// A task's status dot, in the colors its own folder's board gives that status.
+function TaskStatusDot({ task }: { task: Task }) {
+  const statusesFor = useStatusesForFolder()
+  const { label, color } = statusesFor(taskFolderId(task))[task.status]
+  return <StatusDot color={color} title={label} />
 }
 
 function EventTypeIcon({ type, size, tinted }: {
@@ -70,7 +75,7 @@ function TaskPicker({ availableTasks, onAdd, onClose }: {
             onClick={() => { onAdd(task); onClose() }}
             className="events-picker_item"
           >
-            <StatusDot status={task.status} />
+            <TaskStatusDot task={task} />
             <span>{task.title}</span>
           </Button>
         ))}
@@ -176,8 +181,7 @@ function EventSidebar({ state, onClose }: { state: SidebarState; onClose: () => 
           />
           <div className="events-form-field">
             <label className="events-muted">Date</label>
-            <Input
-              type="date"
+            <DatePicker
               required
               className="events-field_input"
               value={date}
@@ -287,7 +291,7 @@ function EventSidebar({ state, onClose }: { state: SidebarState; onClose: () => 
           <div className="events-sidebar-tasks">
             {event.tasks.map((task) => (
               <div key={task.id} className="events-task">
-                <StatusDot status={task.status} />
+                <TaskStatusDot task={task} />
                 <span
                   className="events-task-title"
                   onClick={() => task.document_id && navigate(`/documents/${task.document_id}`)}

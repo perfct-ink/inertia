@@ -5,7 +5,7 @@ module Api
       before_action :set_task, only: [ :update, :destroy ]
 
       def index
-        tasks = current_workspace.tasks.includes(:document)
+        tasks = current_workspace.tasks.includes(:document, :field_values)
         tasks = tasks.where(document_id: params[:document_id]) if params[:document_id]
         tasks = tasks.where(status: params[:status]) if params[:status]
         tasks = tasks.where(epic_id: params[:epic_id]) if params[:epic_id]
@@ -18,7 +18,7 @@ module Api
             .where("tasks.folder_id = :fid OR documents.folder_id = :fid", fid: params[:folder_id])
         end
         tasks = tasks.title_matching(params[:q]) if params[:q]
-        render json: TaskBlueprint.render(tasks, view: :with_document)
+        render json: TaskBlueprint.render(tasks, view: :with_document_and_field_values)
       end
 
       def create
@@ -31,11 +31,15 @@ module Api
         end
       end
 
+      # Moving a task's dates obeys the dependency mode of its folder (PM-14):
+      # strict can answer 422, flexible also moves the tasks that wait on it and
+      # lists them as `rescheduled`.
       def update
-        if @task.update(task_params)
-          render json: TaskBlueprint.render(@task)
+        scheduling = Scheduling::TaskUpdate.new(@task)
+        if scheduling.call(task_params)
+          render json: TaskBlueprint.render_as_hash(@task).merge(rescheduled: TaskBlueprint.render_as_hash(scheduling.rescheduled))
         else
-          render json: { errors: @task.errors.full_messages }, status: :unprocessable_entity
+          render json: { errors: scheduling.errors }, status: :unprocessable_entity
         end
       end
 
@@ -51,7 +55,7 @@ module Api
       end
 
       def task_params
-        params.require(:task).permit(:title, :description, :status, :start_date, :due_date, :position, :assignee_id, :epic_id, :sprint_id, :milestone_id, :folder_id, :parent_id)
+        params.require(:task).permit(:title, :description, :status, :start_date, :due_date, :position, :assignee_id, :epic_id, :sprint_id, :milestone_id, :folder_id, :parent_id, :priority, :estimate_hours, :story_points, :actual_story_points)
       end
     end
   end

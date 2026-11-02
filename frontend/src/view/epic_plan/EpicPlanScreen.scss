@@ -1,0 +1,287 @@
+@use 'tokens' as *;
+
+/* Epic planning only; header, loading and empty states come from PlanningScreen.scss. */
+
+@layer view {
+  .view-epic_plan {
+    .epic_plan-picker {
+      flex: 1 1 12rem;
+      min-width: 0;
+      max-width: 24rem;
+    }
+
+    /* The epic's tasks by status, with the backlog beside them on wide screens
+       and below them on a phone. */
+    @at-root .epic_plan-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+      gap: space(6);
+      @include page-padding;
+
+      @include up('lg') {
+        grid-template-columns: minmax(0, 1fr) space(80);
+        align-items: start;
+      }
+    }
+
+    @at-root .epic_plan-main {
+      display: flex;
+      flex-direction: column;
+      gap: space(4);
+      min-width: 0;
+    }
+
+    @at-root .epic_plan-meta {
+      color: color(muted-foreground);
+      @include text('xs');
+    }
+
+    @at-root .epic_plan-hint {
+      color: color(muted-foreground);
+      @include text('sm');
+    }
+
+    /* ── Rollup ── */
+    @at-root .epic_plan-summary {
+      display: flex;
+      flex-direction: column;
+      gap: space(2);
+      padding: space(4);
+      border-width: 1px;
+      border-radius: radius('lg');
+      background: color(card);
+
+      &_top {
+        display: flex;
+        align-items: center;
+        gap: space(2);
+      }
+
+      &_icon {
+        flex-shrink: 0;
+        width: space(4);
+        height: space(4);
+        color: color(muted-foreground);
+      }
+
+      &_title {
+        min-width: 0;
+        font-weight: 600;
+        overflow-wrap: anywhere;
+        @include text('lg');
+      }
+    }
+
+    @at-root .epic_plan-progress {
+      display: flex;
+      align-items: center;
+      gap: space(3);
+
+      > :first-child {
+        flex: 1 1 0%;
+      }
+
+      .epic_plan-meta {
+        flex-shrink: 0;
+      }
+    }
+
+    @at-root .epic_plan-epic_dates {
+      display: flex;
+      flex-wrap: wrap;
+      gap: space(2) space(4);
+    }
+
+    @at-root .epic_plan-field {
+      display: flex;
+      align-items: center;
+      gap: space(2);
+    }
+
+    @at-root .epic_plan-warning {
+      color: palette('orange-500');
+      @include text('xs');
+    }
+
+    /* ── Status sections and the backlog ── */
+    @at-root .epic_plan-section,
+    .epic_plan-backlog {
+      display: flex;
+      flex-direction: column;
+      gap: space(2);
+      padding: space(3);
+      border-radius: radius('lg');
+      background: color(muted, 0.5);
+
+      &--over {
+        outline: 2px dashed color(primary);
+        outline-offset: -2px;
+      }
+    }
+
+    @at-root .epic_plan-backlog {
+      @include up('lg') {
+        position: sticky;
+        top: 0;
+        max-height: calc(100dvh - #{space(32)});
+        overflow-y: auto;
+      }
+    }
+
+    @at-root .epic_plan-section_title {
+      display: flex;
+      align-items: center;
+      gap: space(2);
+      font-weight: 600;
+      @include text('sm');
+    }
+
+    @at-root .epic_plan-count {
+      color: color(muted-foreground);
+      font-weight: 400;
+      @include text('xs');
+    }
+
+    .epic_plan-search {
+      min-height: 0;
+      padding-block: space(1.5);
+
+      @media (pointer: coarse) {
+        min-height: space(10);
+      }
+    }
+
+    @at-root .epic_plan-list {
+      display: flex;
+      flex-direction: column;
+
+      > * + * {
+        border-top-width: 1px;
+      }
+    }
+
+    /* ── A task row: drag handle, title, then its controls (wrapping on a phone) ── */
+    @at-root .epic_plan-task {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: space(1) space(2);
+      padding: space(2) 0;
+
+      &--dragging {
+        opacity: 0.4;
+      }
+
+      &_title {
+        flex: 1 1 10rem;
+        min-width: 0;
+        overflow-wrap: anywhere;
+        @include text('sm');
+      }
+
+      &_status {
+        flex-shrink: 0;
+        color: color(muted-foreground);
+        @include text('xs');
+      }
+    }
+
+    @at-root .epic_plan-handle {
+      display: flex;
+      flex-shrink: 0;
+      align-items: center;
+      justify-content: center;
+      width: space(6);
+      height: space(8);
+      border-radius: radius('md');
+      color: color(muted-foreground);
+      cursor: grab;
+      touch-action: none;
+      @include transition(color, background-color);
+
+      &:hover {
+        background: color(accent);
+        color: color(foreground);
+      }
+
+      &:active {
+        cursor: grabbing;
+      }
+
+      svg {
+        width: space(4);
+        height: space(4);
+      }
+
+      @media (pointer: coarse) {
+        width: space(10);
+        height: space(10);
+      }
+    }
+
+    /* Compact controls; two classes beat the shared control styles. */
+    .epic_plan-status,
+    .epic_plan-date {
+      @include field-underline;
+
+      @include text('xs');
+
+      @media (pointer: coarse) {
+        min-height: space(10);
+      }
+    }
+
+    .epic_plan-status {
+      max-width: space(28);
+    }
+
+    @at-root .epic_plan-arrow {
+      color: color(muted-foreground);
+      @include text('xs');
+    }
+
+    @at-root .epic_plan-icon_button {
+      display: flex;
+      flex-shrink: 0;
+      align-items: center;
+      justify-content: center;
+      width: space(8);
+      height: space(8);
+      border-radius: radius('md');
+      color: color(muted-foreground);
+      @include transition(color, background-color);
+
+      &:hover {
+        background: color(accent);
+        color: color(foreground);
+      }
+
+      svg {
+        width: space(4);
+        height: space(4);
+      }
+
+      @media (pointer: coarse) {
+        width: space(10);
+        height: space(10);
+      }
+    }
+
+    @at-root .epic_plan-remove:hover {
+      color: palette('red-500');
+    }
+
+    /* The task following the pointer while it is dragged. */
+    @at-root .epic_plan-overlay {
+      max-width: space(72);
+      padding: space(2) space(3);
+      border-width: 1px;
+      border-radius: radius('lg');
+      background: color(card);
+      box-shadow: 0 8px 16px -4px rgb(0 0 0 / 0.2);
+      user-select: none;
+      @include text('sm');
+      @include truncate;
+    }
+  }
+}

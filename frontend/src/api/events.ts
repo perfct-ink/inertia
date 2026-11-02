@@ -1,54 +1,28 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import api from '@/lib/api'
 import type { WorkspaceEvent } from '@/types'
+import { ApiResource, useApiMutation, useResourceCreate, useResourceDelete, useResourceList, useResourceUpdate } from './base'
 
-export function useEvents() {
-  return useQuery<WorkspaceEvent[]>({
-    queryKey: ['events'],
-    queryFn: () => api.get('/api/v1/events').then((r) => r.data),
-  })
+export class EventApi extends ApiResource<WorkspaceEvent, { title: string; date: string; event_type: 'deadline' | 'milestone'; description?: string; start_time?: string; end_time?: string }> {
+  constructor() {
+    super('/api/v1/events', 'event', 'events')
+  }
+
+  addTask(eventId: number, taskId: number) {
+    return api.post<WorkspaceEvent>(`${this.url(eventId)}/event_tasks`, { task_id: taskId }).then((r) => r.data)
+  }
+
+  removeTask(eventId: number, taskId: number) {
+    return api.delete(`${this.url(eventId)}/event_tasks/${taskId}`)
+  }
 }
 
-export function useCreateEvent() {
-  const qc = useQueryClient()
-  return useMutation({
-    mutationFn: (data: { title: string; date: string; event_type: 'deadline' | 'milestone'; description?: string; start_time?: string; end_time?: string }) =>
-      api.post('/api/v1/events', { event: data }).then((r) => r.data as WorkspaceEvent),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['events'] }),
-  })
-}
+export const eventApi = new EventApi()
 
-export function useUpdateEvent() {
-  const qc = useQueryClient()
-  return useMutation({
-    mutationFn: ({ id, ...data }: Partial<WorkspaceEvent> & { id: number }) =>
-      api.patch(`/api/v1/events/${id}`, { event: data }).then((r) => r.data as WorkspaceEvent),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['events'] }),
-  })
-}
-
-export function useDeleteEvent() {
-  const qc = useQueryClient()
-  return useMutation({
-    mutationFn: (id: number) => api.delete(`/api/v1/events/${id}`),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['events'] }),
-  })
-}
-
-export function useAddTaskToEvent() {
-  const qc = useQueryClient()
-  return useMutation({
-    mutationFn: ({ eventId, taskId }: { eventId: number; taskId: number }) =>
-      api.post(`/api/v1/events/${eventId}/event_tasks`, { task_id: taskId }).then((r) => r.data as WorkspaceEvent),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['events'] }),
-  })
-}
-
-export function useRemoveTaskFromEvent() {
-  const qc = useQueryClient()
-  return useMutation({
-    mutationFn: ({ eventId, taskId }: { eventId: number; taskId: number }) =>
-      api.delete(`/api/v1/events/${eventId}/event_tasks/${taskId}`),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['events'] }),
-  })
-}
+export const useEvents = () => useResourceList(eventApi)
+export const useCreateEvent = () => useResourceCreate(eventApi)
+export const useUpdateEvent = () => useResourceUpdate(eventApi)
+export const useDeleteEvent = () => useResourceDelete(eventApi)
+export const useAddTaskToEvent = () =>
+  useApiMutation(({ eventId, taskId }: { eventId: number; taskId: number }) => eventApi.addTask(eventId, taskId), ['events'])
+export const useRemoveTaskFromEvent = () =>
+  useApiMutation(({ eventId, taskId }: { eventId: number; taskId: number }) => eventApi.removeTask(eventId, taskId), ['events'])
