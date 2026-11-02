@@ -331,3 +331,17 @@ export interface Idea {
   created_at: string
   updated_at: string
 }
+// Intermediate Objectives Map: one goal, critical success factors under it,
+// necessary conditions under those. progress is 0-100 or null when unmeasured.
+export type IoNodeKind = 'goal' | 'csf' | 'nc'
+export interface IoNode {
+  id: number
+  parent_id: number | null
+  kind: IoNodeKind
+  title: string
+  description: string | null
+  position: number
+  objective_id: number | null
+  initiative_id: number | null
+  progress: number | null
+}

@@ -21,6 +21,7 @@ import ResourcesScreen from '@/view/resources/ResourcesScreen'
 import MyWorkScreen from '@/view/my_work/MyWorkScreen'
 import TimelineScreen from '@/view/timeline/TimelineScreen'
 import IdeasScreen from '@/view/ideas/IdeasScreen'
+import IoMapScreen from '@/view/io_map/IoMapScreen'
 import ProjectsScreen from '@/view/projects/ProjectsScreen'
 import ProjectRequestsScreen from '@/view/project_requests/ProjectRequestsScreen'
 import FolderDetailScreen from '@/view/folder_detail/FolderDetailScreen'
@@ -177,6 +178,14 @@ export default function App() {
           element={
             <PrivateRoute>
               <IdeasScreen />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/objectives-map"
+          element={
+            <PrivateRoute>
+              <IoMapScreen />
             </PrivateRoute>
           }
         />

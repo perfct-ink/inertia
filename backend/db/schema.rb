@@ -175,6 +175,23 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_01_140001) do
     t.index ["workspace_id"], name: "index_initiatives_on_workspace_id"
   end
 
+  create_table "io_nodes", force: :cascade do |t|
+    t.bigint "workspace_id", null: false
+    t.bigint "parent_id"
+    t.integer "kind", default: 0, null: false
+    t.string "title", null: false
+    t.text "description"
+    t.integer "position", default: 0, null: false
+    t.bigint "objective_id"
+    t.bigint "initiative_id"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["initiative_id"], name: "index_io_nodes_on_initiative_id"
+    t.index ["objective_id"], name: "index_io_nodes_on_objective_id"
+    t.index ["parent_id"], name: "index_io_nodes_on_parent_id"
+    t.index ["workspace_id"], name: "index_io_nodes_on_workspace_id"
+  end
+
   create_table "jwt_denylists", force: :cascade do |t|
     t.string "jti", null: false
     t.datetime "exp", null: false
@@ -525,6 +542,10 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_01_140001) do
   add_foreign_key "initiatives", "milestones"
   add_foreign_key "initiatives", "users", column: "owner_id", on_delete: :nullify
   add_foreign_key "initiatives", "workspaces"
+  add_foreign_key "io_nodes", "initiatives", on_delete: :nullify
+  add_foreign_key "io_nodes", "io_nodes", column: "parent_id"
+  add_foreign_key "io_nodes", "objectives", on_delete: :nullify
+  add_foreign_key "io_nodes", "workspaces"
   add_foreign_key "key_results", "initiatives", on_delete: :nullify
   add_foreign_key "key_results", "objectives"
   add_foreign_key "milestones", "folders"

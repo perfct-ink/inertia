@@ -51,3 +51,4 @@ One file per implemented feature, written from the code (see `docs/rules/feature
 | My work: my open tasks by due date | [my_work.md](my_work.md) |
 | Task timeline: bars without dependencies | [task_timeline.md](task_timeline.md) |
 | Ideas: intake list, promote to an epic or initiative | [ideas.md](ideas.md) |
+| Objectives map: goal, critical success factors, necessary conditions | [objectives_map.md](objectives_map.md) |
