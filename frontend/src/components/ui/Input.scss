@@ -20,5 +20,17 @@
     &--checkable {
       @include checkable;
     }
+
+    // Number fields drop the browser's spin buttons, which differ per browser
+    // and are hard to hit on a phone; people type the number.
+    &[type='number'] {
+      appearance: textfield;
+
+      &::-webkit-inner-spin-button,
+      &::-webkit-outer-spin-button {
+        margin: 0;
+        appearance: none;
+      }
+    }
   }
 }

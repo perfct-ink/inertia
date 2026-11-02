@@ -1,0 +1,32 @@
+@use 'tokens' as *;
+
+@layer app.components {
+  .formula_input {
+    display: flex;
+    flex: 1 1 100%;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: space(3);
+
+    @at-root .formula_input-label {
+      flex: 1 1 space(64);
+      min-width: 0;
+      @include text('sm');
+
+      &--field {
+        flex: 0 1 space(56);
+      }
+    }
+
+    @at-root .formula_input-help {
+      flex: 1 1 100%;
+      @include text('xs');
+
+      color: color(muted-foreground);
+    }
+
+    @at-root .formula_input-problem {
+      flex: 1 1 100%;
+    }
+  }
+}

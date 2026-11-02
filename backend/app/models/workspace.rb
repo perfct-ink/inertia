@@ -3,20 +3,30 @@ class Workspace < ApplicationRecord
   belongs_to :user
   has_many :memberships, class_name: "WorkspaceMembership", dependent: :destroy
   has_many :members, through: :memberships, source: :user
+  has_many :teams, dependent: :destroy
   belongs_to :root_folder, class_name: "Folder", optional: true
+  # Before folders: the settings point at both.
+  has_many :task_status_settings, dependent: :delete_all
   has_many :folders, dependent: :destroy
   has_many :documents, through: :folders
   has_many :comments, dependent: :destroy
   has_many :task_dependencies, dependent: :delete_all
   has_many :tasks, dependent: :destroy
+  has_many :task_fields, dependent: :destroy
   has_many :ai_workers, dependent: :destroy
   has_many :ai_runs, dependent: :destroy
   has_many :events, dependent: :destroy
   has_many :epics, dependent: :destroy
   has_many :initiatives, dependent: :destroy
+  has_many :shares, as: :shareable, dependent: :destroy
+  has_many :ideas, dependent: :destroy
+  has_many :io_nodes, dependent: :destroy
+  has_many :releases, dependent: :destroy
   has_many :milestones, dependent: :destroy
   has_many :sprints, dependent: :destroy
   has_many :objectives, dependent: :destroy
+  has_many :resource_allocations, dependent: :destroy
+  has_many :project_requests, dependent: :destroy
   has_many :quip_imports, dependent: :destroy
 
   validates :name, presence: true
@@ -35,6 +45,17 @@ class Workspace < ApplicationRecord
       end
       root_folder
     end
+  end
+
+  # Whether the user has any role here, through their own membership or a team.
+  def accessible_by?(user_id)
+    memberships.exists?(user_id: user_id) ||
+      TeamMembership.joins(:team).exists?(user_id: user_id, teams: { workspace_id: id })
+  end
+
+  # The public read-only roadmap link, if one has been made.
+  def roadmap_share
+    shares.first
   end
 
   private

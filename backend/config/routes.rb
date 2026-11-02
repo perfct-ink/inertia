@@ -30,15 +30,36 @@ Rails.application.routes.draw do
       # The workspace named by the X-Workspace-Id header (default: personal).
       resource :workspace, as: :current_workspace, only: [ :show, :update ]
       resources :workspaces, only: [ :index, :create, :destroy ] do
+        get :folders, on: :member
         resources :members, controller: "workspace_members", only: [ :index, :create, :update, :destroy ]
       end
 
+      # Teams: groups of people that hold one role in a workspace together.
+      resources :workspaces, only: [] do
+        resources :teams, only: [ :index, :create, :update, :destroy ] do
+          resources :members, controller: "team_members", only: [ :create, :destroy ]
+        end
+      end
+
       resources :folders do
+        resources :documents, shallow: true do
+          member do
+            post :copy
+            post :move
+          end
+        end
+        member do
+          get :contents
+          post :copy
+          post :move
+        end
         resources :documents, shallow: true
+        resources :files, only: [ :create ]
         member { get :contents }
       end
 
       resources :documents, only: [] do
+        resource :file, only: [ :update ], controller: "files"
         resources :tasks, only: [ :index, :create ], shallow: true
       end
 
@@ -51,6 +72,9 @@ Rails.application.routes.draw do
       delete "tables/:id/records/:record_id", to: "tables#destroy_record"
 
       resources :tasks, only: [ :index, :create, :update, :destroy ]
+      resources :task_fields, only: [ :index, :create, :update, :destroy ]
+      put "tasks/:task_id/field_values/:task_field_id", to: "task_field_values#update"
+      put "tasks/:task_id/field_values/:task_field_id/vote", to: "task_field_values#vote"
 
       resources :epics, only: [ :index, :create, :update, :destroy ]
 
@@ -58,13 +82,42 @@ Rails.application.routes.draw do
 
       resources :milestones, only: [ :index, :create, :update, :destroy ]
 
-      resources :sprints, only: [ :index, :create, :update, :destroy ]
+      resources :sprints, only: [ :index, :create, :update, :destroy ] do
+        member do
+          post :start
+          post :close
+        end
+      end
+      resources :resource_allocations, only: [ :index, :create, :update, :destroy ]
+      # How a board labels and colours task statuses; ?folder_id= picks the board (none = the Space default).
+      get "task_status_settings", to: "task_status_settings#index"
+      put "task_status_settings", to: "task_status_settings#update"
+      delete "task_status_settings", to: "task_status_settings#destroy"
       resources :task_dependencies, only: [ :index, :create, :destroy ]
       resources :comments, only: [ :index, :create, :update, :destroy ]
       resources :ai_workers, only: [ :index, :create, :update, :destroy ]
       resources :ai_runs, only: [ :index, :create ]
+      resource :onboarding, only: [ :show, :update ]
+      resources :ideas, only: [ :index, :create, :update, :destroy ] do
+        post :promote, on: :member
+      end
+      resources :io_nodes, only: [ :index, :create, :update, :destroy ]
+      resources :releases, only: [ :index, :create, :update, :destroy ] do
+        member do
+          get :tasks
+          post :documents, action: :add_document
+          delete "documents/:document_id", action: :remove_document
+        end
+      end
       resources :objectives, only: [ :index, :create, :update, :destroy ]
       resources :key_results, only: [ :create, :update, :destroy ]
+      resources :project_requests, only: [ :index, :create, :update, :destroy ] do
+        member do
+          post :approve
+          post :decline
+          post :reopen
+        end
+      end
 
       resources :uploads, only: [ :create ]
 
@@ -75,6 +128,7 @@ Rails.application.routes.draw do
       resources :quip_imports, only: [ :index, :create, :show ]
 
       resources :shares, only: [ :create, :show, :destroy ]
+      resource :roadmap_share, only: [ :show, :create, :destroy ]
       get "shared/:token", to: "shares#access", as: :shared_access
     end
   end

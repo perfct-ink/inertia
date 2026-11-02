@@ -18,11 +18,7 @@ jest.mock('@/api/comments', () => ({
   useDeleteComment: () => mockDelete,
 }))
 jest.mock('@/api/workspace', () => ({ useWorkspace: () => ({ data: mockWorkspace }) }))
-jest.mock('@/api/workspaces', () => ({
-  useWorkspaceMembers: () => ({ data: mockMembers }),
-  canManageWorkspace: (role?: string | null) => role === 'admin' || role === 'owner',
-  canWriteWorkspace: (role?: string | null) => !!role && role !== 'viewer',
-}))
+jest.mock('@/api/workspaceMembers', () => ({ useWorkspaceMembers: () => ({ data: mockMembers }) }))
 // Pat (id 1) is the signed-in user.
 jest.mock('@/store/auth', () => ({
   useAuthStore: (select: (state: unknown) => unknown) => select({ user: { id: 1, name: 'Pat', email: 'pat@example.com' } }),

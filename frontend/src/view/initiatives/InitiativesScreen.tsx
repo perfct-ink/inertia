@@ -1,4 +1,4 @@
-import { Button, Input, Select } from '@/components/ui'
+import { Button, Input, Select, DatePicker } from '@/components/ui'
 import { useState, useRef } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { Plus, X, Flag, Loader2 } from 'lucide-react'
@@ -6,15 +6,15 @@ import WorkspaceLayout from '@/components/WorkspaceLayout'
 import { CommentsButton } from '@/components/comments/CommentsButton'
 import { useMilestones } from '@/api/milestones'
 import { useWorkspace } from '@/api/workspace'
-import { useWorkspaceMembers } from '@/api/workspaces'
+import { useWorkspaceMembers } from '@/api/workspaceMembers'
 import { useInitiatives, useCreateInitiative, useUpdateInitiative, useDeleteInitiative } from '@/api/initiatives'
 import '../planning/PlanningScreen.scss'
-import { ProgressBar, Timeline } from '@/components/Timeline'
+import { ProgressBar } from '@/components/Timeline'
+import PlanningTimeline from '@/components/PlanningTimeline'
 import { usePageTitle } from '@/hooks/usePageTitle'
 import { donePercent } from '@/data/schedule'
+import { PLANNING_STATUS_LABEL } from '@/data/planning'
 import type { PlanningStatus } from '@/types'
-
-const STATUS_LABEL: Record<PlanningStatus, string> = { planned: 'Planned', active: 'Active', done: 'Done' }
 
 export default function InitiativesScreen() {
   usePageTitle('Initiatives')
@@ -96,7 +96,7 @@ export default function InitiativesScreen() {
               </div>
             )}
 
-            {!isLoading && initiatives.length > 0 && view === 'timeline' && <Timeline items={initiatives} />}
+            {!isLoading && initiatives.length > 0 && view === 'timeline' && <PlanningTimeline keepEmptyInitiatives />}
 
             {!isLoading && view === 'list' && initiatives.map((initiative) => (
               <div
@@ -120,15 +120,13 @@ export default function InitiativesScreen() {
                   </Button>
                 </div>
                 <div className="planning-card-dates" onClick={(e) => e.stopPropagation()}>
-                  <Input
-                    type="date"
+                  <DatePicker
                     value={initiative.start_date ?? ''}
                     onChange={(e) => updateInitiative.mutate({ id: initiative.id, start_date: e.target.value || null })}
                     className="planning-date"
                   />
                   <span>&rarr;</span>
-                  <Input
-                    type="date"
+                  <DatePicker
                     value={initiative.target_date ?? ''}
                     onChange={(e) => updateInitiative.mutate({ id: initiative.id, target_date: e.target.value || null })}
                     className="planning-date"
@@ -139,7 +137,7 @@ export default function InitiativesScreen() {
                     onChange={(e) => updateInitiative.mutate({ id: initiative.id, status: e.target.value as PlanningStatus })}
                     className="planning-initiative"
                   >
-                    {Object.entries(STATUS_LABEL).map(([value, label]) => (
+                    {Object.entries(PLANNING_STATUS_LABEL).map(([value, label]) => (
                       <option key={value} value={value}>{label}</option>
                     ))}
                   </Select>

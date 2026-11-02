@@ -2,6 +2,7 @@ import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import CreateItem from './CreateItem'
 
 const mockCreate = jest.fn().mockResolvedValue({ id: 9 })
+const mockUpload = jest.fn().mockResolvedValue([])
 const mockNavigate = jest.fn()
 const mockWorkspace = {
   id: 1, name: 'Workspace', root_folder_id: 101,
@@ -10,10 +11,8 @@ const mockWorkspace = {
   ] }],
 }
 
-jest.mock('@/api/workspace', () => ({
-  useWorkspace: () => ({ data: mockWorkspace }),
-  useCreateDocument: () => ({ mutateAsync: mockCreate }),
-}))
+jest.mock('@/api/workspace', () => ({ useWorkspace: () => ({ data: mockWorkspace }), useUploadFiles: () => ({ mutateAsync: mockUpload }) }))
+jest.mock('@/api/documents', () => ({ useCreateDocument: () => ({ mutateAsync: mockCreate }) }))
 jest.mock('react-router-dom', () => ({
   useNavigate: () => mockNavigate,
 }))
@@ -33,4 +32,11 @@ test('the destination selector can create a sheet in a folder beneath root', asy
   fireEvent.change(screen.getByRole('combobox', { name: 'Create in folder' }), { target: { value: '202' } })
   fireEvent.click(screen.getByRole('button', { name: 'New Sheet' }))
   await waitFor(() => expect(mockCreate).toHaveBeenCalledWith({ folderId: 202, title: 'Untitled Sheet', doc_type: 'spreadsheet' }))
+})
+
+test('chosen files are uploaded into the folder, several at once', async () => {
+  render(<CreateItem folderId={202} />)
+  const files = [new File(['a'], 'a.pdf', { type: 'application/pdf' }), new File(['b'], 'b.png', { type: 'image/png' })]
+  fireEvent.change(screen.getByLabelText('Choose files to upload'), { target: { files } })
+  await waitFor(() => expect(mockUpload).toHaveBeenCalledWith({ folderId: 202, files }))
 })

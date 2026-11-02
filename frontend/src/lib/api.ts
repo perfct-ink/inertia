@@ -8,6 +8,9 @@ declare module 'axios' {
   interface AxiosRequestConfig {
     // The caller shows this request's error itself (e.g. an inline form error).
     silent?: boolean
+    // Names the action a failure interrupts. The error notice reads
+    // "<failureContext>: <reason>" instead of the bare reason.
+    failureContext?: string
   }
 }
 
@@ -36,7 +39,8 @@ api.interceptors.response.use(
       useAuthStore.getState().logout()
       if (wasSignedIn && !err.config?.silent) useNotificationStore.getState().notify('Your session has expired. Please sign in again.')
     } else if (!err.config?.silent) {
-      useNotificationStore.getState().notify(errorMessage(err))
+      const reason = errorMessage(err)
+      useNotificationStore.getState().notify(err.config?.failureContext ? `${err.config.failureContext}: ${reason}` : reason)
     }
     return Promise.reject(err)
   }

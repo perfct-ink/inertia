@@ -18,13 +18,20 @@ class Task < ApplicationRecord
   belongs_to :parent, class_name: "Task", optional: true
   has_many :subtasks, class_name: "Task", foreign_key: :parent_id, dependent: :destroy, inverse_of: :parent
   has_many :ai_runs, dependent: :destroy
+  # Values of the Space's custom task fields (tags, dropdown, ...).
+  has_many :field_values, class_name: "TaskFieldValue", dependent: :destroy, inverse_of: :task
   # Gantt links (PM-13), removed with either end.
   has_many :successor_links, class_name: "TaskDependency", foreign_key: :predecessor_id, dependent: :destroy, inverse_of: :predecessor
   has_many :predecessor_links, class_name: "TaskDependency", foreign_key: :successor_id, dependent: :destroy, inverse_of: :successor
 
   enum :status, { todo: 0, in_progress: 1, in_review: 2, done: 3, backlog: 4 }
 
+  # How urgent it is; none means nobody has said.
+  enum :priority, { none: 0, low: 1, medium: 2, high: 3, urgent: 4 }, prefix: :priority, validate: true
+
   validates :title, presence: true
+  validates :estimate_hours, numericality: { greater_than_or_equal_to: 0, allow_nil: true }
+  validates :story_points, :actual_story_points, numericality: { only_integer: true, greater_than_or_equal_to: 0, allow_nil: true }
   validates :status, presence: true
   validates_same_workspace :epic, :parent
   validate :parent_is_not_self_or_a_descendant

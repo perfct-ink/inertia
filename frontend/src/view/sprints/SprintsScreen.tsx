@@ -1,13 +1,15 @@
 import { useRef, useState } from 'react'
 import { Plus, X, Rocket, Loader2 } from 'lucide-react'
-import { Button, Input, Select } from '@/components/ui'
+import { Button, Input, Modal, Select, DatePicker } from '@/components/ui'
 import WorkspaceLayout from '@/components/WorkspaceLayout'
 import { ProgressBar } from '@/components/Timeline'
-import { useSprints, useCreateSprint, useUpdateSprint, useDeleteSprint } from '@/api/sprints'
-import { PLANNING_STATUSES } from '@/data/milestone'
+import { useSprints, useCreateSprint, useUpdateSprint, useDeleteSprint, useStartSprint, useCloseSprint } from '@/api/sprints'
+import { carryTargets, closeSummary } from '@/data/sprint'
 import { donePercent } from '@/data/schedule'
+import { Link } from 'react-router-dom'
+import { sprintBoardPath } from '@/data/sprint'
 import { usePageTitle } from '@/hooks/usePageTitle'
-import type { PlanningStatus } from '@/types'
+import type { Sprint } from '@/types'
 import './SprintsScreen.scss'
 
 export default function SprintsScreen() {
@@ -16,7 +18,12 @@ export default function SprintsScreen() {
   const createSprint = useCreateSprint()
   const updateSprint = useUpdateSprint()
   const deleteSprint = useDeleteSprint()
+  const startSprint = useStartSprint()
+  const closeSprint = useCloseSprint()
   const [adding, setAdding] = useState(false)
+  const [closing, setClosing] = useState<Sprint | null>(null)
+  const [carryTo, setCarryTo] = useState('')
+  const [summary, setSummary] = useState('')
   const titleRef = useRef('')
 
   function commitAdd(value: string) {
@@ -85,8 +92,7 @@ export default function SprintsScreen() {
                 <div className="sprints-card-fields">
                   <label className="sprints-field">
                     <span>Start</span>
-                    <Input
-                      type="date"
+                    <DatePicker
                       value={sprint.start_date ?? ''}
                       onChange={(e) => updateSprint.mutate({ id: sprint.id, start_date: e.target.value || null })}
                       className="sprints-date"
@@ -94,26 +100,26 @@ export default function SprintsScreen() {
                   </label>
                   <label className="sprints-field">
                     <span>End</span>
-                    <Input
-                      type="date"
+                    <DatePicker
                       value={sprint.end_date ?? ''}
                       onChange={(e) => updateSprint.mutate({ id: sprint.id, end_date: e.target.value || null })}
                       className="sprints-date"
                     />
                   </label>
-                  <label className="sprints-field">
+                  <div className="sprints-field">
                     <span>Status</span>
-                    <Select
-                      value={sprint.status}
-                      onChange={(e) => updateSprint.mutate({ id: sprint.id, status: e.target.value as PlanningStatus })}
-                      className="sprints-status"
-                    >
-                      {PLANNING_STATUSES.map((status) => <option key={status} value={status}>{status}</option>)}
-                    </Select>
-                  </label>
+                    <span className="sprints-status_text">{sprint.status}</span>
+                    {sprint.status === 'planned' && (
+                      <Button variant="secondary" onClick={() => startSprint.mutate(sprint.id)}>Start sprint</Button>
+                    )}
+                    {sprint.status === 'active' && (
+                      <Button variant="secondary" onClick={() => { setClosing(sprint); setCarryTo('') }}>Close sprint</Button>
+                    )}
+                  </div>
                 </div>
 
                 <ProgressBar percent={donePercent(sprint)} />
+                <Link to={sprintBoardPath(sprint.id)} className="sprints-board_link">Open board</Link>
                 <p className="sprints-card-counts">
                   {sprint.done_tasks_count}/{sprint.tasks_count} tasks done
                 </p>
@@ -122,6 +128,32 @@ export default function SprintsScreen() {
           </div>
         </div>
       </div>
+
+      <Modal
+        open={closing !== null}
+        title={`Close ${closing?.title ?? 'sprint'}`}
+        description="Tasks that aren't done move on. Done tasks stay in this sprint."
+        onClose={() => setClosing(null)}
+      >
+        <Select aria-label="Move unfinished tasks to" value={carryTo} onChange={(e) => setCarryTo(e.target.value)}>
+          <option value="">No sprint</option>
+          {closing && carryTargets(sprints, closing).map((s) => <option key={s.id} value={s.id}>{s.title}</option>)}
+        </Select>
+        <div className="ui-modal-actions">
+          <Button variant="secondary" onClick={() => setClosing(null)}>Cancel</Button>
+          <Button
+            variant="primary"
+            disabled={closeSprint.isPending}
+            onClick={() => closing && closeSprint.mutate(
+              { id: closing.id, carryToSprintId: carryTo ? Number(carryTo) : null },
+              { onSuccess: (result) => { setSummary(`${closing.title} closed: ${closeSummary(result.completed, result.carried_over)}.`); setClosing(null) } },
+            )}
+          >
+            Close sprint
+          </Button>
+        </div>
+      </Modal>
+      {summary && <p className="sprints-summary" role="status">{summary}</p>}
     </WorkspaceLayout>
   )
 }

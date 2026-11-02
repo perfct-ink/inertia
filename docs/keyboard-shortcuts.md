@@ -58,6 +58,16 @@ Task items (`frontend/src/extensions/WorkspaceTaskItem.tsx`):
 
 Known overlap: `⌘E` is both "inline code" in the editor and the global "New event". The global handler is on `window`, so it fires as well.
 
+## Collection map
+
+With the map itself focused (Collection page, **Map** view; `frontend/src/components/editors/CollectionMap.tsx`). Tab moves on to the pins, where Enter or Space selects one.
+
+| Keys | Action |
+|------|--------|
+| Arrow keys | Move the map 64px |
+| `+` / `-` | Zoom in / out |
+| `Esc` | Close the selected pin's details |
+
 ## macOS app
 
 Defined in `macos/Sources/Inertia`.

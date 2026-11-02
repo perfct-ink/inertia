@@ -4,6 +4,7 @@ class Initiative < ApplicationRecord
   include BelongsToMilestone
   include RoadmapHorizon
   include Commentable
+  include Positioned
 
   belongs_to :workspace
   has_many :epics, dependent: :nullify

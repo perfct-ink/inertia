@@ -1,4 +1,4 @@
-import { Button, Input, PromptDialog } from '@/components/ui'
+import { Button, Input, Modal, PromptDialog } from '@/components/ui'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import * as Y from 'yjs'
@@ -14,7 +14,6 @@ import Italic from '@tiptap/extension-italic'
 import Underline from '@tiptap/extension-underline'
 import Strike from '@tiptap/extension-strike'
 import Code from '@tiptap/extension-code'
-import Heading from '@tiptap/extension-heading'
 import BulletList from '@tiptap/extension-bullet-list'
 import OrderedList from '@tiptap/extension-ordered-list'
 import ListItem from '@tiptap/extension-list-item'
@@ -46,6 +45,7 @@ import {
   List,
   ListOrdered,
   ListChecks,
+  ListPlus,
   ListFilter,
   Code2,
   Minus,
@@ -53,26 +53,38 @@ import {
   Undo2,
   Redo2,
   Link as LinkIcon,
+  Hash,
   Loader2,
   FileX,
-  Image as ImageIcon,
+  Paperclip,
 } from 'lucide-react'
 import WorkspaceLayout from '@/components/WorkspaceLayout'
 import { useDocument, useUpdateDocument } from '@/api/documents'
-import { useCreateTask } from '@/api/tasks'
+import { useCreateTask, useDeleteTask, useTasks, useUpdateTask } from '@/api/tasks'
+import { reconcileTitle, removedLineTaskIds } from '@/data/taskLine'
+import type { Task } from '@/types'
 import { useWorkspace } from '@/api/workspace'
+import { uploadFile } from '@/api/uploads'
+import FileViewer from '@/components/FileViewer'
+import Breadcrumb from '@/components/Breadcrumb'
+import DocumentOutline from '@/components/DocumentOutline'
 import TableEditor from '@/components/editors/TableEditor'
 import SpreadsheetEditor from '@/components/editors/SpreadsheetEditor'
+import HeadingLinkPicker from '@/components/HeadingLinkPicker'
+import { HeadingAnchor, assignHeadingIds, linkToHeading } from '@/extensions/HeadingAnchor'
 import Video from '@/extensions/Video'
+import { AudioAttachment, FileAttachment } from '@/extensions/Attachment'
 import { WorkspaceTaskList } from '@/extensions/WorkspaceTaskList'
 import { WorkspaceTaskItem } from '@/extensions/WorkspaceTaskItem'
 import './ProseMirror.scss'
 import './DocumentScreen.scss'
-import api from '@/lib/api'
 import { useTabsStore } from '@/store/tabs'
 import { useAuthStore } from '@/store/auth'
+import { useNotificationStore } from '@/store/notifications'
 import { usePageTitle } from '@/hooks/usePageTitle'
-import { extractTitle, buildInitialContent } from '@/data/document'
+import { useFollowDocumentLinks, useScrollToHeading } from '@/hooks/useHeadingLinks'
+import { extractTitle, buildInitialContent, selectionTaskTitle, taskListContent } from '@/data/document'
+import { attachmentContent, pastedFiles, uploadProblem } from '@/data/attachment'
 import { colorForUserId } from '@/util/color'
 
 // Enforce: document always starts with a heading followed by body content
@@ -117,10 +129,16 @@ export default function DocumentScreen() {
   usePageTitle(doc?.title)
   const updateDocument = useUpdateDocument()
   const createTask = useCreateTask()
+  const updateTask = useUpdateTask()
+  const deleteTask = useDeleteTask()
+  // The document's own tasks, for keeping task lines and tasks the same item.
+  const { data: docTasks = [], isSuccess: docTasksLoaded } = useTasks({ document_id: docId })
   const { data: workspace } = useWorkspace()
   const user = useAuthStore((s) => s.user)
   const [linkDialogOpen, setLinkDialogOpen] = useState(false)
   const [tasksOnly, setTasksOnly] = useState(false)
+  // The document's content while the "Link to a heading" dialog is open (null when closed).
+  const [headingLinkContent, setHeadingLinkContent] = useState<Record<string, unknown> | null>(null)
   const [saveStatus, setSaveStatus] = useState<'saved' | 'saving' | 'unsaved'>('saved')
   const pendingRef = useRef<{ title?: string; content?: Record<string, unknown> }>({})
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
@@ -162,6 +180,18 @@ export default function DocumentScreen() {
   workspaceRef.current = workspace
   const createTaskRef = useRef(createTask)
   createTaskRef.current = createTask
+  // Same for the file inserter (defined below), which the paste handler calls.
+  const insertFilesRef = useRef<(files: File[]) => Promise<void>>(async () => {})
+  const updateTaskRef = useRef(updateTask)
+  updateTaskRef.current = updateTask
+  const docTasksRef = useRef(docTasks)
+  docTasksRef.current = docTasks
+  // The title each task line and its task last agreed on, titles being saved,
+  // the task ids on lines last time, and lines deleted that need a decision.
+  const knownTitlesRef = useRef(new Map<number, string>())
+  const pushingTitlesRef = useRef(new Map<number, string>())
+  const lastLineIdsRef = useRef<Set<number> | null>(null)
+  const [removedLineTasks, setRemovedLineTasks] = useState<Task[]>([])
 
   const editor = useEditor({
     extensions: [
@@ -174,7 +204,7 @@ export default function DocumentScreen() {
       Underline,
       Strike,
       Code,
-      Heading.configure({ levels: [1, 2, 3, 4, 5] as (1 | 2 | 3 | 4 | 5 | 6)[] }),
+      HeadingAnchor.configure({ levels: [1, 2, 3, 4, 5] as (1 | 2 | 3 | 4 | 5 | 6)[] }),
       BulletList,
       OrderedList,
       ListItem,
@@ -202,6 +232,8 @@ export default function DocumentScreen() {
       TiptapImage,
       Link.configure({ openOnClick: false }),
       Video,
+      AudioAttachment,
+      FileAttachment,
       Table.configure({ resizable: false }),
       TableRow,
       TableCell,
@@ -235,6 +267,17 @@ export default function DocumentScreen() {
       // isn't part of the Yjs-synced content, so it still needs this path.
       scheduleSaveRef.current(provider ? { title } : { content, title })
     },
+    editorProps: {
+      // Pasted screenshots and copied files are uploaded and embedded; a paste
+      // that carries HTML (Word, Excel, a web page) stays text.
+      handlePaste: (_view, event) => {
+        const files = pastedFiles(event.clipboardData)
+        if (files.length === 0) return false
+        event.preventDefault()
+        void insertFilesRef.current(files)
+        return true
+      },
+    },
   }, [provider])
 
   useEffect(() => {
@@ -264,6 +307,11 @@ export default function DocumentScreen() {
   useEffect(() => {
     return () => { if (saveTimerRef.current) clearTimeout(saveTimerRef.current) }
   }, [])
+
+  // Heading links ("#/documents/12#launch-plan"): scroll to the heading once the
+  // editor is showing, and open links to documents without reloading the app.
+  useScrollToHeading(editor, !isLoading && doc?.doc_type === 'document')
+  const followDocumentLink = useFollowDocumentLinks()
 
   // Only the "leader" among currently-connected collaborators runs
   // syncTaskNodes — with real-time editing, two people finishing an
@@ -309,6 +357,78 @@ export default function DocumentScreen() {
     }
   }
 
+  // Keeps each task line and its task the same item (docs/features/document_task_lines.md):
+  // a line edit renames the task, a task rename changes the line, and a deleted line
+  // asks whether to delete its task. Only the leader runs it, like syncTaskNodes.
+  function reconcileTaskLines(currentEditor: ReturnType<typeof useEditor>, allowPush: boolean) {
+    if (!currentEditor || !docTasksLoaded || !isTaskSyncLeader()) return
+    const tasks = new Map(docTasksRef.current.map((t) => [t.id, t]))
+    const lines: { pos: number; taskId: number; text: string; size: number; contentSize: number }[] = []
+    currentEditor.state.doc.descendants((node, pos) => {
+      if (node.type.name === 'workspaceTaskItem' && node.attrs.taskId) {
+        lines.push({ pos, taskId: node.attrs.taskId as number, text: node.textContent, size: node.nodeSize, contentSize: node.firstChild?.content.size ?? 0 })
+      }
+    })
+
+    const pulls: { pos: number; contentSize: number; title: string }[] = []
+    for (const line of lines) {
+      const task = tasks.get(line.taskId)
+      if (!task) continue
+      const pending = pushingTitlesRef.current.get(line.taskId)
+      if (pending !== undefined) {
+        if (task.title === pending) pushingTitlesRef.current.delete(line.taskId)
+        else continue
+      }
+      const result = reconcileTitle(line.text, task.title, knownTitlesRef.current.get(line.taskId))
+      if (result.action === 'toTask') {
+        if (!allowPush) continue
+        knownTitlesRef.current.set(line.taskId, result.known)
+        pushingTitlesRef.current.set(line.taskId, result.value)
+        updateTaskRef.current.mutate({ id: line.taskId, title: result.value }, {
+          onError: () => { pushingTitlesRef.current.delete(line.taskId); knownTitlesRef.current.delete(line.taskId) },
+        })
+      } else {
+        knownTitlesRef.current.set(line.taskId, result.known)
+        if (result.action === 'toLine') pulls.push({ pos: line.pos, contentSize: line.contentSize, title: result.value })
+      }
+    }
+    if (pulls.length > 0) {
+      // Later lines first, so earlier positions stay valid.
+      const tr = currentEditor.state.tr
+      pulls.sort((a, b) => b.pos - a.pos).forEach(({ pos, contentSize, title }) => {
+        tr.replaceWith(pos + 2, pos + 2 + contentSize, currentEditor.state.schema.text(title))
+      })
+      currentEditor.view.dispatch(tr)
+    }
+
+    const current = new Set(lines.map((l) => l.taskId))
+    if (lastLineIdsRef.current) {
+      const removed = removedLineTaskIds(lastLineIdsRef.current, current, new Set(tasks.keys()))
+      if (removed.length > 0) setRemovedLineTasks((queue) => [...queue, ...removed.map((id) => tasks.get(id) as Task)])
+    }
+    lastLineIdsRef.current = current
+  }
+
+  // A task renamed elsewhere changes its line (pulling only; line edits are pushed after a save).
+  useEffect(() => {
+    if (editor && docTasksLoaded) reconcileTaskLines(editor, false)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [editor, docTasks, docTasksLoaded])
+
+  // Switching documents starts the comparison afresh.
+  useEffect(() => {
+    knownTitlesRef.current = new Map()
+    pushingTitlesRef.current = new Map()
+    lastLineIdsRef.current = null
+    setRemovedLineTasks([])
+  }, [docId])
+
+  // After each save, give any heading that has text but no id its permanent id, so
+  // links to it survive edits. Like task creation, only one collaborator does it.
+  function syncHeadingIds(currentEditor: ReturnType<typeof useEditor>) {
+    if (currentEditor && isTaskSyncLeader()) assignHeadingIds(currentEditor)
+  }
+
   // scheduleSaveRef lets the stale onUpdate closure always call the current scheduleSave
   const scheduleSaveRef = useRef<(changes: { title?: string; content?: Record<string, unknown> }) => void>(
     () => {},
@@ -328,7 +448,9 @@ export default function DocumentScreen() {
         await updateDocument.mutateAsync({ id: docId, ...toSave })
         setSaveStatus('saved')
         if (toSave.title) updateTitle(String(docId), toSave.title)
-        syncTaskNodes(currentEditor)
+        await syncTaskNodes(currentEditor)
+        reconcileTaskLines(currentEditor, true)
+        syncHeadingIds(currentEditor)
       } catch {
         setSaveStatus('unsaved')
       }
@@ -336,41 +458,42 @@ export default function DocumentScreen() {
   }
   scheduleSaveRef.current = scheduleSave
 
-  async function uploadFile(file: File): Promise<string> {
-    const form = new FormData()
-    form.append('file', file)
-    const res = await api.post<{ url: string }>('/api/v1/uploads', form)
-    return res.data.url
-  }
-
-  // Shared by the drag-and-drop handler below and the toolbar's picker
-  // button — a device with no drag source (a phone/tablet, no mouse) has no
-  // way to attach media at all without the latter.
-  async function insertMediaFile(file: File) {
-    if (!editor || !(file.type.startsWith('image/') || file.type.startsWith('video/'))) return
-    const url = await uploadFile(file)
-    if (file.type.startsWith('image/')) {
-      editor.chain().focus().setImage({ src: url }).run()
-    } else {
-      editor.chain().focus().insertContent({ type: 'video', attrs: { src: url } }).run()
+  // Uploads each file in turn and embeds it where the cursor is: an image, a
+  // video or audio player, or a file card (data/attachment.ts decides which).
+  // Shared by drag-and-drop, paste and the toolbar's picker button — a device
+  // with no drag source (a phone/tablet, no mouse) can't attach anything
+  // without the last.
+  async function insertFiles(files: File[]) {
+    for (const file of files) {
+      const problem = uploadProblem(file)
+      if (problem) {
+        useNotificationStore.getState().notify(problem)
+        continue
+      }
+      try {
+        const uploaded = await uploadFile(file)
+        if (!editor || editor.isDestroyed) return
+        editor.chain().focus().insertContent(attachmentContent(uploaded)).run()
+      } catch {
+        // lib/api.ts has already shown the error; carry on with the other files.
+      }
     }
   }
+  insertFilesRef.current = insertFiles
 
   async function handleEditorDrop(e: React.DragEvent<HTMLDivElement>) {
     const files = Array.from(e.dataTransfer.files)
     if (!files.length || !editor) return
-    const media = files.filter((f) => f.type.startsWith('image/') || f.type.startsWith('video/'))
-    if (!media.length) return
     e.preventDefault()
     e.stopPropagation()
-    for (const file of media) await insertMediaFile(file)
+    await insertFiles(files)
   }
 
-  const mediaInputRef = useRef<HTMLInputElement>(null)
-  async function handleMediaInputChange(e: React.ChangeEvent<HTMLInputElement>) {
+  const fileInputRef = useRef<HTMLInputElement>(null)
+  async function handleFileInputChange(e: React.ChangeEvent<HTMLInputElement>) {
     const files = Array.from(e.target.files ?? [])
     e.target.value = '' // allow picking the same file again later
-    for (const file of files) await insertMediaFile(file)
+    await insertFiles(files)
   }
 
   if (isLoading || !editor) {
@@ -383,6 +506,7 @@ export default function DocumentScreen() {
     )
   }
 
+  if (doc?.doc_type === 'file') return <FileViewer doc={doc} />
   if (doc?.doc_type === 'table') return <TableEditor doc={doc} />
 
   if (doc?.doc_type === 'spreadsheet') {
@@ -402,6 +526,8 @@ export default function DocumentScreen() {
   return (
     <WorkspaceLayout>
       <div className="view-document">
+        <Breadcrumb folderId={doc.folder_id} title={doc.title} />
+
         {/* Toolbar */}
         <div className="document-toolbar">
           <ToolbarBtn
@@ -507,6 +633,16 @@ export default function DocumentScreen() {
             title="Task list"
           />
           <ToolbarBtn
+            icon={<ListPlus className="document-toolbar_icon" />}
+            onClick={() => {
+              const { from, to, empty } = editor.state.selection
+              const title = empty ? null : selectionTaskTitle(editor.state.doc.textBetween(from, to, ' '))
+              if (title) editor.chain().focus().insertContentAt({ from, to }, taskListContent(title)).run()
+            }}
+            disabled={editor.state.selection.empty}
+            title="Make selection a task"
+          />
+          <ToolbarBtn
             icon={<ListFilter className="document-toolbar_icon" />}
             onClick={() => setTasksOnly((v) => !v)}
             active={tasksOnly}
@@ -540,17 +676,21 @@ export default function DocumentScreen() {
             title="Link"
           />
           <ToolbarBtn
-            icon={<ImageIcon className="document-toolbar_icon" />}
-            onClick={() => mediaInputRef.current?.click()}
-            title="Insert image or video"
+            icon={<Hash className="document-toolbar_icon" />}
+            onClick={() => setHeadingLinkContent(editor.getJSON() as Record<string, unknown>)}
+            title="Link to a heading"
+          />
+          <ToolbarBtn
+            icon={<Paperclip className="document-toolbar_icon" />}
+            onClick={() => fileInputRef.current?.click()}
+            title="Insert image, video, audio or file"
           />
           <Input
-            ref={mediaInputRef}
+            ref={fileInputRef}
             type="file"
-            accept="image/*,video/*"
             multiple
             hidden
-            onChange={handleMediaInputChange}
+            onChange={handleFileInputChange}
           />
           <div className="document-status">
             {saveStatus === 'saving' && <Loader2 className="document-status_spinner" />}
@@ -564,16 +704,45 @@ export default function DocumentScreen() {
           onDrop={handleEditorDrop}
           onDragOver={(e) => e.preventDefault()}
           onClick={(e) => {
+            if (followDocumentLink(e)) return
             if (!(e.target as HTMLElement).closest('.ProseMirror')) {
               editor.commands.focus('end')
             }
           }}
         >
+          <DocumentOutline editor={editor} />
           <div className={`document-page ${tasksOnly ? 'document-page--tasks_only' : ''}`}>
             <EditorContent editor={editor} />
           </div>
         </div>
       </div>
+      <Modal
+        open={removedLineTasks.length > 0}
+        title="Delete the task too?"
+        description={removedLineTasks[0] ? `You removed the line for “${removedLineTasks[0].title}”. Its task is still in the Space.` : undefined}
+        onClose={() => setRemovedLineTasks((queue) => queue.slice(1))}
+      >
+        <div className="ui-modal-actions">
+          <Button variant="secondary" onClick={() => setRemovedLineTasks((queue) => queue.slice(1))}>Keep the task</Button>
+          <Button
+            variant="primary"
+            onClick={() => {
+              const [first] = removedLineTasks
+              if (first) deleteTask.mutate(first.id)
+              setRemovedLineTasks((queue) => queue.slice(1))
+            }}
+          >
+            Delete the task
+          </Button>
+        </div>
+      </Modal>
+      <HeadingLinkPicker
+        open={headingLinkContent !== null}
+        currentDocumentId={docId}
+        currentContent={headingLinkContent}
+        onClose={() => { setHeadingLinkContent(null); editor.commands.focus() }}
+        onPick={(picked) => { setHeadingLinkContent(null); linkToHeading(editor, picked) }}
+      />
       <PromptDialog
         open={linkDialogOpen}
         title="Link"

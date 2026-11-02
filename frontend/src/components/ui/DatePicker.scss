@@ -1,0 +1,137 @@
+@use 'tokens' as *;
+
+// A date field that looks and behaves the same in every browser (design
+// principle 2): a text box you can type into, and a calendar popup. The popup
+// is portaled out of the page layout, so it sits above sticky bars and cards
+// (and above a modal, z-index 50). Colors come from the theme, so light and
+// dark both work.
+@layer app.ui {
+  // Calendar mark at the right edge of a full-size field. Compact underline
+  // fields (field-underline) drop it.
+  .ui-date_picker-input {
+    padding-right: space(9);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%23808080' stroke-width='1.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='2' y='3' width='12' height='11' rx='1.5'/%3E%3Cpath d='M2 6.5h12M5.5 1.5v3M10.5 1.5v3'/%3E%3C/svg%3E");
+    background-position: calc(100% - #{space(3)}) 50%;
+    background-repeat: no-repeat;
+    background-size: space(4) space(4);
+    cursor: pointer;
+  }
+
+  .ui-date_picker {
+    // The component sets position, top, left and width once it has measured the field.
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 60;
+    width: min(20rem, calc(100vw - #{space(8)}));
+    max-width: calc(100vw - #{space(8)});
+    padding: space(3);
+    border-width: 1px;
+    border-radius: radius('lg');
+    background: color(card);
+    color: color(foreground);
+    box-shadow: 0 10px 15px -3px rgb(0, 0, 0, 0.1), 0 4px 6px -4px rgb(0, 0, 0, 0.1);
+    user-select: none;
+
+    &-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: space(2);
+      margin-bottom: space(2);
+    }
+
+    &-title {
+      font-weight: 600;
+      @include text('sm');
+    }
+
+    // Tap-sized (40px) arrows.
+    &-nav {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: space(10);
+      height: space(10);
+      padding: 0;
+      color: color(muted-foreground);
+
+      svg {
+        width: space(4);
+        height: space(4);
+      }
+
+      &:hover:not(:disabled) {
+        color: color(foreground);
+      }
+    }
+
+    &-grid {
+      width: 100%;
+      border-collapse: collapse;
+      table-layout: fixed;
+
+      th {
+        padding: space(1) 0;
+        color: color(muted-foreground);
+        font-weight: 500;
+        text-align: center;
+        @include text('xs');
+      }
+
+      td {
+        padding: 1px;
+      }
+    }
+
+    &-day {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      height: space(9);
+      padding: 0;
+      border-radius: radius('md');
+      @include text('sm');
+      @include transition(background-color, color, box-shadow);
+
+      @media (pointer: coarse) {
+        height: space(10);
+      }
+
+      &:hover:not(:disabled) {
+        background: color(accent);
+      }
+
+      &--outside {
+        color: color(muted-foreground);
+      }
+
+      // Rings are inset shadows so no state changes the size of a day.
+      &--today {
+        box-shadow: inset 0 0 0 1px color(primary);
+      }
+
+      &--active {
+        box-shadow: inset 0 0 0 2px color(primary);
+      }
+
+      &--selected,
+      &--selected:hover:not(:disabled) {
+        background: color(primary);
+        color: color(primary-foreground);
+      }
+    }
+
+    &-footer {
+      display: flex;
+      justify-content: space-between;
+      margin-top: space(2);
+
+      .ui-button {
+        min-height: space(10);
+        padding: space(1) space(3);
+      }
+    }
+  }
+}

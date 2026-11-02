@@ -69,4 +69,14 @@ class FolderTest < ActiveSupport::TestCase
     assert folder.reload.dependencies_flexible?
     assert_raises(ArgumentError) { folder.dependency_mode = "bogus" }
   end
+
+  test "a folder can be a feature folder, but the document root cannot" do
+    user = User.create!(name: "Ada", email: "feat-ada@example.com", password: "password123")
+    folder = user.workspace.folders.create!(name: "Features", kind: :feature)
+    assert folder.feature?
+    root = user.workspace.root_folder
+    root.kind = :feature
+    assert_not root.valid?
+    assert_includes root.errors[:kind], "cannot make the document root a feature"
+  end
 end

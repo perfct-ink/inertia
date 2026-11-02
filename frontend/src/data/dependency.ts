@@ -19,6 +19,11 @@ export function linkSides(kind: DependencyKind): { from: BarSide; to: BarSide } 
   return { from: from === 'start' ? 'start' : 'end', to: to === 'start' ? 'start' : 'end' }
 }
 
+// The reverse of linkSides: the kind for a link drawn from one bar side to another.
+export function kindFromSides(from: BarSide, to: BarSide): DependencyKind {
+  return `${from === 'start' ? 'start' : 'finish'}_to_${to === 'start' ? 'start' : 'finish'}` as DependencyKind
+}
+
 type DatedTask = { id: number; start_date?: string | null; due_date: string | null }
 
 // The chain of tasks that drives the latest finish date (PM-15). Starting
@@ -69,12 +74,17 @@ export type DateUpdate = { id: number; start_date: string; due_date: string }
 // none     - just the moved task.
 // strict   - refuse when any link touching it would end up broken.
 // flexible - the moved task goes where it was put and everything that waits
-//            on it (transitively) is pushed later, keeping its length, only
-//            as far as needed to satisfy its link.
+//            on it (transitively) follows: pushed later, keeping its length,
+//            only as far as needed to satisfy its link; or pulled earlier by
+//            the same amount, but only when it was sitting exactly on its
+//            link before the move (a deliberate gap is left alone) and never
+//            past what its other links allow.
 // A link is satisfied when the successor's linked side is on or after the
 // predecessor's (finish-to-start allows the same day). Undated tasks are
 // ignored; a task with only a due date counts as starting that day. The server
 // forbids dependency loops, and `guard` stops a bad one anyway.
+// The server applies the same rules when a task is saved
+// (backend/app/services/scheduling/dependency_planner.rb): change both together.
 export function planReschedule(
   tasks: SchedTask[],
   dependencies: TaskDependency[],
@@ -93,19 +103,38 @@ export function planReschedule(
   next.set(taskId, { start: startDate, end: dueDate })
   const moved = new Map<number, { start: string; end: string }>([[taskId, { start: startDate, end: dueDate }]])
 
-  // Days the successor must move later for this link to hold (<= 0: already fine).
-  const shortfall = (dep: TaskDependency) => {
+  const sideOf = (span: { start: string; end: string }, side: BarSide) => (side === 'start' ? span.start : span.end)
+
+  // Days the successor must move later for this link to hold (negative: it has
+  // that many days to spare). Null when either task is undated.
+  const daysLate = (dep: TaskDependency) => {
     const pred = next.get(dep.predecessor_id)
     const succ = next.get(dep.successor_id)
-    if (!pred || !succ) return 0
+    if (!pred || !succ) return null
     const sides = linkSides(dep.kind)
-    const from = sides.from === 'start' ? pred.start : pred.end
-    const to = sides.to === 'start' ? succ.start : succ.end
-    return differenceInCalendarDays(parseISO(from), parseISO(to))
+    return differenceInCalendarDays(parseISO(sideOf(pred, sides.from)), parseISO(sideOf(succ, sides.to)))
+  }
+
+  // Days (negative) the successor follows its predecessor earlier: only for a
+  // link that was exactly tight before the move whose predecessor side has now
+  // moved earlier, and not further than the successor's other links allow.
+  const daysToPull = (dep: TaskDependency) => {
+    const predWas = dates.get(dep.predecessor_id)
+    const succWas = dates.get(dep.successor_id)
+    const predNow = next.get(dep.predecessor_id)
+    if (!predWas || !succWas || !predNow) return 0
+    const sides = linkSides(dep.kind)
+    const from = sideOf(predWas, sides.from)
+    if (sideOf(succWas, sides.to) !== from || sideOf(predNow, sides.from) >= from) return 0
+    const floor = Math.max(...dependencies
+      .filter((d) => d.successor_id === dep.successor_id)
+      .map(daysLate)
+      .filter((days): days is number => days !== null))
+    return floor < 0 ? floor : 0
   }
 
   if (mode === 'strict') {
-    const broken = dependencies.find((d) => (d.predecessor_id === taskId || d.successor_id === taskId) && shortfall(d) > 0)
+    const broken = dependencies.find((d) => (d.predecessor_id === taskId || d.successor_id === taskId) && (daysLate(d) ?? 0) > 0)
     if (broken) {
       return { error: `That would break the dependency of "${titles.get(broken.successor_id)}" on "${titles.get(broken.predecessor_id)}".` }
     }
@@ -117,10 +146,11 @@ export function planReschedule(
     while (queue.length > 0 && guard-- > 0) {
       const current = queue.shift() as number
       dependencies.filter((d) => d.predecessor_id === current).forEach((d) => {
-        const late = shortfall(d)
         const succ = next.get(d.successor_id)
-        if (late <= 0 || !succ) return
-        const shifted = { start: fmt(addDays(parseISO(succ.start), late)), end: fmt(addDays(parseISO(succ.end), late)) }
+        const late = daysLate(d) ?? 0
+        const shift = late > 0 ? late : daysToPull(d)
+        if (!succ || shift === 0) return
+        const shifted = { start: fmt(addDays(parseISO(succ.start), shift)), end: fmt(addDays(parseISO(succ.end), shift)) }
         next.set(d.successor_id, shifted)
         moved.set(d.successor_id, shifted)
         queue.push(d.successor_id)
