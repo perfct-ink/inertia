@@ -38,3 +38,12 @@ test('myWork groups my open tasks by due date and skips done and other people', 
   expect(groups[0].tasks.map((x) => x.id)).toEqual([6, 2])
   expect(myWork([], 5, '2026-10-19')).toEqual([])
 })
+test('a task whose parent is missing becomes a root', () => {
+  expect(buildTaskTree([task(2, 99)]).map((t) => t.id)).toEqual([2])
+})
+
+test('every task status has a label', async () => {
+  const { TASK_STATUSES, STATUS_LABEL } = await import('./task')
+  expect(TASK_STATUSES).toEqual(['backlog', 'todo', 'in_progress', 'in_review', 'done'])
+  for (const status of TASK_STATUSES) expect(STATUS_LABEL[status]).toBeTruthy()
+})
