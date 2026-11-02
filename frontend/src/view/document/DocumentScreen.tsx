@@ -46,6 +46,7 @@ import {
   List,
   ListOrdered,
   ListChecks,
+  ListPlus,
   ListFilter,
   Code2,
   Minus,
@@ -72,7 +73,7 @@ import api from '@/lib/api'
 import { useTabsStore } from '@/store/tabs'
 import { useAuthStore } from '@/store/auth'
 import { usePageTitle } from '@/hooks/usePageTitle'
-import { extractTitle, buildInitialContent } from '@/data/document'
+import { extractTitle, buildInitialContent, selectionTaskTitle, taskListContent } from '@/data/document'
 import { colorForUserId } from '@/util/color'
 
 // Enforce: document always starts with a heading followed by body content
@@ -505,6 +506,16 @@ export default function DocumentScreen() {
             }}
             active={editor.isActive('workspaceTaskList')}
             title="Task list"
+          />
+          <ToolbarBtn
+            icon={<ListPlus className="document-toolbar_icon" />}
+            onClick={() => {
+              const { from, to, empty } = editor.state.selection
+              const title = empty ? null : selectionTaskTitle(editor.state.doc.textBetween(from, to, ' '))
+              if (title) editor.chain().focus().insertContentAt({ from, to }, taskListContent(title)).run()
+            }}
+            disabled={editor.state.selection.empty}
+            title="Make selection a task"
           />
           <ToolbarBtn
             icon={<ListFilter className="document-toolbar_icon" />}

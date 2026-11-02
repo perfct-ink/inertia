@@ -41,3 +41,19 @@ export const DOC_TYPE_LABELS: Record<Document['doc_type'], string> = {
 export function untitledTitle(type: Document['doc_type']): string {
   return `Untitled ${DOC_TYPE_LABELS[type]}`
 }
+
+// A task list holding one task line with `text`; the document's task sync
+// turns the line into a Space task linked to the document (document_task_lines.md).
+export function taskListContent(text: string): Record<string, unknown> {
+  return {
+    type: 'workspaceTaskList',
+    content: [{ type: 'workspaceTaskItem', content: [{ type: 'paragraph', content: [{ type: 'text', text }] }] }],
+  }
+}
+
+// The text to make a task of: the selection collapsed to one line, or null when
+// it is empty.
+export function selectionTaskTitle(selected: string): string | null {
+  const title = selected.replace(/\s+/g, ' ').trim()
+  return title || null
+}
