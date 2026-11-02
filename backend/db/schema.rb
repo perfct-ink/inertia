@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_18_000003) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_02_010001) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -300,6 +300,41 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_18_000003) do
     t.index ["workspace_id"], name: "index_task_dependencies_on_workspace_id"
   end
 
+  create_table "task_form_submissions", force: :cascade do |t|
+    t.bigint "task_form_id", null: false
+    t.bigint "task_id", null: false
+    t.bigint "submitted_by_id"
+    t.json "answers", default: [], null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["submitted_by_id"], name: "index_task_form_submissions_on_submitted_by_id"
+    t.index ["task_form_id"], name: "index_task_form_submissions_on_task_form_id"
+    t.index ["task_id"], name: "index_task_form_submissions_on_task_id"
+  end
+
+  create_table "task_forms", force: :cascade do |t|
+    t.bigint "workspace_id", null: false
+    t.string "title", null: false
+    t.text "description"
+    t.json "questions", default: [], null: false
+    t.string "token", null: false
+    t.boolean "enabled", default: true, null: false
+    t.boolean "public_access", default: false, null: false
+    t.string "default_status", default: "backlog", null: false
+    t.bigint "epic_id"
+    t.bigint "folder_id"
+    t.bigint "assignee_id"
+    t.bigint "created_by_id"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["assignee_id"], name: "index_task_forms_on_assignee_id"
+    t.index ["created_by_id"], name: "index_task_forms_on_created_by_id"
+    t.index ["epic_id"], name: "index_task_forms_on_epic_id"
+    t.index ["folder_id"], name: "index_task_forms_on_folder_id"
+    t.index ["token"], name: "index_task_forms_on_token", unique: true
+    t.index ["workspace_id"], name: "index_task_forms_on_workspace_id"
+  end
+
   create_table "tasks", force: :cascade do |t|
     t.string "title", null: false
     t.text "description"
@@ -405,6 +440,14 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_18_000003) do
   add_foreign_key "task_dependencies", "tasks", column: "predecessor_id"
   add_foreign_key "task_dependencies", "tasks", column: "successor_id"
   add_foreign_key "task_dependencies", "workspaces"
+  add_foreign_key "task_form_submissions", "task_forms"
+  add_foreign_key "task_form_submissions", "tasks", on_delete: :cascade
+  add_foreign_key "task_form_submissions", "users", column: "submitted_by_id", on_delete: :nullify
+  add_foreign_key "task_forms", "epics", on_delete: :nullify
+  add_foreign_key "task_forms", "folders", on_delete: :nullify
+  add_foreign_key "task_forms", "users", column: "assignee_id", on_delete: :nullify
+  add_foreign_key "task_forms", "users", column: "created_by_id", on_delete: :nullify
+  add_foreign_key "task_forms", "workspaces"
   add_foreign_key "tasks", "documents"
   add_foreign_key "tasks", "epics"
   add_foreign_key "tasks", "folders"

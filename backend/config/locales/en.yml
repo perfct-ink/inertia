@@ -38,6 +38,12 @@ en:
       workspace_membership:
         one: "Space membership"
         other: "Space memberships"
+      task_form:
+        one: "Form"
+        other: "Forms"
+      task_form_submission:
+        one: "Response"
+        other: "Responses"
     attributes:
       folder:
         workspace: "Space"
@@ -52,5 +58,7 @@ en:
       initiative:
         workspace: "Space"
       workspace_membership:
+        workspace: "Space"
+      task_form:
         workspace: "Space"
 
