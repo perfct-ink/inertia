@@ -1,11 +1,11 @@
 import { format, parseISO } from 'date-fns'
-import { addDaysISO } from '@/util/date'
+import { addDays } from '@/util/calendar'
 import type { Document, PlanningStatus, RoadmapHorizon } from '@/types'
 
 // Built-in starter templates for projects, roadmaps and sprints, and the plan
-// each one turns into. Everything here is pure: api/templates.ts carries a
-// plan out against the server, so what a template adds can be tested without
-// one.
+// each one turns into, and the order a plan's records are made in. Everything
+// here is pure: api/templates.ts hands it the model API classes to create
+// records with, so what a template adds can be tested without a server.
 
 export type TemplateKind = 'project' | 'roadmap' | 'sprint'
 
@@ -182,7 +182,7 @@ export interface TaskPlan {
   title: string
   status: 'todo'
   position: number
-  due_date?: string
+  dueDate?: string
 }
 
 export interface ProjectPlan {
@@ -234,12 +234,12 @@ export function planTemplate(template: ItemTemplate, options: { name?: string; s
       return {
         kind: 'roadmap',
         milestones: template.milestones.map((item, index, all): MilestonePlan => {
-          const target = addDaysISO(startDate, item.weeks * 7)
+          const target = addDays(startDate, item.weeks * 7)
           return {
             milestone: { title: item.title, description: item.description, target_date: target, status: 'planned' },
             initiative: {
               title: item.initiative,
-              start_date: index === 0 ? startDate : addDaysISO(startDate, all[index - 1].weeks * 7),
+              start_date: index === 0 ? startDate : addDays(startDate, all[index - 1].weeks * 7),
               target_date: target,
               horizon: horizonAt(index),
               status: 'planned',
@@ -251,12 +251,12 @@ export function planTemplate(template: ItemTemplate, options: { name?: string; s
       const lastDay = template.days - 1
       return {
         kind: 'sprint',
-        sprint: { title: name, start_date: startDate, end_date: addDaysISO(startDate, lastDay), status: 'planned' },
+        sprint: { title: name, start_date: startDate, end_date: addDays(startDate, lastDay), status: 'planned' },
         tasks: template.tasks.map((task, position): TaskPlan => ({
           title: task.title,
           status: 'todo',
           position,
-          due_date: addDaysISO(startDate, task.day < 0 ? Math.max(0, template.days + task.day) : Math.min(task.day, lastDay)),
+          dueDate: addDays(startDate, task.day < 0 ? Math.max(0, template.days + task.day) : Math.min(task.day, lastDay)),
         })),
       }
     }
@@ -280,4 +280,63 @@ export function planItemCount(plan: TemplatePlan): number {
 export function partialFailureMessage(reason: string, added: number, total: number): string {
   if (added === 0) return reason
   return `${reason} ${added} of ${total} items were added before it stopped; finish or delete the rest by hand.`
+}
+
+// How a plan's records are made. The API layer passes the model classes; tests
+// pass stand-ins. Each one that others hang off returns the new record's id.
+export interface Creators {
+  folder(data: ProjectPlan['folder']): Promise<{ id: number }>
+  document(folderId: number, data: ProjectPlan['documents'][number]): Promise<unknown>
+  task(data: TaskPlan & { folder_id?: number; sprintId?: number }): Promise<unknown>
+  milestone(data: MilestonePlan['milestone']): Promise<{ id: number }>
+  initiative(data: MilestonePlan['initiative'] & { milestone_id: number }): Promise<unknown>
+  sprint(data: SprintPlan['sprint']): Promise<{ id: number }>
+}
+
+// Creates what a plan lists, one request at a time and in order (each step
+// needs the id of the one before). `added` is called after every record.
+async function createAll(plan: TemplatePlan, create: Creators, added: () => void): Promise<void> {
+  switch (plan.kind) {
+    case 'project': {
+      const folder = await create.folder(plan.folder)
+      added()
+      for (const file of plan.documents) {
+        await create.document(folder.id, file)
+        added()
+      }
+      for (const task of plan.tasks) {
+        await create.task({ ...task, folder_id: folder.id })
+        added()
+      }
+      return
+    }
+    case 'roadmap':
+      for (const { milestone, initiative } of plan.milestones) {
+        const created = await create.milestone(milestone)
+        added()
+        await create.initiative({ ...initiative, milestone_id: created.id })
+        added()
+      }
+      return
+    case 'sprint': {
+      const sprint = await create.sprint(plan.sprint)
+      added()
+      for (const task of plan.tasks) {
+        await create.task({ ...task, sprintId: sprint.id })
+        added()
+      }
+    }
+  }
+}
+
+// Carries a plan out. Nothing is rolled back when a request fails, so the error
+// says how many records were made before it stopped; `reasonOf` turns whatever
+// was thrown into text for the user.
+export async function applyPlan(plan: TemplatePlan, create: Creators, reasonOf: (error: unknown) => string): Promise<void> {
+  let done = 0
+  try {
+    await createAll(plan, create, () => { done += 1 })
+  } catch (error) {
+    throw new Error(partialFailureMessage(reasonOf(error), done, planItemCount(plan)))
+  }
 }

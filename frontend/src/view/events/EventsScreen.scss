@@ -47,33 +47,6 @@
       }
     }
 
-    @at-root .events-status {
-      flex-shrink: 0;
-      width: space(2);
-      height: space(2);
-      border-radius: radius('full');
-
-      &--backlog {
-        background: palette('zinc-400');
-      }
-
-      &--todo {
-        background: palette('zinc-500');
-      }
-
-      &--in_progress {
-        background: palette('blue-500');
-      }
-
-      &--in_review {
-        background: palette('yellow-500');
-      }
-
-      &--done {
-        background: palette('green-500');
-      }
-    }
-
     @at-root .events-date {
       &--overdue {
         color: palette('red-500');

@@ -1,4 +1,5 @@
 ---
+branch: backlog/file-download-rename-move-replace
 priority: p1
 depends_on: [upload-files-and-images-into-a-folder]
 ---
@@ -23,3 +24,6 @@ Today: `UploadsController` already stores images and video in ActiveStorage (100
 - Drag-and-drop and multi-file upload onto a folder works as described in the Objective, for a signed-in member of the Space, in the web app.
 - Failed API calls show an error to the user.
 - Tests cover the new behaviour; a feature doc in `docs/features/` is written (or the existing one updated) and this file is removed.
+
+## Blocked
+Implemented on `backlog/file-download-rename-move-replace`, stacked on `backlog/upload-files-and-images-into-a-folder` (merge it first; this branch covers both this task and drag-and-drop onto a sidebar folder). To verify: `cd backend && bundle install && rails test`, `cd frontend && npm install && npm run lint && npm test`, then try replace, move and a file drag from the desktop in a browser. None of that could run here. Then remove this file and merge.

@@ -23,8 +23,8 @@ const mockWorkspace = {
 }
 jest.mock('@/api/workspace', () => ({
   useWorkspace: () => ({ data: mockWorkspace, isLoading: false }),
-  useCreateFolder: () => mockCreateFolder,
 }))
+jest.mock('@/api/folders', () => ({ useCreateFolder: () => mockCreateFolder }))
 
 test('lists each project with the docs inside it, including subfolders', () => {
   render(<ProjectsScreen />)

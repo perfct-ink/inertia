@@ -1,0 +1,27 @@
+@use 'tokens' as *;
+
+@layer app.components {
+  .transfer_dialog {
+    &-field {
+      display: flex;
+      flex-direction: column;
+      gap: space(1);
+      min-width: 0;
+    }
+
+    &-label {
+      font-weight: 500;
+      @include text('sm');
+    }
+
+    &-note {
+      margin-top: space(3);
+      color: color(muted-foreground);
+      @include text('sm');
+    }
+
+    &-actions {
+      flex-wrap: wrap;
+    }
+  }
+}

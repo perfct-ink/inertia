@@ -1,74 +1,25 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import api from '@/lib/api'
-import type { KeyResult, Objective, PlanningStatus } from '@/types'
-
-// Linked key results move with task progress, so always refetch on visit.
-export function useObjectives() {
-  return useQuery<Objective[]>({
-    queryKey: ['objectives'],
-    queryFn: () => api.get('/api/v1/objectives').then((r) => r.data),
-    staleTime: 0,
-  })
-}
+import type { Objective, PlanningStatus } from '@/types'
+import { ApiResource, useResourceCreate, useResourceDelete, useResourceList, useResourceUpdate } from './base'
 
 type ObjectiveInput = {
   title: string
   description: string | null
   status: PlanningStatus
+  owner_id: number | null
   start_date: string | null
   target_date: string | null
 }
 
-export function useCreateObjective() {
-  const qc = useQueryClient()
-  return useMutation({
-    mutationFn: (data: Pick<ObjectiveInput, 'title'> & Partial<ObjectiveInput>) =>
-      api.post('/api/v1/objectives', { objective: data }).then((r) => r.data as Objective),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['objectives'] }),
-  })
+export class ObjectiveApi extends ApiResource<Objective, Pick<ObjectiveInput, 'title'> & Partial<ObjectiveInput>, Partial<ObjectiveInput>> {
+  constructor() {
+    super('/api/v1/objectives', 'objective', 'objectives')
+  }
 }
 
-export function useUpdateObjective() {
-  const qc = useQueryClient()
-  return useMutation({
-    mutationFn: ({ id, ...data }: Partial<ObjectiveInput> & { id: number }) =>
-      api.patch(`/api/v1/objectives/${id}`, { objective: data }).then((r) => r.data as Objective),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['objectives'] }),
-  })
-}
+export const objectiveApi = new ObjectiveApi()
 
-export function useDeleteObjective() {
-  const qc = useQueryClient()
-  return useMutation({
-    mutationFn: (id: number) => api.delete(`/api/v1/objectives/${id}`),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['objectives'] }),
-  })
-}
-
-type KeyResultInput = Pick<KeyResult, 'title'> & Partial<Pick<KeyResult, 'initiative_id' | 'start_value' | 'target_value' | 'current_value' | 'unit'>>
-
-export function useCreateKeyResult() {
-  const qc = useQueryClient()
-  return useMutation({
-    mutationFn: (data: KeyResultInput & { objective_id: number }) =>
-      api.post('/api/v1/key_results', { key_result: data }).then((r) => r.data as KeyResult),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['objectives'] }),
-  })
-}
-
-export function useUpdateKeyResult() {
-  const qc = useQueryClient()
-  return useMutation({
-    mutationFn: ({ id, ...data }: Partial<KeyResultInput> & { id: number }) =>
-      api.patch(`/api/v1/key_results/${id}`, { key_result: data }).then((r) => r.data as KeyResult),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['objectives'] }),
-  })
-}
-
-export function useDeleteKeyResult() {
-  const qc = useQueryClient()
-  return useMutation({
-    mutationFn: (id: number) => api.delete(`/api/v1/key_results/${id}`),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['objectives'] }),
-  })
-}
+// Linked key results move with task progress, so always refetch on visit.
+export const useObjectives = () => useResourceList(objectiveApi, { staleTime: 0 })
+export const useCreateObjective = () => useResourceCreate(objectiveApi)
+export const useUpdateObjective = () => useResourceUpdate(objectiveApi)
+export const useDeleteObjective = () => useResourceDelete(objectiveApi)

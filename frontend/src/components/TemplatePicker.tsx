@@ -1,6 +1,6 @@
 import { useId, useState, type FormEvent } from 'react'
 import { LayoutTemplate, Loader2 } from 'lucide-react'
-import { Button, FormError, Input, Modal, classNames } from '@/components/ui'
+import { Button, DatePicker, FormError, Input, Modal, classNames } from '@/components/ui'
 import { useApplyTemplate } from '@/api/templates'
 import { TEMPLATE_FORM, defaultName, describeTemplate, planTemplate, templatesOf, type TemplateKind } from '@/data/template'
 import { todayISO } from '@/util/date'
@@ -86,7 +86,7 @@ export default function TemplatePicker({ kind, className }: { kind: TemplateKind
           {form.startDate && (
             <label className="template_picker-field">
               <span>Start date</span>
-              <Input type="date" required value={startDate} onChange={(e) => setStartDate(e.target.value)} />
+              <DatePicker required value={startDate} onChange={(e) => setStartDate(e.target.value)} />
             </label>
           )}
 

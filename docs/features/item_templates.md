@@ -14,18 +14,18 @@ A **From template** button on the Projects, Roadmap and Sprints pages opens a di
 - **Sprint templates** create a Planned sprint (14 or 7 days, so the end date is the start plus 13 or 6 days) and starter tasks (planning, a mid-sprint check-in for two weeks, review, retrospective) assigned to it, due on the day they belong to. Tasks have status To do.
 
 ## API and models
-No new endpoints or tables. `frontend/src/api/templates.ts` carries a plan out with the existing create endpoints, one request at a time and in order: `POST /api/v1/folders`, `/api/v1/folders/:id/documents`, `/api/v1/tasks`, `/api/v1/milestones`, `/api/v1/initiatives`, `/api/v1/sprints`. Requests are sent `silent` so the dialog shows the error itself; after the plan finishes or stops, the workspace, folder-contents, tasks, milestones, initiatives and sprints queries are refreshed.
+No new endpoints or tables. `frontend/src/api/templates.ts` carries a plan out through the model API classes (`folderApi`, `documentApi.createIn`, `taskApi`, `milestoneApi`, `initiativeApi`, `sprintApi`; see [api_layer.md](api_layer.md)), one request at a time and in order: folder, then its documents and tasks; milestone, then its initiative; sprint, then its tasks. `InitiativeApi`'s create input was widened so a new initiative can carry its milestone, dates, status and horizon. Failed requests also raise the usual error notice from the HTTP client; the dialog shows the same error inline. After the plan finishes or stops, the workspace, folder-contents, tasks, milestones, initiatives and sprints queries are refetched (`useApplyTemplate`, which refetches on failure too, unlike `useApiMutation`).
 
-The templates and the plan each one turns into (names, dates, horizons, task order) are pure functions in `frontend/src/data/template.ts`; `addDaysISO` is in `frontend/src/util/date.ts`. The dialog is `frontend/src/components/TemplatePicker.tsx` (`kind` prop: `project`, `roadmap` or `sprint`).
+The templates and the plan each one turns into (names, dates, horizons, task order), the order records are made in (`applyPlan`) and the part-way failure message are pure code in `frontend/src/data/template.ts`; dates use `addDays` from `frontend/src/util/calendar.ts`. The dialog is `frontend/src/components/TemplatePicker.tsx` (`kind` prop: `project`, `roadmap` or `sprint`).
 
 ## Who can view and change
 Anyone who sees the button can use it; the server applies the same rules as for each create endpoint on its own (Space scoping and the member's role). I did not add a role check in the UI, as with "New project" and "New sprint".
 
 ## Web entry points
-`view/projects/ProjectsScreen.tsx`, `view/roadmap/RoadmapScreen.tsx` and `view/sprints/SprintsScreen.tsx` render `<TemplatePicker kind=... />` in their header. The dialog uses the shared `Modal`, `Input` (radio, text and date) and `Button`, so it works at 375px and in dark mode through the shared tokens.
+`view/projects/ProjectsScreen.tsx`, `view/roadmap/RoadmapScreen.tsx` and `view/sprints/SprintsScreen.tsx` render `<TemplatePicker kind=... />` in their header. The dialog uses the shared `Modal`, `Input` (radio and text), `DatePicker` and `Button`, so it works at 375px and in dark mode through the shared tokens.
 
 ## Tests
-`frontend/src/data/template.test.ts` (plans, dates, horizons, names, partial-failure message), `frontend/src/api/templates.test.ts` (request order and ids against a stand-in server, and failure reporting), `frontend/src/components/TemplatePicker.test.tsx` (dialog per kind, defaults, submit, error, pending), `frontend/src/util/date.test.ts` (`addDaysISO`).
+`frontend/src/data/template.test.ts` (plans, dates, horizons, names, request order against a stand-in server, partial-failure message), `frontend/src/api/templates.test.ts` (each record goes through the right model class with the right field names, and a failure reports the server text and how far it got), `frontend/src/components/TemplatePicker.test.tsx` (dialog per kind, defaults, submit, error, pending). The Projects, Roadmap and Sprints screen tests mock `TemplatePicker`.
 
 ## Known limits
 - The templates are built in. Users cannot save their own or edit the built-in ones (see `docs/backlog/save-roadmap-and-sprint-as-templates.md`; saving a project as a type is in `docs/backlog/project-types.md`).
@@ -37,6 +37,7 @@ Anyone who sees the button can use it; the server applies the same rules as for 
 - A retrospective board template is a separate task (`docs/backlog/retrospective-board-template.md`).
 
 ## History
-- Implemented 2026-11-01 (not deployed; on branch `backlog/project-and-item-templates`). Independent of the document templates on `backlog/requirements-template` and `backlog/prd-template-that-creates-tasks`: it does not touch `CreateItem`, `useNewDocument` or `api/workspace.ts`.
+- Implemented 2026-11-01 (not deployed; on branch `backlog/project-and-item-templates`). Independent of the document templates on `backlog/requirements-template` and `backlog/prd-template-that-creates-tasks`: it does not touch `CreateItem` or `useNewDocument`.
+- 2026-11-02: merged with main after the merge wave and adapted to it: the API base class and model classes, `DatePicker`, and the Roadmap header with the share link.
 - Not implemented: user-saved templates, template content for documents, an atomic server-side apply, retrospective board template.
-- Not verified: lint, type-check, Jest tests, the browser (375px and desktop, light and dark) and a run against a real backend did not run (no node_modules, no network, no database). The pure plan logic (`data/template.test.ts`, `util/date.test.ts`) and the request order (`api/templates.test.ts`, run against the same code with the network client stubbed out) were run in a stand-in runner and passed.
+- Not verified: lint, type-check, the real Jest suite and the browser (375px and desktop, light and dark) and a run against a real backend did not run (no node_modules, no network, no database). Run offline in stand-in runners: the pure tests in `data/template.test.ts` (16 pass), and the `TemplatePicker` and `SprintsScreen` component tests under Jest with stubbed icons and a stand-in for Radix Dialog that honours `open` (11 pass). `api/templates.test.ts`, `ProjectsScreen.test.tsx` and `RoadmapScreen.test.tsx` need packages that are not installed here and were not run.

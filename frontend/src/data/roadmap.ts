@@ -1,6 +1,7 @@
 import { addDays, endOfMonth, parseISO, startOfMonth } from 'date-fns'
 import type { Epic, Initiative, Milestone, RoadmapHorizon } from '@/types'
 import type { Scheduled } from '@/data/schedule'
+import { compareByTargetDate } from '@/data/milestone'
 import { groupBy } from '@/util/collection'
 
 // The roadmap (PM-20 to PM-22) is a view over initiatives and epics. Two
@@ -92,12 +93,7 @@ export function roadmapLanes(milestones: Milestone[], initiatives: Initiative[],
     .filter((e) => e.initiative_id == null || !initiativeIds.has(e.initiative_id))
     .forEach((epic) => push(laneOf(epic.milestone_id), { ...epic, key: `epic-${epic.id}`, depth: 0 }))
 
-  const sorted = [...milestones].sort((a, b) => {
-    if (a.target_date === b.target_date) return a.title.localeCompare(b.title)
-    if (!a.target_date) return 1
-    if (!b.target_date) return -1
-    return a.target_date.localeCompare(b.target_date)
-  })
+  const sorted = [...milestones].sort(compareByTargetDate)
   const lanes: RoadmapLane[] = sorted.map((m) => ({ key: `milestone-${m.id}`, milestone: m, rows: rowsByLane.get(m.id) ?? [] }))
   const loose = rowsByLane.get(null) ?? []
   if (loose.length > 0) lanes.push({ key: 'no-milestone', milestone: null, rows: loose })

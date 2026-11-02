@@ -24,7 +24,7 @@ test('the dialog lists the templates for its kind, with what each adds, and pick
   expect(screen.getByRole('dialog', { name: 'New project from a template' })).toBeInTheDocument()
   expect(screen.getByRole('radio', { name: /Software project/ })).toBeChecked()
   expect(screen.getByRole('radio', { name: /Marketing campaign/ })).not.toBeChecked()
-  expect(screen.getByText('Adds 3 files and 5 tasks')).toBeInTheDocument()
+  expect(screen.getByText('Adds 3 files and 4 tasks')).toBeInTheDocument()
   expect(screen.queryByRole('radio', { name: /Two-week sprint/ })).not.toBeInTheDocument()
 })
 
