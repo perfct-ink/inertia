@@ -8,27 +8,36 @@ The Gantt tab of a folder (`/folders/:id?view=gantt`) draws the folder's epics a
 - **Today line**: a red line when today is inside the range.
 - **Drag to reschedule**: drag a bar to move it, or its left or right edge to resize. Dates snap to whole days and are saved on release (`shiftedRange`). Task bars save `start_date` and `due_date`; epic bars save `start_date` and `target_date`.
 - **Dependencies**: arrows between task bars, a critical-path highlight, and an editor for links (see [task_dependencies.md](task_dependencies.md)).
-- **Dependency mode**: a picker per folder. *Ignore* moves only the dragged task. *Block invalid dates* refuses a move that breaks a link touching that task and shows an error. *Shift dependent tasks* pushes tasks that wait on it later, keeping their length, only as far as needed (`planReschedule`).
+- **Dependency mode**: a picker per folder. *Ignore* moves only the dragged task. *Block invalid dates* refuses a move that breaks a link touching that task and shows an error. *Shift dependent tasks* moves the tasks that wait on it, keeping their length: later, only as far as needed, when the task moves later; earlier, by the same amount, when the task moves earlier and they were sitting exactly on their link (a task with a gap before it is left where it is, and a pulled task never goes past what its other links allow). The browser works this out in `planReschedule` and the server applies the same rules on save (see below).
 
 ## API and models
 - `folders.dependency_mode` (`none`/`strict`/`flexible`, default `none`), `Folder` enum `dependency_mode` (prefix `dependencies`), permitted in `FoldersController` and returned by `FolderBlueprint`.
-- Rescheduling reuses `PATCH /api/v1/tasks/:id` and `PATCH /api/v1/epics/:id`. The mode is applied in the browser; the server does not enforce it.
+- Rescheduling reuses `PATCH /api/v1/tasks/:id` and `PATCH /api/v1/epics/:id`.
+- **Server enforcement (tasks only)**: `TasksController#update` saves through `Scheduling::TaskUpdate` (`backend/app/services/scheduling/task_update.rb`). When an update changes `start_date` or `due_date` of a task that has a due date, the mode of the folder the task sits in decides (`tasks.folder_id`, else its document's folder; no folder means ignore). *Ignore*: nothing extra. *Block*: if any link touching the task would end up broken the update is refused with `422 { errors: ["That would break the dependency of \"B\" on \"A\"."] }` and nothing is saved. *Shift*: the task and every task moved with it are saved in one transaction, and the response is the task plus `rescheduled`, the other tasks that moved (full task objects, empty when none). Edits that do not touch the dates are never checked. Epics are not covered.
+- The rules live in the plain Ruby `Scheduling::DependencyPlanner` (no database; the same rules as `planReschedule` in `frontend/src/data/dependency.ts`, so change both together). It only reads the task's links and the tasks they reach (strict: links touching the task; shift: everything downstream of it plus the other links into those tasks).
+- The Gantt still computes the plan in the browser (instant refusal in Block mode, and it sends the moved task plus the tasks it shifted). The server reaches the same dates, so the extra updates change nothing; a refusal from the server (for example the task's own folder is stricter than the folder being viewed) shows its message under the toolbar.
 
 ## Who can view and change
-Everything is scoped to the current Space. I did not check for role-based limits on these endpoints.
+Everything is scoped to the current Space. Task and epic updates need the member role or above (`WorkspaceScoped`); I did not check any finer limits.
 
 ## Web entry points
 Folder page, Gantt tab. The global Epics and Initiatives timeline pages and the roadmap use the same `Timeline` but are read-only and show no tasks or milestones.
 
 ## Tests
-`data/schedule.test.ts` (grouping, `shiftedRange`), `data/dependency.test.ts` (`planReschedule`), `backend/test/models/folder_test.rb` (mode default and values).
+`data/schedule.test.ts` (grouping, `shiftedRange`), `data/dependency.test.ts` (`planReschedule`, including pulling earlier), `view/folder_detail/GanttPane.reschedule.test.tsx` (strict refusal in the browser, shifted tasks saved, server refusal shown), `backend/test/models/folder_test.rb` (mode default and values), `backend/test/services/scheduling/dependency_planner_test.rb` (the rules; no Rails needed), `backend/test/controllers/tasks_controller_test.rb` (strict refusal, push, pull, gap left alone, document's folder, other folder's mode ignored).
 
 ## Known limits
-- Flexible mode only pushes tasks later, never earlier, and only reacts to Gantt drags, not edits made elsewhere.
+- Server enforcement uses the mode of the folder a task sits in directly. A folder's Gantt also lists tasks from its sub-folders and applies the viewed folder's mode in the browser, so set the same mode on a sub-folder if edits made elsewhere should obey it too. A sub-folder that is stricter than the folder being viewed can refuse part of a multi-task shift.
+- Pulling earlier only follows links that were exactly tight before the move. A gap (slack) between two tasks is never closed, and a successor of two predecessors stops at the later one.
+- Changing a task's folder, status or other fields does not re-run the schedule; only date changes do. Tasks created with dates, epic dates and edits to the links themselves are not checked either.
 - Mouse and touch only; there is no keyboard way to reschedule.
 - Arrows and the today line do not follow a bar while it is being dragged.
 - Milestone and initiative levels are not shown above epics.
 
 ## History
 - Implemented 2026-10-18: milestone diamonds, epic grouping, today line, drag to reschedule, dependency modes. Committed locally; not pushed or deployed.
+- Implemented 2026-11-01 (not deployed; on branch `backlog/dependency-modes-server-enforcement`): the folder's mode is enforced on `PATCH /api/v1/tasks/:id`, and Shift mode now also pulls dependants earlier. Decision for Alex: pulling earlier is limited to dependants that were exactly on their link, so existing gaps are never changed; say if Shift should instead keep the gap, or close it, or if pulling should be its own mode. No schema change.
 - Not verified: none of the tests were run, lint and type-check were not run, and the drag interaction and migration were not tried in a browser or database (no dependencies installed, no network).
+- Not verified (2026-11-01 change): `rails test` and Jest (including the new `GanttPane.reschedule.test.tsx`), lint and the browser were not run. Run offline: `data/dependency.test.ts` through a small Jest shim (13 passing) and `dependency_planner_test.rb` with plain `ruby` and Minitest (12 passing); `Scheduling::TaskUpdate`, the controller and its tests only passed `ruby -c`.
+
+- Merged to main 2026-11-02 after running, merged with main: `rails db:migrate` (schema diff clean), `rails test`, `npm run lint`, `tsc -b`, Jest, and the collab-server tests, all passing. Not checked in a browser.

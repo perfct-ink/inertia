@@ -54,8 +54,41 @@ describe('planReschedule', () => {
   })
 
   test('flexible leaves dependants that still fit alone', () => {
-    const plan = planReschedule(tasks, chain, 1, '2025-12-28', '2026-01-02', 'flexible')
-    expect(plan).toEqual({ updates: [{ id: 1, start_date: '2025-12-28', due_date: '2026-01-02' }] })
+    const gap = [t(1, '2026-01-01', '2026-01-05'), t(2, '2026-01-07', '2026-01-09')]
+    expect(planReschedule(gap, [dep(1, 2)], 1, '2026-01-02', '2026-01-06', 'flexible'))
+      .toEqual({ updates: [{ id: 1, start_date: '2026-01-02', due_date: '2026-01-06' }] })
+  })
+
+  test('flexible pulls dependants that were on their link earlier with the task', () => {
+    expect(planReschedule(tasks, chain, 1, '2025-12-28', '2026-01-02', 'flexible')).toEqual({
+      updates: [
+        { id: 1, start_date: '2025-12-28', due_date: '2026-01-02' },
+        { id: 2, start_date: '2026-01-02', due_date: '2026-01-05' },
+        { id: 3, start_date: '2026-01-05', due_date: '2026-01-07' },
+      ],
+    })
+  })
+
+  test('flexible leaves a deliberate gap alone when the task moves earlier', () => {
+    const gap = [t(1, '2026-01-01', '2026-01-05'), t(2, '2026-01-07', '2026-01-09')]
+    expect(planReschedule(gap, [dep(1, 2)], 1, '2025-12-28', '2026-01-02', 'flexible'))
+      .toEqual({ updates: [{ id: 1, start_date: '2025-12-28', due_date: '2026-01-02' }] })
+  })
+
+  test('flexible only pulls on the side the link uses', () => {
+    expect(planReschedule(tasks, chain, 1, '2025-12-28', '2026-01-05', 'flexible'))
+      .toEqual({ updates: [{ id: 1, start_date: '2025-12-28', due_date: '2026-01-05' }] })
+  })
+
+  test('a pulled dependant stops where its other links allow', () => {
+    // 3 sits on the finish of 1 and has a day to spare after the finish of 2.
+    const two = [t(1, '2026-01-01', '2026-01-05'), t(2, '2026-01-01', '2026-01-04'), t(3, '2026-01-05', '2026-01-08')]
+    expect(planReschedule(two, [dep(1, 3), dep(2, 3)], 1, '2025-12-28', '2026-01-02', 'flexible')).toEqual({
+      updates: [
+        { id: 1, start_date: '2025-12-28', due_date: '2026-01-02' },
+        { id: 3, start_date: '2026-01-04', due_date: '2026-01-07' },
+      ],
+    })
   })
 
   test('start-to-start compares starts', () => {
@@ -64,6 +97,16 @@ describe('planReschedule', () => {
       updates: [
         { id: 1, start_date: '2026-01-04', due_date: '2026-01-08' },
         { id: 2, start_date: '2026-01-04', due_date: '2026-01-06' },
+      ],
+    })
+  })
+
+  test('start-to-start dependants follow a start moved earlier', () => {
+    const plan = planReschedule([t(1, '2026-01-01', '2026-01-05'), t(2, '2026-01-01', '2026-01-03')], [dep(1, 2, 'start_to_start')], 1, '2025-12-29', '2026-01-02', 'flexible')
+    expect(plan).toEqual({
+      updates: [
+        { id: 1, start_date: '2025-12-29', due_date: '2026-01-02' },
+        { id: 2, start_date: '2025-12-29', due_date: '2025-12-31' },
       ],
     })
   })
