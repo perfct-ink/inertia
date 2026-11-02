@@ -19,6 +19,7 @@ import OkrsScreen from '@/view/okrs/OkrsScreen'
 import SprintBoardScreen from '@/view/sprint_board/SprintBoardScreen'
 import ResourcesScreen from '@/view/resources/ResourcesScreen'
 import MyWorkScreen from '@/view/my_work/MyWorkScreen'
+import DashboardScreen from '@/view/dashboard/DashboardScreen'
 import TimelineScreen from '@/view/timeline/TimelineScreen'
 import IdeasScreen from '@/view/ideas/IdeasScreen'
 import IoMapScreen from '@/view/io_map/IoMapScreen'
@@ -174,6 +175,14 @@ export default function App() {
           element={
             <PrivateRoute>
               <SprintBoardScreen />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/dashboard"
+          element={
+            <PrivateRoute>
+              <DashboardScreen />
             </PrivateRoute>
           }
         />

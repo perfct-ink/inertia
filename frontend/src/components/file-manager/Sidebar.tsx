@@ -12,7 +12,7 @@ import AppearanceDialog from '@/components/AppearanceDialog'
 import {
   FolderPlus, CheckSquare, FilePlus, FileText,
   Table as TableIcon, Pin, Folder, Loader2, CalendarDays,
-  Plus, Target, Flag, FolderKanban, ClipboardList, Milestone, Rocket, ListTree, Map as MapIcon, Goal, Users, Archive, ArchiveRestore, Keyboard, Download, UserCheck, GanttChart, Lightbulb, Network, Disc3, CalendarRange, Table2, Rows3,
+  Plus, Target, Flag, FolderKanban, ClipboardList, Milestone, Rocket, ListTree, Map as MapIcon, Goal, Users, Archive, ArchiveRestore, Keyboard, Download, UserCheck, GanttChart, Lightbulb, Network, Disc3, CalendarRange, Table2, Rows3, LayoutDashboard,
 } from 'lucide-react'
 import { useWorkspace } from '@/api/workspace'
 import { useArchivedFolders, useCreateFolder, usePinFolder, useUpdateFolder } from '@/api/folders'
@@ -282,6 +282,7 @@ export default function Sidebar() {
           <div className="sidebar-titlebar sidebar-drag" />
         )}
         <div className="sidebar-rail_group">
+          <RailButton icon={LayoutDashboard} label="Dashboard" active={location.pathname === '/dashboard'} onClick={() => navigate('/dashboard')} />
           <RailButton icon={FileText} label="All files" active={isDocumentsSection} onClick={() => navigate('/documents')} />
           <RailButton icon={FolderKanban} label="Projects" active={location.pathname === '/projects'} onClick={() => navigate('/projects')} />
           <RailButton icon={ClipboardList} label="Project requests" active={location.pathname === '/project-requests'} onClick={() => navigate('/project-requests')} />

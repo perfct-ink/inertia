@@ -1,0 +1,306 @@
+@use 'tokens' as *;
+
+@layer view {
+  .view-dashboard {
+    display: flex;
+    flex: 1 1 0%;
+    flex-direction: column;
+    overflow: hidden;
+
+    @at-root .dashboard-header {
+      @include page-header;
+    }
+
+    @at-root .dashboard-title {
+      flex: 1 1 0%;
+      font-size: 1.25rem;
+      line-height: 1.75rem;
+      font-weight: 600;
+    }
+
+    // Full width on a phone (the title takes its own line), a fixed width after.
+    .dashboard-scope {
+      width: 100%;
+
+      @include up('sm') {
+        width: space(64);
+      }
+    }
+
+    @at-root .dashboard-body {
+      flex: 1 1 0%;
+      overflow-y: auto;
+    }
+
+    @at-root .dashboard-content {
+      display: flex;
+      flex-direction: column;
+      gap: space(6);
+      max-width: 56rem;
+      margin-inline: auto;
+      @include page-padding;
+    }
+
+    @at-root .dashboard-spinner {
+      align-self: center;
+      width: space(5);
+      height: space(5);
+      color: color(muted-foreground);
+      @include spin;
+    }
+
+    @at-root .dashboard-empty {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: space(2);
+      padding-block: space(10);
+      color: color(muted-foreground);
+      text-align: center;
+      @include text('sm');
+    }
+
+    @at-root .dashboard-empty_icon {
+      width: space(8);
+      height: space(8);
+      opacity: 0.5;
+    }
+
+    @at-root .dashboard-heading {
+      margin-bottom: space(3);
+      font-weight: 600;
+      @include text('base');
+    }
+
+    @at-root .dashboard-icon {
+      flex-shrink: 0;
+      width: space(4);
+      height: space(4);
+      color: color(muted-foreground);
+    }
+
+    @at-root .dashboard-muted {
+      color: color(muted-foreground);
+      font-variant-numeric: tabular-nums;
+      @include text('xs');
+    }
+
+    // Links only: the cards and tiles around them don't react to the cursor.
+    @at-root .dashboard-link {
+      color: color(foreground);
+      @include text('sm');
+
+      &:hover {
+        text-decoration: underline;
+      }
+
+      &:focus-visible {
+        @include focus-ring;
+      }
+
+      // Every link is a flex item, so padding makes a 40px-tall tap target on touch screens.
+      @media (pointer: coarse) {
+        padding-block: space(2.5);
+      }
+    }
+
+    // Summary numbers: two across on a phone, four from md.
+    @at-root .dashboard-tiles {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: space(3);
+
+      @include up('md') {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+      }
+    }
+
+    @at-root .dashboard-tile {
+      display: flex;
+      flex-direction: column;
+      gap: space(1);
+      min-width: 0;
+      padding: space(4);
+      border-width: 1px;
+      border-radius: radius('lg');
+      background: color(card);
+
+      &-label {
+        color: color(muted-foreground);
+        @include text('xs');
+      }
+
+      &-value {
+        font-size: 1.5rem;
+        line-height: 2rem;
+        font-weight: 600;
+        font-variant-numeric: tabular-nums;
+      }
+
+      &-detail {
+        color: color(muted-foreground);
+        @include text('xs');
+      }
+
+      &--alert &-value {
+        color: color(danger);
+      }
+    }
+
+    @at-root .dashboard-folders {
+      display: flex;
+      flex-direction: column;
+      gap: space(2);
+    }
+
+    @at-root .dashboard-folder {
+      display: flex;
+      flex-direction: column;
+      gap: space(2);
+      padding: space(3) space(4);
+      border-width: 1px;
+      border-radius: radius('lg');
+      background: color(card);
+
+      &-top {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: space(1) space(3);
+      }
+
+      &-name {
+        flex: 1 1 0%;
+        min-width: 0;
+        font-weight: 500;
+        @include truncate;
+      }
+
+      &-progress {
+        display: flex;
+        align-items: center;
+        gap: space(3);
+
+        .timeline-progress {
+          flex: 1 1 0%;
+        }
+      }
+    }
+
+    @at-root .dashboard-overdue {
+      color: color(danger);
+      font-weight: 500;
+      @include text('xs');
+    }
+
+    @at-root .dashboard-cards {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+      gap: space(3);
+
+      @include up('md') {
+        grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+      }
+    }
+
+    @at-root .dashboard-card {
+      display: flex;
+      flex-direction: column;
+      gap: space(3);
+      min-width: 0;
+      padding: space(4);
+      border-width: 1px;
+      border-radius: radius('lg');
+      background: color(card);
+
+      &-top {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: space(1) space(3);
+      }
+
+      &-title {
+        font-weight: 600;
+        @include text('sm');
+      }
+    }
+
+    @at-root .dashboard-counts {
+      display: flex;
+      flex-direction: column;
+      gap: space(2);
+    }
+
+    @at-root .dashboard-count {
+      display: flex;
+      align-items: center;
+      gap: space(2);
+      @include text('sm');
+
+      &-label {
+        flex: 1 1 0%;
+        min-width: 0;
+        overflow-wrap: anywhere;
+      }
+
+      &-value {
+        font-weight: 500;
+        font-variant-numeric: tabular-nums;
+      }
+
+      &--note {
+        padding-top: space(2);
+        border-top-width: 1px;
+        color: color(muted-foreground);
+        @include text('xs');
+      }
+    }
+
+    @at-root .dashboard-upcoming {
+      display: flex;
+      flex-direction: column;
+      border-width: 1px;
+      border-radius: radius('lg');
+      background: color(card);
+    }
+
+    @at-root .dashboard-task {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: space(1) space(3);
+      padding: space(3) space(4);
+      @include text('sm');
+
+      & + & {
+        border-top-width: 1px;
+      }
+
+      &-title {
+        flex: 1 1 10rem;
+        min-width: 0;
+        overflow-wrap: anywhere;
+      }
+
+      &-doc {
+        max-width: 100%;
+        color: color(muted-foreground);
+        @include text('xs');
+        @include truncate;
+      }
+
+      &-due {
+        color: color(muted-foreground);
+        font-variant-numeric: tabular-nums;
+        @include text('xs');
+
+        &--overdue {
+          color: color(danger);
+          font-weight: 500;
+        }
+      }
+    }
+  }
+}
