@@ -19,12 +19,8 @@ One file per implemented feature, written from the code (see `docs/rules/feature
 | Checklist lines in documents become Space tasks | [document_task_lines.md](document_task_lines.md) |
 | Switching Spaces from the sidebar | [space_switcher.md](space_switcher.md) |
 | Collections naming (tables are called Collections in the UI) | [collections.md](collections.md) |
-<<<<<<< HEAD
 | Design principles applied across the web app (responsive, styled controls, hover, 150ms motion) | [design_principles.md](design_principles.md) |
 | PostgreSQL database: shared-postgres on Coolify | [postgresql_database.md](postgresql_database.md) |
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
 | Files of any type embedded in documents: audio player, file cards with preview and download, paste and drop | [embedded_files.md](embedded_files.md) |
 | Epic planning: an epic's tasks by status, drag from the backlog, dates and rollup | [epic_planning.md](epic_planning.md) |
 | Formula field: Collection columns worked out from other fields | [formula_field.md](formula_field.md) |
@@ -34,18 +30,10 @@ One file per implemented feature, written from the code (see `docs/rules/feature
 | Task fields: tags, dropdown, checkbox, rating and vote on tasks | [task_fields.md](task_fields.md) |
 | Move or copy documents and folders between Spaces | [space_transfer.md](space_transfer.md) |
 | Collection map view: records with coordinates as pins on a map | [collection_map_view.md](collection_map_view.md) |
-=======
 | Project intake: request a project, an admin approves or declines | [project_intake.md](project_intake.md) |
->>>>>>> origin/backlog/project-intake-form-with-approval-workflow
-=======
 | Links to headings: stable heading ids, a toolbar picker and in-app jumps | [heading_links.md](heading_links.md) |
->>>>>>> origin/backlog/link-to-a-heading
-=======
 | Configurable statuses: rename and recolor the task statuses per Space or folder | [configurable_statuses.md](configurable_statuses.md) |
->>>>>>> origin/backlog/configurable-statuses
-=======
 | Uploaded files: any file type as a folder item, with preview and download | [uploaded_files.md](uploaded_files.md) |
->>>>>>> origin/backlog/upload-files-and-images-into-a-folder
 | Appearance: light/dark/system and accent colour | [appearance.md](appearance.md) |
 | Document breadcrumb: Space > folders > document | [document_breadcrumb.md](document_breadcrumb.md) |
 | My work: my open tasks by due date | [my_work.md](my_work.md) |
@@ -60,3 +48,4 @@ One file per implemented feature, written from the code (see `docs/rules/feature
 | Feature folders: a folder flagged as holding features | [feature_folders.md](feature_folders.md) |
 | Cards view of a folder's tasks | [cards_view.md](cards_view.md) |
 | Task priority, effort estimate and story points | [task_estimates.md](task_estimates.md) |
+| Forms that create tasks: build, fill in, optional public link | [task_forms.md](task_forms.md) |

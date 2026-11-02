@@ -1,6 +1,6 @@
-import type { Task } from '@/types'
+import type { TaskStatus } from '@/types'
 import type {
-  TaskFormAnswers, TaskFormQuestion, TaskFormQuestionKind, TaskFormTarget,
+  TaskForm, TaskFormAnswers, TaskFormQuestion, TaskFormQuestionKind, TaskFormTarget,
 } from '@/types/taskForm'
 
 // The kinds of question a form can ask, in the order the type picker shows them.
@@ -31,13 +31,8 @@ export const TARGET_KINDS: Record<TaskFormTarget, TaskFormQuestionKind[]> = {
 
 export const MAX_QUESTIONS = 20
 
-export const TASK_STATUS_OPTIONS: { value: Task['status']; label: string }[] = [
-  { value: 'backlog', label: 'Backlog' },
-  { value: 'todo', label: 'To do' },
-  { value: 'in_progress', label: 'In progress' },
-  { value: 'in_review', label: 'In review' },
-  { value: 'done', label: 'Done' },
-]
+// Mirrors TaskForm::PUBLIC_HOURLY_LIMIT on the server.
+export const PUBLIC_HOURLY_LIMIT = 30
 
 // Parts of the task a question of this kind can fill in.
 export function targetsFor(kind: TaskFormQuestionKind): TaskFormTarget[] {
@@ -103,4 +98,60 @@ export function publicFormUrl(token: string, location: Pick<Location, 'origin' |
 export function formStatusLabel(form: { enabled: boolean; public_access: boolean }): string {
   if (!form.enabled) return 'Closed'
   return form.public_access ? 'Open, public link' : 'Open to the Space'
+}
+
+// What the builder edits: the form's settings with ids as the strings the
+// pickers hold ('' is none).
+export interface TaskFormDraft {
+  title: string
+  description: string
+  enabled: boolean
+  public_access: boolean
+  default_status: TaskStatus
+  epic_id: string
+  folder_id: string
+  assignee_id: string
+  questions: TaskFormQuestion[]
+}
+
+export function draftFromForm(form: TaskForm): TaskFormDraft {
+  return {
+    title: form.title,
+    description: form.description ?? '',
+    enabled: form.enabled,
+    public_access: form.public_access,
+    default_status: form.default_status,
+    epic_id: form.epic_id == null ? '' : String(form.epic_id),
+    folder_id: form.folder_id == null ? '' : String(form.folder_id),
+    assignee_id: form.assignee_id == null ? '' : String(form.assignee_id),
+    questions: form.questions,
+  }
+}
+
+// The body of the save request. `public_access` is left out when it hasn't
+// changed, so a member without the right to turn the link on can still save.
+export function formInput(draft: TaskFormDraft, form: Pick<TaskForm, 'public_access'>) {
+  const id = (value: string) => (value === '' ? null : Number(value))
+  const description = draft.description.trim()
+  return {
+    title: draft.title.trim(),
+    description: description === '' ? null : description,
+    enabled: draft.enabled,
+    default_status: draft.default_status,
+    epic_id: id(draft.epic_id),
+    folder_id: id(draft.folder_id),
+    assignee_id: id(draft.assignee_id),
+    questions: draft.questions,
+    ...(draft.public_access !== form.public_access && { public_access: draft.public_access }),
+  }
+}
+
+// Move a question up (-1) or down (1); at either end it stays put.
+export function moveQuestion(questions: TaskFormQuestion[], index: number, delta: -1 | 1): TaskFormQuestion[] {
+  const to = index + delta
+  if (to < 0 || to >= questions.length) return questions
+  const moved = [...questions]
+  const [question] = moved.splice(index, 1)
+  moved.splice(to, 0, question)
+  return moved
 }

@@ -1,4 +1,4 @@
-import type { Task } from '@/types'
+import type { TaskStatus } from '@/types'
 
 // A question on a form (mirrors TaskFormSchema on the server).
 export type TaskFormQuestionKind = 'short_text' | 'long_text' | 'date' | 'choice'
@@ -28,7 +28,7 @@ export interface TaskForm {
   token: string | null
   // Whether the server allows public links at all (PUBLIC_FORMS_ENABLED).
   public_links_available: boolean
-  default_status: Task['status']
+  default_status: TaskStatus
   epic_id: number | null
   folder_id: number | null
   assignee_id: number | null
@@ -48,7 +48,7 @@ export interface TaskFormSubmission {
   id: number
   task_id: number
   task_title: string
-  task_status: Task['status']
+  task_status: TaskStatus
   submitted_by_name: string | null
   answers: { label: string; value: string }[]
   created_at: string

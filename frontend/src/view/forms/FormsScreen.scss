@@ -1,0 +1,82 @@
+@use 'tokens' as *;
+
+@layer view {
+  .view-forms {
+    @at-root .forms-new {
+      display: flex;
+      flex-direction: column;
+      gap: space(3);
+
+      &-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: space(2);
+      }
+    }
+
+    @at-root .forms-card {
+      display: flex;
+      flex-direction: column;
+      gap: space(2);
+      padding: space(4);
+      border-width: 1px;
+      border-radius: radius('lg');
+      background: color(card);
+
+      &-top {
+        display: flex;
+        align-items: center;
+        gap: space(2);
+      }
+
+      &-title {
+        flex: 1 1 0%;
+        min-width: 0;
+        font-weight: 600;
+        @include truncate;
+      }
+
+      &-description {
+        color: color(muted-foreground);
+        overflow-wrap: anywhere;
+        @include text('sm');
+      }
+
+      &-meta {
+        color: color(muted-foreground);
+        @include text('xs');
+      }
+
+      &-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: space(2);
+      }
+    }
+
+    @at-root .forms-status {
+      flex-shrink: 0;
+      padding: space(0.5) space(2);
+      border-radius: radius('full');
+      background: color(accent);
+      color: color(accent-foreground);
+      user-select: none;
+      @include text('xs');
+
+      &--closed {
+        background: color(muted);
+        color: color(muted-foreground);
+      }
+    }
+
+    .forms-delete {
+      flex-shrink: 0;
+      padding: space(1);
+      color: color(muted-foreground);
+
+      &:hover {
+        color: palette('red-500');
+      }
+    }
+  }
+}

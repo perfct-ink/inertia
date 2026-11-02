@@ -1,0 +1,272 @@
+@use 'tokens' as *;
+
+@layer view {
+  .view-form_builder {
+    display: flex;
+    flex: 1 1 0%;
+    flex-direction: column;
+    overflow: hidden;
+
+    @at-root .form_builder-header {
+      @include page-header;
+    }
+
+    @at-root .form_builder-back {
+      @include muted-link;
+      @include text('sm');
+    }
+
+    @at-root .form_builder-title {
+      flex: 1 1 0%;
+      font-size: 1.25rem;
+      line-height: 1.75rem;
+      font-weight: 600;
+    }
+
+    @at-root .form_builder-body {
+      display: flex;
+      flex: 1 1 0%;
+      flex-direction: column;
+      gap: space(6);
+      max-width: 42rem;
+      width: 100%;
+      min-width: 0;
+      margin-inline: auto;
+      overflow-y: auto;
+      @include page-padding;
+    }
+
+    @at-root .form_builder-sections {
+      display: flex;
+      flex-direction: column;
+      gap: space(6);
+    }
+
+    @at-root .form_builder-section {
+      display: flex;
+      flex-direction: column;
+      gap: space(3);
+      min-width: 0;
+      padding: space(4);
+      border-width: 1px;
+      border-radius: radius('lg');
+      background: color(card);
+    }
+
+    @at-root .form_builder-heading {
+      font-weight: 600;
+      @include text('sm');
+    }
+
+    @at-root .form_builder-field {
+      display: flex;
+      flex-direction: column;
+      gap: space(1);
+      min-width: 0;
+      @include text('sm');
+
+      > span {
+        color: color(muted-foreground);
+        user-select: none;
+        @include text('xs');
+      }
+    }
+
+    @at-root .form_builder-check {
+      display: flex;
+      align-items: center;
+      gap: space(2);
+      cursor: pointer;
+      @include text('sm');
+
+      > span {
+        user-select: none;
+      }
+    }
+
+    @at-root .form_builder-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: space(3);
+
+      @include up('sm') {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    @at-root .form_builder-hint {
+      color: color(muted-foreground);
+      @include text('xs');
+    }
+
+    @at-root .form_builder-link {
+      display: flex;
+      flex-wrap: wrap;
+      gap: space(2);
+
+      .ui-input {
+        flex: 1 1 space(48);
+        min-width: 0;
+      }
+    }
+
+    @at-root .form_builder-questions {
+      display: flex;
+      flex-direction: column;
+      gap: space(3);
+    }
+
+    @at-root .form_builder-question {
+      display: flex;
+      flex-direction: column;
+      gap: space(3);
+      padding: space(3);
+      border-width: 1px;
+      border-radius: radius('md');
+
+      &-top {
+        display: flex;
+        flex-wrap: wrap;
+        gap: space(2);
+
+        .ui-input {
+          flex: 1 1 space(48);
+          min-width: 0;
+        }
+      }
+
+      &-buttons {
+        display: flex;
+        gap: space(1);
+        margin-left: auto;
+      }
+
+      &-fields {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: flex-end;
+        gap: space(3);
+
+        .form_builder-field {
+          flex: 1 1 space(36);
+        }
+      }
+    }
+
+    // Touch targets stay tappable: 40px squares like the text fields.
+    .form_builder-icon_button {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: space(10);
+      height: space(10);
+      color: color(muted-foreground);
+
+      &:hover:not(:disabled) {
+        color: color(foreground);
+        background: color(accent, 0.5);
+      }
+
+      &:disabled {
+        opacity: 0.4;
+      }
+
+      &--remove:hover:not(:disabled) {
+        color: palette('red-500');
+      }
+    }
+
+    @at-root .form_builder-icon {
+      width: space(4);
+      height: space(4);
+    }
+
+    .form_builder-add {
+      display: flex;
+      align-items: center;
+      align-self: flex-start;
+      gap: space(1.5);
+    }
+
+    @at-root .form_builder-save {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: flex-end;
+      gap: space(3);
+    }
+
+    @at-root .form_builder-saved {
+      color: color(muted-foreground);
+      @include text('sm');
+    }
+
+    @at-root .form_builder-responses {
+      display: flex;
+      flex-direction: column;
+      gap: space(3);
+    }
+
+    @at-root .form_builder-response {
+      display: flex;
+      flex-direction: column;
+      gap: space(1);
+      padding-bottom: space(3);
+      border-bottom-width: 1px;
+      min-width: 0;
+
+      &:last-child {
+        padding-bottom: 0;
+        border-bottom-width: 0;
+      }
+
+      &-title {
+        font-weight: 500;
+        overflow-wrap: anywhere;
+        @include text('sm');
+      }
+
+      &-meta {
+        color: color(muted-foreground);
+        @include text('xs');
+      }
+    }
+
+    @at-root .form_builder-answers {
+      display: flex;
+      flex-direction: column;
+      gap: space(0.5);
+      @include text('xs');
+    }
+
+    @at-root .form_builder-answer {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0 space(2);
+      overflow-wrap: anywhere;
+
+      dt {
+        color: color(muted-foreground);
+      }
+
+      dd {
+        white-space: pre-wrap;
+      }
+    }
+
+    @at-root .form_builder-message {
+      padding: space(6);
+      color: color(muted-foreground);
+      @include text('sm');
+    }
+
+    @at-root .form_builder-spinner {
+      align-self: center;
+      width: space(5);
+      height: space(5);
+      margin: space(6);
+      color: color(muted-foreground);
+      @include spin;
+    }
+  }
+}

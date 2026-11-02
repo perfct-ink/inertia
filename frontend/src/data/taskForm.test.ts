@@ -1,7 +1,7 @@
-import type { TaskFormQuestion } from '@/types/taskForm'
+import type { TaskForm, TaskFormQuestion } from '@/types/taskForm'
 import {
-  answerProblems, changeKind, changeTarget, emptyAnswers, formStatusLabel, newQuestion, optionsFromText,
-  optionsToText, publicFormUrl, takenTargets, targetsFor,
+  answerProblems, changeKind, changeTarget, draftFromForm, emptyAnswers, formInput, formStatusLabel, moveQuestion, newQuestion,
+  optionsFromText, optionsToText, publicFormUrl, takenTargets, targetsFor,
 } from './taskForm'
 
 const question = (opts: Partial<TaskFormQuestion> = {}): TaskFormQuestion =>
@@ -85,4 +85,34 @@ test('a form is open to the Space, public, or closed', () => {
   expect(formStatusLabel({ enabled: true, public_access: false })).toBe('Open to the Space')
   expect(formStatusLabel({ enabled: true, public_access: true })).toBe('Open, public link')
   expect(formStatusLabel({ enabled: false, public_access: true })).toBe('Closed')
+})
+
+describe('the builder draft', () => {
+  const form = {
+    id: 1, title: 'Bug', description: null, questions: [question({ id: 'a', target: 'title', required: true })], enabled: true,
+    public_access: false, token: null, public_links_available: true, default_status: 'todo', epic_id: 4, folder_id: null,
+    assignee_id: null, submissions_count: 0, created_at: '', updated_at: '',
+  } as TaskForm
+
+  test('turns the form into picker values', () => {
+    expect(draftFromForm(form)).toMatchObject({ title: 'Bug', description: '', epic_id: '4', folder_id: '', assignee_id: '', default_status: 'todo' })
+  })
+
+  test('turns the draft back into a save request, ids as numbers or null', () => {
+    const draft = { ...draftFromForm(form), title: ' Bug report ', description: '  ', folder_id: '9' }
+    expect(formInput(draft, form)).toMatchObject({ title: 'Bug report', description: null, epic_id: 4, folder_id: 9, assignee_id: null, enabled: true })
+  })
+
+  test('only sends public_access when it changed', () => {
+    expect(formInput(draftFromForm(form), form)).not.toHaveProperty('public_access')
+    expect(formInput({ ...draftFromForm(form), public_access: true }, form)).toHaveProperty('public_access', true)
+  })
+})
+
+test('questions move up and down but not off either end', () => {
+  const [a, b, c] = ['a', 'b', 'c'].map((id) => question({ id }))
+  expect(moveQuestion([a, b, c], 1, -1).map((q) => q.id)).toEqual(['b', 'a', 'c'])
+  expect(moveQuestion([a, b, c], 1, 1).map((q) => q.id)).toEqual(['a', 'c', 'b'])
+  expect(moveQuestion([a, b, c], 0, -1)).toEqual([a, b, c])
+  expect(moveQuestion([a, b, c], 2, 1)).toEqual([a, b, c])
 })

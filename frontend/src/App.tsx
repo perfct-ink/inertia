@@ -30,6 +30,10 @@ import ProjectsScreen from '@/view/projects/ProjectsScreen'
 import ProjectRequestsScreen from '@/view/project_requests/ProjectRequestsScreen'
 import FolderDetailScreen from '@/view/folder_detail/FolderDetailScreen'
 import SharedScreen from '@/view/shared/SharedScreen'
+import FormsScreen from '@/view/forms/FormsScreen'
+import FormFillScreen from '@/view/form_fill/FormFillScreen'
+import FormBuilderScreen from '@/view/form_builder/FormBuilderScreen'
+import PublicFormScreen from '@/view/public_form/PublicFormScreen'
 import AppearanceEffect from '@/components/AppearanceEffect'
 import OnboardingSync from '@/components/onboarding/OnboardingSync'
 
@@ -57,6 +61,8 @@ export default function App() {
         <Route path="/login" element={<LoginScreen />} />
         <Route path="/signup" element={<SignupScreen />} />
         <Route path="/shared/:token" element={<SharedScreen />} />
+        {/* A form opened to anyone with its link: no account needed. */}
+        <Route path="/f/:token" element={<PublicFormScreen />} />
         {/* Rails owns "/" in production for the marketing homepage (see
             backend/app/controllers/marketing_controller.rb and the nginx vhost
             under deploy/) — this route only matters for local dev (no Rails
@@ -262,6 +268,30 @@ export default function App() {
           element={
             <PrivateRoute>
               <ProjectRequestsScreen />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/forms"
+          element={
+            <PrivateRoute>
+              <FormsScreen />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/forms/:id"
+          element={
+            <PrivateRoute>
+              <FormFillScreen />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/forms/:id/edit"
+          element={
+            <PrivateRoute>
+              <FormBuilderScreen />
             </PrivateRoute>
           }
         />
