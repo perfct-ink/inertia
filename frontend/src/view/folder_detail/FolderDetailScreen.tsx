@@ -20,12 +20,13 @@ import { useWorkspace } from '@/api/workspace'
 import { canWriteWorkspace } from '@/api/workspaces'
 import { useUpdateTask } from '@/api/tasks'
 import { useMilestones } from '@/api/milestones'
+import { useInitiatives } from '@/api/initiatives'
 import type { Task, WorkspaceEvent, Epic } from '@/types'
 import './FolderDetailScreen.scss'
 import { usePageTitle } from '@/hooks/usePageTitle'
 import { useBoardStatuses } from '@/hooks/useBoardStatuses'
 import { StatusSettings } from '@/components/workspace/StatusSettings'
-import { donePercent } from '@/data/schedule'
+import { donePercent, milestoneMarkers } from '@/data/schedule'
 import { BOARD_STATUSES, NEXT_STATUS, nextStatusLabel, type BoardStatuses } from '@/data/task_status'
 import GanttPane from './GanttPane'
 import { buildTaskTree, type TaskNode } from '@/data/task'
@@ -385,6 +386,7 @@ export default function FolderDetailScreen() {
   const updateFolder = useUpdateFolder()
   const updateTask = useUpdateTask()
   const { data: allMilestones = [] } = useMilestones()
+  const { data: initiatives = [] } = useInitiatives()
   usePageTitle(data?.folder.name)
 
   if (isLoading || !data) {
@@ -398,9 +400,7 @@ export default function FolderDetailScreen() {
   }
 
   const { folder, documents, tasks, events, epics } = data
-  const milestones = allMilestones
-    .filter((m) => m.folder_id === folderId && m.target_date)
-    .map((m) => ({ id: m.id, title: m.title, target_date: m.target_date! }))
+  const milestones = milestoneMarkers(allMilestones.filter((m) => m.folder_id === folderId))
 
   return (
     <WorkspaceLayout>
@@ -481,7 +481,15 @@ export default function FolderDetailScreen() {
         {view === 'calendar' && <CalendarView events={events} />}
         {view === 'gantt' && (
           <div className="folder_detail-pane">
-            <GanttPane folderName={folder.name} folderId={folderId} dependencyMode={folder.dependency_mode ?? 'none'} milestones={milestones} epics={epics} tasks={tasks} />
+            <GanttPane
+              folderName={folder.name}
+              folderId={folderId}
+              dependencyMode={folder.dependency_mode ?? 'none'}
+              milestones={milestones}
+              groups={{ initiatives, milestones: allMilestones }}
+              epics={epics}
+              tasks={tasks}
+            />
           </div>
         )}
         <StatusSettings open={showStatuses} folderId={folderId} boardName={folder.name} onClose={() => setShowStatuses(false)} />

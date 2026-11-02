@@ -31,6 +31,7 @@ jest.mock('@/api/workspace', () => ({
 }))
 jest.mock('@/api/tasks', () => ({ useUpdateTask: () => mockUpdate }))
 jest.mock('@/api/milestones', () => ({ useMilestones: () => ({ data: [] }) }))
+jest.mock('@/api/initiatives', () => ({ useInitiatives: () => ({ data: [] }) }))
 
 let mockSettings: TaskStatusSetting[] = []
 jest.mock('@/api/taskStatusSettings', () => ({

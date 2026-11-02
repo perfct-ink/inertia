@@ -7,7 +7,7 @@ import { useUpdateTask } from '@/api/tasks'
 import { useUpdateEpic } from '@/api/epics'
 import { useUpdateFolder } from '@/api/folders'
 import { useCreateTaskDependency, useDeleteTaskDependency, useTaskDependencies } from '@/api/taskDependencies'
-import { GANTT_ZOOMS, GANTT_ZOOM_LABEL, ganttTaskKey, groupGanttRows, type GanttZoom, type Scheduled } from '@/data/schedule'
+import { GANTT_ZOOMS, GANTT_ZOOM_LABEL, ganttTaskKey, groupGanttRows, type GanttGroups, type GanttZoom, type Scheduled } from '@/data/schedule'
 import { DEPENDENCY_KINDS, DEPENDENCY_LABEL, DEPENDENCY_MODES, DEPENDENCY_MODE_LABEL, drivingPath, kindFromSides, planReschedule, type BarSide } from '@/data/dependency'
 import { errorMessage } from '@/util/errorMessage'
 import { exportGanttPng } from '@/util/ganttCanvas'
@@ -15,16 +15,20 @@ import { printGantt } from '@/util/printGantt'
 import type { DependencyKind, DependencyMode, Epic, Task, TaskDependency } from '@/types'
 import './GanttPane.scss'
 
-// The folder's Gantt tab: epics and dated tasks, dependency arrows between
-// this folder's tasks (PM-13), the driving path highlighted (PM-15), and a
-// small editor for the links underneath.
-export default function GanttPane({ folderId, dependencyMode, epics, tasks, milestones, folderName = 'Gantt' }: {
+// The folder's Gantt tab: epics and dated tasks under the initiatives and
+// milestones they belong to, dependency arrows between this folder's tasks
+// (PM-13), the driving path highlighted (PM-15), and a small editor for the
+// links underneath. `milestones` are the diamonds; `groups` are the Space's
+// initiatives and milestones, of which only those with an epic or task in this
+// folder get a row.
+export default function GanttPane({ folderId, dependencyMode, epics, tasks, milestones, groups, folderName = 'Gantt' }: {
   folderId: number
   dependencyMode: DependencyMode
   epics: Epic[]
   tasks: Task[]
   milestones: TimelineMilestone[]
   folderName?: string
+  groups?: GanttGroups
 }) {
   const { data: allDependencies = [] } = useTaskDependencies()
   const [showCritical, setShowCritical] = useState(true)
@@ -37,7 +41,8 @@ export default function GanttPane({ folderId, dependencyMode, epics, tasks, mile
   const [moveError, setMoveError] = useState<string | null>(null)
   const [exportError, setExportError] = useState<string | null>(null)
 
-  // Rows are keyed `task-<id>` / `epic-<id>`; a task's end is due_date, an epic's is target_date.
+  // Rows are keyed `task-<id>` / `epic-<id>` (milestone and initiative rows are
+  // not draggable); a task's end is due_date, an epic's is target_date.
   // Task moves go through the folder's dependency mode (PM-14), which may block
   // the move or add the tasks that have to shift with it. The server applies the
   // mode too and can refuse, so a failed save shows its message.
@@ -84,6 +89,8 @@ export default function GanttPane({ folderId, dependencyMode, epics, tasks, mile
   )
   const links = dependencies.map((d) => ({ from: ganttTaskKey(d.predecessor_id), to: ganttTaskKey(d.successor_id), kind: d.kind }))
 
+  const rows = groupGanttRows(epics, tasks, critical, groups)
+
   return (
     <div className="view-gantt_pane">
       <div className="gantt_pane-toolbar">
@@ -113,7 +120,7 @@ export default function GanttPane({ folderId, dependencyMode, epics, tasks, mile
       <div className="gantt_pane-toolbar">
         <Button
           variant="secondary"
-          onClick={() => { setExportError(null); exportGanttPng(groupGanttRows(epics, tasks, critical), folderName).catch((e) => setExportError(errorMessage(e))) }}
+          onClick={() => { setExportError(null); exportGanttPng(rows, folderName).catch((e) => setExportError(errorMessage(e))) }}
         >
           Export PNG
         </Button>
@@ -123,7 +130,7 @@ export default function GanttPane({ folderId, dependencyMode, epics, tasks, mile
       <FormError message={moveError} />
       <Timeline
         milestones={milestones}
-        items={groupGanttRows(epics, tasks, critical)}
+        items={rows}
         links={links}
         onReschedule={reschedule}
         onLink={linkTasks}

@@ -22,8 +22,9 @@ export function ProgressBar({ percent }: { percent: number }) {
 
 type Dated = Scheduled & { start_date: string; target_date: string }
 
-// Read-only unless `onReschedule` is passed (see TimelineBar); otherwise dates
-// are edited from each page's own List view inputs. Only
+// Read-only unless `onReschedule` is passed (see TimelineBar), and never for
+// group rows (milestones, initiatives), whose dates are a roll-up; otherwise
+// dates are edited from each page's own List view inputs. Only
 // items with both a start and target date can be placed on the month grid;
 // the rest are named below it instead of silently dropped. No charting
 // library — plain CSS percentages against a computed day range.
@@ -94,6 +95,7 @@ function TimelineBar({ item, offsetPct, widthPct, totalDays, onReschedule, onLin
         'timeline-bar',
         item.health && `timeline-bar--${item.health}`,
         item.critical && 'timeline-bar--critical',
+        item.group && 'timeline-bar--group',
         onReschedule && 'timeline-bar--editable',
         drag && 'timeline-bar--dragging',
       )}
@@ -322,14 +324,14 @@ export function Timeline({ items, milestones = [], range, links = [], onReschedu
             return (
               <div key={item.key ?? item.id} className="timeline-row">
                 <span
-                  className="timeline-title"
+                  className={classNames('timeline-title', item.group && 'timeline-title--group')}
                   title={item.title}
                   style={item.depth ? { paddingLeft: `${item.depth}rem` } : undefined}
                 >
                   {item.title}
                 </span>
                 <div className="timeline-track">
-                  <TimelineBar item={item} offsetPct={offsetPct} widthPct={widthPct} totalDays={totalDays} onReschedule={onReschedule} onLinkStart={onLink && (!canLink || canLink(item)) ? startLink : undefined} />
+                  <TimelineBar item={item} offsetPct={offsetPct} widthPct={widthPct} totalDays={totalDays} onReschedule={item.group ? undefined : onReschedule} onLinkStart={onLink && (!canLink || canLink(item)) ? startLink : undefined} />
                 </div>
                 <span className="timeline-count">
                   {item.done_tasks_count}/{item.tasks_count}
