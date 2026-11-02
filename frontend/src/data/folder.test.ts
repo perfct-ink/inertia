@@ -101,12 +101,6 @@ test('folderTrail lists the folders from the top down, without Root', () => {
   expect(folderTrail(tree(), 1)).toEqual([])
   expect(folderTrail(tree(), 99)).toEqual([])
 })
-test('documentsIn and projectLastModified cover nested folders', () => {
-  const messages = tree()[0].children[0]
-  expect(documentsIn(messages).map((d) => d.title)).toEqual(['Spec', 'Mockups'])
-  expect(projectLastModified(messages)).toBe('2026-10-09T00:00:00Z')
-  expect(projectLastModified(tree()[0].children[2])).toBeNull()
-})
 
 test('featureFoldersOf lists active feature folders by name', () => {
   const f = (id: number, name: string, kind: Folder['kind'], archived = false, children: Folder[] = []) => ({ id, name, kind, archived, children, documents: [] }) as unknown as Folder

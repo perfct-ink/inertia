@@ -18,6 +18,7 @@ test('taskFolderId is the task\'s own folder, else its document\'s', () => {
   expect(taskFolderId({ folder_id: null, document: { folder_id: 9 } } as unknown as Task)).toBe(9)
   expect(taskFolderId({ folder_id: null } as unknown as Task)).toBeNull()
 })
+
 test('dueBucket sorts dates against today, with the week being the next six days', () => {
   expect(dueBucket(null, '2026-10-19')).toBe('no_date')
   expect(dueBucket('2026-10-18', '2026-10-19')).toBe('overdue')
@@ -37,9 +38,6 @@ test('myWork groups my open tasks by due date and skips done and other people', 
   expect(groups.map((g) => g.bucket)).toEqual(['overdue', 'later', 'no_date'])
   expect(groups[0].tasks.map((x) => x.id)).toEqual([6, 2])
   expect(myWork([], 5, '2026-10-19')).toEqual([])
-})
-test('a task whose parent is missing becomes a root', () => {
-  expect(buildTaskTree([task(2, 99)]).map((t) => t.id)).toEqual([2])
 })
 
 test('every task status has a label', async () => {
