@@ -14,6 +14,9 @@ interface OnboardingStore {
   start: (userId: number) => void
   record: (userId: number, steps: OnboardingStepId[]) => void
   dismiss: (userId: number) => void
+  // Brings the checklist back after it was hidden. Keeps what was ticked off,
+  // and starts a fresh one for an account that never had it.
+  reopen: (userId: number) => void
 }
 
 export const useOnboardingStore = create<OnboardingStore>()(
@@ -31,6 +34,10 @@ export const useOnboardingStore = create<OnboardingStore>()(
       dismiss: (userId) => set((s) => {
         const current = s.users[userId]
         return current ? { users: { ...s.users, [userId]: { ...current, dismissed: true } } } : s
+      }),
+      reopen: (userId) => set((s) => {
+        const current = s.users[userId]
+        return { users: { ...s.users, [userId]: current ? { ...current, dismissed: false } : { dismissed: false, done: [] } } }
       }),
     }),
     { name: 'inertia-onboarding' }
