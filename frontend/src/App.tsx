@@ -20,6 +20,7 @@ import SprintBoardScreen from '@/view/sprint_board/SprintBoardScreen'
 import ResourcesScreen from '@/view/resources/ResourcesScreen'
 import MyWorkScreen from '@/view/my_work/MyWorkScreen'
 import TimelineScreen from '@/view/timeline/TimelineScreen'
+import IdeasScreen from '@/view/ideas/IdeasScreen'
 import ProjectsScreen from '@/view/projects/ProjectsScreen'
 import ProjectRequestsScreen from '@/view/project_requests/ProjectRequestsScreen'
 import FolderDetailScreen from '@/view/folder_detail/FolderDetailScreen'
@@ -168,6 +169,14 @@ export default function App() {
           element={
             <PrivateRoute>
               <TimelineScreen />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/ideas"
+          element={
+            <PrivateRoute>
+              <IdeasScreen />
             </PrivateRoute>
           }
         />

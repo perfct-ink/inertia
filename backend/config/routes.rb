@@ -97,6 +97,9 @@ Rails.application.routes.draw do
       resources :ai_workers, only: [ :index, :create, :update, :destroy ]
       resources :ai_runs, only: [ :index, :create ]
       resource :onboarding, only: [ :show, :update ]
+      resources :ideas, only: [ :index, :create, :update, :destroy ] do
+        post :promote, on: :member
+      end
       resources :objectives, only: [ :index, :create, :update, :destroy ]
       resources :key_results, only: [ :create, :update, :destroy ]
       resources :project_requests, only: [ :index, :create, :update, :destroy ] do

@@ -50,3 +50,4 @@ One file per implemented feature, written from the code (see `docs/rules/feature
 | Document breadcrumb: Space > folders > document | [document_breadcrumb.md](document_breadcrumb.md) |
 | My work: my open tasks by due date | [my_work.md](my_work.md) |
 | Task timeline: bars without dependencies | [task_timeline.md](task_timeline.md) |
+| Ideas: intake list, promote to an epic or initiative | [ideas.md](ideas.md) |

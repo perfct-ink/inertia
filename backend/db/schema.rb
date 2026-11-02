@@ -143,6 +143,20 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_01_140001) do
     t.index ["workspace_id"], name: "index_folders_on_workspace_id"
   end
 
+  create_table "ideas", force: :cascade do |t|
+    t.bigint "workspace_id", null: false
+    t.bigint "submitted_by_id"
+    t.string "title", null: false
+    t.text "description"
+    t.integer "status", default: 0, null: false
+    t.string "promoted_type"
+    t.bigint "promoted_id"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["submitted_by_id"], name: "index_ideas_on_submitted_by_id"
+    t.index ["workspace_id"], name: "index_ideas_on_workspace_id"
+  end
+
   create_table "initiatives", force: :cascade do |t|
     t.string "title", null: false
     t.bigint "workspace_id", null: false
@@ -506,6 +520,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_01_140001) do
   add_foreign_key "events", "workspaces"
   add_foreign_key "folders", "folders", column: "parent_id"
   add_foreign_key "folders", "workspaces"
+  add_foreign_key "ideas", "users", column: "submitted_by_id", on_delete: :nullify
+  add_foreign_key "ideas", "workspaces"
   add_foreign_key "initiatives", "milestones"
   add_foreign_key "initiatives", "users", column: "owner_id", on_delete: :nullify
   add_foreign_key "initiatives", "workspaces"
