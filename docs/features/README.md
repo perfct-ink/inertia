@@ -56,3 +56,4 @@ One file per implemented feature, written from the code (see `docs/rules/feature
 | Calendar of tasks and events | [task_calendar.md](task_calendar.md) |
 | Document outline: headings minimap with jump | [document_outline.md](document_outline.md) |
 | Pivot: task counts by two fields | [pivot.md](pivot.md) |
+| Task table: inline editing, sort, group, filter, hide columns | [task_table.md](task_table.md) |

@@ -12,7 +12,7 @@ import AppearanceDialog from '@/components/AppearanceDialog'
 import {
   FolderPlus, CheckSquare, FilePlus, FileText,
   Table as TableIcon, Pin, Folder, Loader2, CalendarDays,
-  Plus, Target, Flag, FolderKanban, ClipboardList, Milestone, Rocket, ListTree, Map as MapIcon, Goal, Users, Archive, ArchiveRestore, Keyboard, Download, UserCheck, GanttChart, Lightbulb, Network, Disc3, CalendarRange, Table2,
+  Plus, Target, Flag, FolderKanban, ClipboardList, Milestone, Rocket, ListTree, Map as MapIcon, Goal, Users, Archive, ArchiveRestore, Keyboard, Download, UserCheck, GanttChart, Lightbulb, Network, Disc3, CalendarRange, Table2, Rows3,
 } from 'lucide-react'
 import { useWorkspace } from '@/api/workspace'
 import { useArchivedFolders, useCreateFolder, usePinFolder, useUpdateFolder } from '@/api/folders'
@@ -286,6 +286,7 @@ export default function Sidebar() {
           <RailButton icon={FolderKanban} label="Projects" active={location.pathname === '/projects'} onClick={() => navigate('/projects')} />
           <RailButton icon={ClipboardList} label="Project requests" active={location.pathname === '/project-requests'} onClick={() => navigate('/project-requests')} />
           <RailButton icon={UserCheck} label="My work" active={location.pathname === '/my-work'} onClick={() => navigate('/my-work')} />
+          <RailButton icon={Rows3} label="Task table" active={location.pathname === '/task-table'} onClick={() => navigate('/task-table')} />
           <RailButton icon={Table2} label="Pivot" active={location.pathname === '/pivot'} onClick={() => navigate('/pivot')} />
           <RailButton icon={CheckSquare} label="Tasks" active={location.pathname === '/tasks'} onClick={() => navigate('/tasks?view=backlog')} />
           <RailButton icon={CalendarRange} label="Calendar" active={location.pathname === '/calendar'} onClick={() => navigate('/calendar')} />
