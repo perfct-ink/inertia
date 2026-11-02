@@ -95,4 +95,35 @@ class WorkspaceMembersControllerTest < ActionDispatch::IntegrationTest
     delete members_path(@admin_membership.id), headers: headers_for(@member)
     assert_response :forbidden
   end
+
+  test "the member list shows each person's weekly capacity, 40 hours by default" do
+    get members_path, headers: headers_for(@member)
+    assert_equal [ 40.0 ], response.parsed_body.map { |m| m["weekly_capacity_hours"] }.uniq
+  end
+
+  test "an admin sets a member's weekly capacity without touching their role" do
+    patch members_path(@member_membership.id), params: { weekly_capacity_hours: 22.5 }, headers: headers_for(@admin), as: :json
+    assert_response :success
+    assert_equal 22.5, response.parsed_body["weekly_capacity_hours"]
+    assert_equal "member", response.parsed_body["role"]
+    assert_equal 22.5, @member_membership.reload.weekly_capacity_hours.to_f
+  end
+
+  test "capacity and role can be changed together" do
+    patch members_path(@member_membership.id), params: { role: "viewer", weekly_capacity_hours: 0 }, headers: headers_for(@admin), as: :json
+    assert_response :success
+    assert @member_membership.reload.viewer?
+    assert_equal 0, @member_membership.weekly_capacity_hours
+  end
+
+  test "a capacity outside a week is rejected and a plain member cannot set one" do
+    patch members_path(@member_membership.id), params: { weekly_capacity_hours: 200 }, headers: headers_for(@admin), as: :json
+    assert_response :unprocessable_entity
+    patch members_path(@member_membership.id), params: { weekly_capacity_hours: "lots" }, headers: headers_for(@admin), as: :json
+    assert_response :unprocessable_entity
+
+    patch members_path(@member_membership.id), params: { weekly_capacity_hours: 10 }, headers: headers_for(@member), as: :json
+    assert_response :forbidden
+    assert_equal 40, @member_membership.reload.weekly_capacity_hours
+  end
 end

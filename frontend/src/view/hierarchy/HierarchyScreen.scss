@@ -68,12 +68,27 @@
     }
 
     @at-root .hierarchy-row {
+      // Touch screens get a taller row so the Move button is easy to hit.
+      @media (pointer: coarse) {
+        min-height: calc(#{space(10)} + #{space(3)});
+      }
+
       &--dragging {
         opacity: 0.5;
       }
 
+      // Where a drag would land: inside the row, or on a line above or below
+      // it. Inset shadows, so the row never changes size.
       &--over {
         background: color(primary, 0.1);
+      }
+
+      &--drop_before {
+        box-shadow: inset 0 2px 0 color(primary);
+      }
+
+      &--drop_after {
+        box-shadow: inset 0 -2px 0 color(primary);
       }
     }
 
@@ -129,9 +144,15 @@
       @include text('sm');
     }
 
+    // The progress bar gives way to the title on a phone; the count stays.
     @at-root .hierarchy-progress {
+      display: none;
       width: space(28);
       flex-shrink: 0;
+
+      @include up('sm') {
+        display: block;
+      }
     }
 
     @at-root .hierarchy-count {
@@ -139,6 +160,50 @@
       width: space(14);
       color: color(muted-foreground);
       text-align: right;
+      @include text('xs');
+    }
+
+    // The keyboard and touch way to move a row (see MoveDialog).
+    @at-root .hierarchy-move {
+      display: flex;
+      flex-shrink: 0;
+      align-items: center;
+      justify-content: center;
+      width: space(8);
+      height: space(8);
+      padding: 0;
+      color: color(muted-foreground);
+
+      &:hover:not(:disabled) {
+        color: color(foreground);
+      }
+
+      @media (pointer: coarse) {
+        width: space(10);
+        height: space(10);
+      }
+    }
+
+    @at-root .hierarchy-move_spacer {
+      flex-shrink: 0;
+      width: space(8);
+
+      @media (pointer: coarse) {
+        width: space(10);
+      }
+    }
+
+    @at-root .hierarchy-move_icon {
+      width: space(4);
+      height: space(4);
+    }
+
+    // Labelled fields in the Move dialog.
+    @at-root .hierarchy-move_field {
+      display: flex;
+      flex-direction: column;
+      gap: space(1);
+      color: color(muted-foreground);
       @include text('xs');
     }
   }

@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom'
-import { useCreateDocument, useWorkspace } from '@/api/workspace'
+import { useWorkspace } from '@/api/workspace'
+import { useCreateDocument } from '@/api/documents'
 import { untitledTitle } from '@/data/document'
 import type { Document } from '@/types'
 

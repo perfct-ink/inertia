@@ -14,6 +14,11 @@ interface OnboardingStore {
   start: (userId: number) => void
   record: (userId: number, steps: OnboardingStepId[]) => void
   dismiss: (userId: number) => void
+  // Brings the checklist back after it was hidden. Keeps what was ticked off,
+  // and starts a fresh one for an account that never had it.
+  reopen: (userId: number) => void
+  // Sets this account's progress to exactly `progress` (used when the server's copy arrives).
+  replace: (userId: number, progress: Progress) => void
 }
 
 export const useOnboardingStore = create<OnboardingStore>()(
@@ -32,6 +37,11 @@ export const useOnboardingStore = create<OnboardingStore>()(
         const current = s.users[userId]
         return current ? { users: { ...s.users, [userId]: { ...current, dismissed: true } } } : s
       }),
+      reopen: (userId) => set((s) => {
+        const current = s.users[userId]
+        return { users: { ...s.users, [userId]: current ? { ...current, dismissed: false } : { dismissed: false, done: [] } } }
+      }),
+      replace: (userId, progress) => set((s) => ({ users: { ...s.users, [userId]: progress } })),
     }),
     { name: 'inertia-onboarding' }
   )
