@@ -60,4 +60,42 @@ class RelationalTableTest < ActiveSupport::TestCase
     field = other.table_fields.create!(name: "Name", data_type: "text")
     assert_not @record.table_cells.build(table_field: field, value: "Ada").valid?
   end
+
+  test "formula fields need an expression and keep no values" do
+    field = @table.table_fields.build(name: "Total", data_type: "formula")
+    assert_not field.valid?
+    assert_includes field.errors[:formula], "can't be blank"
+    field.formula = "{Price} * {Quantity}"
+    assert field.save, field.errors.full_messages.join(", ")
+    assert field.computed?
+    assert_not @record.table_cells.build(table_field: field, value: 10).valid?
+    field.formula = "x" * (TableField::MAX_FORMULA_LENGTH + 1)
+    assert_not field.valid?
+  end
+
+  test "only formula fields keep a formula" do
+    field = @table.table_fields.create!(name: "Total", data_type: "formula", formula: "1 + 1")
+    assert field.update(data_type: "text")
+    assert_nil field.reload.formula
+    text = @table.table_fields.create!(name: "Note", data_type: "text", formula: "ignored")
+    assert_nil text.formula
+  end
+
+  test "a formula cannot refer to its own field" do
+    field = @table.table_fields.build(name: "Total", data_type: "formula", formula: "{Total} + 1")
+    assert_not field.valid?
+    assert_includes field.errors[:formula], "cannot refer to its own field"
+  end
+
+  test "renaming a field rewrites the formulas that use it" do
+    price = @table.table_fields.create!(name: "Price", data_type: "number")
+    total = @table.table_fields.create!(name: "Total", data_type: "formula", formula: "{Price} * 2 + {Price Tax}")
+    unrelated = @table.table_fields.create!(name: "Other", data_type: "formula", formula: "1 + 1")
+    other_table = @folder.documents.create!(title: "Other", doc_type: :table, created_by: @user)
+    elsewhere = other_table.table_fields.create!(name: "Elsewhere", data_type: "formula", formula: "{Price}")
+    assert price.update(name: "Unit $1 price")
+    assert_equal "{Unit $1 price} * 2 + {Price Tax}", total.reload.formula
+    assert_equal "1 + 1", unrelated.reload.formula
+    assert_equal "{Price}", elsewhere.reload.formula
+  end
 end

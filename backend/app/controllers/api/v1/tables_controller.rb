@@ -14,7 +14,7 @@ module Api
 
       def show
         render json: {
-          fields: @table.table_fields.order(:id).as_json(only: [ :id, :name, :data_type, :relation_table_id ]),
+          fields: @table.table_fields.order(:id).as_json(only: [ :id, :name, :data_type, :relation_table_id, :formula ]),
           records: @table.table_records.order(:id).includes(:table_cells).map(&:as_table_json)
         }
       end
@@ -61,13 +61,14 @@ module Api
       end
 
       def field_params
-        params.require(:field).permit(:name, :data_type, :relation_table_id)
+        params.require(:field).permit(:name, :data_type, :relation_table_id, :formula)
       end
 
       def write_values(record)
         values = params.require(:record).permit(values: {}).fetch(:values, {})
         values.each do |field_id, value|
           field = @table.table_fields.find(field_id)
+          reject_computed!(field)
           cell = record.table_cells.find_or_initialize_by(table_field: field)
           if value.nil? || value == ""
             cell.destroy! if cell.persisted?
@@ -77,6 +78,13 @@ module Api
             cell.save!
           end
         end
+      end
+
+      # A formula field is worked out from the record's other values, so nothing can be written to it.
+      def reject_computed!(field)
+        return unless field.computed?
+        field.errors.add(:base, "#{field.name} is calculated from its formula and cannot be edited")
+        raise ActiveRecord::RecordInvalid, field
       end
 
       def invalid_record(error)
