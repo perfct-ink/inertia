@@ -29,3 +29,18 @@ test('shows nothing when the task has no values', () => {
   const { container } = render(<TaskFieldChips fields={fields} task={task({})} />)
   expect(container).toBeEmptyDOMElement()
 })
+
+test('shows text, number and date values, a date and time in UTC, and zero', () => {
+  const scalars: TaskField[] = [
+    { id: 11, name: 'Note', field_type: 'text', options: [] },
+    { id: 12, name: 'Estimate', field_type: 'integer', options: [] },
+    { id: 13, name: 'Shipped', field_type: 'date', options: [] },
+    { id: 14, name: 'Review by', field_type: 'datetime', options: [] },
+  ]
+  render(<TaskFieldChips fields={scalars} task={task({ '11': 'hello', '12': 0, '13': '2026-10-04', '14': '2026-10-04T10:30:00Z' })} />)
+  expect(screen.getAllByRole('listitem')).toHaveLength(4)
+  expect(screen.getByText('hello')).toBeInTheDocument()
+  expect(screen.getByText('0')).toBeInTheDocument()
+  expect(screen.getByText('2026-10-04')).toBeInTheDocument()
+  expect(screen.getByText('2026-10-04 10:30 UTC')).toBeInTheDocument()
+})

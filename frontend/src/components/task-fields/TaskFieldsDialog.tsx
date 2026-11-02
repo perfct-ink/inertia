@@ -1,6 +1,7 @@
 import { Button, Modal } from '@/components/ui'
 import { useAuthStore } from '@/store/auth'
 import { useSetTaskFieldValue, useVoteTaskField } from '@/api/taskFields'
+import { fieldTitle } from '@/data/taskField'
 import type { Task, TaskField } from '@/types'
 import { TaskFieldInput } from './TaskFieldInput'
 import './TaskFields.scss'
@@ -19,7 +20,7 @@ export function TaskFieldsDialog({ task, fields, onClose }: { task: Task | null;
           {fields.map((field) => (
             <div key={field.id} className="task_fields-field">
               {/* Every control is labelled with the field's name itself. */}
-              <span aria-hidden="true" className="task_fields-field_name">{field.name}</span>
+              <span aria-hidden="true" className="task_fields-field_name">{fieldTitle(field)}</span>
               <TaskFieldInput
                 field={field}
                 task={task}

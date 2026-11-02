@@ -1,6 +1,7 @@
 # A custom field every task in a Space can carry a value for (Monday-style
-# column): tags, dropdown, checkbox, rating or vote. The kind is fixed when the
-# field is created, because values of one kind mean nothing as another.
+# column): text, integer, number, date, datetime, tags, dropdown, checkbox,
+# rating or vote. The kind is fixed when the field is created, because values
+# of one kind mean nothing as another.
 class TaskField < ApplicationRecord
   belongs_to :workspace
   has_many :field_values, class_name: "TaskFieldValue", dependent: :destroy, inverse_of: :task_field

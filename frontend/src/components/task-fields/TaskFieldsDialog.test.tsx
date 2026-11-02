@@ -54,3 +54,17 @@ test('Done closes the dialog', () => {
   fireEvent.click(screen.getByRole('button', { name: 'Done' }))
   expect(onClose).toHaveBeenCalled()
 })
+
+test('a number box saves when it loses focus, and a date and time names its zone', () => {
+  const scalars: TaskField[] = [
+    { id: 4, name: 'Estimate', field_type: 'integer', options: [] },
+    { id: 5, name: 'Review by', field_type: 'datetime', options: [] },
+  ]
+  render(<TaskFieldsDialog task={task} fields={scalars} onClose={jest.fn()} />)
+  expect(screen.getByText('Review by (UTC)')).toBeInTheDocument()
+  const box = screen.getByLabelText('Estimate')
+  fireEvent.change(box, { target: { value: '8' } })
+  expect(mockSetValue).not.toHaveBeenCalled()
+  fireEvent.blur(box)
+  expect(mockSetValue).toHaveBeenCalledWith({ taskId: 9, fieldId: 4, value: 8 })
+})

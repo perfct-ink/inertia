@@ -1,13 +1,17 @@
 # What each kind of task field stores and accepts, in one place so the model,
 # the API and the frontend mirror (frontend/src/data/taskField.ts) agree.
 #
+#   text, integer, number, date, datetime
+#             the scalar values Collection cells hold (see FieldValue)
 #   tags      an array of short labels, free-form per task
 #   dropdown  one of the labels the field defines in `options`
 #   checkbox  true (unchecked is stored as no value)
 #   rating    an integer from 1 to 5
 #   vote      an array of the ids of the users who voted
 module TaskFieldType
-  TYPES = %w[tags dropdown checkbox rating vote].freeze
+  # Collection's scalar types, minus boolean: a task's yes/no is the checkbox.
+  SCALAR_TYPES = (FieldValue::TYPES - %w[boolean]).freeze
+  TYPES = (SCALAR_TYPES + %w[tags dropdown checkbox rating vote]).freeze
   RATING_RANGE = 1..5
   MAX_TAGS = 20
   MAX_LABEL_LENGTH = 40
@@ -34,6 +38,7 @@ module TaskFieldType
   # Empty values are removed instead of stored.
   def blank_value?(type, value)
     case type
+    when *SCALAR_TYPES then value.nil? || value == ""
     when "tags", "vote" then value.nil? || value == []
     when "dropdown" then value.nil? || value == ""
     when "checkbox" then value.nil? || value == false
@@ -43,6 +48,7 @@ module TaskFieldType
 
   def valid_value?(type, value, options: [])
     case type
+    when *SCALAR_TYPES then FieldValue.valid?(type, value)
     when "tags" then value.is_a?(Array) && value.size <= MAX_TAGS && value.all? { |tag| label?(tag) }
     when "dropdown" then options.include?(value)
     when "checkbox" then value == true

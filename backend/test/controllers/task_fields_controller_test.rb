@@ -95,6 +95,52 @@ class TaskFieldsControllerTest < ActionDispatch::IntegrationTest
     assert_equal [ tags.id.to_s, stage.id.to_s ].sort, response.parsed_body["field_values"].keys.sort
   end
 
+  test "scalar kinds are created, set, listed and cleared" do
+    post "/api/v1/task_fields", params: { task_field: { name: "Estimate", field_type: "integer" } }, headers: headers_for(@user), as: :json
+    assert_response :created
+    estimate = @team.task_fields.find(response.parsed_body["id"])
+    note = create_field("Note", "text")
+    shipped = create_field("Shipped", "date")
+    due = create_field("Review by", "datetime")
+    cost = create_field("Cost", "number")
+
+    put field_path(estimate), params: { value: 0 }, headers: headers_for(@user), as: :json
+    assert_response :success
+    assert_equal 0, response.parsed_body["field_values"][estimate.id.to_s], "zero is a value"
+    put field_path(note), params: { value: "hello" }, headers: headers_for(@user), as: :json
+    put field_path(shipped), params: { value: "2026-10-04" }, headers: headers_for(@user), as: :json
+    put field_path(due), params: { value: "2026-10-04T10:30:00Z" }, headers: headers_for(@user), as: :json
+    put field_path(cost), params: { value: 1.5 }, headers: headers_for(@user), as: :json
+    assert_response :success
+
+    get "/api/v1/tasks", headers: headers_for(@teammate)
+    expected = {
+      estimate.id.to_s => 0, note.id.to_s => "hello", shipped.id.to_s => "2026-10-04",
+      due.id.to_s => "2026-10-04T10:30:00Z", cost.id.to_s => 1.5
+    }
+    assert_equal expected, response.parsed_body.first["field_values"]
+
+    put field_path(note), params: { value: "" }, headers: headers_for(@user), as: :json
+    put field_path(cost), params: { value: nil }, headers: headers_for(@user), as: :json
+    assert_response :success
+    assert_equal [ estimate.id, shipped.id, due.id ].map(&:to_s).sort, response.parsed_body["field_values"].keys.sort
+  end
+
+  test "a scalar value of the wrong type is rejected and leaves the stored value alone" do
+    points = create_field("Points", "integer")
+    shipped = create_field("Shipped", "date")
+    put field_path(points), params: { value: 3 }, headers: headers_for(@user), as: :json
+
+    put field_path(points), params: { value: "many" }, headers: headers_for(@user), as: :json
+    assert_response :unprocessable_entity
+    put field_path(points), params: { value: 1.5 }, headers: headers_for(@user), as: :json
+    assert_response :unprocessable_entity
+    put field_path(shipped), params: { value: "2026-02-30" }, headers: headers_for(@user), as: :json
+    assert_response :unprocessable_entity
+    assert_equal 3, @task.field_values.find_by(task_field: points).value
+    assert_nil @task.field_values.find_by(task_field: shipped)
+  end
+
   test "invalid values are rejected and leave the stored value alone" do
     stage = create_field("Stage", "dropdown", options: [ "Draft" ])
     stars = create_field("Stars", "rating")

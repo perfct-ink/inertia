@@ -80,3 +80,24 @@ test('deleting a field asks first', () => {
   fireEvent.click(screen.getByRole('button', { name: 'Delete field' }))
   expect(mockDelete).toHaveBeenCalledWith(1)
 })
+
+test('the kind picker offers the text, number and date kinds before the others', () => {
+  open([])
+  const kinds = within(screen.getByLabelText('Field kind')).getAllByRole('option').map((o) => o.textContent)
+  expect(kinds).toEqual(['Text', 'Whole number', 'Number', 'Date', 'Date and time (UTC)', 'Tags', 'Dropdown', 'Checkbox', 'Rating', 'Vote'])
+})
+
+test('adds a whole-number field and explains the kind', () => {
+  open([])
+  fireEvent.change(screen.getByLabelText('Field name'), { target: { value: 'Story points' } })
+  fireEvent.change(screen.getByLabelText('Field kind'), { target: { value: 'integer' } })
+  expect(screen.getByText('A number without decimals, such as a count.')).toBeInTheDocument()
+  expect(screen.queryByLabelText('Dropdown choices')).not.toBeInTheDocument()
+  fireEvent.click(screen.getByRole('button', { name: 'Add field' }))
+  expect(mockCreate).toHaveBeenCalledWith({ name: 'Story points', field_type: 'integer', options: [] }, expect.anything())
+})
+
+test('lists a scalar field with its kind', () => {
+  open([{ id: 3, name: 'Due on', field_type: 'date', options: [] }])
+  expect(within(screen.getByLabelText('Name of Due on').closest('li')!).getByText('Date')).toBeInTheDocument()
+})

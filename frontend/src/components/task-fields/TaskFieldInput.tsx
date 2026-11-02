@@ -1,8 +1,9 @@
 import { useState } from 'react'
 import { Star, ThumbsUp, X } from 'lucide-react'
-import { Button, Input, Select, classNames } from '@/components/ui'
+import { Button, FormError, Input, Select, classNames } from '@/components/ui'
 import {
-  RATING_MAX, MAX_LABEL_LENGTH, addTags, choiceOf, hasVoted, isChecked, nextRating, ratingOf, removeTag, tagsOf, votersOf,
+  RATING_MAX, MAX_LABEL_LENGTH, addTags, choiceOf, hasVoted, isChecked, isScalarType, nextRating, ratingOf, removeTag,
+  scalarDraftError, scalarInput, scalarToDraft, scalarToSave, tagsOf, valueOf, votersOf, type ScalarType,
 } from '@/data/taskField'
 import type { Task, TaskField, TaskFieldValue } from '@/types'
 import './TaskFields.scss'
@@ -20,6 +21,11 @@ interface TaskFieldInputProps {
 
 // The control that edits one custom field of one task, by the field's kind.
 export function TaskFieldInput({ field, task, userId, onChange, onVote }: TaskFieldInputProps) {
+  if (isScalarType(field.field_type)) {
+    const value = valueOf(task, field)
+    // Keyed by the saved text, so the box starts over from what was saved.
+    return <ScalarInput key={scalarToDraft(field, value)} field={field} type={field.field_type} value={value} onChange={onChange} />
+  }
   switch (field.field_type) {
     case 'tags':
       return <TagsInput field={field} tags={tagsOf(task, field)} onChange={onChange} />
@@ -49,6 +55,47 @@ export function TaskFieldInput({ field, task, userId, onChange, onVote }: TaskFi
     case 'vote':
       return <VoteInput field={field} voters={votersOf(task, field)} userId={userId} onVote={onVote} />
   }
+}
+
+// A text, number or date box. Typing does not save: the value is saved when the
+// box loses focus or Enter is pressed, and only if it fits the field's type
+// (otherwise the message stays under the box and nothing is sent).
+function ScalarInput({ field, type, value, onChange }: {
+  field: TaskField
+  type: ScalarType
+  value: TaskFieldValue | undefined
+  onChange: TaskFieldInputProps['onChange']
+}) {
+  const [typed, setTyped] = useState(scalarToDraft(field, value))
+  const error = scalarDraftError(field, typed)
+  const { input, step } = scalarInput(type)
+
+  function commit() {
+    if (error) return
+    const next = scalarToSave(field, value, typed)
+    if (next !== undefined) onChange(next)
+  }
+
+  return (
+    <div className="task_fields-scalar">
+      <Input
+        type={input}
+        step={step}
+        aria-label={field.name}
+        aria-invalid={error ? true : undefined}
+        value={typed}
+        onChange={(e) => setTyped(e.target.value)}
+        onBlur={commit}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter') {
+            e.preventDefault()
+            commit()
+          }
+        }}
+      />
+      <FormError message={error} />
+    </div>
+  )
 }
 
 function TagsInput({ field, tags, onChange }: { field: TaskField; tags: string[]; onChange: TaskFieldInputProps['onChange'] }) {

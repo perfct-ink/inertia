@@ -86,3 +86,73 @@ test('vote: shows that you voted', () => {
   fireEvent.click(vote)
   expect(onVote).toHaveBeenLastCalledWith(false)
 })
+
+describe('text, number and date fields', () => {
+  test('text: typing saves nothing until the box loses focus', () => {
+    const { onChange } = setup(field('text'), task('old'))
+    const box = screen.getByLabelText('Field')
+    expect(box).toHaveValue('old')
+    fireEvent.change(box, { target: { value: 'new' } })
+    expect(onChange).not.toHaveBeenCalled()
+    fireEvent.blur(box)
+    expect(onChange).toHaveBeenCalledWith('new')
+  })
+
+  test('Enter saves, and an unchanged value saves nothing', () => {
+    const { onChange } = setup(field('integer'), task(3))
+    const box = screen.getByLabelText('Field')
+    expect(box).toHaveAttribute('type', 'number')
+    fireEvent.blur(box)
+    expect(onChange).not.toHaveBeenCalled()
+    fireEvent.change(box, { target: { value: '5' } })
+    fireEvent.keyDown(box, { key: 'Enter' })
+    expect(onChange).toHaveBeenLastCalledWith(5)
+  })
+
+  test('emptying the box clears the value, and zero is a value', () => {
+    const { onChange } = setup(field('integer'), task(3))
+    const box = screen.getByLabelText('Field')
+    fireEvent.change(box, { target: { value: '' } })
+    fireEvent.blur(box)
+    expect(onChange).toHaveBeenLastCalledWith(null)
+    fireEvent.change(box, { target: { value: '0' } })
+    fireEvent.blur(box)
+    expect(onChange).toHaveBeenLastCalledWith(0)
+  })
+
+  test('text that does not fit shows why and is not saved', () => {
+    const { onChange } = setup(field('integer'), task())
+    const box = screen.getByLabelText('Field')
+    fireEvent.change(box, { target: { value: '2.5' } })
+    fireEvent.blur(box)
+    expect(screen.getByRole('alert')).toHaveTextContent('Field must be a whole number')
+    expect(box).toHaveAttribute('aria-invalid', 'true')
+    expect(onChange).not.toHaveBeenCalled()
+  })
+
+  test('a date uses the date picker and sends the day', () => {
+    const { onChange } = setup(field('date'), task('2026-10-04'))
+    const box = screen.getByLabelText('Field')
+    expect(box).toHaveAttribute('type', 'date')
+    fireEvent.change(box, { target: { value: '2026-10-05' } })
+    fireEvent.blur(box)
+    expect(onChange).toHaveBeenCalledWith('2026-10-05')
+  })
+
+  test('a date and time is shown and sent in UTC', () => {
+    const { onChange } = setup(field('datetime'), task('2026-10-04T12:30:00+02:00'))
+    const box = screen.getByLabelText('Field')
+    expect(box).toHaveAttribute('type', 'datetime-local')
+    expect(box).toHaveValue('2026-10-04T10:30')
+    fireEvent.change(box, { target: { value: '2026-10-04T11:00' } })
+    fireEvent.blur(box)
+    expect(onChange).toHaveBeenCalledWith('2026-10-04T11:00:00Z')
+  })
+
+  test('the box follows the saved value when it changes', () => {
+    const f = field('text')
+    const { rerender } = render(<TaskFieldInput field={f} task={task('a')} userId={5} onChange={jest.fn()} onVote={jest.fn()} />)
+    rerender(<TaskFieldInput field={f} task={task('b')} userId={5} onChange={jest.fn()} onVote={jest.fn()} />)
+    expect(screen.getByLabelText('Field')).toHaveValue('b')
+  })
+})

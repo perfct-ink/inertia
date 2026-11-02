@@ -1,7 +1,8 @@
 import type { Task, TaskField } from '@/types'
 import {
-  addTags, choiceOf, displayValue, fieldSummaries, hasVoted, isChecked, nextRating, parseOptions, ratingOf,
-  removeTag, spokenValue, tagsOf, tidyLabels, validateFieldDraft, votersOf, withFieldValues,
+  addTags, choiceOf, displayValue, draftToScalar, fieldSummaries, fieldTitle, hasVoted, isChecked, isScalarType, nextRating,
+  parseOptions, ratingOf, removeTag, scalarDraftError, scalarInput, scalarToDraft, scalarToSave, spokenValue, tagsOf, tidyLabels,
+  validateFieldDraft, votersOf, withFieldValues, TASK_FIELD_TYPES,
 } from './taskField'
 
 const field = (id: number, field_type: TaskField['field_type'], options: string[] = []): TaskField => ({ id, name: `F${id}`, field_type, options })
@@ -100,4 +101,91 @@ test('withFieldValues replaces one task\'s values and leaves the rest', () => {
   const next = withFieldValues(tasks, 7, { '4': 2 })
   expect(next[0].field_values).toEqual({ '4': 2 })
   expect(next[1]).toBe(tasks[1])
+})
+
+describe('text, number and date fields', () => {
+  const named = (id: number, name: string, field_type: TaskField['field_type']): TaskField => ({ id, name, field_type, options: [] })
+  const note = named(11, 'Note', 'text')
+  const estimate = named(12, 'Estimate', 'integer')
+  const cost = named(13, 'Cost', 'number')
+  const shipped = named(14, 'Shipped', 'date')
+  const due = named(15, 'Review by', 'datetime')
+
+  test('the type picker lists the scalar kinds, which match the backend and leave yes/no to the checkbox', () => {
+    const types = TASK_FIELD_TYPES.map((t) => t.type)
+    expect(types).toEqual(['text', 'integer', 'number', 'date', 'datetime', 'tags', 'dropdown', 'checkbox', 'rating', 'vote'])
+    expect(types).not.toContain('boolean')
+    expect(types.filter(isScalarType)).toEqual(['text', 'integer', 'number', 'date', 'datetime'])
+    expect(isScalarType('rating')).toBe(false)
+  })
+
+  test('each scalar kind is edited with the matching box', () => {
+    expect(scalarInput('text')).toEqual({ input: 'text', step: undefined })
+    expect(scalarInput('integer')).toEqual({ input: 'number', step: '1' })
+    expect(scalarInput('number')).toEqual({ input: 'number', step: 'any' })
+    expect(scalarInput('date').input).toBe('date')
+    expect(scalarInput('datetime').input).toBe('datetime-local')
+  })
+
+  test('stored values are shown in the box, with zero kept', () => {
+    expect(scalarToDraft(estimate, 0)).toBe('0')
+    expect(scalarToDraft(note, undefined)).toBe('')
+    expect(scalarToDraft(note, '')).toBe('')
+    expect(scalarToDraft(cost, 1.5)).toBe('1.5')
+    expect(scalarToDraft(due, '2026-10-04T12:30:00+02:00')).toBe('2026-10-04T10:30')
+    expect(scalarToDraft(due, 'garbage')).toBe('')
+  })
+
+  test('the text in the box becomes the value to store, or null when empty', () => {
+    expect(draftToScalar(estimate, '7')).toBe(7)
+    expect(draftToScalar(estimate, '0')).toBe(0)
+    expect(draftToScalar(cost, '1.5')).toBe(1.5)
+    expect(draftToScalar(shipped, ' 2026-10-04 ')).toBe('2026-10-04')
+    expect(draftToScalar(due, '2026-10-04T10:30')).toBe('2026-10-04T10:30:00Z')
+    expect(draftToScalar(due, '2026-10-04T10:30:15')).toBe('2026-10-04T10:30:15Z')
+    expect(draftToScalar(note, 'hello ')).toBe('hello ')
+    expect(draftToScalar(note, '   ')).toBeNull()
+    expect(draftToScalar(estimate, '')).toBeNull()
+  })
+
+  test('text that does not fit is named in the error', () => {
+    expect(scalarDraftError(estimate, '1.5')).toBe('Estimate must be a whole number')
+    expect(scalarDraftError(estimate, '-3')).toBeNull()
+    expect(scalarDraftError(cost, 'abc')).toBe('Cost must be a number')
+    expect(scalarDraftError(cost, '0x10')).toBe('Cost must be a number')
+    expect(scalarDraftError(cost, '1e3')).toBeNull()
+    expect(scalarDraftError(shipped, '2026-02-30')).toBe('Shipped must be a date (YYYY-MM-DD)')
+    expect(scalarDraftError(shipped, '2026-02-28')).toBeNull()
+    expect(scalarDraftError(due, '2026-10-04')).toBe('Review by must be a date and time')
+    expect(scalarDraftError(due, '2026-10-04T10:30')).toBeNull()
+    expect(scalarDraftError(note, 'anything')).toBeNull()
+    expect(scalarDraftError(estimate, '')).toBeNull()
+    expect(scalarDraftError(stars, 'x')).toBeNull()
+  })
+
+  test('only a real change is saved, and an emptied box clears the value', () => {
+    expect(scalarToSave(estimate, 3, '3')).toBeUndefined()
+    expect(scalarToSave(estimate, 3, '4')).toBe(4)
+    expect(scalarToSave(estimate, 3, '')).toBeNull()
+    expect(scalarToSave(estimate, 3, '0')).toBe(0)
+    expect(scalarToSave(note, undefined, '   ')).toBeUndefined()
+    expect(scalarToSave(note, undefined, 'hi')).toBe('hi')
+    expect(scalarToSave(cost, 1.5, '1.50')).toBeUndefined()
+    expect(scalarToSave(due, '2026-10-04T12:30:00+02:00', '2026-10-04T10:30')).toBeUndefined()
+    expect(scalarToSave(due, '2026-10-04T12:30:00+02:00', '2026-10-05T10:30')).toBe('2026-10-05T10:30:00Z')
+  })
+
+  test('values are shown as text, a date and time in UTC, and nothing when unset', () => {
+    const shown = [note, estimate, cost, shipped, due]
+    const t = task({ '11': 'hello', '12': 0, '13': 1.5, '14': '2026-10-04', '15': '2026-10-04T10:30:00Z' })
+    expect(shown.map((f) => displayValue(t, f))).toEqual(['hello', '0', '1.5', '2026-10-04', '2026-10-04 10:30 UTC'])
+    expect(fieldSummaries(shown, t).map((s) => s.spoken)).toEqual(['hello', '0', '1.5', '2026-10-04', '2026-10-04 10:30 UTC'])
+    for (const f of shown) expect(displayValue(task(), f)).toBeNull()
+    expect(displayValue(task({ '11': '' }), note)).toBeNull()
+  })
+
+  test('a date and time says its zone in the edit dialog', () => {
+    expect(fieldTitle(due)).toBe('Review by (UTC)')
+    expect(fieldTitle(note)).toBe('Note')
+  })
 })

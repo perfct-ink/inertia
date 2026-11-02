@@ -7,12 +7,51 @@ class TaskFieldTest < ActiveSupport::TestCase
     @task = @workspace.tasks.create!(title: "Ship it")
   end
 
-  test "each of the five kinds can be created" do
+  test "every kind can be created" do
     TaskFieldType::TYPES.each do |type|
       options = type == "dropdown" ? [ "High", "Low" ] : []
       field = @workspace.task_fields.create!(name: "Field #{type}", field_type: type, options: options)
       assert field.public_send(:"#{type}?")
     end
+  end
+
+  test "the scalar kinds are the Collection types without boolean, since a checkbox is a task's yes or no" do
+    assert_equal %w[text integer number date datetime], TaskFieldType::SCALAR_TYPES
+    assert TaskFieldType::SCALAR_TYPES.all? { |type| TableField::DATA_TYPES.include?(type) }
+    assert_equal TaskFieldType::SCALAR_TYPES + %w[tags dropdown checkbox rating vote], TaskFieldType::TYPES
+    assert_not @workspace.task_fields.build(name: "Flag", field_type: "boolean").valid?
+  end
+
+  test "every scalar kind stores its value, keeping zero, and refuses one of the wrong type" do
+    examples = {
+      "text" => [ "Ada", 3 ], "integer" => [ 0, 1.5 ], "number" => [ 1.5, "1.5" ],
+      "date" => [ "2026-10-04", "2026-02-30" ], "datetime" => [ "2026-10-04T10:30:00Z", "yesterday" ]
+    }
+    examples.each do |type, (valid, invalid)|
+      field = @workspace.task_fields.create!(name: type, field_type: type)
+      assert_empty TaskFieldValue.write(@task, field, valid).errors, type
+      assert_equal valid, @task.field_values.find_by(task_field: field).value, type
+
+      assert_predicate TaskFieldValue.write(@task, field, invalid).errors, :any?, "accepted #{invalid.inspect} as #{type}"
+      assert_equal valid, @task.field_values.find_by(task_field: field).value, "a rejected value leaves the old one"
+    end
+  end
+
+  test "nil and an empty string clear a scalar value, but zero stays" do
+    note = @workspace.task_fields.create!(name: "Note", field_type: "text")
+    points = @workspace.task_fields.create!(name: "Points", field_type: "integer")
+    TaskFieldValue.write(@task, note, "hello")
+    TaskFieldValue.write(@task, points, 0)
+    assert_equal 2, @task.field_values.count
+
+    assert_difference("TaskFieldValue.count", -1) { TaskFieldValue.write(@task, note, "") }
+    assert_no_difference("TaskFieldValue.count") { TaskFieldValue.write(@task, points, 0) }
+    assert_difference("TaskFieldValue.count", -1) { TaskFieldValue.write(@task, points, nil) }
+  end
+
+  test "scalar kinds take no choices" do
+    assert_not @workspace.task_fields.build(name: "Note", field_type: "text", options: [ "x" ]).valid?
+    assert @workspace.task_fields.build(name: "Note", field_type: "text").valid?
   end
 
   test "names are unique per Space ignoring case, and trimmed" do
