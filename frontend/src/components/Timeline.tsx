@@ -1,10 +1,14 @@
-import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react'
+import { useEffect, useId, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react'
 import {
   parseISO, startOfMonth, endOfMonth, differenceInCalendarDays,
 } from 'date-fns'
 import './Timeline.scss'
 import { classNames } from '@/components/ui'
-import { axisTicks, donePercent, shiftedRange, trackWidthPx, weekendSpans, type DragMode, type GanttZoom, type Scheduled } from '@/data/schedule'
+import {
+  axisTicks, donePercent, drawnRange, rowKeyOf, shiftedRange, trackWidthPx, weekendSpans,
+  type DateRange, type DragMode, type GanttZoom, type LiveEdit, type Scheduled,
+} from '@/data/schedule'
+import { useBarKeyboard } from '@/hooks/useBarKeyboard'
 import { linkSides, type BarSide } from '@/data/dependency'
 import type { DependencyKind } from '@/types'
 
@@ -50,28 +54,32 @@ export type TimelineReschedule = (item: Scheduled, startDate: string, targetDate
 
 // One bar. When `onReschedule` is given it can be dragged to move, or by its
 // left/right edge to resize, snapping to whole days; the dates are committed
-// on release. Pointer-based, so it needs no library.
-function TimelineBar({ item, offsetPct, widthPct, totalDays, onReschedule, onLinkStart }: {
+// on release. Pointer-based, so it needs no library. It is also a tab stop:
+// the arrow keys move or resize it (useBarKeyboard). `range` is where it is
+// drawn now, which differs from the item's dates while an edit is pending, and
+// `onPreview` reports that edit up so the arrows and axis follow the bar.
+function TimelineBar({ item, range, offsetPct, widthPct, totalDays, hintId, onReschedule, onPreview, onLinkStart }: {
   item: Dated
+  range: DateRange
   offsetPct: number
   widthPct: number
   totalDays: number
+  hintId: string
   onReschedule?: TimelineReschedule
+  onPreview: (range: DateRange | null) => void
   onLinkStart?: (key: string, side: BarSide, e: ReactPointerEvent<HTMLElement>) => void
 }) {
   const barRef = useRef<HTMLDivElement>(null)
   const origin = useRef({ x: 0, trackWidth: 1 })
   const [drag, setDrag] = useState<{ mode: DragMode; delta: number } | null>(null)
+  const keys = useBarKeyboard({ range, onPreview, onSave: (next) => onReschedule?.(item, next.start, next.end) })
 
-  const preview = drag ? shiftedRange(item.start_date, item.target_date, drag.mode, drag.delta) : null
-  const startShift = preview ? differenceInCalendarDays(parseISO(preview.start), parseISO(item.start_date)) : 0
-  const endShift = preview ? differenceInCalendarDays(parseISO(preview.end), parseISO(item.target_date)) : 0
-  const left = offsetPct + (startShift / totalDays) * 100
-  const width = Math.max(widthPct + ((endShift - startShift) / totalDays) * 100, 1.5)
+  const preview = (mode: DragMode, delta: number) => shiftedRange(item.start_date, item.target_date, mode, delta)
 
   function begin(e: ReactPointerEvent, mode: DragMode) {
     if (!onReschedule) return
     e.stopPropagation()
+    keys.discard()
     barRef.current?.setPointerCapture(e.pointerId)
     origin.current = { x: e.clientX, trackWidth: barRef.current?.parentElement?.clientWidth || 1 }
     setDrag({ mode, delta: 0 })
@@ -80,12 +88,23 @@ function TimelineBar({ item, offsetPct, widthPct, totalDays, onReschedule, onLin
   function move(e: ReactPointerEvent) {
     if (!drag) return
     const delta = Math.round(((e.clientX - origin.current.x) / origin.current.trackWidth) * totalDays)
-    if (delta !== drag.delta) setDrag({ mode: drag.mode, delta })
+    if (delta === drag.delta) return
+    setDrag({ mode: drag.mode, delta })
+    onPreview(preview(drag.mode, delta))
   }
 
   function end() {
-    if (drag && preview && drag.delta !== 0) onReschedule?.(item, preview.start, preview.end)
+    if (!drag) return
+    if (drag.delta !== 0) {
+      const next = preview(drag.mode, drag.delta)
+      onReschedule?.(item, next.start, next.end)
+    }
+    cancel()
+  }
+
+  function cancel() {
     setDrag(null)
+    onPreview(null)
   }
 
   return (
@@ -99,12 +118,21 @@ function TimelineBar({ item, offsetPct, widthPct, totalDays, onReschedule, onLin
         onReschedule && 'timeline-bar--editable',
         drag && 'timeline-bar--dragging',
       )}
-      style={{ left: `${left}%`, width: `${width}%` }}
-      title={preview ? `${preview.start} → ${preview.end}` : `${item.start_date} → ${item.target_date}`}
+      style={{ left: `${offsetPct}%`, width: `${widthPct}%` }}
+      title={`${range.start} → ${range.end}`}
       onPointerDown={(e) => begin(e, 'move')}
       onPointerMove={move}
       onPointerUp={end}
-      onPointerCancel={() => setDrag(null)}
+      onPointerCancel={cancel}
+      {...(onReschedule && {
+        tabIndex: 0,
+        role: 'group',
+        'aria-roledescription': 'schedule bar',
+        'aria-label': `${item.title}, ${range.start} to ${range.end}`,
+        'aria-describedby': hintId,
+        onKeyDown: keys.onKeyDown,
+        onBlur: keys.onBlur,
+      })}
     >
       <div className="timeline-bar-fill" style={{ width: `${donePercent(item)}%` }} />
       {onReschedule && (
@@ -131,13 +159,17 @@ function TimelineBar({ item, offsetPct, widthPct, totalDays, onReschedule, onLin
 // bars' month range are left off rather than stretching the axis.
 // `range` pins the axis (the roadmap stacks one Timeline per lane and needs
 // their months to line up); without it the axis fits this list's own dates.
-export function Timeline({ items, milestones = [], range, links = [], onReschedule, onLink, canLink, zoom = 'month', shadeWeekends = false }: {
+export function Timeline({ items, milestones = [], range, links = [], onReschedule, canReschedule, onLink, canLink, zoom = 'month', shadeWeekends = false }: {
   items: Scheduled[]
   milestones?: TimelineMilestone[]
   range?: { start: Date; end: Date }
   links?: TimelineLink[]
   // Makes bars draggable (move / resize); absent keeps the chart read-only.
   onReschedule?: TimelineReschedule
+  // Limits which rows can be moved (default: every row except milestone and
+  // initiative groups, whose dates are a roll-up). A caller can allow a group
+  // row that has dates of its own.
+  canReschedule?: (item: Scheduled) => boolean
   // Shows link handles on each bar side; dropping on another bar's side calls this.
   onLink?: TimelineLinkDraw
   // Limits which rows get link handles (default: all).
@@ -148,6 +180,9 @@ export function Timeline({ items, milestones = [], range, links = [], onReschedu
   shadeWeekends?: boolean
 }) {
   const rowsRef = useRef<HTMLDivElement>(null)
+  const hintId = useId()
+  // The bar being dragged or moved by keys, so its arrows follow it.
+  const [live, setLive] = useState<LiveEdit | null>(null)
   const [linking, setLinking] = useState<LinkDrag | null>(null)
   const onLinkRef = useRef(onLink)
   onLinkRef.current = onLink
@@ -221,13 +256,16 @@ export function Timeline({ items, milestones = [], range, links = [], onReschedu
     .map((m) => ({ ...m, offsetPct: ((differenceInCalendarDays(m.date, rangeStart) + 0.5) / totalDays) * 100 }))
 
   const bars = dated.map((item) => {
-    const s = parseISO(item.start_date)
-    const e = parseISO(item.target_date)
+    const range = drawnRange(item, live)
+    const s = parseISO(range.start)
+    const e = parseISO(range.end)
     const offsetPct = (differenceInCalendarDays(s, rangeStart) / totalDays) * 100
     const widthPct = Math.max(((differenceInCalendarDays(e, s) + 1) / totalDays) * 100, 1.5)
-    return { item, offsetPct, widthPct }
+    return { item, range, offsetPct, widthPct }
   })
-  const rowIndex = new Map(bars.map((bar, i) => [bar.item.key ?? String(bar.item.id), i]))
+  const rowIndex = new Map(bars.map((bar, i) => [rowKeyOf(bar.item), i]))
+  const moving = bars.find(({ item, range }) => live?.key === rowKeyOf(item) && range === live.range)
+  const movable = (item: Scheduled) => Boolean(onReschedule) && (canReschedule ? canReschedule(item) : !item.group)
   const arrows = links.flatMap((link) => {
     const from = rowIndex.get(link.from)
     const to = rowIndex.get(link.to)
@@ -288,7 +326,7 @@ export function Timeline({ items, milestones = [], range, links = [], onReschedu
             <span className="timeline-count" />
           </div>
         )}
-        <div className="timeline-rows" ref={rowsRef}>
+        <div className={classNames('timeline-rows', moving && 'timeline-rows--editing')} ref={rowsRef}>
           {weekends.length > 0 && (
             <div className="timeline-today_area" aria-hidden="true">
               {weekends.map((w) => (
@@ -320,7 +358,7 @@ export function Timeline({ items, milestones = [], range, links = [], onReschedu
               <line x1={linking.x1} y1={linking.y1} x2={linking.x2} y2={linking.y2} className="timeline-linking-line" />
             </svg>
           )}
-          {bars.map(({ item, offsetPct, widthPct }) => {
+          {bars.map(({ item, range, offsetPct, widthPct }) => {
             return (
               <div key={item.key ?? item.id} className="timeline-row">
                 <span
@@ -331,7 +369,17 @@ export function Timeline({ items, milestones = [], range, links = [], onReschedu
                   {item.title}
                 </span>
                 <div className="timeline-track">
-                  <TimelineBar item={item} offsetPct={offsetPct} widthPct={widthPct} totalDays={totalDays} onReschedule={item.group ? undefined : onReschedule} onLinkStart={onLink && (!canLink || canLink(item)) ? startLink : undefined} />
+                  <TimelineBar
+                    item={item}
+                    range={range}
+                    offsetPct={offsetPct}
+                    widthPct={widthPct}
+                    totalDays={totalDays}
+                    hintId={hintId}
+                    onReschedule={movable(item) ? onReschedule : undefined}
+                    onPreview={(next) => setLive(next && { key: rowKeyOf(item), range: next, base: { start: item.start_date, end: item.target_date } })}
+                    onLinkStart={onLink && (!canLink || canLink(item)) ? startLink : undefined}
+                  />
                 </div>
                 <span className="timeline-count">
                   {item.done_tasks_count}/{item.tasks_count}
@@ -341,6 +389,15 @@ export function Timeline({ items, milestones = [], range, links = [], onReschedu
           })}
         </div>
       </div>
+
+      {onReschedule && (
+        <p id={hintId} className="timeline-hint">
+          Keys: select a bar, then the arrow keys move it a day, Shift+arrow changes its end, Alt+arrow its start, Page Up and Page Down move a week, Enter saves at once and Escape cancels.
+        </p>
+      )}
+      <p role="status" className="timeline-status">
+        {moving ? `${moving.item.title}: ${moving.range.start} to ${moving.range.end}` : ''}
+      </p>
 
       {undated.length > 0 && (
         <p className="timeline-undated">

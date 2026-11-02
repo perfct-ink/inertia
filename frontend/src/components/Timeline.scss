@@ -91,6 +91,12 @@
       display: flex;
       flex-direction: column;
       gap: space(3);
+
+      // While a bar is dragged or moved by keys the today line is drawn over
+      // it, so you can see which side of today it lands on.
+      &--editing .timeline-today {
+        z-index: 1;
+      }
     }
 
     @at-root .timeline-row {
@@ -136,11 +142,20 @@
         cursor: grab;
         touch-action: none;
         user-select: none;
+
+        &:not(.timeline-bar--dragging):hover {
+          box-shadow: 0 1px 4px color(foreground, 0.2);
+        }
       }
 
       &--dragging {
         cursor: grabbing;
         box-shadow: 0 2px 8px color(foreground, 0.2);
+      }
+
+      // Editable bars are tab stops (arrow keys move them).
+      &:focus-visible {
+        @include focus-ring;
       }
 
       &-handle {
@@ -315,6 +330,29 @@
       width: space(14);
       text-align: right;
       color: color(muted-foreground);
+    }
+
+    @at-root .timeline-hint {
+      @include text('xs');
+
+      margin-top: space(3);
+      color: color(muted-foreground);
+
+      // A touch screen has no arrow keys; screen readers still get the text
+      // through the bars' aria-describedby.
+      @media (hover: none) {
+        display: none;
+      }
+    }
+
+    // Spoken progress of a bar being moved by keys (role=status).
+    @at-root .timeline-status {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip-path: inset(50%);
+      white-space: nowrap;
     }
 
     @at-root .timeline-undated {
