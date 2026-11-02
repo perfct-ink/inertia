@@ -5,6 +5,7 @@ import { useNavigate, useLocation, Link } from 'react-router-dom'
 import { ChevronRight, Folder, FolderKanban, FileText, TableIcon, Pin, CheckSquare, CalendarDays, MoreVertical } from 'lucide-react'
 import { useCreateFolder, useDeleteFolder, usePinFolder, useUpdateFolder } from '@/api/folders'
 import { useCreateDocument, useDeleteDocument, usePinDocument, useUpdateDocument } from '@/api/documents'
+import { useUploadFiles } from '@/api/workspace'
 import { errorMessage } from '@/api/tables'
 import { documentsIn } from '@/data/folder'
 import type { TransferRequest } from '@/data/transfer'
@@ -91,6 +92,9 @@ function InlineInput({ defaultValue, onConfirm, onCancel }: { defaultValue: stri
 
 // ── FolderItem ────────────────────────────────────────────────────────────────
 
+// Whether a drag carries files from outside the page (not an item being moved inside it).
+const hasFiles = (transfer: DataTransfer) => Array.from(transfer.types).includes('Files')
+
 export function FolderItem({ folder, depth = 0 }: { folder: FolderType; depth?: number }) {
   const navigate = useNavigate()
   const location = useLocation()
@@ -113,6 +117,8 @@ export function FolderItem({ folder, depth = 0 }: { folder: FolderType; depth?: 
   const openTransfer = useTransferStore((s) => s.open)
   // Moving or copying needs another Space to put things in.
   const canTransfer = useTransferTargets().targets.length > 0
+  const uploadFiles = useUploadFiles()
+  const [dropTarget, setDropTarget] = useState(false)
 
   const indent = depth * 12
   const isProject = folder.kind === 'project'
@@ -152,9 +158,18 @@ export function FolderItem({ folder, depth = 0 }: { folder: FolderType; depth?: 
       {actionError && <div role="alert" className="folder_item-error">{actionError}<Button className="folder_item-dismiss" onClick={() => setActionError('')}>Dismiss</Button></div>}
       {/* Folder row */}
       <div
-        className={`folder_item-row folder_item-row--folder${location.pathname === `/folders/${folder.id}` ? ' folder_item-row--active' : ''}`}
+        className={`folder_item-row folder_item-row--folder${location.pathname === `/folders/${folder.id}` ? ' folder_item-row--active' : ''}${dropTarget ? ' folder_item-row--drop' : ''}`}
         style={{ paddingLeft: `${8 + indent}px`, paddingRight: '8px' }}
         onContextMenu={(e) => { e.preventDefault(); e.stopPropagation(); setFolderCtx({ x: e.clientX, y: e.clientY }) }}
+        onDragOver={(e) => { if (hasFiles(e.dataTransfer)) { e.preventDefault(); setDropTarget(true) } }}
+        onDragLeave={() => setDropTarget(false)}
+        onDrop={async (e) => {
+          setDropTarget(false)
+          if (!hasFiles(e.dataTransfer)) return
+          e.preventDefault()
+          setActionError('')
+          try { await uploadFiles.mutateAsync({ folderId: folder.id, files: Array.from(e.dataTransfer.files) }); setOpen(true) } catch (error) { setActionError(errorMessage(error)) }
+        }}
       >
         <Button onClick={() => setOpen((o) => !o)} className="folder_item-toggle">
           <ChevronRight className={`folder_item-chevron${open ? ' folder_item-chevron--open' : ''}`} />

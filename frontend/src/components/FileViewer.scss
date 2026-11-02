@@ -16,6 +16,14 @@
       gap: space(3);
     }
 
+    @at-root .file_viewer-actions {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: space(3);
+      @include text('sm');
+    }
+
     @at-root .file_viewer-name {
       flex: 1 1 16rem;
       font-weight: 600;
