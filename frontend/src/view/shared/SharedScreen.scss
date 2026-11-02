@@ -1,7 +1,23 @@
-/* Placeholder view; intentionally unstyled. */
+@use 'tokens' as *;
 
 @layer view {
   .view-shared {
     display: block;
+    padding: space(6);
+
+    @at-root .shared-title {
+      @include text('2xl');
+
+      font-weight: 600;
+    }
+
+    @at-root .shared-message {
+      color: color(muted-foreground);
+    }
+
+    @at-root .shared-spinner {
+      width: space(5);
+      height: space(5);
+    }
   }
 }

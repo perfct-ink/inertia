@@ -15,6 +15,7 @@ class Workspace < ApplicationRecord
   has_many :events, dependent: :destroy
   has_many :epics, dependent: :destroy
   has_many :initiatives, dependent: :destroy
+  has_many :shares, as: :shareable, dependent: :destroy
   has_many :milestones, dependent: :destroy
   has_many :sprints, dependent: :destroy
   has_many :objectives, dependent: :destroy
@@ -43,6 +44,11 @@ class Workspace < ApplicationRecord
   def accessible_by?(user_id)
     memberships.exists?(user_id: user_id) ||
       TeamMembership.joins(:team).exists?(user_id: user_id, teams: { workspace_id: id })
+  end
+
+  # The public read-only roadmap link, if one has been made.
+  def roadmap_share
+    shares.first
   end
 
   private
