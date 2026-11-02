@@ -1,5 +1,5 @@
 import type { Document, Folder, SpaceFolder } from '@/types'
-import { documentsIn, filterSpaceFiles, flattenFolders, folderChoices, projectLastModified, projectsOf, searchSpaceFiles, spaceFiles, folderTrail } from './folder'
+import { documentsIn, filterSpaceFiles, flattenFolders, folderChoices, projectLastModified, projectsOf, searchSpaceFiles, spaceFiles, folderTrail, featureFoldersOf } from './folder'
 
 const folder = (id: number, children: Folder[] = []) => ({ id, name: `F${id}`, children }) as unknown as Folder
 
@@ -100,4 +100,16 @@ test('folderTrail lists the folders from the top down, without Root', () => {
   expect(folderTrail(tree(), 2).map((f) => f.name)).toEqual(['Messages'])
   expect(folderTrail(tree(), 1)).toEqual([])
   expect(folderTrail(tree(), 99)).toEqual([])
+})
+test('documentsIn and projectLastModified cover nested folders', () => {
+  const messages = tree()[0].children[0]
+  expect(documentsIn(messages).map((d) => d.title)).toEqual(['Spec', 'Mockups'])
+  expect(projectLastModified(messages)).toBe('2026-10-09T00:00:00Z')
+  expect(projectLastModified(tree()[0].children[2])).toBeNull()
+})
+
+test('featureFoldersOf lists active feature folders by name', () => {
+  const f = (id: number, name: string, kind: Folder['kind'], archived = false, children: Folder[] = []) => ({ id, name, kind, archived, children, documents: [] }) as unknown as Folder
+  const tree = [f(1, 'Root', 'folder', false, [f(2, 'Zeta', 'feature'), f(3, 'Alpha', 'feature', false, [f(4, 'Old', 'feature', true)]), f(5, 'Plain', 'folder')])]
+  expect(featureFoldersOf(tree).map((x) => x.name)).toEqual(['Alpha', 'Zeta'])
 })

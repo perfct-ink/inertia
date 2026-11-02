@@ -37,6 +37,13 @@ export function folderTrail(folders: Folder[], folderId: number): Folder[] {
   return []
 }
 
+// The Space's active feature folders (folders holding feature requirement docs), by name.
+export function featureFoldersOf(folders: Folder[]): Folder[] {
+  return flattenFolders(folders)
+    .filter((f) => f.kind === 'feature' && !f.archived)
+    .sort((a, b) => a.name.localeCompare(b.name))
+}
+
 // One document in a Space: where it lives and which project holds it.
 export interface SpaceFile {
   document: Document

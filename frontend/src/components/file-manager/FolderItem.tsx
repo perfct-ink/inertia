@@ -2,7 +2,7 @@ import { Button, Input } from '@/components/ui'
 import { Database } from 'lucide-react'
 import { useState, useRef, useEffect } from 'react'
 import { useNavigate, useLocation, Link } from 'react-router-dom'
-import { ChevronRight, Folder, FolderKanban, FileText, TableIcon, Pin, CheckSquare, CalendarDays, MoreVertical } from 'lucide-react'
+import { ChevronRight, Folder, FolderKanban, FileText, TableIcon, Pin, CheckSquare, CalendarDays, MoreVertical, Layers } from 'lucide-react'
 import { useCreateFolder, useDeleteFolder, usePinFolder, useUpdateFolder } from '@/api/folders'
 import { useCreateDocument, useDeleteDocument, usePinDocument, useUpdateDocument } from '@/api/documents'
 import { useUploadFiles } from '@/api/workspace'
@@ -122,7 +122,8 @@ export function FolderItem({ folder, depth = 0 }: { folder: FolderType; depth?: 
 
   const indent = depth * 12
   const isProject = folder.kind === 'project'
-  const FolderIcon = isProject ? FolderKanban : Folder
+  const isFeature = folder.kind === 'feature'
+  const FolderIcon = isProject ? FolderKanban : isFeature ? Layers : Folder
 
   const transferItems = (describe: () => Omit<TransferRequest, 'mode'>): MenuItem[] => canTransfer ? [
     { label: 'Move to Space…', action: () => openTransfer({ mode: 'move', ...describe() }) },
@@ -148,6 +149,7 @@ export function FolderItem({ folder, depth = 0 }: { folder: FolderType; depth?: 
     ...(folder.root ? [] : [
       ...transferItems(() => ({ kind: 'folder', id: folder.id, name: folder.name, documentIds: documentsIn(folder).map((d) => d.id) })),
       { label: isProject ? 'Make Folder' : 'Make Project', action: () => updateFolder.mutate({ id: folder.id, kind: isProject ? 'folder' : 'project' }) },
+      { label: isFeature ? 'Make Folder' : 'Make Feature Folder', action: () => updateFolder.mutate({ id: folder.id, kind: isFeature ? 'folder' : 'feature' }) },
       { label: 'Archive', action: () => updateFolder.mutate({ id: folder.id, archived: true }) },
       { label: 'Delete', action: () => deleteFolder.mutate(folder.id, { onError: e => setActionError(errorMessage(e)) }), danger: true },
     ]),
@@ -174,7 +176,7 @@ export function FolderItem({ folder, depth = 0 }: { folder: FolderType; depth?: 
         <Button onClick={() => setOpen((o) => !o)} className="folder_item-toggle">
           <ChevronRight className={`folder_item-chevron${open ? ' folder_item-chevron--open' : ''}`} />
         </Button>
-        <FolderIcon className="folder_item-icon folder_item-icon--sm" aria-label={isProject ? 'Project' : undefined} />
+        <FolderIcon className="folder_item-icon folder_item-icon--sm" aria-label={isProject ? 'Project' : isFeature ? 'Feature folder' : undefined} />
         {renamingFolder ? (
           <InlineInput
             defaultValue={folder.name}

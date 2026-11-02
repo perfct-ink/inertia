@@ -57,3 +57,4 @@ One file per implemented feature, written from the code (see `docs/rules/feature
 | Document outline: headings minimap with jump | [document_outline.md](document_outline.md) |
 | Pivot: task counts by two fields | [pivot.md](pivot.md) |
 | Task table: inline editing, sort, group, filter, hide columns | [task_table.md](task_table.md) |
+| Feature folders: a folder flagged as holding features | [feature_folders.md](feature_folders.md) |
