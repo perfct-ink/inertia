@@ -56,24 +56,27 @@ import {
   Link as LinkIcon,
   Loader2,
   FileX,
-  Image as ImageIcon,
+  Paperclip,
 } from 'lucide-react'
 import WorkspaceLayout from '@/components/WorkspaceLayout'
 import { useDocument, useUpdateDocument } from '@/api/documents'
 import { useCreateTask } from '@/api/tasks'
 import { useWorkspace } from '@/api/workspace'
+import { uploadFile } from '@/api/uploads'
 import TableEditor from '@/components/editors/TableEditor'
 import SpreadsheetEditor from '@/components/editors/SpreadsheetEditor'
 import Video from '@/extensions/Video'
+import { AudioAttachment, FileAttachment } from '@/extensions/Attachment'
 import { WorkspaceTaskList } from '@/extensions/WorkspaceTaskList'
 import { WorkspaceTaskItem } from '@/extensions/WorkspaceTaskItem'
 import './ProseMirror.scss'
 import './DocumentScreen.scss'
-import api from '@/lib/api'
 import { useTabsStore } from '@/store/tabs'
 import { useAuthStore } from '@/store/auth'
+import { useNotificationStore } from '@/store/notifications'
 import { usePageTitle } from '@/hooks/usePageTitle'
 import { extractTitle, buildInitialContent, selectionTaskTitle, taskListContent } from '@/data/document'
+import { attachmentContent, pastedFiles, uploadProblem } from '@/data/attachment'
 import { colorForUserId } from '@/util/color'
 
 // Enforce: document always starts with a heading followed by body content
@@ -163,6 +166,8 @@ export default function DocumentScreen() {
   workspaceRef.current = workspace
   const createTaskRef = useRef(createTask)
   createTaskRef.current = createTask
+  // Same for the file inserter (defined below), which the paste handler calls.
+  const insertFilesRef = useRef<(files: File[]) => Promise<void>>(async () => {})
 
   const editor = useEditor({
     extensions: [
@@ -203,6 +208,8 @@ export default function DocumentScreen() {
       TiptapImage,
       Link.configure({ openOnClick: false }),
       Video,
+      AudioAttachment,
+      FileAttachment,
       Table.configure({ resizable: false }),
       TableRow,
       TableCell,
@@ -235,6 +242,17 @@ export default function DocumentScreen() {
       // too would race two uncoordinated writers on the same column. Title
       // isn't part of the Yjs-synced content, so it still needs this path.
       scheduleSaveRef.current(provider ? { title } : { content, title })
+    },
+    editorProps: {
+      // Pasted screenshots and copied files are uploaded and embedded; a paste
+      // that carries HTML (Word, Excel, a web page) stays text.
+      handlePaste: (_view, event) => {
+        const files = pastedFiles(event.clipboardData)
+        if (files.length === 0) return false
+        event.preventDefault()
+        void insertFilesRef.current(files)
+        return true
+      },
     },
   }, [provider])
 
@@ -337,41 +355,42 @@ export default function DocumentScreen() {
   }
   scheduleSaveRef.current = scheduleSave
 
-  async function uploadFile(file: File): Promise<string> {
-    const form = new FormData()
-    form.append('file', file)
-    const res = await api.post<{ url: string }>('/api/v1/uploads', form)
-    return res.data.url
-  }
-
-  // Shared by the drag-and-drop handler below and the toolbar's picker
-  // button — a device with no drag source (a phone/tablet, no mouse) has no
-  // way to attach media at all without the latter.
-  async function insertMediaFile(file: File) {
-    if (!editor || !(file.type.startsWith('image/') || file.type.startsWith('video/'))) return
-    const url = await uploadFile(file)
-    if (file.type.startsWith('image/')) {
-      editor.chain().focus().setImage({ src: url }).run()
-    } else {
-      editor.chain().focus().insertContent({ type: 'video', attrs: { src: url } }).run()
+  // Uploads each file in turn and embeds it where the cursor is: an image, a
+  // video or audio player, or a file card (data/attachment.ts decides which).
+  // Shared by drag-and-drop, paste and the toolbar's picker button — a device
+  // with no drag source (a phone/tablet, no mouse) can't attach anything
+  // without the last.
+  async function insertFiles(files: File[]) {
+    for (const file of files) {
+      const problem = uploadProblem(file)
+      if (problem) {
+        useNotificationStore.getState().notify(problem)
+        continue
+      }
+      try {
+        const uploaded = await uploadFile(file)
+        if (!editor || editor.isDestroyed) return
+        editor.chain().focus().insertContent(attachmentContent(uploaded)).run()
+      } catch {
+        // lib/api.ts has already shown the error; carry on with the other files.
+      }
     }
   }
+  insertFilesRef.current = insertFiles
 
   async function handleEditorDrop(e: React.DragEvent<HTMLDivElement>) {
     const files = Array.from(e.dataTransfer.files)
     if (!files.length || !editor) return
-    const media = files.filter((f) => f.type.startsWith('image/') || f.type.startsWith('video/'))
-    if (!media.length) return
     e.preventDefault()
     e.stopPropagation()
-    for (const file of media) await insertMediaFile(file)
+    await insertFiles(files)
   }
 
-  const mediaInputRef = useRef<HTMLInputElement>(null)
-  async function handleMediaInputChange(e: React.ChangeEvent<HTMLInputElement>) {
+  const fileInputRef = useRef<HTMLInputElement>(null)
+  async function handleFileInputChange(e: React.ChangeEvent<HTMLInputElement>) {
     const files = Array.from(e.target.files ?? [])
     e.target.value = '' // allow picking the same file again later
-    for (const file of files) await insertMediaFile(file)
+    await insertFiles(files)
   }
 
   if (isLoading || !editor) {
@@ -551,17 +570,16 @@ export default function DocumentScreen() {
             title="Link"
           />
           <ToolbarBtn
-            icon={<ImageIcon className="document-toolbar_icon" />}
-            onClick={() => mediaInputRef.current?.click()}
-            title="Insert image or video"
+            icon={<Paperclip className="document-toolbar_icon" />}
+            onClick={() => fileInputRef.current?.click()}
+            title="Insert image, video, audio or file"
           />
           <Input
-            ref={mediaInputRef}
+            ref={fileInputRef}
             type="file"
-            accept="image/*,video/*"
             multiple
             hidden
-            onChange={handleMediaInputChange}
+            onChange={handleFileInputChange}
           />
           <div className="document-status">
             {saveStatus === 'saving' && <Loader2 className="document-status_spinner" />}
