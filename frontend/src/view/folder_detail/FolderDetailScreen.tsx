@@ -15,7 +15,7 @@ import {
 import CreateItem from '@/components/CreateItem'
 import WorkspaceLayout from '@/components/WorkspaceLayout'
 import { ProgressBar } from '@/components/Timeline'
-import { useFolderContents, useUpdateFolder } from '@/api/workspace'
+import { useFolderContents, useUpdateFolder } from '@/api/folders'
 import { useUpdateTask } from '@/api/tasks'
 import { useMilestones } from '@/api/milestones'
 import type { Task, WorkspaceEvent, Epic } from '@/types'

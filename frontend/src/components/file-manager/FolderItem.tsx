@@ -3,11 +3,8 @@ import { Database } from 'lucide-react'
 import { useState, useRef, useEffect } from 'react'
 import { useNavigate, useLocation, Link } from 'react-router-dom'
 import { ChevronRight, Folder, FolderKanban, FileText, TableIcon, Pin, CheckSquare, CalendarDays, MoreVertical } from 'lucide-react'
-import {
-  useCreateFolder, useCreateDocument, useDeleteFolder, useDeleteDocument,
-  usePinFolder, usePinDocument, useUpdateFolder,
-} from '@/api/workspace'
-import { useUpdateDocument } from '@/api/documents'
+import { useCreateFolder, useDeleteFolder, usePinFolder, useUpdateFolder } from '@/api/folders'
+import { useCreateDocument, useDeleteDocument, usePinDocument, useUpdateDocument } from '@/api/documents'
 import { errorMessage } from '@/api/tables'
 import type { Folder as FolderType, Document } from '@/types'
 import './FolderItem.scss'

@@ -10,10 +10,8 @@ const mockWorkspace = {
   ] }],
 }
 
-jest.mock('@/api/workspace', () => ({
-  useWorkspace: () => ({ data: mockWorkspace }),
-  useCreateDocument: () => ({ mutateAsync: mockCreate }),
-}))
+jest.mock('@/api/workspace', () => ({ useWorkspace: () => ({ data: mockWorkspace }) }))
+jest.mock('@/api/documents', () => ({ useCreateDocument: () => ({ mutateAsync: mockCreate }) }))
 jest.mock('react-router-dom', () => ({
   useNavigate: () => mockNavigate,
 }))
