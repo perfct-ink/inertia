@@ -7,7 +7,7 @@ import { useUpdateTask } from '@/api/tasks'
 import { useUpdateEpic } from '@/api/epics'
 import { useUpdateFolder } from '@/api/folders'
 import { useCreateTaskDependency, useDeleteTaskDependency, useTaskDependencies } from '@/api/taskDependencies'
-import { ganttTaskKey, groupGanttRows, type Scheduled } from '@/data/schedule'
+import { GANTT_ZOOMS, GANTT_ZOOM_LABEL, ganttTaskKey, groupGanttRows, type GanttZoom, type Scheduled } from '@/data/schedule'
 import { DEPENDENCY_KINDS, DEPENDENCY_LABEL, DEPENDENCY_MODES, DEPENDENCY_MODE_LABEL, drivingPath, kindFromSides, planReschedule, type BarSide } from '@/data/dependency'
 import { errorMessage } from '@/util/errorMessage'
 import { exportGanttPng } from '@/util/ganttCanvas'
@@ -28,6 +28,8 @@ export default function GanttPane({ folderId, dependencyMode, epics, tasks, mile
 }) {
   const { data: allDependencies = [] } = useTaskDependencies()
   const [showCritical, setShowCritical] = useState(true)
+  const [zoom, setZoom] = useState<GanttZoom>('month')
+  const [shadeWeekends, setShadeWeekends] = useState(true)
   const qc = useQueryClient()
   const updateTask = useUpdateTask()
   const updateEpic = useUpdateEpic()
@@ -85,6 +87,13 @@ export default function GanttPane({ folderId, dependencyMode, epics, tasks, mile
   return (
     <div className="view-gantt_pane">
       <div className="gantt_pane-toolbar">
+        <Select aria-label="Zoom" value={zoom} onChange={(e) => setZoom(e.target.value as GanttZoom)} className="gantt_pane-select">
+          {GANTT_ZOOMS.map((z) => <option key={z} value={z}>{GANTT_ZOOM_LABEL[z]}</option>)}
+        </Select>
+        <label className="gantt_pane-toggle">
+          <Input type="checkbox" checked={shadeWeekends} onChange={(e) => setShadeWeekends(e.target.checked)} />
+          Shade weekends
+        </label>
         <label className="gantt_pane-toggle">
           <Input type="checkbox" checked={showCritical} onChange={(e) => setShowCritical(e.target.checked)} />
           Highlight critical path
@@ -119,6 +128,8 @@ export default function GanttPane({ folderId, dependencyMode, epics, tasks, mile
         onReschedule={reschedule}
         onLink={linkTasks}
         canLink={(item) => Boolean(item.key?.startsWith('task-'))}
+        zoom={zoom}
+        shadeWeekends={shadeWeekends}
       />
       <DependencyEditor tasks={tasks} dependencies={dependencies} />
     </div>

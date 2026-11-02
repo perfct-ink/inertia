@@ -91,3 +91,22 @@ describe('drawing a link by dragging between bar sides', () => {
     expect(mockCreate.mutate).not.toHaveBeenCalled()
   })
 })
+
+test('zoom redraws the axis and weekends are shaded only when they are wide enough to see', () => {
+  const { container } = render(
+    <QueryClientProvider client={new QueryClient()}>
+      <GanttPane folderId={1} dependencyMode="strict" epics={[]} tasks={tasks} milestones={[]} />
+    </QueryClientProvider>,
+  )
+  expect(container.querySelectorAll('.timeline-month')).toHaveLength(1)
+  expect(container.querySelectorAll('.timeline-weekend')).toHaveLength(0)
+
+  fireEvent.change(screen.getByLabelText('Zoom'), { target: { value: 'day' } })
+  expect(container.querySelectorAll('.timeline-month')).toHaveLength(30)
+  expect(container.querySelectorAll('.timeline-weekend')).toHaveLength(5)
+  expect(container.querySelector('.timeline-chart--zoomed')).not.toBeNull()
+  expect(container.querySelectorAll('.timeline-bar')).toHaveLength(2)
+
+  fireEvent.click(screen.getByLabelText('Shade weekends'))
+  expect(container.querySelectorAll('.timeline-weekend')).toHaveLength(0)
+})

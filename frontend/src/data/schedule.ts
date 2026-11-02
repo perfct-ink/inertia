@@ -1,4 +1,7 @@
-import { addDays, format, parseISO } from 'date-fns'
+import {
+  addDays, differenceInCalendarDays, eachDayOfInterval, eachMonthOfInterval, eachQuarterOfInterval, eachWeekOfInterval, eachYearOfInterval,
+  endOfMonth, endOfQuarter, endOfWeek, endOfYear, format, isWeekend, parseISO, startOfMonth, startOfQuarter, startOfWeek, startOfYear,
+} from 'date-fns'
 import type { MilestoneHealth } from '@/types'
 
 // "A title, an optional start/target date, and a tasks_count/done_tasks_count
@@ -87,4 +90,61 @@ export function shiftedRange(startDate: string, endDate: string, mode: DragMode,
   }
   const moved = addDays(end, deltaDays)
   return { start: startDate, end: fmt(moved < start ? start : moved) }
+}
+
+
+// ── Gantt zoom ───────────────────────────────────────────────────────────────
+
+export type GanttZoom = 'day' | 'week' | 'month' | 'quarter' | 'year'
+export const GANTT_ZOOMS: GanttZoom[] = ['day', 'week', 'month', 'quarter', 'year']
+export const GANTT_ZOOM_LABEL: Record<GanttZoom, string> = { day: 'Days', week: 'Weeks', month: 'Months', quarter: 'Quarters', year: 'Years' }
+
+// Track width in pixels for one day at each zoom. Month is the original fit-to-width axis.
+export const ZOOM_DAY_PX: Record<GanttZoom, number> = { day: 36, week: 14, month: 0, quarter: 3, year: 1 }
+
+const PERIODS: Record<GanttZoom, {
+  each: (range: { start: Date; end: Date }) => Date[]
+  end: (date: Date) => Date
+  label: (date: Date) => string
+}> = {
+  day: { each: eachDayOfInterval, end: (d) => d, label: (d) => format(d, 'd') },
+  week: { each: (r) => eachWeekOfInterval(r, { weekStartsOn: 1 }), end: (d) => endOfWeek(d, { weekStartsOn: 1 }), label: (d) => format(d, 'MMM d') },
+  month: { each: eachMonthOfInterval, end: endOfMonth, label: (d) => format(d, 'MMM yyyy') },
+  quarter: { each: eachQuarterOfInterval, end: endOfQuarter, label: (d) => format(d, 'QQQ yyyy') },
+  year: { each: eachYearOfInterval, end: endOfYear, label: (d) => format(d, 'yyyy') },
+}
+
+const PERIOD_START: Record<GanttZoom, (d: Date) => Date> = {
+  day: (d) => d, week: (d) => startOfWeek(d, { weekStartsOn: 1 }), month: startOfMonth, quarter: startOfQuarter, year: startOfYear,
+}
+
+export interface AxisTick { key: string; label: string; days: number }
+
+// The labelled periods across [start, end] at a zoom. `days` is how much of the
+// period falls inside the range, so tick widths add up to the whole axis.
+export function axisTicks(start: Date, end: Date, zoom: GanttZoom): AxisTick[] {
+  const period = PERIODS[zoom]
+  return period.each({ start: PERIOD_START[zoom](start), end }).map((periodStart) => {
+    const from = periodStart < start ? start : periodStart
+    const to = period.end(periodStart) > end ? end : period.end(periodStart)
+    return { key: periodStart.toISOString(), label: period.label(periodStart), days: differenceInCalendarDays(to, from) + 1 }
+  })
+}
+
+// Runs of weekend days inside [start, end] as day offsets from start (Saturday
+// and Sunday together are one run).
+export function weekendSpans(start: Date, end: Date): { offset: number; days: number }[] {
+  const spans: { offset: number; days: number }[] = []
+  eachDayOfInterval({ start, end }).forEach((day, offset) => {
+    if (!isWeekend(day)) return
+    const last = spans[spans.length - 1]
+    if (last && last.offset + last.days === offset) last.days += 1
+    else spans.push({ offset, days: 1 })
+  })
+  return spans
+}
+
+// The pixel width the chart needs at a zoom (0 = fit the page, as before).
+export function trackWidthPx(totalDays: number, zoom: GanttZoom): number {
+  return Math.round(totalDays * ZOOM_DAY_PX[zoom])
 }

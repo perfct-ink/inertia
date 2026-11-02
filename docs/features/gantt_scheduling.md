@@ -1,12 +1,14 @@
 # Gantt scheduling
 
 ## What it does
-The Gantt tab of a folder (`/folders/:id?view=gantt`) draws the folder's epics and dated tasks as bars on a month axis (the shared `components/Timeline.tsx`).
+The Gantt tab of a folder (`/folders/:id?view=gantt`) draws the folder's epics and dated tasks as bars on an axis you can zoom (the shared `components/Timeline.tsx`).
 
 - **Grouping**: each epic is followed by its dated tasks, indented one level. Tasks with no epic, or whose epic has no dates, are listed after (`groupGanttRows`, `data/schedule.ts`).
 - **Milestones**: milestones in this folder with a target date appear as diamonds on a row above the bars, if inside the chart's month range.
 - **Today line**: a red line when today is inside the range.
 - **Drag to reschedule**: drag a bar to move it, or its left or right edge to resize. Dates snap to whole days and are saved on release (`shiftedRange`). Task bars save `start_date` and `due_date`; epic bars save `start_date` and `target_date`.
+- **Zoom**: Days, Weeks, Months (default), Quarters or Years. Months fit the page; the others size the chart by days (36 px per day, 14 weeks, 3 quarters, 1 year) and scroll sideways. Axis labels are clipped to the chart's range (`axisTicks`). Dragging snaps to a whole day at every zoom because it works from the chart's total days, not the labels.
+- **Weekends**: a "Shade weekends" toggle (on by default) shades Saturday and Sunday runs at Days and Weeks zoom; at coarser zooms they are too narrow and are not drawn (`weekendSpans`). Weekends are shaded, not skipped, so bars keep true calendar length.
 - **Dependencies**: arrows between task bars, a critical-path highlight, and an editor for links (see [task_dependencies.md](task_dependencies.md)).
 - **Dependency mode**: a picker per folder. *Ignore* moves only the dragged task. *Block invalid dates* refuses a move that breaks a link touching that task and shows an error. *Shift dependent tasks* moves the tasks that wait on it, keeping their length: later, only as far as needed, when the task moves later; earlier, by the same amount, when the task moves earlier and they were sitting exactly on their link (a task with a gap before it is left where it is, and a pulled task never goes past what its other links allow). The browser works this out in `planReschedule` and the server applies the same rules on save (see below).
 
@@ -32,6 +34,10 @@ Folder page, Gantt tab. The global Epics and Initiatives timeline pages and the 
 - Server enforcement uses the mode of the folder a task sits in directly. A folder's Gantt also lists tasks from its sub-folders and applies the viewed folder's mode in the browser, so set the same mode on a sub-folder if edits made elsewhere should obey it too. A sub-folder that is stricter than the folder being viewed can refuse part of a multi-task shift.
 - Pulling earlier only follows links that were exactly tight before the move. A gap (slack) between two tasks is never closed, and a successor of two predecessors stops at the later one.
 - Changing a task's folder, status or other fields does not re-run the schedule; only date changes do. Tasks created with dates, epic dates and edits to the links themselves are not checked either.
+The zoom and weekend choices are not remembered between visits. Weekends are not skipped, only shaded.
+
+
+- Flexible mode only pushes tasks later, never earlier, and only reacts to Gantt drags, not edits made elsewhere.
 - Mouse and touch only; there is no keyboard way to reschedule.
 - Arrows and the today line do not follow a bar while it is being dragged.
 - Milestone and initiative levels are not shown above epics.
@@ -44,5 +50,8 @@ Folder page, Gantt tab. The global Epics and Initiatives timeline pages and the 
 
 - Merged to main 2026-11-02 after running, merged with main: `rails db:migrate` (schema diff clean), `rails test`, `npm run lint`, `tsc -b`, Jest, and the collab-server tests, all passing. Not checked in a browser.
 - Gantt export added 2026-10-19 on branch `backlog/export-gantt-to-png-pdf`, not merged. The layout and painting tests pass in a stand-in runner; the real canvas, download and print dialog were never run (no browser). Limits: dependency arrows and milestones are not drawn on the image, rows are cut to 34 characters, and the PDF is whatever the browser prints (page breaks on a long chart are not controlled).
+
+- Merged to main 2026-11-02 after running, merged with main: `rails db:migrate` (schema diff clean), `rails test`, `npm run lint`, `tsc -b`, Jest, and the collab-server tests, all passing. Not checked in a browser.
+- Zoom and weekend shading implemented 2026-10-19 on branch `backlog/gantt-zoom-and-weekends`; not merged or deployed. Not verified: Jest, lint, type-check, browser; the axis helpers' tests and a static check ran.
 
 - Merged to main 2026-11-02 after running, merged with main: `rails db:migrate` (schema diff clean), `rails test`, `npm run lint`, `tsc -b`, Jest, and the collab-server tests, all passing. Not checked in a browser.
