@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_11_01_140001) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_02_090001) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -223,8 +223,10 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_01_140001) do
     t.integer "status", default: 0, null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.bigint "source_event_id"
     t.index ["folder_id"], name: "index_milestones_on_folder_id"
     t.index ["owner_id"], name: "index_milestones_on_owner_id"
+    t.index ["source_event_id"], name: "index_milestones_on_source_event_id", unique: true
     t.index ["workspace_id"], name: "index_milestones_on_workspace_id"
   end
 
@@ -570,6 +572,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_01_140001) do
   add_foreign_key "io_nodes", "workspaces"
   add_foreign_key "key_results", "initiatives", on_delete: :nullify
   add_foreign_key "key_results", "objectives"
+  add_foreign_key "milestones", "events", column: "source_event_id", on_delete: :nullify
   add_foreign_key "milestones", "folders"
   add_foreign_key "milestones", "users", column: "owner_id", on_delete: :nullify
   add_foreign_key "milestones", "workspaces"
