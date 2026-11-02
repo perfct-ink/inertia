@@ -5,6 +5,7 @@ On a folder's Gantt tab (`/folders/:id?view=gantt`) tasks can be linked so one w
 
 - **Link types**: finish to start (default), start to start, finish to finish, start to finish. A link runs from a side of the predecessor's bar to a side of the successor's bar (`linkSides` in `data/dependency.ts`).
 - **Arrows**: the shared `components/Timeline.tsx` draws one arrow per link as SVG (`links` prop). Only links with both tasks in the folder are drawn.
+- **Drag to link**: hovering a task bar shows a dot beyond each side (`timeline-bar-link`). Dragging from one dot onto a dot of another task bar draws a dashed provisional line and, on release, creates the link with the kind given by the two sides (`kindFromSides`: end to start is finish to start, and so on; the drag's origin is the predecessor). Dropping on empty space, the same task or an existing pair does nothing; a loop or other server rejection shows the API error notice. Esc cancels. Epic rows have no handles. The editor below stays as the keyboard way to make links.
 - **Dependencies editor**: under the chart (`DependencyEditor` in `view/folder_detail/GanttPane.tsx`). Lists each link ("A waits on B, Finish to start") with a remove button, and a form with two task pickers, a link-type picker and Add. The form is hidden when the folder has fewer than two tasks. Server errors (loop, duplicate) show under the form.
 - **Critical path**: a "Highlight critical path" checkbox (on by default). `drivingPath` starts at the dated task with the latest due date and steps back to whichever predecessor's linked date (its due date, or start date for `start_to_*` links) is latest, until a task has no dated predecessor. Those bars get the `timeline-bar--critical` class (red outline). It uses dates as entered and re-schedules nothing; fewer than two tasks on the path shows nothing. There is no slack or float.
 - **Dependency mode** (ignore / block / shift) is documented in [gantt_scheduling.md](gantt_scheduling.md); it reads these links, in the browser on Gantt drags and on the server when a task's dates are saved.
@@ -29,9 +30,11 @@ Folder page, Gantt tab.
 - `frontend/src/data/dependency.test.ts` (`linkSides`, `drivingPath`)
 - `frontend/src/view/folder_detail/GanttPane.test.tsx` (arrows, driving path, editing links)
 - `backend/test/services/scheduling/dependency_planner_test.rb`, `backend/test/controllers/tasks_controller_test.rb` (how the links move dates under each mode)
+- `frontend/src/data/dependency.test.ts` (`linkSides`, `kindFromSides`, `drivingPath`)
+- `frontend/src/view/folder_detail/GanttPane.test.tsx` (arrows, driving path, editing links, drag to link)
 
 ## Known limits
-- Links can only be made with the editor's pickers. Dragging from one bar to another to draw a link is not built (see `docs/backlog/gantt-drag-to-link-dependencies.md`).
+- Drag-to-link is pointer only; keyboard users use the editor's pickers. The handles are invisible until a bar is hovered, so touch screens cannot use them.
 - The critical path is "what drives the latest finish today", not a scheduled critical path: no slack, no float, and it only follows the task with the latest due date.
 - Links between tasks in different folders are stored but neither drawn nor listed in any folder's editor.
 - Creating, changing or removing a link never moves any dates, whatever the mode.
@@ -40,6 +43,9 @@ Folder page, Gantt tab.
 - Implemented 2026-10-17 (links, arrows, editor, critical path). Committed locally; not pushed or deployed.
 - Not implemented: drawing a link by dragging.
 - 2026-11-01 (branch `backlog/dependency-modes-server-enforcement`, not deployed): links are now also read on the server when a task's dates are saved; see the History in [gantt_scheduling.md](gantt_scheduling.md).
+- Drag to link added 2026-10-19 on branch `backlog/gantt-drag-to-link-dependencies`, not merged; lint, type-check, frontend tests and the browser did not run (no node_modules), so the drag was never tried in a real browser.
 - Not verified: no tests, lint, type-check, migration or browser run (no dependencies installed, no network). Behaviour above is from reading the code.
+
+- Merged to main 2026-11-02 after running, merged with main: `rails db:migrate` (schema diff clean), `rails test`, `npm run lint`, `tsc -b`, Jest, and the collab-server tests, all passing. Not checked in a browser.
 
 - Merged to main 2026-11-02 after running, merged with main: `rails db:migrate` (schema diff clean), `rails test`, `npm run lint`, `tsc -b`, Jest, and the collab-server tests, all passing. Not checked in a browser.
