@@ -49,3 +49,4 @@ One file per implemented feature, written from the code (see `docs/rules/feature
 | Appearance: light/dark/system and accent colour | [appearance.md](appearance.md) |
 | Document breadcrumb: Space > folders > document | [document_breadcrumb.md](document_breadcrumb.md) |
 | My work: my open tasks by due date | [my_work.md](my_work.md) |
+| Task timeline: bars without dependencies | [task_timeline.md](task_timeline.md) |

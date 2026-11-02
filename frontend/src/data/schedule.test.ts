@@ -1,4 +1,4 @@
-import { axisTicks, donePercent, groupGanttRows, milestoneMarkers, planningGanttRows, shiftedRange, trackWidthPx, weekendSpans, type Scheduled } from './schedule'
+import { axisTicks, donePercent, groupGanttRows, milestoneMarkers, planningGanttRows, shiftedRange, trackWidthPx, weekendSpans, type Scheduled, flatTaskRows } from './schedule'
 
 const item = (tasks_count: number, done_tasks_count: number) =>
   ({ id: 1, title: 'x', start_date: null, target_date: null, tasks_count, done_tasks_count }) as Scheduled
@@ -167,4 +167,17 @@ describe('gantt zoom axis', () => {
     expect(trackWidthPx(33, 'month')).toBe(0)
     expect(trackWidthPx(365, 'year')).toBe(365)
   })
+})
+test('flatTaskRows lists dated tasks by start date, a task without a start sitting on its due date', () => {
+  const task = (id: number, title: string, start_date: string | null, due_date: string | null, status = 'todo') =>
+    ({ id, title, status, epic_id: null, start_date, due_date })
+  const rows = flatTaskRows([
+    task(1, 'Late', '2026-11-10', '2026-11-12'),
+    task(2, 'Undated', null, null),
+    task(3, 'Early', '2026-11-01', '2026-11-05', 'done'),
+    task(4, 'Milestone-ish', null, '2026-11-07'),
+  ])
+  expect(rows.map((r) => r.title)).toEqual(['Early', 'Milestone-ish', 'Late'])
+  expect(rows[1]).toMatchObject({ start_date: '2026-11-07', target_date: '2026-11-07', key: 'task-4' })
+  expect(rows[0].done_tasks_count).toBe(1)
 })
