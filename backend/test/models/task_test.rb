@@ -62,8 +62,8 @@ class TaskTest < ActiveSupport::TestCase
     by_parent = ada.workspace.tasks.new(title: "Two", parent: bob.workspace.tasks.create!(title: "Elsewhere"))
 
     assert_not by_epic.valid?
-    assert_includes by_epic.errors[:epic], "must belong to the same workspace"
+    assert_includes by_epic.errors[:epic], "must belong to the same Space"
     assert_not by_parent.valid?
-    assert_includes by_parent.errors[:parent], "must belong to the same workspace"
+    assert_includes by_parent.errors[:parent], "must belong to the same Space"
   end
 end

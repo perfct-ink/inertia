@@ -11,11 +11,11 @@ class MilestoneTest < ActiveSupport::TestCase
     assert_not @workspace.milestones.new.valid?
   end
 
-  test "owner must be a member of the workspace" do
+  test "owner must be a member of the Space" do
     stranger = User.create!(name: "Stranger", email: "stranger-milestone@example.com", password: "password123")
     milestone = @workspace.milestones.new(title: "x", owner: stranger)
     assert_not milestone.valid?
-    assert_includes milestone.errors[:owner], "must be a member of the workspace"
+    assert_includes milestone.errors[:owner], "must be a member of the Space"
     milestone.owner = @user
     assert milestone.valid?
   end

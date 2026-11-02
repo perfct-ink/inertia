@@ -34,9 +34,15 @@ docker compose up --build
 
 ```
 inertia/
-├── backend/      # Rails 7 API
-├── frontend/     # React + webpack frontend
-└── docker-compose.yml
+├── backend/        # Rails 8 API
+├── frontend/       # React + webpack frontend (web, Electron, Capacitor iOS shell)
+├── collab-server/  # Hocuspocus (Yjs) server for live document editing
+├── macos/          # native SwiftUI Mac app
+├── docs/           # rules/, backlog/, features/ and the guides
+├── scripts/        # build and development helper scripts
+├── docker-compose.yml          # local development
+├── docker-compose.coolify.yml  # production on Coolify
+└── Makefile
 ```
 
 ### Marketing pages
@@ -103,6 +109,6 @@ Production runs on **Coolify**: one Docker Compose resource (`docker-compose.coo
 
 Run `make dev-mac` to start the local API and web services, build the native app, and open it connected to localhost. Service logs stream until the app closes; the services stay running afterward. The Mac shell provides native sign-in and file handling, then loads the existing React workspace, including its sidebar and tabs, in WKWebView. Use `make dev-electron` for Electron development, or `make dev-native-mac` to build and open the native app with production endpoints. See [macOS setup and current scope](../macos/README.md) and [UI component organization](ui-components.md); run `make test-native-mac` for its tests.
 
-Native Inertia also opens **`.inertia-tasks` files**: portable local files using the existing Task, Epic, Event, and User entities, with Workboards and optional sprint/comment extensions. Use File → New/Open/Save in the native app. See the [file format](task-file-format.md) and [sample file](examples/Launch.inertia-tasks).
+Native Inertia also opens **`.inertia-tasks` files**: portable local files using the existing Task, Epic, Event, and User entities, with Workboards and optional sprint/comment extensions. Use File → New/Open/Save in the native app. See the [file format](task-file-format.md) and [sample file](../examples/Launch.inertia-tasks).
 
 See [Storage options: database, blobs, and user-owned files](storage-options.md) for the proposed storage direction and iCloud Drive/Dropbox tradeoffs.

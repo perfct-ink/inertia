@@ -50,7 +50,7 @@ class ResourceAllocationTest < ActiveSupport::TestCase
     foreign = @owner.workspace.folders.create!(name: "Elsewhere", kind: :project)
     record = allocation(folder: foreign)
     assert_not record.valid?
-    assert_includes record.errors[:folder], "must belong to the same workspace"
+    assert_includes record.errors[:folder], "must belong to the same Space"
   end
 
   test "a project turned back into a folder keeps its allocations and they stay editable" do

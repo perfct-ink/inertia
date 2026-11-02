@@ -47,7 +47,7 @@ class TaskStatusSettingTest < ActiveSupport::TestCase
 
     setting = @workspace.task_status_settings.build(status: :todo, label: "Queued", folder: foreign)
     assert_not setting.valid?
-    assert_includes setting.errors[:folder], "must belong to the same workspace"
+    assert_includes setting.errors[:folder], "must belong to the same Space"
   end
 
   test "replace_for! swaps a board's settings and leaves the others alone" do

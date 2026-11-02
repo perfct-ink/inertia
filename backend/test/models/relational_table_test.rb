@@ -61,6 +61,18 @@ class RelationalTableTest < ActiveSupport::TestCase
     assert_not @record.table_cells.build(table_field: field, value: "Ada").valid?
   end
 
+  test "model names and validation messages say Collection, never table" do
+    assert_equal "Collection field", TableField.model_name.human
+    notes = @folder.documents.create!(title: "Notes", doc_type: :document, created_by: @user)
+    field = notes.table_fields.build(name: "Name", data_type: "text")
+    assert_not field.valid?
+    assert_includes field.errors.full_messages, "Document must be a collection"
+    relation = @table.table_fields.build(name: "Link", data_type: "relation", relation_table: notes)
+    assert_not relation.valid?
+    assert_includes relation.errors.full_messages, "Related collection must be a collection in this Space"
+    assert_includes notes.table_records.build.tap(&:valid?).errors.full_messages, "Document must be a collection"
+  end
+
   test "formula fields need an expression and keep no values" do
     field = @table.table_fields.build(name: "Total", data_type: "formula")
     assert_not field.valid?

@@ -56,7 +56,7 @@ make dev-mac
 open -n --env INERTIA_API_URL=http://localhost:3000 --env INERTIA_WEB_URL=http://localhost:5174 macos/dist/Inertia.app
 ```
 
-Try signing in, canceling the provider browser, and signing in again after a relaunch. Successful sign-in opens Documents, Sheets & Tables. Sessions remain memory-only, as with password sign-in.
+Try signing in, canceling the provider browser, and signing in again after a relaunch. Successful sign-in opens Documents, Sheets & Collections. Sessions remain memory-only, as with password sign-in.
 
 New social users receive an Inertia account and personal space. Later sign-ins use the provider's stable subject ID, including Apple's private-relay identities. An existing email/password account is **not automatically linked** to a provider with a matching email: use its password to sign in. An authenticated account-linking screen is not part of this change. Apple sign-in may supply a private relay email; configure Apple's email relay service separately if you later send mail to those addresses.
 

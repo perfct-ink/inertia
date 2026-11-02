@@ -38,7 +38,7 @@ class AiRunTest < ActiveSupport::TestCase
     )
 
     assert_not run.valid?
-    assert_includes run.errors[:ai_worker], "must belong to the same workspace"
-    assert_includes run.errors[:task], "must belong to the same workspace"
+    assert_includes run.errors[:ai_worker], "must belong to the same Space"
+    assert_includes run.errors[:task], "must belong to the same Space"
   end
 end

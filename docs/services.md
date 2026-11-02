@@ -58,7 +58,7 @@ See [Mac social sign-in](mac-social-sign-in.md) for provider setup steps.
 | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | Google OAuth web client. | Optional; provider is disabled when unset. |
 | `APPLE_CLIENT_ID`, `APPLE_TEAM_ID`, `APPLE_KEY_ID`, `APPLE_PRIVATE_KEY` | Sign in with Apple (Services ID, team, key ID, `.p8` contents). | Optional; provider is disabled when unset. |
 | `ANTHROPIC_API_KEY` | Anthropic API key for AI workers. | Not read yet: the adapter that uses it is not built. Optional; workers stay off without it. |
-| `REDIS_URL` | Redis connection (development container). | Not used in production. |
+| `REDIS_URL` | Set for the development `redis` container. | Nothing reads it: the backend has no redis gem and Action Cable and jobs run in-process. Not used in production. |
 
 ### Frontend (`frontend/`, read at build time by webpack `DefinePlugin`)
 
@@ -88,7 +88,7 @@ See [Mac social sign-in](mac-social-sign-in.md) for provider setup steps.
 
 | Secret | Purpose |
 | --- | --- |
-| `COOLIFY_WEBHOOK`, `COOLIFY_TOKEN` | CI's deploy job: the resource's deploy URL and a Coolify API token with deploy permission. Coolify still pulls the repo through its GitHub App. |
+| `COOLIFY_API_TOKEN` (older name `COOLIFY_TOKEN`), `COOLIFY_WEBHOOK` | CI's deploy job: a Coolify API token with deploy permission, and optionally an override of the resource's deploy URL (built into `ci.yml` by default). Coolify still pulls the repo through its GitHub App. |
 
 Production runtime variables on Coolify (`RAILS_MASTER_KEY`, `APP_URL`, `COLLAB_URL`, `CORS_ORIGINS`, social sign-in) are listed in [deployment.md](deployment.md#configuration).
 

@@ -53,6 +53,16 @@ en:
       task_status_setting:
         one: "Task status setting"
         other: "Task status settings"
+      # Tables are called Collections in the product; the code keeps "table".
+      table_field:
+        one: "Collection field"
+        other: "Collection fields"
+      table_record:
+        one: "Collection record"
+        other: "Collection records"
+      table_cell:
+        one: "Collection cell"
+        other: "Collection cells"
     attributes:
       folder:
         workspace: "Space"
@@ -83,4 +93,26 @@ en:
         decision_note: "Reason"
       task_status_setting:
         workspace: "Space"
+      ai_worker:
+        workspace: "Space"
+      ai_run:
+        workspace: "Space"
+      idea:
+        workspace: "Space"
+      io_node:
+        workspace: "Space"
+      milestone:
+        workspace: "Space"
+      objective:
+        workspace: "Space"
+      quip_import:
+        workspace: "Space"
+      release:
+        workspace: "Space"
+      sprint:
+        workspace: "Space"
+      task_dependency:
+        workspace: "Space"
+      table_field:
+        relation_table: "Related collection"
 

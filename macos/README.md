@@ -8,11 +8,11 @@ First stage of the gradual SwiftUI migration, requiring macOS 14+ and Xcode's Sw
 - `make test-native-mac` runs the native regression tests.
 - Open `macos/Package.swift` in Xcode to debug, or `swift run --package-path macos`.
 
-The Mac app opens native sign-in followed by **Documents, Sheets & Tables** in the existing React workspace. Its sidebar, tabs, projects, documents, task views, and calendar all use the same components and layout as the web app in an isolated WKWebView. The Mac shell does not create a separate workspace or sidebar layout. Use `make dev-electron` for Electron development.
+The Mac app opens native sign-in followed by **Documents, Sheets & Collections** in the existing React workspace. Its sidebar, tabs, projects, documents, task views, and calendar all use the same components and layout as the web app in an isolated WKWebView. The Mac shell does not create a separate workspace or sidebar layout. Use `make dev-electron` for Electron development.
 
 The login screen supports Apple and Google through the system browser, as well as email/password. Provider credentials must be configured on the backend; see [sign-in setup](../docs/mac-social-sign-in.md).
 
-For the local development API, use `admin` / `admin` as a shortcut to the seeded test workspace. The existing `test@example.com` / `password123` login also works. Run `make db-seed` if the test account has not been created.
+For the local development API, use `admin` / `admin` as a shortcut to the seeded test Space. The existing `test@example.com` / `password123` login also works. Run `make db-seed` if the test account has not been created.
 
 Production endpoints default to https://inertia.it.com. For development run:
 
@@ -32,9 +32,9 @@ Native login, local task-file screens, and platform wrappers live in `Sources/In
 
 The local Kanban editor opens when you explicitly create or open a task file.
 
-Choose **File → New** (Command-N) to create an `.inertia-tasks` document, and **File → Save** (Command-S) to name it. Open an existing file with **File → Open** (Command-O) or Finder's **Open With → Inertia**. The local file editor does not require sign-in. Use **Online Workspace** in its toolbar to access the server-backed app.
+Choose **File → New** (Command-N) to create an `.inertia-tasks` document, and **File → Save** (Command-S) to name it. Open an existing file with **File → Open** (Command-O) or Finder's **Open With → Inertia**. The local file editor does not require sign-in. Use **Online Space** in its toolbar to access the server-backed app.
 
-- Switch between **Workboard**, **List**, **Sprints**, **Epics**, and **Milestones**.
+- Switch between **Workboard**, **List**, **Sprints**, **Epics**, and **Events**.
 - Create/edit tasks with titles, descriptions, due dates, a column, optional sprint, epic, multiple events, and parent task.
 - Drag cards between columns, use a card's context menu, or change its column in List view.
 - Create sprints with goals and dates, filter the board to one sprint, and see completion progress.

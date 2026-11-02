@@ -10,7 +10,7 @@ module SameWorkspace
         validate do
           parent = public_send(name)
           next if parent.nil? || parent.workspace_id == workspace_id
-          errors.add(name, "must belong to the same workspace")
+          errors.add(name, "must belong to the same Space")
         end
       end
     end

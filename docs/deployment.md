@@ -47,7 +47,7 @@ Set these in the resource's **Environment Variables** tab in Coolify. Only `RAIL
 
 `APP_URL` and `COLLAB_URL` are build arguments: changing them needs a redeploy, not a restart. Never put a secret in them, since they ship to every browser.
 
-CI's deploy job needs two GitHub secrets: `COOLIFY_WEBHOOK` (`https://coolify.homecloud.one/api/v1/deploy?uuid=smu9zcyqqxhwhd7fybqqmn7j&force=false`) and `COOLIFY_TOKEN` (a Coolify API token with deploy permission, from Keys & Tokens). Without them the job fails and nothing deploys.
+CI's deploy job needs one GitHub secret, `COOLIFY_API_TOKEN` (a Coolify API token with deploy permission, from Keys & Tokens; the older name `COOLIFY_TOKEN` is still read). It posts to a deploy URL that is built into `.github/workflows/ci.yml`; set the optional `COOLIFY_WEBHOOK` secret (`https://coolify.homecloud.one/api/v1/deploy?uuid=smu9zcyqqxhwhd7fybqqmn7j&force=false`) only to override it. Without the token the job fails and nothing deploys.
 
 ## One-time setup
 
@@ -57,7 +57,7 @@ CI's deploy job needs two GitHub secrets: `COOLIFY_WEBHOOK` (`https://coolify.ho
 4. **Resource.** New resource → the GitHub App source → `perfct-ink/inertia`, branch `main`, build pack **Docker Compose**, compose file `/docker-compose.coolify.yml`.
 5. **Domain.** On the `web` service, set the domain to `https://inertia.it.com,https://www.inertia.it.com`. Leave `api` and `collab` without a domain.
 6. **Environment.** Add `RAILS_MASTER_KEY` (plus any social sign-in values) as above.
-7. **Auto Deploy.** Leave it off under the resource's Advanced settings; CI's deploy job starts deploys. Add the `COOLIFY_WEBHOOK` and `COOLIFY_TOKEN` GitHub secrets (above).
+7. **Auto Deploy.** Leave it off under the resource's Advanced settings; CI's deploy job starts deploys. Add the `COOLIFY_API_TOKEN` GitHub secret (above).
 8. **First deploy.** Click Deploy and wait for all three services to report healthy. Before DNS moves, you can check it on a temporary domain (Coolify can generate an sslip.io one) or with `curl -H 'Host: inertia.it.com' http://<server-ip>/healthz`.
 
 ## Cutover from the droplet (done 2026-10-21)

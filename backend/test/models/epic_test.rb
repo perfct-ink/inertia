@@ -38,6 +38,6 @@ class EpicTest < ActiveSupport::TestCase
     epic = ada.workspace.epics.new(title: "Launch", initiative: foreign)
 
     assert_not epic.valid?
-    assert_includes epic.errors[:initiative], "must belong to the same workspace"
+    assert_includes epic.errors[:initiative], "must belong to the same Space"
   end
 end

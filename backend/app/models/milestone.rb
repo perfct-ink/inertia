@@ -15,6 +15,6 @@ class Milestone < ApplicationRecord
 
   def folder_in_same_workspace
     return if folder.nil? || folder.workspace_id == workspace_id
-    errors.add(:folder, "must belong to the same workspace")
+    errors.add(:folder, "must belong to the same Space")
   end
 end

@@ -25,7 +25,7 @@ class TableField < ApplicationRecord
   private
 
   def valid_table
-    errors.add(:document, "must be a table") unless document&.table?
+    errors.add(:document, "must be a collection") unless document&.table?
     if data_type == "relation"
       unless relation_table&.table? && relation_table.folder.workspace_id == document&.folder&.workspace_id
         errors.add(:relation_table, "must be a collection in this Space")
