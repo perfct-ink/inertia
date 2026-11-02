@@ -42,6 +42,14 @@ test('canReschedule and group rows decide which bars take the keys', () => {
   expect(bar('Launch')).toBeInTheDocument()
 })
 
+test('the keyboard hint shows only when some bar can be moved', () => {
+  const group = row(3, 'Launch', '2026-11-01', '2026-11-30', { key: 'initiative-3', group: true })
+  const { rerender } = render(<Timeline items={[group]} onReschedule={jest.fn()} />)
+  expect(screen.queryByText(/arrow keys move it/)).not.toBeInTheDocument()
+  rerender(<Timeline items={[group, design]} onReschedule={jest.fn()} />)
+  expect(screen.getByText(/arrow keys move it/)).toBeInTheDocument()
+})
+
 test('arrow presses move the bar a day each and save once after a pause', () => {
   const onReschedule = jest.fn()
   render(<Timeline items={[design]} onReschedule={onReschedule} />)

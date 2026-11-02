@@ -18,6 +18,11 @@
       gap: space(3);
       max-width: 56rem;
 
+      // The timeline's keyboard hint shows once, under the last lane.
+      &:not(:last-child) .timeline-hint {
+        display: none;
+      }
+
       &-header {
         display: flex;
         flex-wrap: wrap;

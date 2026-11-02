@@ -266,6 +266,7 @@ export function Timeline({ items, milestones = [], range, links = [], onReschedu
   const rowIndex = new Map(bars.map((bar, i) => [rowKeyOf(bar.item), i]))
   const moving = bars.find(({ item, range }) => live?.key === rowKeyOf(item) && range === live.range)
   const movable = (item: Scheduled) => Boolean(onReschedule) && (canReschedule ? canReschedule(item) : !item.group)
+  const anyMovable = bars.some(({ item }) => movable(item))
   const arrows = links.flatMap((link) => {
     const from = rowIndex.get(link.from)
     const to = rowIndex.get(link.to)
@@ -390,7 +391,7 @@ export function Timeline({ items, milestones = [], range, links = [], onReschedu
         </div>
       </div>
 
-      {onReschedule && (
+      {anyMovable && (
         <p id={hintId} className="timeline-hint">
           Keys: select a bar, then the arrow keys move it a day, Shift+arrow changes its end, Alt+arrow its start, Page Up and Page Down move a week, Enter saves at once and Escape cancels.
         </p>
