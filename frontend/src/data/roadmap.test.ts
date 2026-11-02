@@ -1,5 +1,5 @@
 import type { Milestone, Initiative, Epic } from '@/types'
-import { boardColumns, effectiveHorizon, roadmapLanes, roadmapRange } from './roadmap'
+import { boardColumns, effectiveHorizon, horizonCounts, roadmapLanes, roadmapRange } from './roadmap'
 
 const today = new Date(2026, 9, 17)
 const milestone = (id: number, target_date: string | null = null) =>
@@ -70,4 +70,13 @@ test('the shared axis spans every dated row and milestone date, month aligned', 
   expect(range?.end.getMonth()).toBe(1)
   expect(roadmapLanes([], [initiative(1)], []).length).toBe(1)
   expect(roadmapRange(roadmapLanes([], [initiative(1)], []))).toBeNull()
+})
+
+test('horizonCounts counts the cards in each board column', () => {
+  const counts = horizonCounts(
+    [initiative(1, { status: 'active' }), initiative(2, { horizon: 'later' }), initiative(3, { status: 'done' })],
+    [epic(1, { horizon: 'next' }), epic(2, { initiative_id: 1 })],
+    today,
+  )
+  expect(counts).toEqual({ now: 1, next: 1, later: 1 })
 })

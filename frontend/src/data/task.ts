@@ -1,4 +1,5 @@
-import type { Task, TaskPriority } from '@/types'
+import type { Task, TaskPriority, TaskStatus } from '@/types'
+import { donePercent } from '@/data/schedule'
 
 // The task statuses the API accepts, in board order (mirrors Task.statuses in the backend).
 export const TASK_STATUSES: Task['status'][] = ['backlog', 'todo', 'in_progress', 'in_review', 'done']
@@ -67,6 +68,43 @@ export function myWork(tasks: Task[], userId: number, today: string): { bucket: 
         .sort((a, b) => (a.due_date ?? '').localeCompare(b.due_date ?? '') || a.title.localeCompare(b.title)),
     }))
     .filter((group) => group.tasks.length > 0)
+}
+
+export interface TaskSummary {
+  total: number
+  done: number
+  open: number
+  // Not done and past due.
+  overdue: number
+  // Not done and due today or in the next six days.
+  due_soon: number
+  percent: number
+  by_status: Record<TaskStatus, number>
+}
+
+// Counts for a dashboard: how many tasks there are, how many are finished, late
+// or due soon, and how many sit in each status. `today` is YYYY-MM-DD.
+export function taskSummary(tasks: Task[], today: string): TaskSummary {
+  const by_status: Record<TaskStatus, number> = { backlog: 0, todo: 0, in_progress: 0, in_review: 0, done: 0 }
+  let overdue = 0
+  let due_soon = 0
+  for (const task of tasks) {
+    by_status[task.status] += 1
+    if (task.status === 'done') continue
+    const bucket = dueBucket(task.due_date, today)
+    if (bucket === 'overdue') overdue += 1
+    else if (bucket === 'today' || bucket === 'this_week') due_soon += 1
+  }
+  const done = by_status.done
+  return { total: tasks.length, done, open: tasks.length - done, overdue, due_soon, percent: donePercent({ tasks_count: tasks.length, done_tasks_count: done }), by_status }
+}
+
+// Open tasks that have a due date, soonest first (overdue ones lead), at most `limit`.
+export function upcomingTasks(tasks: Task[], limit = 5): Task[] {
+  return tasks
+    .filter((t) => t.status !== 'done' && t.due_date)
+    .sort((a, b) => a.due_date!.localeCompare(b.due_date!) || a.title.localeCompare(b.title))
+    .slice(0, limit)
 }
 
 export interface TaskCard {

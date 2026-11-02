@@ -1,4 +1,4 @@
-import type { MilestoneHealth, PlanningStatus } from '@/types'
+import type { Milestone, MilestoneHealth, PlanningStatus } from '@/types'
 
 export const PLANNING_STATUSES: PlanningStatus[] = ['planned', 'active', 'done']
 
@@ -20,4 +20,17 @@ export function compareByTargetDate(a: { title: string; target_date: string | nu
   if (!a.target_date) return 1
   if (!b.target_date) return -1
   return a.target_date.localeCompare(b.target_date)
+}
+
+// How many unfinished milestones are on track, at risk and off track.
+export function healthCounts(milestones: Pick<Milestone, 'status' | 'health'>[]): Record<MilestoneHealth, number> {
+  const counts: Record<MilestoneHealth, number> = { on_track: 0, at_risk: 0, off_track: 0 }
+  milestones.filter((m) => m.status !== 'done').forEach((m) => { counts[m.health] += 1 })
+  return counts
+}
+
+// The unfinished milestone with the soonest target date (a late one counts),
+// or null when none has a date.
+export function nextMilestone<T extends Pick<Milestone, 'status' | 'title' | 'target_date'>>(milestones: T[]): T | null {
+  return milestones.filter((m) => m.status !== 'done' && m.target_date).sort(compareByTargetDate)[0] ?? null
 }

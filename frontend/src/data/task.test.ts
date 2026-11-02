@@ -1,5 +1,5 @@
 import type { Task } from '@/types'
-import { buildTaskTree, taskFolderId, dueBucket, myWork, taskCards, estimateLabel, pointsLabel, priorityLabel } from './task'
+import { buildTaskTree, taskFolderId, dueBucket, myWork, taskCards, estimateLabel, pointsLabel, priorityLabel, taskSummary, upcomingTasks } from './task'
 
 const task = (id: number, parent_id: number | null = null) => ({ id, title: `T${id}`, parent_id }) as unknown as Task
 
@@ -69,4 +69,33 @@ test('priorityLabel hides none, pointsLabel and estimateLabel format what is set
   expect(pointsLabel({ story_points: 0, actual_story_points: null })).toBe('0 pts')
   expect(estimateLabel(6.5)).toBe('6.5 h')
   expect(estimateLabel(null)).toBeNull()
+})
+
+describe('taskSummary', () => {
+  const make = (id: number, status: Task['status'], due_date: string | null = null) =>
+    ({ id, title: `T${id}`, status, due_date }) as unknown as Task
+  const tasks = [
+    make(1, 'done', '2026-10-01'),
+    make(2, 'todo', '2026-10-30'),
+    make(3, 'in_progress', '2026-11-02'),
+    make(4, 'backlog', '2026-11-08'),
+    make(5, 'in_review', '2026-11-20'),
+    make(6, 'todo'),
+  ]
+
+  test('counts finished, late and soon-due tasks, ignoring the finished ones for lateness', () => {
+    expect(taskSummary(tasks, '2026-11-02')).toEqual({
+      total: 6, done: 1, open: 5, overdue: 1, due_soon: 2, percent: 17,
+      by_status: { backlog: 1, todo: 2, in_progress: 1, in_review: 1, done: 1 },
+    })
+  })
+
+  test('an empty list is all zeros', () => {
+    expect(taskSummary([], '2026-11-02')).toMatchObject({ total: 0, open: 0, percent: 0, overdue: 0 })
+  })
+
+  test('upcomingTasks lists open dated tasks soonest first, up to the limit', () => {
+    expect(upcomingTasks(tasks).map((t) => t.id)).toEqual([2, 3, 4, 5])
+    expect(upcomingTasks(tasks, 2).map((t) => t.id)).toEqual([2, 3])
+  })
 })
