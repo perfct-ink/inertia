@@ -1,0 +1,32 @@
+@use 'tokens' as *;
+
+@layer app.components {
+  .appearance_dialog {
+    &-field {
+      display: flex;
+      flex-direction: column;
+      gap: space(1);
+      margin-top: space(3);
+      @include text('sm');
+    }
+
+    &-accents {
+      display: flex;
+      flex-wrap: wrap;
+      gap: space(2);
+      margin-top: space(4);
+    }
+
+    &-swatch {
+      width: space(7);
+      height: space(7);
+      border: 2px solid transparent;
+      border-radius: radius('full');
+
+      &--selected {
+        border-color: color(foreground);
+        box-shadow: 0 0 0 2px color(background) inset;
+      }
+    }
+  }
+}

@@ -7,6 +7,7 @@ class InitiativeBlueprint < Blueprinter::Base
   field :tasks_count
   field :done_tasks_count
   field :horizon
+  field :position
   field :health do |initiative|
     initiative.health(initiative.percent)
   end

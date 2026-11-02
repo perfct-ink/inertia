@@ -38,6 +38,14 @@ class ActivityTest < ActiveSupport::TestCase
     )
   end
 
+  test "enum and number fields log their values" do
+    task = @workspace.tasks.create!(title: "Ship")
+
+    task.update!(priority: :urgent, story_points: 5)
+
+    assert_equal({ "priority" => [ "none", "urgent" ], "story_points" => [ nil, 5 ] }, task.activities.updated.sole.reload.field_changes)
+  end
+
   test "clearing an association logs the name it had" do
     epic = @workspace.epics.create!(title: "Launch")
     task = @workspace.tasks.create!(title: "Ship", epic: epic)

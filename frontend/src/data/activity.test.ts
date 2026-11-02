@@ -20,6 +20,13 @@ test('setting and clearing a field say what it was', () => {
   expect(describeChange('epic', ['Launch', null])).toBe('Cleared epic (was Launch)')
 })
 
+test('priority and points read naturally', () => {
+  expect(describeChange('priority', ['none', 'urgent'])).toBe('Changed priority from None to Urgent')
+  expect(describeChange('story_points', [3, 5])).toBe('Changed story points from 3 to 5')
+  expect(describeChange('estimate_hours', [null, '2.5'])).toBe('Set estimate (hours) to 2.5')
+  expect(describeChange('doc_type', ['document', 'file'])).toBe('Changed type from Document to File')
+})
+
 test('titles are quoted and dates are written out', () => {
   expect(describeChange('title', ['Ship', 'Ship it'])).toBe('Changed title from "Ship" to "Ship it"')
   expect(describeChange('due_date', [null, '2026-11-05'])).toBe('Set due date to Nov 5, 2026')

@@ -17,7 +17,7 @@ type ActivityDialogProps = {
 // An item's activity log: who created or changed it and when, newest first.
 // Mount it only while open; it loads the log when it mounts.
 export function ActivityDialog({ subjectType, subjectId, title, onClose }: ActivityDialogProps) {
-  const { data: activities = [], isLoading, isError } = useActivities(subjectType, subjectId, true)
+  const { data: activities = [], isLoading, isError } = useActivities(subjectType, subjectId)
 
   return (
     <Modal open title={`Activity: ${title}`} onClose={onClose}>

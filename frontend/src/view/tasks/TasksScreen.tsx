@@ -1,7 +1,7 @@
-import { Button, Input, Select, classNames } from '@/components/ui'
+import { Button, Input, Select, StatusDot, classNames, DatePicker } from '@/components/ui'
 import { useState, useRef, useEffect } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { Plus, X, ArrowRight, Play, Loader2, Search, Filter, Target } from 'lucide-react'
+import { Plus, X, ArrowRight, Play, Loader2, Search, Filter, Target, SlidersHorizontal, Palette } from 'lucide-react'
 import {
   DndContext,
   DragOverlay,
@@ -25,42 +25,28 @@ import {
 import { CSS } from '@dnd-kit/utilities'
 import WorkspaceLayout from '@/components/WorkspaceLayout'
 import { ActivityButton } from '@/components/activity/ActivityButton'
+import SprintHeader from '@/components/SprintHeader'
+import { TASK_PRIORITIES, estimateLabel, pointsLabel, priorityLabel } from '@/data/task'
 import { useTasks, useCreateTask, useUpdateTask, useDeleteTask, type TaskFilters } from '@/api/tasks'
 import { useWorkspace } from '@/api/workspace'
+import { canWriteWorkspace } from '@/api/workspaces'
 import { useEpics } from '@/api/epics'
 import { useSprints } from '@/api/sprints'
 import { useMilestones } from '@/api/milestones'
-import type { Task, Epic, Sprint, Milestone } from '@/types'
+import { useTaskFields } from '@/api/taskFields'
+import { TaskFieldChips } from '@/components/task-fields/TaskFieldChips'
+import { TaskFieldsDialog } from '@/components/task-fields/TaskFieldsDialog'
+import { ManageTaskFieldsDialog } from '@/components/task-fields/ManageTaskFieldsDialog'
+import type { Task, TaskField, Epic, Sprint, Milestone, TaskStatus, TaskStatusColor, TaskPriority } from '@/types'
 import './TasksScreen.scss'
 import { usePageTitle } from '@/hooks/usePageTitle'
+import { useBoardStatuses } from '@/hooks/useBoardStatuses'
+import { StatusSettings } from '@/components/workspace/StatusSettings'
+import { BOARD_STATUSES, NEXT_STATUS, TASK_STATUSES, nextStatusLabel } from '@/data/task_status'
+import { flattenFolders } from '@/data/folder'
 
-const KANBAN_STATUSES: { key: Task['status']; label: string; dot: string }[] = [
-  { key: 'todo', label: 'To Do', dot: '' },
-  { key: 'in_progress', label: 'In Progress', dot: 'blue' },
-  { key: 'in_review', label: 'In Review', dot: 'yellow' },
-  { key: 'done', label: 'Done', dot: 'green' },
-]
-
-const KANBAN_KEYS = KANBAN_STATUSES.map((s) => s.key)
-
-const NEXT_STATUS: Record<Task['status'], Task['status'] | null> = {
-  backlog: 'todo',
-  todo: 'in_progress',
-  in_progress: 'in_review',
-  in_review: 'done',
-  done: null,
-}
-
-const STATUS_LABEL: Record<Task['status'], string> = {
-  backlog: 'Backlog',
-  todo: 'To Do',
-  in_progress: 'In Progress',
-  in_review: 'In Review',
-  done: 'Done',
-}
-
-function isColumnId(id: UniqueIdentifier): id is Task['status'] {
-  return KANBAN_KEYS.includes(id as Task['status'])
+function isColumnId(id: UniqueIdentifier): id is TaskStatus {
+  return BOARD_STATUSES.includes(id as TaskStatus)
 }
 
 // ── Card ─────────────────────────────────────────────────────────────────────
@@ -69,12 +55,17 @@ interface CardProps {
   task: Task
   onDelete?: () => void
   onNext: (() => void) | null
+  // Name of the status onNext moves the task to.
+  nextLabel?: string | null
   onNavigate: () => void
   epicTitle?: string
   overlay?: boolean
+  // The Space's custom task fields, shown as chips; the edit button opens them.
+  fields?: TaskField[]
+  onEditFields?: () => void
 }
 
-function TaskCard({ task, onNext, onNavigate, epicTitle, overlay }: Omit<CardProps, 'onDelete'>) {
+function TaskCard({ task, onNext, nextLabel, onNavigate, epicTitle, overlay, fields = [], onEditFields }: Omit<CardProps, 'onDelete'>) {
   return (
     <div className={classNames('tasks-card', overlay && 'tasks-card--overlay')}>
       <div className="tasks-card_title_row">
@@ -86,7 +77,11 @@ function TaskCard({ task, onNext, onNavigate, epicTitle, overlay }: Omit<CardPro
           <span className="tasks-epic_title">{epicTitle}</span>
         </div>
       )}
+      <TaskFieldChips fields={fields} task={task} />
       <div className="tasks-card_footer">
+        {priorityLabel(task.priority) && <span className={`tasks-priority tasks-priority--${task.priority}`}>{priorityLabel(task.priority)}</span>}
+        {pointsLabel(task) && <span className="tasks-meta">{pointsLabel(task)}</span>}
+        {estimateLabel(task.estimate_hours) && <span className="tasks-meta">{estimateLabel(task.estimate_hours)}</span>}
         {task.document && (
           <Button
             onClick={onNavigate}
@@ -95,20 +90,29 @@ function TaskCard({ task, onNext, onNavigate, epicTitle, overlay }: Omit<CardPro
             {task.document.title}
           </Button>
         )}
-        {!overlay && (
-          <div className="tasks-card_actions">
-            <ActivityButton subjectType="Task" subjectId={task.id} title={task.title} />
-            {onNext && (
-              <Button
-                onClick={onNext}
-                className="tasks-next"
-                title={`Move to ${STATUS_LABEL[NEXT_STATUS[task.status]!]}`}
-              >
-                <ArrowRight className="tasks-icon" />
-              </Button>
-            )}
-          </div>
-        )}
+        <div className="tasks-card_actions">
+          {!overlay && <ActivityButton subjectType="Task" subjectId={task.id} title={task.title} className="tasks-card_fields" />}
+          {onEditFields && fields.length > 0 && !overlay && (
+            <Button
+              onClick={onEditFields}
+              className="tasks-card_fields"
+              title="Edit fields"
+              aria-label={`Edit fields of ${task.title}`}
+            >
+              <SlidersHorizontal className="tasks-icon" />
+            </Button>
+          )}
+          {onNext && !overlay && (
+            <Button
+              onClick={onNext}
+              className="tasks-next"
+              title={`Move to ${nextLabel}`}
+              aria-label={`Move to ${nextLabel}`}
+            >
+              <ArrowRight className="tasks-icon" />
+            </Button>
+          )}
+        </div>
       </div>
     </div>
   )
@@ -129,10 +133,10 @@ function SortableCard(props: Omit<CardProps, 'onDelete'>) {
 
 // ── Column ────────────────────────────────────────────────────────────────────
 
-function KanbanColumn({ status, label, dot, tasks, children }: {
-  status: Task['status']
+function KanbanColumn({ status, label, color, tasks, children }: {
+  status: TaskStatus
   label: string
-  dot: string
+  color: TaskStatusColor
   tasks: Task[]
   children: React.ReactNode
 }) {
@@ -140,7 +144,7 @@ function KanbanColumn({ status, label, dot, tasks, children }: {
   return (
     <div className="tasks-column">
       <div className="tasks-column_header">
-        <span className={classNames('tasks-dot', dot && `tasks-dot--${dot}`)} />
+        <StatusDot color={color} />
         <span className="tasks-column_label">{label}</span>
         <span className="tasks-count">{tasks.length}</span>
       </div>
@@ -162,6 +166,9 @@ interface NewTaskFields {
   epicId?: number
   sprintId?: number
   milestoneId?: number
+  priority?: TaskPriority
+  estimateHours?: number
+  storyPoints?: number
 }
 
 interface AddTaskInputProps {
@@ -179,6 +186,9 @@ function AddTaskInput({ onAdd, onCancel, epics, sprints, milestones }: AddTaskIn
   const [epicId, setEpicId] = useState('')
   const [sprintId, setSprintId] = useState('')
   const [milestoneId, setMilestoneId] = useState('')
+  const [priority, setPriority] = useState<TaskPriority>('none')
+  const [estimate, setEstimate] = useState('')
+  const [points, setPoints] = useState('')
   const titleRef = useRef('')
   const containerRef = useRef<HTMLDivElement>(null)
 
@@ -191,6 +201,9 @@ function AddTaskInput({ onAdd, onCancel, epics, sprints, milestones }: AddTaskIn
         epicId: epicId ? Number(epicId) : undefined,
         sprintId: sprintId ? Number(sprintId) : undefined,
         milestoneId: milestoneId ? Number(milestoneId) : undefined,
+        priority: priority === 'none' ? undefined : priority,
+        estimateHours: estimate === '' ? undefined : Number(estimate),
+        storyPoints: points === '' ? undefined : Number(points),
       })
     } else onCancel()
   }
@@ -216,8 +229,7 @@ function AddTaskInput({ onAdd, onCancel, epics, sprints, milestones }: AddTaskIn
         }}
         onBlur={handleBlur}
       />
-      <Input
-        type="date"
+      <DatePicker
         aria-label="Start date"
         className="tasks-add_field"
         value={startDate}
@@ -225,13 +237,43 @@ function AddTaskInput({ onAdd, onCancel, epics, sprints, milestones }: AddTaskIn
         onBlur={handleBlur}
       />
       <span>&rarr;</span>
-      <Input
-        type="date"
+      <DatePicker
         aria-label="Due date"
         className="tasks-add_field"
         value={dueDate}
         onChange={(e) => setDueDate(e.target.value)}
         onBlur={handleBlur}
+      />
+      <Select
+        aria-label="Priority"
+        value={priority}
+        onChange={(e) => setPriority(e.target.value as TaskPriority)}
+        onBlur={handleBlur}
+        className="tasks-add_field tasks-add_field--select"
+      >
+        {TASK_PRIORITIES.map((p) => <option key={p.value} value={p.value}>{p.label}</option>)}
+      </Select>
+      <Input
+        type="number"
+        min={0}
+        step="0.25"
+        aria-label="Estimate in hours"
+        placeholder="Hours"
+        value={estimate}
+        onChange={(e) => setEstimate(e.target.value)}
+        onBlur={handleBlur}
+        className="tasks-add_field"
+      />
+      <Input
+        type="number"
+        min={0}
+        step={1}
+        aria-label="Story points"
+        placeholder="Points"
+        value={points}
+        onChange={(e) => setPoints(e.target.value)}
+        onBlur={handleBlur}
+        className="tasks-add_field"
       />
       {epics.length > 0 && (
         <Select
@@ -298,6 +340,10 @@ export default function TasksScreen() {
   const [showFilters, setShowFilters] = useState(false)
   const [searchQ, setSearchQ] = useState('')
   const { data: workspace } = useWorkspace()
+  // The board is the folder being filtered to, else the whole Space.
+  const { statuses } = useBoardStatuses(filters.folder_id)
+  const [showStatuses, setShowStatuses] = useState(false)
+  const boardFolder = filters.folder_id ? flattenFolders(workspace?.folders ?? []).find((f) => f.id === filters.folder_id) : undefined
   const { data: epics = [] } = useEpics()
   const { data: sprints = [] } = useSprints()
   const { data: milestones = [] } = useMilestones()
@@ -325,7 +371,11 @@ export default function TasksScreen() {
   const updateTask = useUpdateTask()
   const deleteTask = useDeleteTask()
 
-  const [addingTo, setAddingTo] = useState<Task['status'] | null>(null)
+  const [addingTo, setAddingTo] = useState<TaskStatus | null>(null)
+  const { data: taskFields = [] } = useTaskFields()
+  const [managingFields, setManagingFields] = useState(false)
+  const [fieldsTaskId, setFieldsTaskId] = useState<number | null>(null)
+  const fieldsTask = tasks.find((t) => t.id === fieldsTaskId) ?? null
 
   useEffect(() => {
     if (searchParams.get('new') === '1') setAddingTo('backlog')
@@ -422,8 +472,9 @@ export default function TasksScreen() {
     setLocalTasksState(tasks)
   }
 
-  function createTaskWith(status: Task['status'], fields: NewTaskFields) {
-    createTask.mutate({ ...fields, status, folder_id: filters.folder_id })
+  function createTaskWith(status: TaskStatus, fields: NewTaskFields) {
+    const { estimateHours, storyPoints, ...rest } = fields
+    createTask.mutate({ ...rest, estimate_hours: estimateHours, story_points: storyPoints, status, folder_id: filters.folder_id })
   }
 
   return (
@@ -455,6 +506,24 @@ export default function TasksScreen() {
                 className="tasks-search_input"
               />
             </div>
+            {canWriteWorkspace(workspace?.role) && (
+              <Button
+                onClick={() => setShowStatuses(true)}
+                className="tasks-filter_button"
+                title="Rename and recolor the statuses"
+              >
+                <Palette className="tasks-icon" />
+                Statuses
+              </Button>
+            )}
+            <Button
+              onClick={() => setManagingFields(true)}
+              className="tasks-filter_button"
+              title="Add or change the fields tasks carry, such as tags or a rating"
+            >
+              <SlidersHorizontal className="tasks-icon" />
+              Fields
+            </Button>
             <Button
               onClick={() => setShowFilters((o) => !o)}
               className={classNames('tasks-filter_button', !!(showFilters || filters.folder_id || filters.status || filters.epic_id || filters.sprint_id) && 'tasks-filter_button--active')}
@@ -486,11 +555,9 @@ export default function TasksScreen() {
               onChange={(e) => setFilters((f) => ({ ...f, status: e.target.value || undefined }))}
             >
               <option value="">Any status</option>
-              <option value="backlog">Backlog</option>
-              <option value="todo">To Do</option>
-              <option value="in_progress">In Progress</option>
-              <option value="in_review">In Review</option>
-              <option value="done">Done</option>
+              {TASK_STATUSES.map((status) => (
+                <option key={status} value={status}>{statuses[status].label}</option>
+              ))}
             </Select>
             <span className="tasks-filter_label">Epic</span>
             <Select
@@ -525,6 +592,10 @@ export default function TasksScreen() {
           </div>
         )}
 
+        {view === 'kanban' && filters.sprint_id && sprints.find((sp) => sp.id === filters.sprint_id) && (
+          <SprintHeader sprint={sprints.find((sp) => sp.id === filters.sprint_id) as Sprint} />
+        )}
+
         {isLoading && (
           <div className="tasks-loading">
             <Loader2 className="tasks-spinner" />
@@ -542,17 +613,20 @@ export default function TasksScreen() {
           >
             <div className="tasks-board">
               <div className="tasks-columns">
-                {KANBAN_STATUSES.map(({ key, label, dot }) => {
+                {BOARD_STATUSES.map((key) => {
                   const colTasks = localTasks.filter((t) => t.status === key)
                   return (
-                    <KanbanColumn key={key} status={key} label={label} dot={dot} tasks={colTasks}>
+                    <KanbanColumn key={key} status={key} label={statuses[key].label} color={statuses[key].color} tasks={colTasks}>
                       {colTasks.map((task) => (
                         <SortableCard
                           key={task.id}
                           task={task}
                           onNext={NEXT_STATUS[task.status] ? () => updateTask.mutate({ id: task.id, status: NEXT_STATUS[task.status]! }) : null}
+                          nextLabel={nextStatusLabel(statuses, task.status)}
                           onNavigate={() => navigate(`/documents/${task.document_id}`)}
                           epicTitle={task.epic_id ? epicById.get(task.epic_id)?.title : undefined}
+                          fields={taskFields}
+                          onEditFields={() => setFieldsTaskId(task.id)}
                         />
                       ))}
                       {addingTo === key ? (
@@ -586,6 +660,7 @@ export default function TasksScreen() {
                   task={activeTask}
                   onNext={null}
                   onNavigate={() => {}}
+                  fields={taskFields}
                   overlay
                 />
               )}
@@ -598,8 +673,8 @@ export default function TasksScreen() {
             <div className="tasks-backlog_inner">
               <div className="tasks-backlog_header">
                 <div className="tasks-backlog_title">
-                  <span className="tasks-dot" />
-                  <span className="tasks-column_label">Backlog</span>
+                  <StatusDot color={statuses.backlog.color} />
+                  <span className="tasks-column_label">{statuses.backlog.label}</span>
                   <span className="tasks-count">{tasks.filter((t) => t.status === 'backlog').length}</span>
                 </div>
                 <Button
@@ -643,9 +718,20 @@ export default function TasksScreen() {
                     )}
                     <div className="tasks-row_actions">
                       <ActivityButton subjectType="Task" subjectId={task.id} title={task.title} className="tasks-row_action" />
+                      {taskFields.length > 0 && (
+                        <Button
+                          onClick={() => setFieldsTaskId(task.id)}
+                          title="Edit fields"
+                          aria-label={`Edit fields of ${task.title}`}
+                          className="tasks-row_action tasks-row_action--fields"
+                        >
+                          <SlidersHorizontal className="tasks-icon" />
+                        </Button>
+                      )}
                       <Button
                         onClick={() => updateTask.mutate({ id: task.id, status: 'todo' })}
-                        title="Move to To Do"
+                        title={`Move to ${statuses.todo.label}`}
+                        aria-label={`Move to ${statuses.todo.label}`}
                         className="tasks-row_action tasks-row_action--start"
                       >
                         <Play className="tasks-icon" />
@@ -659,15 +745,25 @@ export default function TasksScreen() {
                         <X className="tasks-icon" />
                       </Button>
                     </div>
+                    <TaskFieldChips fields={taskFields} task={task} />
                   </div>
                 ))}
                 {tasks.filter((t) => t.status === 'backlog').length === 0 && !addingTo && (
-                  <p className="tasks-empty">No backlog items</p>
+                  <p className="tasks-empty">No tasks in {statuses.backlog.label}</p>
                 )}
               </div>
             </div>
           </div>
         )}
+
+        <TaskFieldsDialog task={fieldsTask} fields={taskFields} onClose={() => setFieldsTaskId(null)} />
+        <ManageTaskFieldsDialog open={managingFields} fields={taskFields} onClose={() => setManagingFields(false)} />
+        <StatusSettings
+          open={showStatuses}
+          folderId={filters.folder_id ?? null}
+          boardName={boardFolder?.name ?? workspace?.name ?? 'this Space'}
+          onClose={() => setShowStatuses(false)}
+        />
       </div>
     </WorkspaceLayout>
   )

@@ -1,23 +1,45 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 import api from '@/lib/api'
 import type { Document } from '@/types'
+import { ApiResource, useApiMutation, useResourceFind } from './base'
 
-export function useDocument(id: number) {
-  return useQuery<Document>({
-    queryKey: ['document', id],
-    queryFn: () => api.get(`/api/v1/documents/${id}`).then((r) => r.data),
-    enabled: !!id,
-  })
+export interface DocumentFields {
+  title?: string
+  content?: Record<string, unknown>
+  pinned?: boolean
+  folder_id?: number
 }
+
+export class DocumentApi extends ApiResource<Document, never, DocumentFields> {
+  constructor() {
+    super('/api/v1/documents', 'document', 'document')
+  }
+
+  // Documents are created inside a folder.
+  createIn(folderId: number, data: { title: string; doc_type?: Document['doc_type'] }) {
+    return api.post<Document>(`/api/v1/folders/${folderId}/documents`, this.body(data)).then((r) => r.data)
+  }
+}
+
+export const documentApi = new DocumentApi()
+
+export const useDocument = (id: number) => useResourceFind(documentApi, id)
 
 export function useUpdateDocument() {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: ({ id, ...data }: { id: number; title?: string; content?: Record<string, unknown> }) =>
-      api.patch(`/api/v1/documents/${id}`, { document: data }).then((r) => r.data as Document),
+    mutationFn: ({ id, ...data }: DocumentFields & { id: number }) => documentApi.update(id, data),
     onSuccess: (doc) => {
       qc.setQueryData(['document', doc.id], doc)
       qc.invalidateQueries({ queryKey: ['workspace'] })
     },
   })
 }
+
+export const useCreateDocument = () =>
+  useApiMutation(({ folderId, ...data }: { folderId: number; title: string; doc_type?: Document['doc_type'] }) => documentApi.createIn(folderId, data), ['workspace', 'folder-contents'])
+export const useDeleteDocument = () => useApiMutation((id: number) => documentApi.destroy(id), ['workspace'])
+export const usePinDocument = () =>
+  useApiMutation(({ id, pinned }: { id: number; pinned: boolean }) => documentApi.update(id, { pinned }), ['workspace'])
+export const useMoveDocument = () =>
+  useApiMutation(({ id, folderId }: { id: number; folderId: number }) => documentApi.update(id, { folder_id: folderId }), ['workspace'])

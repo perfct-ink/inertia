@@ -51,12 +51,16 @@ module Auditable
       change = saved_change_to_attribute(reflection ? reflection.foreign_key : field)
       next unless change
 
-      changes[field] =
-        if valueless_audited_fields.include?(field) then nil
-        elsif reflection then association_labels(reflection, change)
-        else change.map { |value| value.is_a?(String) ? value.truncate(MAX_VALUE_LENGTH) : value }
-        end
+      changes[field] = audited_value(field, reflection, change)
     end
+  end
+
+  # The [from, to] kept for one changed field, or nil for a valueless field.
+  def audited_value(field, reflection, change)
+    return nil if valueless_audited_fields.include?(field)
+    return association_labels(reflection, change) if reflection
+
+    change.map { |value| value.is_a?(String) ? value.truncate(MAX_VALUE_LENGTH) : value }
   end
 
   # [from_id, to_id] -> [from_name, to_name]; a record that has since gone shows as #id.

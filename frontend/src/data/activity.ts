@@ -19,6 +19,8 @@ const FIELD_LABEL: Record<string, string> = {
   target_date: 'target date',
   doc_type: 'type',
   parent: 'parent task',
+  story_points: 'story points',
+  estimate_hours: 'estimate (hours)',
 }
 
 const DATE_FIELDS = new Set(['start_date', 'due_date', 'target_date'])
@@ -35,12 +37,18 @@ const ENUM_LABEL: Record<string, string> = {
   document: 'Document',
   spreadsheet: 'Spreadsheet',
   table: 'Collection',
+  file: 'File',
   now: 'Now',
   next: 'Next',
   later: 'Later',
+  none: 'None',
+  low: 'Low',
+  medium: 'Medium',
+  high: 'High',
+  urgent: 'Urgent',
 }
 
-const ENUM_FIELDS = new Set(['status', 'doc_type', 'horizon'])
+const ENUM_FIELDS = new Set(['status', 'doc_type', 'horizon', 'priority'])
 
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 
@@ -54,6 +62,7 @@ function formatDateValue(value: string): string {
 export function formatActivityValue(field: string, value: ActivityValue): string {
   if (typeof value === 'boolean') return value ? 'Yes' : 'No'
   if (value === null) return ''
+  if (typeof value === 'number') return String(value)
   if (DATE_FIELDS.has(field)) return formatDateValue(value)
   if (ENUM_FIELDS.has(field)) return ENUM_LABEL[value] ?? value
   if (field === 'title') return `"${value}"`

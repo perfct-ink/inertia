@@ -3,6 +3,7 @@ class Initiative < ApplicationRecord
   include PlanningHealth
   include BelongsToMilestone
   include RoadmapHorizon
+  include Positioned
   include Auditable
 
   audited :title, :status, :start_date, :target_date, :horizon, :owner, :milestone, valueless: :description

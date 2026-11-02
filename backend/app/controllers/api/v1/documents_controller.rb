@@ -2,12 +2,13 @@ module Api
   module V1
     class DocumentsController < ApplicationController
       include WorkspaceScoped
+      include SpaceTransferable
       # Documents are looked up by id across every workspace the user belongs to
       # (the collab server calls this without a workspace header), so the role is
       # checked against the document's own workspace instead.
       skip_before_action :require_current_workspace_write!
       before_action :set_folder, only: [ :index, :create ]
-      before_action :set_document, only: [ :show, :update, :destroy ]
+      before_action :set_document, only: [ :show, :update, :destroy, :copy, :move ]
 
       def index
         documents = @folder.documents.order(:title)
@@ -43,7 +44,26 @@ module Api
         end
       end
 
+      # Duplicates the document into a folder of any Space the user can write
+      # in; the original stays where it is.
+      def copy
+        with_space_transfer do |transfer|
+          render json: transferred(transfer.copy_document(@document)), status: :created
+        end
+      end
+
+      # Moves the document, with its tasks, into a folder of another Space.
+      def move
+        with_space_transfer do |transfer|
+          render json: transferred(transfer.move_document(@document))
+        end
+      end
+
       private
+
+      def transferred(document)
+        { workspace_id: document.folder.workspace_id, document: DocumentBlueprint.render_as_hash(document) }
+      end
 
       def set_folder
         @folder = Folder.where(workspace_id: accessible_workspace_ids).find(params[:folder_id])

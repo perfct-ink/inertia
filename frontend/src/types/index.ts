@@ -1,8 +1,12 @@
 export interface Document {
   id: number
   title: string
-  doc_type: 'document' | 'spreadsheet' | 'table'
+  doc_type: 'document' | 'spreadsheet' | 'table' | 'file'
   folder_id: number
+  // Who made the file; the "owner" shown and filtered on the All files page.
+  created_by_id?: number
+  // For doc_type 'file': the uploaded file.
+  file?: { url: string; filename: string; content_type: string; byte_size: number } | null
   pinned: boolean
   created_at: string
   updated_at: string
@@ -10,7 +14,7 @@ export interface Document {
   content?: Record<string, unknown> | null
 }
 
-export type FolderKind = 'folder' | 'project'
+export type FolderKind = 'folder' | 'project' | 'feature'
 // How a folder's Gantt reacts to dependency links when a task is rescheduled.
 export type DependencyMode = 'none' | 'strict' | 'flexible'
 
@@ -35,6 +39,10 @@ export interface Folder {
   has_events: boolean
 }
 
+// A folder as listed for choosing where to put something in a Space: the
+// flat list from GET /api/v1/workspaces/:id/folders, without contents.
+export type SpaceFolder = Pick<Folder, 'id' | 'name' | 'parent_id' | 'position' | 'root'>
+
 export type WorkspaceRole = 'viewer' | 'member' | 'admin' | 'owner'
 
 // A workspace the signed-in user belongs to; `role` is their role in it.
@@ -54,14 +62,46 @@ export interface WorkspaceMember {
   id: number
   role: WorkspaceRole
   user_id: number
+  // Hours this person can work in a week (resource planning compares allocations with it).
+  weekly_capacity_hours: number
   user: { id: number; name: string; email: string }
 }
+
+// A person's planned time on a project (a folder with kind "project"). No
+// start means already under way; no end means ongoing.
+export interface ResourceAllocation {
+  id: number
+  user_id: number
+  folder_id: number
+  hours_per_week: number
+  start_date: string | null
+  end_date: string | null
+  created_at: string
+  updated_at: string
+}
+
+// The fixed set every task is in. A board can call each one something else
+// and colour it (see TaskStatusSetting), but a task is always one of these.
+export type TaskStatus = 'todo' | 'in_progress' | 'in_review' | 'done' | 'backlog'
+export type TaskStatusColor = 'gray' | 'blue' | 'yellow' | 'green' | 'orange' | 'red' | 'purple'
+
+// One board's label and/or colour for one status. folder_id null is the Space
+// default; a folder's rows apply to its board and the folders nested in it.
+export interface TaskStatusSetting {
+  id: number
+  folder_id: number | null
+  status: TaskStatus
+  label: string | null
+  color: TaskStatusColor | null
+}
+
+export type TaskPriority = 'none' | 'low' | 'medium' | 'high' | 'urgent'
 
 export interface Task {
   id: number
   title: string
   description: string | null
-  status: 'todo' | 'in_progress' | 'in_review' | 'done' | 'backlog'
+  status: TaskStatus
   start_date?: string | null
   due_date: string | null
   position: number
@@ -72,8 +112,31 @@ export interface Task {
   sprint_id?: number | null
   parent_id: number | null
   folder_id: number | null
+  priority?: TaskPriority
+  estimate_hours?: number | null
+  story_points?: number | null
+  actual_story_points?: number | null
   document?: Document
+  // Values of the Space's custom task fields, keyed by field id; fields with
+  // no value are absent. Only the task list endpoint includes them.
+  field_values?: TaskFieldValues
 }
+
+// Custom task fields (Monday-style columns), defined once per Space.
+export type TaskFieldType = 'tags' | 'dropdown' | 'checkbox' | 'rating' | 'vote'
+
+export interface TaskField {
+  id: number
+  name: string
+  field_type: TaskFieldType
+  // The choices of a dropdown field; empty for every other kind.
+  options: string[]
+}
+
+// tags: labels. dropdown: the chosen label. checkbox: true. rating: 1 to 5.
+// vote: the ids of the users who voted.
+export type TaskFieldValue = string | string[] | number | number[] | boolean
+export type TaskFieldValues = Record<string, TaskFieldValue>
 
 // Gantt link (PM-13): the successor waits on the predecessor.
 export type DependencyKind = 'finish_to_start' | 'start_to_start' | 'finish_to_finish' | 'start_to_finish'
@@ -111,6 +174,8 @@ export interface Epic {
   tasks_count: number
   done_tasks_count: number
   horizon: RoadmapHorizon | null
+  // Order among the epics of one initiative (or milestone); see data/hierarchy.ts.
+  position: number
   created_at: string
   updated_at: string
 }
@@ -152,6 +217,8 @@ export interface Initiative {
   tasks_count: number
   done_tasks_count: number
   horizon: RoadmapHorizon | null
+  // Order among the initiatives of one milestone; see data/hierarchy.ts.
+  position: number
   health: MilestoneHealth
   created_at: string
   updated_at: string
@@ -232,10 +299,76 @@ export interface FolderContents {
   epics: Epic[]
 }
 
+// Project intake: a member asks for a project; an admin or owner approves it
+// (which creates the project folder, project_id) or declines it with a reason.
+export type ProjectRequestStatus = 'pending' | 'approved' | 'declined'
+export type ProjectRequestPriority = 'low' | 'medium' | 'high'
+
+export interface ProjectRequest {
+  id: number
+  name: string
+  description: string | null
+  justification: string | null
+  priority: ProjectRequestPriority
+  status: ProjectRequestStatus
+  start_date: string | null
+  target_date: string | null
+  decision_note: string | null
+  decided_at: string | null
+  project_id: number | null
+  requested_by_id: number | null
+  requested_by_name: string | null
+  decided_by_id: number | null
+  decided_by_name: string | null
+  created_at: string
+  updated_at: string
+}
+// An idea or feature request; promoting it creates an epic or initiative.
+export type IdeaStatus = 'open' | 'promoted' | 'declined'
+export interface Idea {
+  id: number
+  title: string
+  description: string | null
+  status: IdeaStatus
+  promoted_type: 'Epic' | 'Initiative' | null
+  promoted_id: number | null
+  submitted_by_id: number | null
+  submitted_by_name: string | null
+  created_at: string
+  updated_at: string
+}
+// Intermediate Objectives Map: one goal, critical success factors under it,
+// necessary conditions under those. progress is 0-100 or null when unmeasured.
+export type IoNodeKind = 'goal' | 'csf' | 'nc'
+export interface IoNode {
+  id: number
+  parent_id: number | null
+  kind: IoNodeKind
+  title: string
+  description: string | null
+  position: number
+  objective_id: number | null
+  initiative_id: number | null
+  progress: number | null
+}
+// A release (single, EP, album, music video) and the documents (songs) in it.
+export type ReleaseKind = 'single' | 'ep' | 'album' | 'music_video'
+export interface Release {
+  id: number
+  title: string
+  kind: ReleaseKind
+  release_date: string | null
+  document_ids: number[]
+  tasks_count: number
+  done_tasks_count: number
+  created_at: string
+  updated_at: string
+}
+
 // The kinds of item that have an activity log (Activity::SUBJECT_TYPES on the server).
 export type ActivitySubjectType = 'Task' | 'Document' | 'Epic' | 'Initiative' | 'Milestone'
 
-export type ActivityValue = string | boolean | null
+export type ActivityValue = string | number | boolean | null
 
 // One entry of an item's log. `changes` maps a field to its [from, to] values
 // (an association is the record's name), or to null when the field changed
