@@ -7,12 +7,13 @@
       align-items: center;
       gap: space(1);
       max-width: 100%;
-      color: color(muted-foreground);
+      color: color(foreground);
+      font-weight: 600;
       -webkit-app-region: no-drag; // sits inside the sidebar's window-drag header
-      @include text('xs');
+      @include text('sm');
 
       &:hover {
-        color: color(foreground);
+        color: color(muted-foreground);
       }
     }
 
