@@ -85,5 +85,25 @@
       min-width: space(36);
       max-width: 100%;
     }
+
+
+    // "Print or save as PDF": show only the chart.
+    @media print {
+      @at-root body.gantt_printing * {
+        visibility: hidden;
+      }
+
+      @at-root body.gantt_printing .view-gantt_pane .view-timeline,
+      body.gantt_printing .view-gantt_pane .view-timeline * {
+        visibility: visible;
+      }
+
+      @at-root body.gantt_printing .view-gantt_pane .view-timeline {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+      }
+    }
   }
 }
