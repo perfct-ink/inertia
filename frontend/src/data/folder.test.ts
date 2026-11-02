@@ -1,5 +1,5 @@
 import type { Document, Folder } from '@/types'
-import { documentsIn, flattenFolders, projectLastModified, projectsOf, searchSpaceFiles, spaceFiles } from './folder'
+import { documentsIn, filterSpaceFiles, flattenFolders, projectLastModified, projectsOf, searchSpaceFiles, spaceFiles } from './folder'
 
 const folder = (id: number, children: Folder[] = []) => ({ id, name: `F${id}`, children }) as unknown as Folder
 
@@ -48,4 +48,20 @@ test('documentsIn and projectLastModified cover nested folders', () => {
   expect(documentsIn(messages).map((d) => d.title)).toEqual(['Spec', 'Mockups'])
   expect(projectLastModified(messages)).toBe('2026-10-09T00:00:00Z')
   expect(projectLastModified(tree()[0].children[2])).toBeNull()
+})
+
+test('filterSpaceFiles filters by project, type and owner, and an unset filter matches all', () => {
+  const owned = (d: Document, owner: number, type: Document['doc_type'] = 'document') => ({ ...d, created_by_id: owner, doc_type: type }) as Document
+  const t = tree()
+  t[0].documents = [owned(t[0].documents[0], 7)]
+  t[0].children[0].documents = [owned(t[0].children[0].documents[0], 8, 'spreadsheet')]
+  t[0].children[0].children[0].documents = [owned(t[0].children[0].children[0].documents[0], 7)]
+  const files = spaceFiles(t)
+
+  expect(filterSpaceFiles(files, {})).toHaveLength(3)
+  expect(filterSpaceFiles(files, { projectId: 2 }).map((f) => f.document.title)).toEqual(['Spec', 'Mockups'])
+  expect(filterSpaceFiles(files, { projectId: 0 }).map((f) => f.document.title)).toEqual(['Readme'])
+  expect(filterSpaceFiles(files, { docType: 'spreadsheet' }).map((f) => f.document.title)).toEqual(['Spec'])
+  expect(filterSpaceFiles(files, { ownerId: 7 }).map((f) => f.document.title)).toEqual(['Readme', 'Mockups'])
+  expect(filterSpaceFiles(files, { projectId: 2, ownerId: 7 }).map((f) => f.document.title)).toEqual(['Mockups'])
 })

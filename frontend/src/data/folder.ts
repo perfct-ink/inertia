@@ -48,6 +48,21 @@ export function searchSpaceFiles(files: SpaceFile[], query: string): SpaceFile[]
   return files.filter((f) => [f.document.title, ...f.path].some((s) => s.toLowerCase().includes(q)))
 }
 
+// The All files filters; an unset filter matches everything. projectId 0 means
+// "files outside any project".
+export interface SpaceFileFilters {
+  projectId?: number
+  docType?: Document['doc_type']
+  ownerId?: number
+}
+
+export function filterSpaceFiles(files: SpaceFile[], filters: SpaceFileFilters): SpaceFile[] {
+  return files.filter((f) =>
+    (filters.projectId === undefined || (f.project?.id ?? 0) === filters.projectId)
+    && (filters.docType === undefined || f.document.doc_type === filters.docType)
+    && (filters.ownerId === undefined || f.document.created_by_id === filters.ownerId))
+}
+
 // When anything in a project last changed, or null for an empty one.
 export function projectLastModified(project: Folder): string | null {
   return documentsIn(project).map(lastModified).sort().pop() ?? null

@@ -1,4 +1,4 @@
-import { Button, Input } from '@/components/ui'
+import { Button, Input, Select } from '@/components/ui'
 import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { format, parseISO } from 'date-fns'
@@ -7,7 +7,10 @@ import DocTypeIcon from '@/components/DocTypeIcon'
 import { useWorkspace } from '@/api/workspace'
 import WorkspaceLayout from '@/components/WorkspaceLayout'
 import CreateItem from '@/components/CreateItem'
-import { spaceFiles, searchSpaceFiles } from '@/data/folder'
+import { spaceFiles, searchSpaceFiles, filterSpaceFiles, projectsOf, type SpaceFileFilters } from '@/data/folder'
+import { useWorkspaceMembers } from '@/api/workspaces'
+import { useWorkspaceStore } from '@/store/workspaces'
+import { DOC_TYPE_LABELS } from '@/data/document'
 import './DocumentsIndexScreen.scss'
 import type { Document } from '@/types'
 import { usePageTitle } from '@/hooks/usePageTitle'
@@ -25,9 +28,21 @@ export default function DocumentsIndexScreen() {
   const [sortKey, setSortKey] = useState<SortKey>('name')
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc')
   const [query, setQuery] = useState('')
+  // '' means "any"; the project filter's '0' is files outside every project.
+  const [projectFilter, setProjectFilter] = useState('')
+  const [typeFilter, setTypeFilter] = useState('')
+  const [ownerFilter, setOwnerFilter] = useState('')
+  const workspaceId = useWorkspaceStore((st) => st.activeWorkspaceId) ?? 0
+  const { data: members = [] } = useWorkspaceMembers(workspaceId)
+  const filters: SpaceFileFilters = {
+    projectId: projectFilter === '' ? undefined : Number(projectFilter),
+    docType: (typeFilter || undefined) as SpaceFileFilters['docType'],
+    ownerId: ownerFilter === '' ? undefined : Number(ownerFilter),
+  }
+  const projects = projectsOf(workspace?.folders ?? [])
 
   const files = spaceFiles(workspace?.folders ?? [])
-  const allDocs: Row[] = searchSpaceFiles(files, query).map((f) => ({
+  const allDocs: Row[] = filterSpaceFiles(searchSpaceFiles(files, query), filters).map((f) => ({
     ...f.document,
     folderId: f.folder.id,
     location: f.path.length ? f.path.join(' / ') : f.folder.name,
@@ -79,6 +94,22 @@ export default function DocumentsIndexScreen() {
             onChange={(e) => setQuery(e.target.value)}
             className="documents_index-search"
           />
+
+          <div className="documents_index-filters">
+            <Select aria-label="Filter by project" value={projectFilter} onChange={(e) => setProjectFilter(e.target.value)}>
+              <option value="">All projects</option>
+              <option value="0">No project</option>
+              {projects.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
+            </Select>
+            <Select aria-label="Filter by type" value={typeFilter} onChange={(e) => setTypeFilter(e.target.value)}>
+              <option value="">All types</option>
+              {Object.entries(DOC_TYPE_LABELS).map(([type, label]) => <option key={type} value={type}>{label}</option>)}
+            </Select>
+            <Select aria-label="Filter by owner" value={ownerFilter} onChange={(e) => setOwnerFilter(e.target.value)}>
+              <option value="">Any owner</option>
+              {members.map((m) => <option key={m.user_id} value={m.user_id}>{m.user.name}</option>)}
+            </Select>
+          </div>
 
           {isLoading && (
             <div className="documents_index-loading">
