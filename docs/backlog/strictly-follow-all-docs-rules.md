@@ -2,6 +2,7 @@
 priority: p1
 depends_on: []
 components: [frontend, backend, macos, docs]
+branch: backlog/strictly-follow-all-docs-rules
 ---
 # Strictly follow all of the rules in docs/rules
 
@@ -25,3 +26,6 @@ Requested by Alex on 2026-11-01.
 - No rule file contradicts another or describes code that doesn't exist; stale rules are corrected with Alex's agreement.
 - `AGENTS.md` loads every rule file that applies to this repo.
 - A feature doc in `docs/features/` (for example `rules_compliance.md`) lists each rule file, what was checked and what was fixed, and this file is removed.
+
+## Blocked
+Incomplete. The agent working on this task was cut off by the API daily cost limit (HTTP 429) before it finished, so the work so far is committed as it stood. Nothing was run beyond what the commit message lists. To finish: read the diff against main (`git diff origin/main...backlog/strictly-follow-all-docs-rules`), complete the requirements and acceptance criteria above, write or update the feature doc in `docs/features/` and its README row, run the checks (`cd frontend && npm install && npm run lint && npm test`, `cd backend && rails db:migrate && rails test`), then remove this file.

@@ -1,9 +1,6 @@
 @use 'tokens' as *;
 @use 'file_manager' as fm;
 
-$shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-$shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
-
 /* The drawer: static beside the page on md+, a slide-in overlay below. */
 
 @layer app.components {
@@ -244,9 +241,11 @@ $shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
       @include truncate;
     }
 
+    // Hidden until the row is hovered or focused; always shown on touch screens
+    // (design principles 1 and 7). It fades with opacity so the row keeps its size.
     @at-root .sidebar-unpin {
-      display: none;
       color: color(muted-foreground);
+      @include reveal-on-hover;
 
       &:hover {
         color: color(foreground);
@@ -254,7 +253,7 @@ $shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
     }
 
     @at-root .sidebar-pinned_item:hover .sidebar-unpin {
-      display: flex;
+      opacity: 1;
     }
 
     @at-root .sidebar-error {
@@ -349,7 +348,7 @@ $shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
       border-width: 1px;
       border-radius: radius('xl');
       background: color(card);
-      box-shadow: $shadow-xl;
+      box-shadow: shadow('xl');
 
       &--narrow {
         width: space(80);
@@ -531,7 +530,7 @@ $shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
 
       &--active {
         background: color(card);
-        box-shadow: $shadow-sm;
+        box-shadow: shadow('sm');
         color: color(foreground);
       }
     }

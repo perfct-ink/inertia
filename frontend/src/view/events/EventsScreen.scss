@@ -159,7 +159,7 @@
       border-width: 1px;
       border-radius: radius('lg');
       background: color(card);
-      box-shadow: 0 10px 15px -3px rgb(0 0 0 / 10%), 0 4px 6px -4px rgb(0 0 0 / 10%);
+      box-shadow: shadow('lg');
 
       &-search {
         padding: space(2);

@@ -26,7 +26,23 @@ export default tseslint.config(
       'react-hooks/immutability': 'warn',
       'react-hooks/purity': 'warn',
       'react-hooks/preserve-manual-memoization': 'warn',
+      // Native dialogs and raw HTML controls are off limits (docs/rules/code-requirements.md,
+      // ui-organization.md): use Modal/ConfirmDialog/PromptDialog and the @/components/ui
+      // primitives, which are the only place a raw control may appear (next block).
+      'no-alert': 'error',
+      'react/forbid-elements': ['error', {
+        forbid: [
+          { element: 'button', message: 'Use Button from @/components/ui.' },
+          { element: 'input', message: 'Use Input from @/components/ui.' },
+          { element: 'select', message: 'Use Select from @/components/ui.' },
+          { element: 'textarea', message: 'Use Textarea from @/components/ui.' },
+        ],
+      }],
     },
+  },
+  {
+    files: ['src/components/ui/**/*.tsx', 'src/**/*.test.tsx'],
+    rules: { 'react/forbid-elements': 'off', 'no-alert': 'off' },
   },
   {
     files: ['**/*.{js,cjs,mjs}'],

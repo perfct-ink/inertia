@@ -18,7 +18,7 @@
       padding: space(8);
       border-radius: radius('xl');
       background: color(card);
-      box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+      box-shadow: shadow('sm');
 
       > * + * {
         margin-top: space(6);

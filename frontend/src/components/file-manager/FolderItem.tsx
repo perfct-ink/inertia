@@ -146,7 +146,12 @@ export function FolderItem({ folder, depth = 0 }: { folder: FolderType; depth?: 
         style={{ paddingLeft: `${8 + indent}px`, paddingRight: '8px' }}
         onContextMenu={(e) => { e.preventDefault(); e.stopPropagation(); setFolderCtx({ x: e.clientX, y: e.clientY }) }}
       >
-        <Button onClick={() => setOpen((o) => !o)} className="folder_item-toggle">
+        <Button
+          onClick={() => setOpen((o) => !o)}
+          aria-label={open ? `Collapse ${folder.name}` : `Expand ${folder.name}`}
+          aria-expanded={open}
+          className="folder_item-toggle"
+        >
           <ChevronRight className={`folder_item-chevron${open ? ' folder_item-chevron--open' : ''}`} />
         </Button>
         <FolderIcon className="folder_item-icon folder_item-icon--sm" aria-label={isProject ? 'Project' : undefined} />

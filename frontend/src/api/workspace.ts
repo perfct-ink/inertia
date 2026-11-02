@@ -1,22 +1,31 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import api from '@/lib/api'
+import { useNotificationStore } from '@/store/notifications'
 import { useWorkspaceStore } from '@/store/workspaces'
+import { errorMessage } from '@/util/errorMessage'
 import type { Workspace, Folder, FolderKind, DependencyMode, Document, FolderContents } from '@/types'
 
 // ── Workspace ─────────────────────────────────────────────────────────────────
 
+// The first request is silent so a missing workspace can fall back to the
+// personal one without a notice; every other failure is shown here instead
+// (a 401 already signed the user out, which sends them to the login screen).
+export function fetchWorkspace(): Promise<Workspace> {
+  return api.get('/api/v1/workspace', { silent: true }).then((r) => r.data).catch((error) => {
+    const { activeWorkspaceId, setActive } = useWorkspaceStore.getState()
+    if (error.response?.status === 404 && activeWorkspaceId) {
+      setActive(null)
+      return api.get('/api/v1/workspace').then((r) => r.data)
+    }
+    if (error.response?.status !== 401) useNotificationStore.getState().notify(errorMessage(error))
+    throw error
+  })
+}
+
 // The active workspace (X-Workspace-Id). If the stored workspace is gone or
 // the user lost access (404), fall back to their personal workspace.
 export function useWorkspace() {
-  return useQuery<Workspace>({
-    queryKey: ['workspace'],
-    queryFn: () => api.get('/api/v1/workspace', { silent: true }).then((r) => r.data).catch((error) => {
-      const { activeWorkspaceId, setActive } = useWorkspaceStore.getState()
-      if (error.response?.status !== 404 || !activeWorkspaceId) throw error
-      setActive(null)
-      return api.get('/api/v1/workspace').then((r) => r.data)
-    }),
-  })
+  return useQuery<Workspace>({ queryKey: ['workspace'], queryFn: fetchWorkspace })
 }
 
 // ── Folders ───────────────────────────────────────────────────────────────────

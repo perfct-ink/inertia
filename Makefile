@@ -1,7 +1,7 @@
 .DEFAULT_GOAL := all
 
 .PHONY: all setup deps dev dev-backend dev-frontend dev-mac build build-backend build-coolify build-frontend build-mac clean clean-backend clean-frontend clean-mac help \
-        up up-d up-build down restart open \
+        up up-d up-build down restart running open \
         logs logs-backend logs-frontend ps \
         db-migrate db-rollback db-reset db-fake db-seed db-status \
         console routes shell-backend shell-frontend \
@@ -97,8 +97,8 @@ clean-mac: ## Remove the Electron build output
 
 # ── Help ──────────────────────────────────────────────────────────────────────
 
-help: ## Show this help message
-	@awk 'BEGIN{FS=":.*##"} /^[a-zA-Z_-]+:.*##/{printf "  \033[36m%-18s\033[0m %s\n",$$1,$$2}' $(MAKEFILE_LIST)
+help: ## Show this help message, grouped by category
+	@awk 'BEGIN{FS=":.*##"} /^# ── /{sub(/^# ── /,""); sub(/ ──.*$$/,""); printf "\n\033[1m%s\033[0m\n",$$0; next} /^[a-zA-Z_-]+:.*##/{printf "  \033[36m%-18s\033[0m %s\n",$$1,$$2}' $(MAKEFILE_LIST)
 
 # ── Run ───────────────────────────────────────────────────────────────────────
 
@@ -116,6 +116,9 @@ down: ## Stop and remove containers
 
 restart: ## Restart all services
 	$(COMPOSE) restart
+
+running: ## Check whether the app is running (exits non-zero when it is not)
+	@if [ -n "$$($(COMPOSE) ps --status running -q)" ]; then echo "✓ Running"; $(COMPOSE) ps; else echo "✗ Not running (start it with make dev)"; exit 1; fi
 
 open: ## Open the app in the default browser
 	open http://localhost:5174
@@ -211,7 +214,10 @@ hooks: ## Install the git pre-commit hook (runs `test-fast` before every commit)
 nuke: ## Remove everything including built images (full reset)
 	$(COMPOSE) down -v --remove-orphans --rmi all
 
-.PHONY: mac-build dev-native-mac test-native-mac
+.PHONY: mac-build dev-native-mac test-native-mac backlog-prs
+
+# ── Native Mac app ────────────────────────────────────────────────────────────
+
 mac-build: ## Stop the running development Mac app and rebuild macos/dist/Inertia.app
 	bash scripts/build-native-mac.sh
 
@@ -220,3 +226,8 @@ dev-native-mac: mac-build ## Open the native SwiftUI macOS app
 
 test-native-mac: ## Run native API/model regression tests
 	swift test --package-path macos
+
+# ── Backlog ───────────────────────────────────────────────────────────────────
+
+backlog-prs: ## Open a pull request for every origin/backlog/* branch that has none (needs gh logged in; DRY_RUN=1 only lists)
+	bash scripts/backlog-prs.sh
