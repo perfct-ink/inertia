@@ -1,0 +1,39 @@
+@use 'tokens' as *;
+
+@layer app.ui {
+  .ui-status_dot {
+    display: inline-block;
+    flex-shrink: 0;
+    width: space(2);
+    height: space(2);
+    border-radius: radius('full');
+
+    &--gray {
+      background: palette('zinc-500');
+    }
+
+    &--blue {
+      background: palette('blue-500');
+    }
+
+    &--yellow {
+      background: palette('yellow-500');
+    }
+
+    &--green {
+      background: palette('green-500');
+    }
+
+    &--orange {
+      background: palette('orange-500');
+    }
+
+    &--red {
+      background: palette('red-500');
+    }
+
+    &--purple {
+      background: palette('purple-500');
+    }
+  }
+}

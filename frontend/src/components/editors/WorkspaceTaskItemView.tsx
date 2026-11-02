@@ -5,18 +5,12 @@ import { CalendarDays } from 'lucide-react'
 import { useTasks, useUpdateTask } from '@/api/tasks'
 import { useWorkspaceMembers } from '@/api/workspaceMembers'
 import { useWorkspaceStore } from '@/store/workspaces'
-import { Button, DatePicker, Input, Select } from '@/components/ui'
+import { Button, DatePicker, Input, Select, StatusDot, classNames } from '@/components/ui'
 import { statusForCheckbox } from '@/data/taskLine'
 import type { Task } from '@/types'
+import { useStatusesForFolder } from '@/hooks/useBoardStatuses'
+import { taskFolderId } from '@/data/task'
 import './WorkspaceTaskItemView.scss'
-
-const STATUS_DOT: Record<string, string> = {
-  backlog: 'task_item-dot--backlog',
-  todo: 'task_item-dot--todo',
-  in_progress: 'task_item-dot--in_progress',
-  in_review: 'task_item-dot--in_review',
-  done: 'task_item-dot--done',
-}
 
 // Lets a task item written inline in a document (a product requirements doc,
 // say) carry a due date without leaving the editor — the same due_date field
@@ -60,6 +54,7 @@ function TaskFieldControls({ task }: { task: Task }) {
   const workspaceId = useWorkspaceStore((s) => s.activeWorkspaceId) ?? 0
   const { data: members = [] } = useWorkspaceMembers(workspaceId)
   const save = (data: Partial<Task>) => updateTask.mutate({ id: task.id, ...data })
+  const statuses = useStatusesForFolder()(taskFolderId(task))
 
   return (
     <div className="task_item-fields" contentEditable={false}>
@@ -69,7 +64,7 @@ function TaskFieldControls({ task }: { task: Task }) {
         onChange={(e) => save({ status: e.target.value as Task['status'] })}
       >
         {STATUS_OPTIONS.map((s) => (
-          <option key={s} value={s}>{s.replace('_', ' ')}</option>
+          <option key={s} value={s}>{statuses[s].label}</option>
         ))}
       </Select>
       <Select
@@ -96,8 +91,8 @@ export default function WorkspaceTaskItemView({ node, editor, getPos }: NodeView
   const updateTask = useUpdateTask()
   const taskId = node.attrs.taskId as number | null
   const task = tasks.find((t) => t.id === taskId)
-  const status = task?.status ?? 'backlog'
-  const dotClass = STATUS_DOT[status] ?? 'task_item-dot--backlog'
+  const statusesFor = useStatusesForFolder()
+  const { color } = statusesFor(task ? taskFolderId(task) : null)[task?.status ?? 'backlog']
   // The line points at a task that no longer exists (deleted elsewhere).
   const taskGone = Boolean(taskId) && isSuccess && !task
 
@@ -123,8 +118,9 @@ export default function WorkspaceTaskItemView({ node, editor, getPos }: NodeView
           className="task_item-check"
         />
       ) : (
-        <span
-          className={`task_item-dot ${dotClass} ${!taskId ? 'task_item-dot--unsaved' : ''}`}
+        <StatusDot
+          color={color}
+          className={classNames('task_item-dot', !taskId && 'task_item-dot--unsaved')}
           title={taskGone ? 'This task was deleted' : 'Unsaved task'}
         />
       )}

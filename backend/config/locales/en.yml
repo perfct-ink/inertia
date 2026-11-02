@@ -50,6 +50,9 @@ en:
       project_request:
         one: "Project request"
         other: "Project requests"
+      task_status_setting:
+        one: "Task status setting"
+        other: "Task status settings"
     attributes:
       folder:
         workspace: "Space"
@@ -78,4 +81,6 @@ en:
       project_request:
         workspace: "Space"
         decision_note: "Reason"
+      task_status_setting:
+        workspace: "Space"
 

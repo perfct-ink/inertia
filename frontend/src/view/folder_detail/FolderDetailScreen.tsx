@@ -1,11 +1,11 @@
-import { Button, classNames } from '@/components/ui'
+import { Button, StatusDot, classNames } from '@/components/ui'
 import { Database } from 'lucide-react'
 import { useState, useMemo } from 'react'
 import { useParams, useNavigate, useSearchParams, Link } from 'react-router-dom'
 import {
   Loader2, ArrowLeft, ArrowRight, Archive, ArchiveRestore,
   LayoutList, Kanban as KanbanIcon, Calendar as CalendarIcon, GanttChart,
-  ChevronLeft, ChevronRight, FileText, Table as TableIcon, LayoutDashboard,
+  ChevronLeft, ChevronRight, FileText, Table as TableIcon, LayoutDashboard, Palette,
 } from 'lucide-react'
 import {
   format, parseISO, startOfMonth, endOfMonth, startOfWeek, endOfWeek,
@@ -16,33 +16,19 @@ import CreateItem from '@/components/CreateItem'
 import WorkspaceLayout from '@/components/WorkspaceLayout'
 import { ProgressBar } from '@/components/Timeline'
 import { useFolderContents, useUpdateFolder } from '@/api/folders'
+import { useWorkspace } from '@/api/workspace'
+import { canWriteWorkspace } from '@/api/workspaces'
 import { useUpdateTask } from '@/api/tasks'
 import { useMilestones } from '@/api/milestones'
 import type { Task, WorkspaceEvent, Epic } from '@/types'
 import './FolderDetailScreen.scss'
 import { usePageTitle } from '@/hooks/usePageTitle'
+import { useBoardStatuses } from '@/hooks/useBoardStatuses'
+import { StatusSettings } from '@/components/workspace/StatusSettings'
 import { donePercent } from '@/data/schedule'
+import { BOARD_STATUSES, NEXT_STATUS, nextStatusLabel, type BoardStatuses } from '@/data/task_status'
 import GanttPane from './GanttPane'
 import { buildTaskTree, type TaskNode } from '@/data/task'
-
-const KANBAN_STATUSES: { key: Task['status']; label: string; dot: string }[] = [
-  { key: 'todo', label: 'To Do', dot: 'muted' },
-  { key: 'in_progress', label: 'In Progress', dot: 'in_progress' },
-  { key: 'in_review', label: 'In Review', dot: 'in_review' },
-  { key: 'done', label: 'Done', dot: 'done' },
-]
-
-const NEXT_STATUS: Record<Task['status'], Task['status'] | null> = {
-  backlog: 'todo', todo: 'in_progress', in_progress: 'in_review', in_review: 'done', done: null,
-}
-
-const STATUS_LABEL: Record<Task['status'], string> = {
-  backlog: 'Backlog', todo: 'To Do', in_progress: 'In Progress', in_review: 'In Review', done: 'Done',
-}
-
-const STATUS_DOT: Record<Task['status'], string> = {
-  backlog: 'backlog', todo: 'todo', in_progress: 'in_progress', in_review: 'in_review', done: 'done',
-}
 
 const dotClass = (name: string) => `folder_detail-dot folder_detail-dot--${name}`
 
@@ -58,17 +44,17 @@ const VIEWS = [
 // drag-and-drop board lives on TasksPage; this is deliberately simpler
 // since it's one of four views sharing this page. ──────────────────────────
 
-function BoardView({ tasks, onAdvance }: { tasks: Task[]; onAdvance: (task: Task) => void }) {
+function BoardView({ tasks, statuses, onAdvance }: { tasks: Task[]; statuses: BoardStatuses; onAdvance: (task: Task) => void }) {
   return (
     <div className="folder_detail-pane">
       <div className="folder_detail-board">
-        {KANBAN_STATUSES.map(({ key, label, dot }) => {
+        {BOARD_STATUSES.map((key) => {
           const colTasks = tasks.filter((t) => t.status === key)
           return (
             <div key={key} className="folder_detail-column">
               <div className="folder_detail-column-header">
-                <span className={dotClass(dot)} />
-                <span className="folder_detail-column-label">{label}</span>
+                <StatusDot color={statuses[key].color} />
+                <span className="folder_detail-column-label">{statuses[key].label}</span>
                 <span className="folder_detail-count">{colTasks.length}</span>
               </div>
               <div className="folder_detail-column-body">
@@ -79,8 +65,8 @@ function BoardView({ tasks, onAdvance }: { tasks: Task[]; onAdvance: (task: Task
                       <div className="folder_detail-card-actions">
                         <Button
                           onClick={() => onAdvance(task)}
-                          title={`Move to ${STATUS_LABEL[NEXT_STATUS[task.status]!]}`}
-                          aria-label={`Move to ${STATUS_LABEL[NEXT_STATUS[task.status]!]}`}
+                          title={`Move to ${nextStatusLabel(statuses, task.status)}`}
+                          aria-label={`Move to ${nextStatusLabel(statuses, task.status)}`}
                           className="folder_detail-subtle"
                         >
                           <ArrowRight className="folder_detail-icon--sm" />
@@ -110,7 +96,7 @@ const DEPTH_OPTIONS: { label: string; maxDepth: number | null }[] = [
   { label: 'All levels', maxDepth: null },
 ]
 
-function TaskListView({ tasks }: { tasks: Task[] }) {
+function TaskListView({ tasks, statuses }: { tasks: Task[]; statuses: BoardStatuses }) {
   const [collapsed, setCollapsed] = useState<Set<number>>(new Set())
   const [maxDepth, setMaxDepth] = useState<number | null>(null)
   const tree = useMemo(() => buildTaskTree(tasks), [tasks])
@@ -138,9 +124,9 @@ function TaskListView({ tasks }: { tasks: Task[] }) {
           ) : (
             <span className="folder_detail-row-spacer" />
           )}
-          <span className={dotClass(STATUS_DOT[node.status])} />
+          <StatusDot color={statuses[node.status].color} />
           <p className="folder_detail-row-title">{node.title}</p>
-          <span className="folder_detail-count">{STATUS_LABEL[node.status]}</span>
+          <span className="folder_detail-count">{statuses[node.status].label}</span>
           {node.due_date && <span className="folder_detail-count">{node.due_date}</span>}
         </div>
         {hasChildren && !isCollapsed && node.children.map((child) => renderNode(child, depth + 1))}
@@ -393,6 +379,9 @@ export default function FolderDetailScreen() {
   const view = VIEWS.find((v) => v.key === searchParams.get('view'))?.key ?? 'overview'
 
   const { data, isLoading } = useFolderContents(folderId)
+  const { data: workspace } = useWorkspace()
+  const { statuses } = useBoardStatuses(folderId)
+  const [showStatuses, setShowStatuses] = useState(false)
   const updateFolder = useUpdateFolder()
   const updateTask = useUpdateTask()
   const { data: allMilestones = [] } = useMilestones()
@@ -433,13 +422,25 @@ export default function FolderDetailScreen() {
               </Button>
             ))}
           </div>
-          <Button
-            onClick={() => updateFolder.mutate({ id: folderId, archived: !folder.archived })}
-            className="folder_detail-subtle folder_detail-archive"
-          >
-            {folder.archived ? <ArchiveRestore className="folder_detail-icon--sm" /> : <Archive className="folder_detail-icon--sm" />}
-            {folder.archived ? 'Unarchive' : 'Archive'}
-          </Button>
+          <div className="folder_detail-actions">
+            {(view === 'board' || view === 'list') && canWriteWorkspace(workspace?.role) && (
+              <Button
+                onClick={() => setShowStatuses(true)}
+                className="folder_detail-subtle folder_detail-action"
+                title="Rename and recolor the statuses"
+              >
+                <Palette className="folder_detail-icon--sm" />
+                Statuses
+              </Button>
+            )}
+            <Button
+              onClick={() => updateFolder.mutate({ id: folderId, archived: !folder.archived })}
+              className="folder_detail-subtle folder_detail-action"
+            >
+              {folder.archived ? <ArchiveRestore className="folder_detail-icon--sm" /> : <Archive className="folder_detail-icon--sm" />}
+              {folder.archived ? 'Unarchive' : 'Archive'}
+            </Button>
+          </div>
         </div>
 
         {/* Documents — always visible regardless of which view is active,
@@ -472,16 +473,18 @@ export default function FolderDetailScreen() {
         {view === 'board' && (
           <BoardView
             tasks={tasks}
+            statuses={statuses}
             onAdvance={(task) => updateTask.mutate({ id: task.id, status: NEXT_STATUS[task.status]! })}
           />
         )}
-        {view === 'list' && <TaskListView tasks={tasks} />}
+        {view === 'list' && <TaskListView tasks={tasks} statuses={statuses} />}
         {view === 'calendar' && <CalendarView events={events} />}
         {view === 'gantt' && (
           <div className="folder_detail-pane">
             <GanttPane folderName={folder.name} folderId={folderId} dependencyMode={folder.dependency_mode ?? 'none'} milestones={milestones} epics={epics} tasks={tasks} />
           </div>
         )}
+        <StatusSettings open={showStatuses} folderId={folderId} boardName={folder.name} onClose={() => setShowStatuses(false)} />
       </div>
     </WorkspaceLayout>
   )

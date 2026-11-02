@@ -9,31 +9,7 @@
     margin-bottom: space(0.5);
 
     @at-root .task_item-dot {
-      flex-shrink: 0;
-      width: space(2);
-      height: space(2);
       margin-top: 0.4rem;
-      border-radius: radius('full');
-
-      &--backlog {
-        background: palette('zinc-400');
-      }
-
-      &--todo {
-        background: palette('zinc-500');
-      }
-
-      &--in_progress {
-        background: palette('blue-500');
-      }
-
-      &--in_review {
-        background: palette('yellow-500');
-      }
-
-      &--done {
-        background: palette('green-500');
-      }
 
       &--unsaved {
         opacity: 0.4;
