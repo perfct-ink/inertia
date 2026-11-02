@@ -1,4 +1,4 @@
-import type { Document, Folder } from '@/types'
+import type { Document, Folder, SpaceFolder } from '@/types'
 import { lastModified } from './document'
 
 // A folder tree as one flat list (each folder before its descendants).
@@ -66,4 +66,29 @@ export function filterSpaceFiles(files: SpaceFile[], filters: SpaceFileFilters):
 // When anything in a project last changed, or null for an empty one.
 export function projectLastModified(project: Folder): string | null {
   return documentsIn(project).map(lastModified).sort().pop() ?? null
+}
+
+// One place a document or folder can be put in a Space.
+export interface FolderChoice {
+  id: number
+  // The folder's path from the top of the Space ("Messages / Design"); the Root is "Top level".
+  label: string
+}
+
+// A Space's flat folder list as choices, in tree order (siblings by position,
+// then name). A folder whose parent is missing from the list, such as one
+// under an archived folder, is left out.
+export function folderChoices(folders: SpaceFolder[]): FolderChoice[] {
+  const children = new Map<number | null, SpaceFolder[]>()
+  for (const folder of folders) {
+    children.set(folder.parent_id, [...(children.get(folder.parent_id) ?? []), folder])
+  }
+  const walk = (parentId: number | null, path: string[]): FolderChoice[] =>
+    (children.get(parentId) ?? [])
+      .sort((a, b) => a.position - b.position || a.name.localeCompare(b.name))
+      .flatMap((folder) => {
+        const here = folder.root ? path : [...path, folder.name]
+        return [{ id: folder.id, label: folder.root ? 'Top level' : here.join(' / ') }, ...walk(folder.id, here)]
+      })
+  return walk(null, [])
 }

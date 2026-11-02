@@ -28,3 +28,4 @@ One file per implemented feature, written from the code (see `docs/rules/feature
 | API layer: base class and one class per model in `frontend/src/api/` | [api_layer.md](api_layer.md) |
 | Resource management: weekly capacity per person, allocation to projects, over-capacity warnings | [resource_management.md](resource_management.md) |
 | Task fields: tags, dropdown, checkbox, rating and vote on tasks | [task_fields.md](task_fields.md) |
+| Move or copy documents and folders between Spaces | [space_transfer.md](space_transfer.md) |

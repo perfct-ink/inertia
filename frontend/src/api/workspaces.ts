@@ -1,11 +1,8 @@
 import type { WorkspaceRole, WorkspaceSummary } from '@/types'
 import { ApiResource, useApiMutation, useResourceList } from './base'
 
-// Order matters: a role can do everything the roles before it can.
-export const WORKSPACE_ROLES: WorkspaceRole[] = ['viewer', 'member', 'admin', 'owner']
-
-export const canManageWorkspace = (role: WorkspaceRole | null | undefined) => role === 'admin' || role === 'owner'
-export const canWriteWorkspace = (role: WorkspaceRole | null | undefined) => !!role && role !== 'viewer'
+// Role rules are plain data and live in data/workspace.ts.
+export { WORKSPACE_ROLES, canManageWorkspace, canWriteWorkspace } from '@/data/workspace'
 
 export class WorkspaceApi extends ApiResource<WorkspaceSummary, { name: string }> {
   constructor() {

@@ -6,6 +6,10 @@ import { ChevronRight, Folder, FolderKanban, FileText, TableIcon, Pin, CheckSqua
 import { useCreateFolder, useDeleteFolder, usePinFolder, useUpdateFolder } from '@/api/folders'
 import { useCreateDocument, useDeleteDocument, usePinDocument, useUpdateDocument } from '@/api/documents'
 import { errorMessage } from '@/api/tables'
+import { documentsIn } from '@/data/folder'
+import type { TransferRequest } from '@/data/transfer'
+import { useTransferTargets } from '@/hooks/useTransferTargets'
+import { useTransferStore } from '@/store/transfer'
 import type { Folder as FolderType, Document } from '@/types'
 import './FolderItem.scss'
 
@@ -106,10 +110,18 @@ export function FolderItem({ folder, depth = 0 }: { folder: FolderType; depth?: 
   const pinDocument = usePinDocument()
   const updateFolder = useUpdateFolder()
   const updateDocument = useUpdateDocument()
+  const openTransfer = useTransferStore((s) => s.open)
+  // Moving or copying needs another Space to put things in.
+  const canTransfer = useTransferTargets().targets.length > 0
 
   const indent = depth * 12
   const isProject = folder.kind === 'project'
   const FolderIcon = isProject ? FolderKanban : Folder
+
+  const transferItems = (describe: () => Omit<TransferRequest, 'mode'>): MenuItem[] => canTransfer ? [
+    { label: 'Move to Space…', action: () => openTransfer({ mode: 'move', ...describe() }) },
+    { label: 'Copy to Space…', action: () => openTransfer({ mode: 'copy', ...describe() }) },
+  ] : []
 
   async function createItem(type: Document['doc_type']) {
     setOpen(true)
@@ -128,6 +140,7 @@ export function FolderItem({ folder, depth = 0 }: { folder: FolderType; depth?: 
     { label: folder.pinned ? 'Unpin' : 'Pin', action: () => pinFolder.mutate({ id: folder.id, pinned: !folder.pinned }) },
     { label: 'Rename', action: () => setRenamingFolder(true) },
     ...(folder.root ? [] : [
+      ...transferItems(() => ({ kind: 'folder', id: folder.id, name: folder.name, documentIds: documentsIn(folder).map((d) => d.id) })),
       { label: isProject ? 'Make Folder' : 'Make Project', action: () => updateFolder.mutate({ id: folder.id, kind: isProject ? 'folder' : 'project' }) },
       { label: 'Archive', action: () => updateFolder.mutate({ id: folder.id, archived: true }) },
       { label: 'Delete', action: () => deleteFolder.mutate(folder.id, { onError: e => setActionError(errorMessage(e)) }), danger: true },
@@ -234,6 +247,7 @@ export function FolderItem({ folder, depth = 0 }: { folder: FolderType; depth?: 
           items={[
             { label: 'Rename', action: () => setRenamingDocId(docCtx.doc.id) },
             { label: docCtx.doc.pinned ? 'Unpin' : 'Pin', action: () => pinDocument.mutate({ id: docCtx.doc.id, pinned: !docCtx.doc.pinned }) },
+            ...transferItems(() => ({ kind: 'document', id: docCtx.doc.id, name: docCtx.doc.title, documentIds: [docCtx.doc.id] })),
             { label: 'Delete', action: () => deleteDocument.mutate(docCtx.doc.id, { onError: e => setActionError(errorMessage(e)) }), danger: true },
           ]}
           onClose={() => setDocCtx(null)}

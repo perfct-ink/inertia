@@ -36,6 +36,15 @@ module Api
         )
       end
 
+      # A flat list of one Space's active folders, for choosing where to move
+      # or copy something into it. Any Space the user belongs to, not just the
+      # one named by X-Workspace-Id.
+      def folders
+        workspace = current_user.accessible_workspaces.find(params[:id])
+        folders = workspace.folders.active.order(:position, :name)
+        render json: FolderBlueprint.render(folders, root_folder_id: workspace.root_folder_id)
+      end
+
       def create
         workspace = Workspace.new(workspace_params.merge(user: current_user, personal: false))
         if workspace.save

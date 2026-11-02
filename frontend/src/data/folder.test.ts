@@ -1,5 +1,5 @@
-import type { Document, Folder } from '@/types'
-import { documentsIn, filterSpaceFiles, flattenFolders, projectLastModified, projectsOf, searchSpaceFiles, spaceFiles } from './folder'
+import type { Document, Folder, SpaceFolder } from '@/types'
+import { documentsIn, filterSpaceFiles, flattenFolders, folderChoices, projectLastModified, projectsOf, searchSpaceFiles, spaceFiles } from './folder'
 
 const folder = (id: number, children: Folder[] = []) => ({ id, name: `F${id}`, children }) as unknown as Folder
 
@@ -64,4 +64,33 @@ test('filterSpaceFiles filters by project, type and owner, and an unset filter m
   expect(filterSpaceFiles(files, { docType: 'spreadsheet' }).map((f) => f.document.title)).toEqual(['Spec'])
   expect(filterSpaceFiles(files, { ownerId: 7 }).map((f) => f.document.title)).toEqual(['Readme', 'Mockups'])
   expect(filterSpaceFiles(files, { projectId: 2, ownerId: 7 }).map((f) => f.document.title)).toEqual(['Mockups'])
+})
+
+const spaceFolder = (id: number, name: string, parent_id: number | null, position = 0, root = false): SpaceFolder =>
+  ({ id, name, parent_id, position, root })
+
+test("folderChoices lists a Space's folders in tree order with their paths", () => {
+  const folders = [
+    spaceFolder(4, 'Design', 2),
+    spaceFolder(3, 'Billing', 1, 1),
+    spaceFolder(2, 'Messages', 1, 0),
+    spaceFolder(1, 'Root', null, 0, true),
+  ]
+  expect(folderChoices(folders)).toEqual([
+    { id: 1, label: 'Top level' },
+    { id: 2, label: 'Messages' },
+    { id: 4, label: 'Messages / Design' },
+    { id: 3, label: 'Billing' },
+  ])
+})
+
+test('folderChoices orders siblings by position, then name, and skips folders cut off from the top', () => {
+  const folders = [
+    spaceFolder(1, 'Root', null, 0, true),
+    spaceFolder(2, 'Zeta', 1, 0),
+    spaceFolder(3, 'Alpha', 1, 0),
+    spaceFolder(4, 'Orphan', 99, 0),
+  ]
+  expect(folderChoices(folders).map((c) => c.label)).toEqual(['Top level', 'Alpha', 'Zeta'])
+  expect(folderChoices([])).toEqual([])
 })

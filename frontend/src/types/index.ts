@@ -37,6 +37,10 @@ export interface Folder {
   has_events: boolean
 }
 
+// A folder as listed for choosing where to put something in a Space: the
+// flat list from GET /api/v1/workspaces/:id/folders, without contents.
+export type SpaceFolder = Pick<Folder, 'id' | 'name' | 'parent_id' | 'position' | 'root'>
+
 export type WorkspaceRole = 'viewer' | 'member' | 'admin' | 'owner'
 
 // A workspace the signed-in user belongs to; `role` is their role in it.
