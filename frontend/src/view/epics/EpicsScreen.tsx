@@ -1,7 +1,7 @@
 import { Button, Input, Select } from '@/components/ui'
 import { useState, useRef } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { Plus, X, Target, Loader2 } from 'lucide-react'
+import { Plus, X, Target, Loader2, ListChecks } from 'lucide-react'
 import WorkspaceLayout from '@/components/WorkspaceLayout'
 import { useEpics, useCreateEpic, useUpdateEpic, useDeleteEpic } from '@/api/epics'
 import { useInitiatives } from '@/api/initiatives'
@@ -127,6 +127,15 @@ export default function EpicsScreen() {
                   <span className="planning-card-count">
                     {epic.done_tasks_count}/{epic.tasks_count} done
                   </span>
+                  <Button
+                    variant="ghost"
+                    onClick={(e) => { e.stopPropagation(); navigate(`/plan?epic_id=${epic.id}`) }}
+                    aria-label={`Plan ${epic.title}`}
+                    className="planning-card-plan"
+                  >
+                    <ListChecks className="planning-delete_icon" aria-hidden="true" />
+                    Plan
+                  </Button>
                   <Button
                     onClick={(e) => { e.stopPropagation(); deleteEpic.mutate(epic.id) }}
                     aria-label="Delete epic"

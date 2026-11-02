@@ -173,6 +173,19 @@
       }
     }
 
+    .planning-card-plan {
+      display: flex;
+      flex-shrink: 0;
+      align-items: center;
+      gap: space(1);
+      color: color(muted-foreground);
+      @include text('xs');
+
+      &:hover:not(:disabled) {
+        color: color(foreground);
+      }
+    }
+
     .planning-card-delete {
       flex-shrink: 0;
       color: color(muted-foreground);

@@ -22,3 +22,4 @@ One file per implemented feature, written from the code (see `docs/rules/feature
 | Design principles applied across the web app (responsive, styled controls, hover, 150ms motion) | [design_principles.md](design_principles.md) |
 | PostgreSQL database: shared-postgres on Coolify | [postgresql_database.md](postgresql_database.md) |
 | Files of any type embedded in documents: audio player, file cards with preview and download, paste and drop | [embedded_files.md](embedded_files.md) |
+| Epic planning: an epic's tasks by status, drag from the backlog, dates and rollup | [epic_planning.md](epic_planning.md) |
