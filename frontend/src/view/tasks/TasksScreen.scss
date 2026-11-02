@@ -293,6 +293,13 @@
       margin-top: space(2);
     }
 
+    @at-root .tasks-card_actions {
+      display: flex;
+      align-items: center;
+      gap: space(1);
+      margin-left: auto;
+    }
+
     @at-root .tasks-doc_link {
       @include text('xs');
       @include truncate;

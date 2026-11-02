@@ -4,6 +4,11 @@ import MilestonesScreen from './MilestonesScreen'
 
 jest.mock('@/components/WorkspaceLayout', () => function LayoutMock({ children }: { children: React.ReactNode }) { return <div>{children}</div> })
 
+jest.mock('@/components/comments/CommentsButton', () => ({
+  CommentsButton: ({ type, id, title }: { type: string; id: number; title: string }) =>
+    <button aria-label={`Comments on ${title}`} data-type={type} data-id={id} />,
+}))
+
 const mockMutation = { mutate: jest.fn() }
 const mockMilestones = [{
   id: 1, title: 'Beta', description: null, target_date: '2026-12-01', status: 'active', owner_id: null, folder_id: null,
@@ -23,4 +28,11 @@ test('shows each milestone with its health and rollup counts', () => {
   expect(screen.getByText('At risk')).toBeInTheDocument()
   expect(screen.getByText(/1\/4 tasks done · 2 epics · 1 initiatives/)).toBeInTheDocument()
   expect(screen.getByRole('button', { name: 'Delete Beta' })).toBeInTheDocument()
+})
+
+test('each milestone opens its own comments', () => {
+  render(<MilestonesScreen />)
+  const button = screen.getByRole('button', { name: 'Comments on Beta' })
+  expect(button).toHaveAttribute('data-type', 'Milestone')
+  expect(button).toHaveAttribute('data-id', '1')
 })

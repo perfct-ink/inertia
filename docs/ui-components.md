@@ -33,6 +33,7 @@ The React frontend uses SCSS (compiled by webpack's `sass-loader`); Tailwind is 
 - Light and dark mode come from the Volta tokens (`prefers-color-scheme`, or `data-theme="dark"` on `<html>`), set to Inertia's theme in `_theme.scss`. Use `color()` tokens rather than hardcoded colors. Add a `dark` mixin block only for fixed palette colors.
 - Inline `style` is reserved for computed values (percent widths, nesting depth, drag transforms).
 - Use the `Modal`, `ConfirmDialog` and `PromptDialog` components instead of `window.alert`, `confirm` or `prompt`.
+- `Modal` takes a `className` for contextual overrides of the dialog box, such as the wider, scrolling box the comments dialog uses (`components/comments/Comments.scss`).
 
 ## Design system: Volta
 
