@@ -1,4 +1,4 @@
-import type { WorkspaceRole, WorkspaceSummary } from '@/types'
+import type { WorkspaceSummary } from '@/types'
 import { ApiResource, useApiMutation, useResourceList } from './base'
 
 // Role rules are plain data and live in data/workspace.ts.

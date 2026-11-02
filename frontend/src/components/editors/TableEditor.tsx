@@ -1,7 +1,7 @@
-import { Button, Input, Select, FormError, ConfirmDialog } from '@/components/ui'
+import { Button, Input, Select, FormError, ConfirmDialog, classNames } from '@/components/ui'
 import { useEffect, useMemo, useState } from 'react'
 import { useQueries } from '@tanstack/react-query'
-import { Database, Loader2, Pencil, Trash2 } from 'lucide-react'
+import { Database, Loader2, Map as MapIcon, Pencil, Table as TableIcon, Trash2 } from 'lucide-react'
 import WorkspaceLayout from '@/components/WorkspaceLayout'
 import FormulaInput from '@/components/editors/FormulaInput'
 import { useWorkspace } from '@/api/workspace'
@@ -13,6 +13,7 @@ import './TableEditor.scss'
 import { usePageTitle } from '@/hooks/usePageTitle'
 import { flattenFolders } from '@/data/folder'
 import { checkFormula, computeFormulas, formatResult, isFormulaField, type FormulaResult } from '@/data/formula'
+import CollectionMap from './CollectionMap'
 
 const types: FieldDataType[] = ['text', 'integer', 'number', 'boolean', 'date', 'datetime', 'relation', 'formula']
 const inputClass = 'table_editor-input'
@@ -91,6 +92,7 @@ export default function TableEditor({ doc }: { doc: Document }) {
   const [error, setError] = useState('')
   const [editingField, setEditingField] = useState<TableField | null>(null)
   const [showForm, setShowForm] = useState(false)
+  const [mode, setMode] = useState<'grid' | 'map'>('grid')
   const [name, setName] = useState('')
   const [type, setType] = useState<FieldDataType>('text')
   const [relationTable, setRelationTable] = useState('')
@@ -139,6 +141,10 @@ export default function TableEditor({ doc }: { doc: Document }) {
         <Input aria-label="Collection title" className="table_editor-title" value={title} onChange={e => setTitle(e.target.value)} onBlur={rename} onKeyDown={e => { if (e.key === 'Enter') e.currentTarget.blur() }} />
         <Button variant="secondary" disabled={busy} onClick={() => fieldForm()} className="table_editor-add_field_button">Add field</Button>
       </div>
+      {data && data.fields.length > 0 && <div className="table_editor-modes" role="group" aria-label="Collection view">
+        {([['grid', 'Grid', TableIcon], ['map', 'Map', MapIcon]] as const).map(([key, label, Icon]) => <Button key={key} aria-pressed={mode === key} onClick={() => setMode(key)}
+          className={classNames('table_editor-mode_button', mode === key && 'table_editor-mode_button--active')}><Icon className="table_editor-mode_icon" aria-hidden="true" />{label}</Button>)}
+      </div>}
       <div className="table_editor-summary">{data?.records.length ?? 0} records · {data?.fields.length ?? 0} fields · Dates and times use UTC. Save each record after editing.</div>
       <FormError message={error || (loadError ? errorMessage(loadError) : null)} className="table_editor-error" />
       {showForm && <form onSubmit={saveField} className="table_editor-field_form">
@@ -150,7 +156,7 @@ export default function TableEditor({ doc }: { doc: Document }) {
         <Button type="button" onClick={() => setShowForm(false)} className="table_editor-cancel_button">Cancel</Button>
         {editingField && <p className="table_editor-field_form_hint">Clear this field’s values before changing its data type or related collection.</p>}
       </form>}
-      {isLoading ? <Loader2 className="table_editor-spinner" /> : data && data.fields.length === 0 ? <div className="table_editor-empty"><Database className="table_editor-empty_icon" /><p className="table_editor-empty_title">Define your collection’s fields</p><p className="table_editor-empty_text">Add text, numbers, dates, booleans, a relation to another collection, or a formula that works out a value from the other fields.</p><Button variant="secondary" onClick={() => fieldForm()} className="table_editor-empty_button">Add first field</Button></div> : data && <div className="table_editor-grid">
+      {isLoading ? <Loader2 className="table_editor-spinner" /> : data && data.fields.length === 0 ? <div className="table_editor-empty"><Database className="table_editor-empty_icon" /><p className="table_editor-empty_title">Define your collection’s fields</p><p className="table_editor-empty_text">Add text, numbers, dates, booleans, a relation to another collection, or a formula that works out a value from the other fields.</p><Button variant="secondary" onClick={() => fieldForm()} className="table_editor-empty_button">Add first field</Button></div> : data && mode === 'map' ? <CollectionMap data={data} /> : data && <div className="table_editor-grid">
         <table className="table_editor-table">
           <thead className="table_editor-table_head"><tr><th className="table_editor-column_head table_editor-column_head--id">Record ID</th>
             {data.fields.map(field => <th key={field.id} className="table_editor-column_head"><div className="table_editor-column_head_main"><Button onClick={() => fieldForm(field)} className="table_editor-column_name_button"><span>{field.name}</span><Pencil className="table_editor-column_edit_icon" /></Button><Button aria-label={`Delete field ${field.name}`} disabled={busy} onClick={() => remove(`fields/${field.id}`, `Delete “${field.name}” and all its values?`)} className="table_editor-icon_button table_editor-icon_button--column"><Trash2 className="table_editor-icon_button_icon table_editor-icon_button_icon--sm" /></Button></div><span className="table_editor-column_type">{field.data_type}{field.relation_table_id ? ` → ${tables.find(t => t.id === field.relation_table_id)?.title ?? 'Table'}` : ''}</span>{field.formula && <code className="table_editor-column_formula" title={field.formula}>= {field.formula}</code>}</th>)}
