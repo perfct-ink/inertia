@@ -14,7 +14,11 @@ class User < ApplicationRecord
   has_many :social_login_attempts, dependent: :destroy
   after_create :create_default_workspace
 
+  # The getting-started checklist steps (frontend/src/data/onboarding.ts).
+  ONBOARDING_STEPS = %w[space document sheet tasks invite roadmap].freeze
+
   validates :name, presence: true
+  validate :onboarding_is_well_formed
 
   # Every workspace the user reaches, through their own membership or a team.
   def accessible_workspaces
@@ -23,6 +27,13 @@ class User < ApplicationRecord
   end
 
   private
+
+  def onboarding_is_well_formed
+    return if onboarding.nil?
+    valid = onboarding.is_a?(Hash) && [ true, false ].include?(onboarding["dismissed"]) &&
+            onboarding["done"].is_a?(Array) && (onboarding["done"] - ONBOARDING_STEPS).empty?
+    errors.add(:onboarding, "must be { dismissed: boolean, done: [#{ONBOARDING_STEPS.join(', ')}] }") unless valid
+  end
 
   def create_default_workspace
     create_workspace!(name: "#{name}'s Space", personal: true)
