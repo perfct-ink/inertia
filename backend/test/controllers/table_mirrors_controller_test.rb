@@ -77,7 +77,7 @@ class TableMirrorsControllerTest < ActionDispatch::IntegrationTest
     assert_response :unprocessable_entity
     assert_match(/mirror/, response.parsed_body["errors"].join)
     post "/api/v1/tables/#{@contacts.id}/records", params: { record: { values: { mirror_id.to_s => nil } } }, as: :json
-    assert_response :success
+    assert_response :unprocessable_entity
   end
 
   test "changing a mirror to another type drops its targets and deleting the connect field removes it" do

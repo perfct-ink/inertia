@@ -70,7 +70,7 @@ module Api
         values = params.require(:record).permit(values: {}).fetch(:values, {})
         values.each do |field_id, value|
           field = @table.table_fields.find(field_id)
-          reject_computed!(field)
+          reject_read_only!(field)
           cell = record.table_cells.find_or_initialize_by(table_field: field)
           if value.nil? || value == "" || value == []
             cell.destroy! if cell.persisted?
@@ -82,10 +82,16 @@ module Api
         end
       end
 
-      # A formula field is worked out from the record's other values, so nothing can be written to it.
-      def reject_computed!(field)
-        return unless field.computed?
-        field.errors.add(:base, "#{field.name} is calculated from its formula and cannot be edited")
+      # A formula field is worked out from the record's other values and a
+      # mirror shows the linked record's, so nothing can be written to either.
+      def reject_read_only!(field)
+        reason = if field.computed?
+          "is calculated from its formula"
+        elsif field.data_type == "mirror"
+          "mirrors a field of the linked record"
+        end
+        return unless reason
+        field.errors.add(:base, "#{field.name} #{reason} and cannot be edited")
         raise ActiveRecord::RecordInvalid, field
       end
 
