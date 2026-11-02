@@ -5,7 +5,7 @@ import { useParams, useNavigate, useSearchParams, Link } from 'react-router-dom'
 import {
   Loader2, ArrowLeft, ArrowRight, Archive, ArchiveRestore,
   LayoutList, Kanban as KanbanIcon, Calendar as CalendarIcon, GanttChart,
-  ChevronLeft, ChevronRight, FileText, Table as TableIcon, LayoutDashboard, Palette,
+  ChevronLeft, ChevronRight, FileText, Table as TableIcon, LayoutDashboard, Palette, LayoutGrid,
 } from 'lucide-react'
 import {
   format, parseISO, startOfMonth, endOfMonth, startOfWeek, endOfWeek,
@@ -29,6 +29,7 @@ import { StatusSettings } from '@/components/workspace/StatusSettings'
 import { donePercent, milestoneMarkers } from '@/data/schedule'
 import { BOARD_STATUSES, NEXT_STATUS, nextStatusLabel, type BoardStatuses } from '@/data/task_status'
 import GanttPane from './GanttPane'
+import CardsView from './CardsView'
 import { buildTaskTree, type TaskNode } from '@/data/task'
 
 const dotClass = (name: string) => `folder_detail-dot folder_detail-dot--${name}`
@@ -37,6 +38,7 @@ const VIEWS = [
   { key: 'overview', label: 'Overview', icon: LayoutDashboard },
   { key: 'board', label: 'Board', icon: KanbanIcon },
   { key: 'list', label: 'List', icon: LayoutList },
+  { key: 'cards', label: 'Cards', icon: LayoutGrid },
   { key: 'calendar', label: 'Calendar', icon: CalendarIcon },
   { key: 'gantt', label: 'Gantt', icon: GanttChart },
 ] as const
@@ -478,6 +480,7 @@ export default function FolderDetailScreen() {
           />
         )}
         {view === 'list' && <TaskListView tasks={tasks} statuses={statuses} />}
+        {view === 'cards' && <CardsView tasks={tasks} epics={epics} />}
         {view === 'calendar' && <CalendarView events={events} />}
         {view === 'gantt' && (
           <div className="folder_detail-pane">
