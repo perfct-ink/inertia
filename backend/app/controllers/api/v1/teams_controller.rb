@@ -55,8 +55,12 @@ module Api
         @team = teams.find(params[:id])
       end
 
+      # The role is set on its own rather than mass-assigned; Team's enum only
+      # accepts viewer, member or admin (never owner) and rejects anything else.
       def team_params
-        params.require(:team).permit(:name, :role)
+        attrs = params.require(:team).permit(:name)
+        attrs[:role] = params[:team][:role].to_s if params[:team].key?(:role)
+        attrs
       end
     end
   end
