@@ -78,7 +78,12 @@ Rails.application.routes.draw do
 
       resources :milestones, only: [ :index, :create, :update, :destroy ]
 
-      resources :sprints, only: [ :index, :create, :update, :destroy ]
+      resources :sprints, only: [ :index, :create, :update, :destroy ] do
+        member do
+          post :start
+          post :close
+        end
+      end
       resources :resource_allocations, only: [ :index, :create, :update, :destroy ]
       resources :task_dependencies, only: [ :index, :create, :destroy ]
       resources :ai_workers, only: [ :index, :create, :update, :destroy ]
