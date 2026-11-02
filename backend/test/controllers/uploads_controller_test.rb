@@ -50,7 +50,7 @@ class UploadsControllerTest < ActionDispatch::IntegrationTest
     {
       "report.pdf" => [ "%PDF-1.4\n%%EOF", "application/pdf" ],
       "bundle.zip" => [ "PK\x03\x04#{"x" * 32}", "application/zip" ],
-      "notes.xyz" => [ "anything at all", "" ],
+      "notes.xyz" => [ "anything at all", "" ]
     }.each do |name, (content, type)|
       post "/api/v1/uploads", params: { file: upload(name, content, type) }, headers: headers_for(@owner)
       assert_response :success, "#{name} should be accepted"

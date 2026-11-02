@@ -27,7 +27,7 @@ class Api::V1::UploadsController < ApplicationController
       url: rails_blob_url(blob, host: request.base_url),
       filename: blob.filename.to_s,
       content_type: blob.content_type,
-      byte_size: blob.byte_size,
+      byte_size: blob.byte_size
     }
   end
 end
