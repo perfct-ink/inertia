@@ -33,6 +33,13 @@ Rails.application.routes.draw do
         resources :members, controller: "workspace_members", only: [ :index, :create, :update, :destroy ]
       end
 
+      # Teams: groups of people that hold one role in a workspace together.
+      resources :workspaces, only: [] do
+        resources :teams, only: [ :index, :create, :update, :destroy ] do
+          resources :members, controller: "team_members", only: [ :create, :destroy ]
+        end
+      end
+
       resources :folders do
         resources :documents, shallow: true
         member { get :contents }

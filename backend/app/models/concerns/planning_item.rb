@@ -13,6 +13,6 @@ module PlanningItem
 
   def owner_belongs_to_workspace
     return if owner_id.blank? || workspace.nil?
-    errors.add(:owner, "must be a member of the workspace") unless workspace.memberships.exists?(user_id: owner_id)
+    errors.add(:owner, "must be a member of the workspace") unless workspace.accessible_by?(owner_id)
   end
 end
