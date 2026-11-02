@@ -78,6 +78,13 @@
       }
     }
 
+    & .task_item-fields {
+      display: flex;
+      flex-wrap: wrap;
+      gap: space(2);
+      @include text('xs');
+    }
+
     @at-root .task_item-due_icon {
       width: space(3);
       height: space(3);

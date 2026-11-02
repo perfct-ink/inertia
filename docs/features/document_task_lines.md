@@ -9,6 +9,7 @@ A checklist item in a document (a `workspaceTaskItem` node in the editor) become
 - A "Tasks only" toggle in the document toolbar (`aria-pressed`) folds every top-level block except headings and task lists in place, via the `document-page--tasks_only` class (`DocumentScreen.scss`). It is a CSS fold, so checking lines, dates and collaboration work as normal; toggling back restores the prose. The setting is per page view and is not saved.
 
 - **Make selection a task**: select text in a document (for example an acceptance criterion in a requirements doc) and press "Make selection a task" in the toolbar. The selection is replaced by a task line with that text (whitespace collapsed to one line); the normal sync then creates the Space task linked to the document (`document_id`). The button is disabled with nothing selected. Code: `selectionTaskTitle` and `taskListContent` in `data/document.ts`.
+- Once a line has a task, it also shows status, assignee (Space members) and start date controls (`TaskFieldControls` in `WorkspaceTaskItemView.tsx`), saved through the normal task update call. Failed saves show the global error notice.
 
 ## API and models
 `tasks.document_id` (nullable, indexed); `Document has_many :tasks, dependent: :destroy`. Frontend: `syncTaskNodes` in `frontend/src/view/document/DocumentScreen.tsx`, `frontend/src/extensions/WorkspaceTaskItem.tsx`, `frontend/src/components/editors/WorkspaceTaskItemView.tsx`.
@@ -21,7 +22,6 @@ Anyone who can edit the document creates tasks; the due date uses the normal tas
 
 ## Known limits
 - The line has no checkbox: the dot shows status but clicking it does nothing, so checking a line and task status are not tied.
-- Only the due date can be set from the line; start date, assignee and status cannot (see `docs/backlog/task-line-set-assignee-status-start-date.md`).
 - The line does not follow the task: renaming the task elsewhere does not change the line, and editing the line text after sync does not rename the task. Deleting the task leaves a line with a dead id, and deleting the line leaves the task (see `docs/backlog/task-line-two-way-sync.md`).
 - If the document is not found in the loaded Space, `syncTaskNodes` falls back to the first document in the tree (`allDocs[0]`), which could attach tasks to the wrong document.
 
@@ -31,5 +31,7 @@ Anyone who can edit the document creates tasks; the due date uses the normal tas
 - Not implemented: two-way sync, assignee/status/start date from the line.
 - Not verified: lint, type-check, tests and the editor were not run (no dependencies installed, no network).
 - Make-selection-a-task added 2026-10-19 on branch `backlog/create-tasks-from-a-feature-doc`, not merged. Limits: it needs a selection (no caret-only conversion of a whole bullet), and the replaced text is not kept as prose. Not verified: lint, type-check, tests and the editor were not run (no node_modules).
+
+- Merged to main 2026-11-02 after running, merged with main: `rails db:migrate` (schema diff clean), `rails test`, `npm run lint`, `tsc -b`, Jest, and the collab-server tests, all passing. Not checked in a browser.
 
 - Merged to main 2026-11-02 after running, merged with main: `rails db:migrate` (schema diff clean), `rails test`, `npm run lint`, `tsc -b`, Jest, and the collab-server tests, all passing. Not checked in a browser.
