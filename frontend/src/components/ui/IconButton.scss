@@ -1,0 +1,11 @@
+@use 'tokens' as *;
+
+// Colors for the muted tone come from Button's `muted` variant; this adds the
+// red hover for destructive icons. Skips disabled buttons, which don't react.
+@layer app.ui {
+  .ui-icon_button {
+    &--danger:hover:not(:disabled) {
+      color: palette('red-500');
+    }
+  }
+}

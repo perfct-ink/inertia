@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { format, parseISO } from 'date-fns'
 import { ClipboardList, Loader2, Plus } from 'lucide-react'
-import { Button, ConfirmDialog } from '@/components/ui'
+import { Button, ConfirmDialog, Tab, Tabs } from '@/components/ui'
 import WorkspaceLayout from '@/components/WorkspaceLayout'
 import {
   useCreateProjectRequest, useDecideProjectRequest, useDeleteProjectRequest, useProjectRequests, useUpdateProjectRequest,
@@ -62,18 +62,13 @@ export default function ProjectRequestsScreen() {
         <div className="planning-header">
           <h1 className="planning-title">Project requests</h1>
           {requests.length > 0 && (
-            <div className="planning-tabs">
+            <Tabs label="Request status">
               {PROJECT_REQUEST_STATUSES.map((status) => (
-                <Button
-                  key={status}
-                  aria-pressed={tab === status}
-                  onClick={() => setTab(status)}
-                  className={`planning-tab${tab === status ? ' planning-tab--active' : ''}`}
-                >
+                <Tab key={status} active={tab === status} onClick={() => setTab(status)}>
                   {PROJECT_REQUEST_STATUS_LABEL[status]} ({counts[status]})
-                </Button>
+                </Tab>
               ))}
-            </div>
+            </Tabs>
           )}
           {canSubmit && (
             <Button variant="primary" onClick={() => { setCreating(true); setEditingId(null) }} className="planning-new">

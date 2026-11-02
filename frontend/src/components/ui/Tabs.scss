@@ -1,0 +1,32 @@
+@use 'tokens' as *;
+
+// Quiet text tabs: muted until hovered, a filled pill for the one that is
+// showing. Views set a Tab's size or spacing with their own class (a later
+// cascade layer), never its colors.
+@layer app.ui {
+  .ui-tabs {
+    display: flex;
+    gap: space(1);
+  }
+
+  .ui-tab {
+    display: flex;
+    align-items: center;
+    gap: space(1.5);
+    padding: space(1) space(3);
+    border-radius: radius('md');
+    white-space: nowrap;
+    @include text('sm');
+    @include muted-link;
+
+    &:hover:not(:disabled) {
+      background: color(accent, 0.5);
+    }
+
+    &--active,
+    &--active:hover:not(:disabled) {
+      background: color(accent);
+      color: color(foreground);
+    }
+  }
+}

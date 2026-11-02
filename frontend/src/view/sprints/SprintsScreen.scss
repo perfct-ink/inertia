@@ -87,14 +87,6 @@
       @include truncate;
     }
 
-    @at-root .sprints-card-delete {
-      color: color(muted-foreground);
-
-      &:hover {
-        color: palette('red-500');
-      }
-    }
-
     @at-root .sprints-goal {
       @include text('sm');
     }

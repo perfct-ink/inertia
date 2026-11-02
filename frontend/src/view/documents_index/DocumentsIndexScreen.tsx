@@ -1,4 +1,4 @@
-import { Button, Input, Select } from '@/components/ui'
+import { Button, Input, Select, Tab, Tabs } from '@/components/ui'
 import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { format, parseISO } from 'date-fns'
@@ -112,10 +112,10 @@ export default function DocumentsIndexScreen() {
               {members.map((m) => <option key={m.user_id} value={m.user_id}>{m.user.name}</option>)}
             </Select>
           </div>
-          <div className="documents_index-modes" role="group" aria-label="View">
-            <Button aria-pressed={mode === 'list'} onClick={() => setMode('list')}>List</Button>
-            <Button aria-pressed={mode === 'gallery'} onClick={() => setMode('gallery')}>Gallery</Button>
-          </div>
+          <Tabs label="View" className="documents_index-modes">
+            <Tab active={mode === 'list'} onClick={() => setMode('list')}>List</Tab>
+            <Tab active={mode === 'gallery'} onClick={() => setMode('gallery')}>Gallery</Tab>
+          </Tabs>
           {mode === 'gallery' && <FilesGallery documents={sortedDocs} />}
 
           {isLoading && (

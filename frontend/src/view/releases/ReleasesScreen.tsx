@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Disc3, Loader2, Plus, X } from 'lucide-react'
-import { Button, Input, Select } from '@/components/ui'
+import { Button, IconButton, Input, Select } from '@/components/ui'
 import WorkspaceLayout from '@/components/WorkspaceLayout'
 import { ProgressBar } from '@/components/Timeline'
 import {
@@ -82,9 +82,9 @@ function ReleaseCard({ release, songs }: { release: Release; songs: Document[] }
     <article className="planning-card" aria-label={release.title}>
       <div className="planning-card-top">
         <h2 className="planning-card-title">{release.title}</h2>
-        <Button className="planning-card-delete" aria-label={`Delete ${release.title}`} onClick={() => remove.mutate(release.id)}>
+        <IconButton className="planning-card-delete" label={`Delete ${release.title}`} tone="danger" onClick={() => remove.mutate(release.id)}>
           <X className="planning-delete_icon" aria-hidden="true" />
-        </Button>
+        </IconButton>
       </div>
       <div className="planning-card-dates">
         <Select aria-label="Kind" value={release.kind} onChange={(e) => update.mutate({ id: release.id, kind: e.target.value as ReleaseKind })}>

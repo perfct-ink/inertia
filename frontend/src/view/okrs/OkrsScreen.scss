@@ -93,13 +93,8 @@
       @include text('sm');
     }
 
-    .okrs-delete {
+    .okrs-icon_button {
       padding: space(1);
-      color: color(muted-foreground);
-
-      &:hover {
-        color: palette('red-500');
-      }
     }
 
     @at-root .okrs-period {

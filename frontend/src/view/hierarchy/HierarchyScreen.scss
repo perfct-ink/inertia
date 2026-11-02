@@ -108,11 +108,6 @@
       justify-content: center;
       width: space(5);
       height: space(5);
-      color: color(muted-foreground);
-
-      &:hover {
-        color: color(foreground);
-      }
     }
 
     @at-root .hierarchy-toggle_spacer {

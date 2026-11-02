@@ -1,4 +1,4 @@
-import { Button, Input, Select, FormError, ConfirmDialog, classNames } from '@/components/ui'
+import { Button, IconButton, Input, Select, FormError, ConfirmDialog, classNames } from '@/components/ui'
 import { useEffect, useMemo, useState } from 'react'
 import { useQueries } from '@tanstack/react-query'
 import { Database, Loader2, Map as MapIcon, Pencil, Table as TableIcon, Trash2 } from 'lucide-react'
@@ -76,7 +76,7 @@ function RecordRow({ record, fields, relations, files, busy, onSave, onDelete }:
     <td className="table_editor-cell table_editor-cell--actions">
       <div className="table_editor-cell_actions">
         <Button variant="secondary" disabled={busy || (!!record && !dirty)} onClick={save} className="table_editor-save_button">{record ? 'Save' : 'Add record'}</Button>
-        {record && <Button aria-label={`Delete record ${record.id}`} disabled={busy} onClick={onDelete} className="table_editor-icon_button table_editor-icon_button--row"><Trash2 className="table_editor-icon_button_icon" /></Button>}
+        {record && <IconButton label={`Delete record ${record.id}`} tone="danger" disabled={busy} onClick={onDelete} className="table_editor-icon_button table_editor-icon_button--row"><Trash2 className="table_editor-icon_button_icon" /></IconButton>}
       </div>
       <FormError message={error} className="table_editor-row_error" />
     </td>
@@ -162,7 +162,7 @@ export default function TableEditor({ doc }: { doc: Document }) {
       {isLoading ? <Loader2 className="table_editor-spinner" /> : data && data.fields.length === 0 ? <div className="table_editor-empty"><Database className="table_editor-empty_icon" /><p className="table_editor-empty_title">Define your collection’s fields</p><p className="table_editor-empty_text">Add text, numbers, dates, booleans, a relation to another collection, or a formula that works out a value from the other fields.</p><Button variant="secondary" onClick={() => fieldForm()} className="table_editor-empty_button">Add first field</Button></div> : data && mode === 'map' ? <CollectionMap data={data} /> : data && <div className="table_editor-grid">
         <table className="table_editor-table">
           <thead className="table_editor-table_head"><tr><th className="table_editor-column_head table_editor-column_head--id">Record ID</th>
-            {data.fields.map(field => <th key={field.id} className="table_editor-column_head"><div className="table_editor-column_head_main"><Button onClick={() => fieldForm(field)} className="table_editor-column_name_button"><span>{field.name}</span><Pencil className="table_editor-column_edit_icon" /></Button><Button aria-label={`Delete field ${field.name}`} disabled={busy} onClick={() => remove(`fields/${field.id}`, `Delete “${field.name}” and all its values?`)} className="table_editor-icon_button table_editor-icon_button--column"><Trash2 className="table_editor-icon_button_icon table_editor-icon_button_icon--sm" /></Button></div><span className="table_editor-column_type">{field.data_type}{field.relation_table_id ? ` → ${tables.find(t => t.id === field.relation_table_id)?.title ?? 'Table'}` : ''}</span>{field.formula && <code className="table_editor-column_formula" title={field.formula}>= {field.formula}</code>}</th>)}
+            {data.fields.map(field => <th key={field.id} className="table_editor-column_head"><div className="table_editor-column_head_main"><Button onClick={() => fieldForm(field)} className="table_editor-column_name_button"><span>{field.name}</span><Pencil className="table_editor-column_edit_icon" /></Button><IconButton label={`Delete field ${field.name}`} tone="danger" disabled={busy} onClick={() => remove(`fields/${field.id}`, `Delete “${field.name}” and all its values?`)} className="table_editor-icon_button table_editor-icon_button--column"><Trash2 className="table_editor-icon_button_icon table_editor-icon_button_icon--sm" /></IconButton></div><span className="table_editor-column_type">{field.data_type}{field.relation_table_id ? ` → ${tables.find(t => t.id === field.relation_table_id)?.title ?? 'Table'}` : ''}</span>{field.formula && <code className="table_editor-column_formula" title={field.formula}>= {field.formula}</code>}</th>)}
             <th className="table_editor-column_head table_editor-column_head--actions">Actions</th>
           </tr></thead>
           <tbody>{data.records.map(record => <RecordRow key={record.id} record={record} fields={data.fields} relations={relations} files={uploadedFiles} busy={busy} onSave={values => action(`records/${record.id}`, 'patch', { record: { values } })} onDelete={() => remove(`records/${record.id}`, `Delete record #${record.id}?`)} />)}

@@ -5,14 +5,6 @@
   height: $size;
 }
 
-@mixin icon_button_danger {
-  color: color(muted-foreground);
-
-  &:hover {
-    color: palette('red-500');
-  }
-}
-
 @layer app.components {
   .view-table_editor {
     display: flex;
@@ -249,8 +241,6 @@
     }
 
     & .table_editor-icon_button {
-      @include icon_button_danger;
-
       &--column {
         margin-left: auto;
       }

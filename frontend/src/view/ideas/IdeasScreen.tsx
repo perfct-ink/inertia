@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Lightbulb, Loader2, X } from 'lucide-react'
-import { Button, Input, Textarea } from '@/components/ui'
+import { Button, IconButton, Input, Textarea } from '@/components/ui'
 import WorkspaceLayout from '@/components/WorkspaceLayout'
 import { useCreateIdea, useDeleteIdea, useIdeas, usePromoteIdea, useUpdateIdea } from '@/api/ideas'
 import { IDEA_STATUS_LABEL, promotedPath, sortIdeas } from '@/data/idea'
@@ -56,9 +56,9 @@ export default function IdeasScreen() {
                 <div className="planning-card-top">
                   <h2 className="planning-card-title">{idea.title}</h2>
                   <span className="planning-date">{IDEA_STATUS_LABEL[idea.status]}</span>
-                  <Button className="planning-card-delete" aria-label={`Delete ${idea.title}`} onClick={() => deleteIdea.mutate(idea.id)}>
+                  <IconButton className="planning-card-delete" label={`Delete ${idea.title}`} tone="danger" onClick={() => deleteIdea.mutate(idea.id)}>
                     <X className="planning-delete_icon" aria-hidden="true" />
-                  </Button>
+                  </IconButton>
                 </div>
                 {idea.description && <p className="planning-description">{idea.description}</p>}
                 {idea.submitted_by_name && <p className="planning-date">From {idea.submitted_by_name}</p>}

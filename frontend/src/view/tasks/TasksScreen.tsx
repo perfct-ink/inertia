@@ -1,4 +1,4 @@
-import { Button, Input, Select, StatusDot, classNames, DatePicker } from '@/components/ui'
+import { Button, IconButton, Input, Select, StatusDot, Tab, Tabs, classNames, DatePicker } from '@/components/ui'
 import { useState, useRef, useEffect } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { Plus, X, ArrowRight, Play, Loader2, Search, Filter, Target, SlidersHorizontal, Palette } from 'lucide-react'
@@ -91,24 +91,23 @@ function TaskCard({ task, onNext, nextLabel, onNavigate, epicTitle, overlay, fie
         )}
         <div className="tasks-card_actions">
           {onEditFields && fields.length > 0 && !overlay && (
-            <Button
+            <IconButton
               onClick={onEditFields}
-              className="tasks-card_fields"
               title="Edit fields"
-              aria-label={`Edit fields of ${task.title}`}
+              label={`Edit fields of ${task.title}`}
             >
               <SlidersHorizontal className="tasks-icon" />
-            </Button>
+            </IconButton>
           )}
           {onNext && !overlay && (
-            <Button
+            <IconButton
               onClick={onNext}
               className="tasks-next"
               title={`Move to ${nextLabel}`}
-              aria-label={`Move to ${nextLabel}`}
+              label={`Move to ${nextLabel}`}
             >
               <ArrowRight className="tasks-icon" />
-            </Button>
+            </IconButton>
           )}
         </div>
       </div>
@@ -480,20 +479,10 @@ export default function TasksScreen() {
       <div className="view-tasks">
         <div className="tasks-header">
           <h1 className="tasks-title">Tasks</h1>
-          <div className="tasks-tabs">
-            <Button
-              onClick={() => navigate('/tasks?view=backlog')}
-              className={classNames('tasks-tab', view === 'backlog' && 'tasks-tab--active')}
-            >
-              Backlog
-            </Button>
-            <Button
-              onClick={() => navigate('/tasks?view=kanban')}
-              className={classNames('tasks-tab', view === 'kanban' && 'tasks-tab--active')}
-            >
-              Workboard
-            </Button>
-          </div>
+          <Tabs label="Tasks view">
+            <Tab active={view === 'backlog'} onClick={() => navigate('/tasks?view=backlog')}>Backlog</Tab>
+            <Tab active={view === 'kanban'} onClick={() => navigate('/tasks?view=kanban')}>Workboard</Tab>
+          </Tabs>
           <div className="tasks-tools">
             <div className="tasks-search">
               <Search className="tasks-search_icon" />
@@ -506,6 +495,7 @@ export default function TasksScreen() {
             </div>
             {canWriteWorkspace(workspace?.role) && (
               <Button
+                variant="muted"
                 onClick={() => setShowStatuses(true)}
                 className="tasks-filter_button"
                 title="Rename and recolor the statuses"
@@ -515,6 +505,7 @@ export default function TasksScreen() {
               </Button>
             )}
             <Button
+              variant="muted"
               onClick={() => setManagingFields(true)}
               className="tasks-filter_button"
               title="Add or change the fields tasks carry, such as tags or a rating"
@@ -523,6 +514,7 @@ export default function TasksScreen() {
               Fields
             </Button>
             <Button
+              variant="muted"
               onClick={() => setShowFilters((o) => !o)}
               className={classNames('tasks-filter_button', !!(showFilters || filters.folder_id || filters.status || filters.epic_id || filters.sprint_id) && 'tasks-filter_button--active')}
             >
@@ -581,6 +573,7 @@ export default function TasksScreen() {
             </Select>
             {(filters.folder_id || filters.status || filters.epic_id || filters.sprint_id) && (
               <Button
+                variant="muted"
                 onClick={() => setFilters({})}
                 className="tasks-clear"
               >
@@ -639,6 +632,7 @@ export default function TasksScreen() {
                         </div>
                       ) : (
                         <Button
+                          variant="muted"
                           onClick={() => setAddingTo(key)}
                           className="tasks-add_button"
                         >
@@ -675,13 +669,9 @@ export default function TasksScreen() {
                   <span className="tasks-column_label">{statuses.backlog.label}</span>
                   <span className="tasks-count">{tasks.filter((t) => t.status === 'backlog').length}</span>
                 </div>
-                <Button
-                  onClick={() => setAddingTo('backlog')}
-                  className="tasks-add_icon_button"
-                  aria-label="Add task"
-                >
+                <IconButton onClick={() => setAddingTo('backlog')} label="Add task">
                   <Plus className="tasks-icon tasks-icon--md" />
-                </Button>
+                </IconButton>
               </div>
 
               {addingTo === 'backlog' && (
@@ -716,31 +706,30 @@ export default function TasksScreen() {
                     )}
                     <div className="tasks-row_actions">
                       {taskFields.length > 0 && (
-                        <Button
+                        <IconButton
                           onClick={() => setFieldsTaskId(task.id)}
                           title="Edit fields"
-                          aria-label={`Edit fields of ${task.title}`}
-                          className="tasks-row_action tasks-row_action--fields"
+                          label={`Edit fields of ${task.title}`}
                         >
                           <SlidersHorizontal className="tasks-icon" />
-                        </Button>
+                        </IconButton>
                       )}
-                      <Button
+                      <IconButton
                         onClick={() => updateTask.mutate({ id: task.id, status: 'todo' })}
                         title={`Move to ${statuses.todo.label}`}
-                        aria-label={`Move to ${statuses.todo.label}`}
-                        className="tasks-row_action tasks-row_action--start"
+                        label={`Move to ${statuses.todo.label}`}
+                        className="tasks-row_start"
                       >
                         <Play className="tasks-icon" />
-                      </Button>
-                      <Button
+                      </IconButton>
+                      <IconButton
                         onClick={() => deleteTask.mutate(task.id)}
-                        className="tasks-row_action tasks-row_action--delete"
-                        aria-label="Delete task"
+                        label="Delete task"
                         title="Delete task"
+                        tone="danger"
                       >
                         <X className="tasks-icon" />
-                      </Button>
+                      </IconButton>
                     </div>
                     <TaskFieldChips fields={taskFields} task={task} />
                   </div>

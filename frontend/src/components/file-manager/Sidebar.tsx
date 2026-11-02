@@ -1,7 +1,7 @@
 import { flattenFolders } from '@/data/folder'
 import { WorkspaceSwitcher } from '@/components/workspace/WorkspaceSwitcher'
 import { TransferHost } from '@/components/workspace/TransferDialog'
-import { Button, Input, Select, DatePicker } from '@/components/ui'
+import { Button, IconButton, Input, Select, DatePicker } from '@/components/ui'
 import './Sidebar.scss'
 import { Database } from 'lucide-react'
 import { useState, useRef, useEffect, type ComponentType } from 'react'
@@ -353,14 +353,14 @@ export default function Sidebar() {
                   >
                     <Folder className="sidebar-icon--sm sidebar-icon--muted sidebar-icon--shrink" />
                     <span className="sidebar-item_label">{folder.name}</span>
-                    <Button
+                    <IconButton
                       onClick={(e) => { e.stopPropagation(); pinFolder.mutate({ id: folder.id, pinned: false }) }}
                       className="sidebar-unpin"
                       title="Unpin"
-                      aria-label="Unpin"
+                      label="Unpin"
                     >
                       <Pin className="sidebar-icon--xs" />
-                    </Button>
+                    </IconButton>
                   </Button>
                 )
               })}
@@ -379,14 +379,14 @@ export default function Sidebar() {
                       : <FileText className="sidebar-icon--sm sidebar-icon--muted sidebar-icon--shrink" />
                     }
                     <span className="sidebar-item_label">{doc.title}</span>
-                    <Button
+                    <IconButton
                       onClick={(e) => { e.stopPropagation(); pinDocument.mutate({ id: doc.id, pinned: false }) }}
                       className="sidebar-unpin"
                       title="Unpin"
-                      aria-label="Unpin"
+                      label="Unpin"
                     >
                       <Pin className="sidebar-icon--xs" />
-                    </Button>
+                    </IconButton>
                   </Button>
                 )
               })}
@@ -461,14 +461,14 @@ export default function Sidebar() {
                     >
                       {folder.name}
                     </Button>
-                    <Button
+                    <IconButton
                       onClick={() => updateFolder.mutate({ id: folder.id, archived: false })}
                       title="Unarchive"
-                      aria-label="Unarchive"
+                      label="Unarchive"
                       className="sidebar-unarchive"
                     >
                       <ArchiveRestore className="sidebar-icon--sm" />
-                    </Button>
+                    </IconButton>
                   </div>
                 ))}
               </div>

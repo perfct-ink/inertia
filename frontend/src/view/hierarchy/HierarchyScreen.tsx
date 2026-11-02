@@ -4,7 +4,7 @@ import {
   type CollisionDetection, type DragEndEvent, type DragMoveEvent,
 } from '@dnd-kit/core'
 import { ChevronRight, Milestone as MilestoneIcon, Flag, Target, CheckSquare, Loader2, Move } from 'lucide-react'
-import { Button, classNames } from '@/components/ui'
+import { Button, IconButton, classNames } from '@/components/ui'
 import WorkspaceLayout from '@/components/WorkspaceLayout'
 import { ProgressBar } from '@/components/Timeline'
 import { donePercent } from '@/data/schedule'
@@ -90,13 +90,13 @@ function HierarchyRow({ node, depth, expanded, drop, onToggle, onMove }: {
         {...listeners}
       >
         {hasChildren ? (
-          <button
+          <IconButton
             onClick={() => onToggle(node.key)}
             className="hierarchy-toggle"
-            aria-label={isOpen ? 'Collapse' : 'Expand'}
+            label={isOpen ? 'Collapse' : 'Expand'}
           >
             <ChevronRight className={classNames('hierarchy-chevron', isOpen && 'hierarchy-chevron--open')} />
-          </button>
+          </IconButton>
         ) : (
           <span className="hierarchy-toggle_spacer" />
         )}

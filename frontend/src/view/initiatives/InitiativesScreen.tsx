@@ -1,4 +1,4 @@
-import { Button, Input, Select, DatePicker } from '@/components/ui'
+import { Button, IconButton, Input, Select, DatePicker, Tab, Tabs } from '@/components/ui'
 import { useState, useRef } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { Plus, X, Flag, Loader2 } from 'lucide-react'
@@ -41,20 +41,10 @@ export default function InitiativesScreen() {
       <div className="view-planning view-initiatives">
         <div className="planning-header">
           <h1 className="planning-title">Initiatives</h1>
-          <div className="planning-tabs">
-            <Button
-              onClick={() => navigate('/initiatives?view=list')}
-              className={`planning-tab${view === 'list' ? ' planning-tab--active' : ''}`}
-            >
-              List
-            </Button>
-            <Button
-              onClick={() => navigate('/initiatives?view=timeline')}
-              className={`planning-tab${view === 'timeline' ? ' planning-tab--active' : ''}`}
-            >
-              Timeline
-            </Button>
-          </div>
+          <Tabs label="Initiatives view">
+            <Tab active={view === 'list'} onClick={() => navigate('/initiatives?view=list')}>List</Tab>
+            <Tab active={view === 'timeline'} onClick={() => navigate('/initiatives?view=timeline')}>Timeline</Tab>
+          </Tabs>
           <Button variant="primary"
             onClick={() => setAdding(true)}
             className="planning-new"
@@ -109,13 +99,14 @@ export default function InitiativesScreen() {
                   <span className="planning-card-count">
                     {initiative.done_tasks_count}/{initiative.tasks_count} done
                   </span>
-                  <Button
+                  <IconButton
                     onClick={(e) => { e.stopPropagation(); deleteInitiative.mutate(initiative.id) }}
-                    aria-label="Delete initiative"
+                    label="Delete initiative"
+                    tone="danger"
                     className="planning-card-delete"
                   >
                     <X className="planning-delete_icon" aria-hidden="true" />
-                  </Button>
+                  </IconButton>
                 </div>
                 <div className="planning-card-dates" onClick={(e) => e.stopPropagation()}>
                   <DatePicker

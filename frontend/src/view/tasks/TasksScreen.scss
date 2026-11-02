@@ -17,24 +17,6 @@
       font-weight: 600;
     }
 
-    @at-root .tasks-tabs {
-      display: flex;
-      gap: space(1);
-    }
-
-    @at-root .tasks-tab {
-      padding: space(1) space(3);
-      white-space: nowrap;
-      border-radius: radius('md');
-      @include text('sm');
-      @include muted-link;
-
-      &--active {
-        background: color(accent);
-        color: color(foreground);
-      }
-    }
-
     // Wraps on a phone, where search plus two buttons are wider than the screen.
     @at-root .tasks-tools {
       display: flex;
@@ -84,7 +66,6 @@
       border-color: color(input);
       border-radius: radius('md');
       @include text('sm');
-      @include muted-link;
 
       &--active,
       &--active:hover {
@@ -122,7 +103,6 @@
       align-items: center;
       gap: space(1);
       @include text('xs');
-      @include muted-link;
     }
 
     @at-root .tasks-loading {
@@ -319,13 +299,8 @@
       margin-left: auto;
     }
 
-    @at-root .tasks-card_fields {
-      @include muted-link;
-    }
-
     @at-root .tasks-next {
       margin-left: auto;
-      @include muted-link;
     }
 
     @at-root .tasks-add_card {
@@ -342,7 +317,6 @@
       padding: space(1);
       border-radius: radius();
       @include text('sm');
-      @include muted-link;
     }
 
     /* ── Add task input ── */
@@ -403,10 +377,6 @@
       gap: space(2);
     }
 
-    @at-root .tasks-add_icon_button {
-      @include muted-link;
-    }
-
     @at-root .tasks-backlog_add {
       margin-bottom: space(2);
       padding: 0 space(1);
@@ -449,20 +419,9 @@
       @include reveal-on-hover;
     }
 
-    @at-root .tasks-row_action {
-      color: color(muted-foreground);
-
-      &--fields:hover {
-        color: color(foreground);
-      }
-
-      &--start:hover {
-        color: palette('blue-500');
-      }
-
-      &--delete:hover {
-        color: palette('red-500');
-      }
+    // The start button's hover is blue; the other row actions are ui IconButtons.
+    @at-root .tasks-row_start:hover {
+      color: palette('blue-500');
     }
 
     @at-root .tasks-empty {

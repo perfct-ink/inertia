@@ -18,29 +18,8 @@
       font-weight: 600;
     }
 
-    @at-root .resources-tabs {
-      display: flex;
-      gap: space(1);
-    }
-
     @at-root .resources-tab {
       min-height: space(10);
-      padding: space(1) space(3);
-      border-radius: radius('md');
-      color: color(muted-foreground);
-      white-space: nowrap;
-      @include text('sm');
-
-      &:hover {
-        background: color(accent, 0.5);
-        color: color(foreground);
-      }
-
-      &--active,
-      &--active:hover {
-        background: color(accent);
-        color: color(foreground);
-      }
     }
 
     @at-root .resources-nav {

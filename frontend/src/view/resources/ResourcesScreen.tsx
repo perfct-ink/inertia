@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { ChevronLeft, ChevronRight, Loader2, TriangleAlert, Users } from 'lucide-react'
-import { Button } from '@/components/ui'
+import { Button, Tab, Tabs } from '@/components/ui'
 import WorkspaceLayout from '@/components/WorkspaceLayout'
 import { useResourceAllocations } from '@/api/resourceAllocations'
 import { useWorkspace } from '@/api/workspace'
@@ -54,18 +54,13 @@ export default function ResourcesScreen() {
       <div className="view-resources">
         <div className="resources-header">
           <h1 className="resources-title">Resources</h1>
-          <div className="resources-tabs" role="group" aria-label="Group by">
+          <Tabs label="Group by">
             {([['people', 'People'], ['projects', 'Projects']] as const).map(([value, label]) => (
-              <Button
-                key={value}
-                aria-pressed={tab === value}
-                onClick={() => setTab(value)}
-                className={`resources-tab${tab === value ? ' resources-tab--active' : ''}`}
-              >
+              <Tab key={value} active={tab === value} onClick={() => setTab(value)} className="resources-tab">
                 {label}
-              </Button>
+              </Tab>
             ))}
-          </div>
+          </Tabs>
           <div className="resources-nav" role="group" aria-label="Weeks shown">
             <Button variant="secondary" aria-label="Earlier weeks" onClick={() => setOffset(offset - 4)}>
               <ChevronLeft className="resources-icon" aria-hidden="true" />
