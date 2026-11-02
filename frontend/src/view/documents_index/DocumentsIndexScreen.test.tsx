@@ -5,7 +5,7 @@ import DocumentsIndexScreen from './DocumentsIndexScreen'
 jest.mock('@/components/WorkspaceLayout', () => function LayoutMock({ children }: { children: React.ReactNode }) { return <div>{children}</div> })
 jest.mock('@/components/CreateItem', () => function CreateItemMock() { return null })
 jest.mock('react-router-dom', () => ({ useNavigate: () => jest.fn() }))
-jest.mock('@/api/workspaces', () => ({
+jest.mock('@/api/workspaceMembers', () => ({
   useWorkspaceMembers: () => ({ data: [{ user_id: 7, user: { id: 7, name: 'Sam' } }, { user_id: 8, user: { id: 8, name: 'Kim' } }] }),
 }))
 const doc = (id: number, title: string, doc_type: string, created_by_id: number) =>
