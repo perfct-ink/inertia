@@ -9,12 +9,14 @@ import { usePageTitle } from '@/hooks/usePageTitle'
 import { useAuthStore } from '@/store/auth'
 import type { Task } from '@/types'
 import '../planning/PlanningScreen.scss'
+import { usePaths } from '@/hooks/usePaths'
 
 const STATUSES: Task['status'][] = ['backlog', 'todo', 'in_progress', 'in_review', 'done']
 
 // Everything assigned to me in this Space that isn't done, grouped by when it's
 // due (overdue, today, this week, later, no date).
 export default function MyWorkScreen() {
+  const paths = usePaths()
   usePageTitle('My work')
   const userId = useAuthStore((s) => s.user?.id)
   const { data: tasks = [], isLoading } = useTasks()
@@ -46,7 +48,7 @@ export default function MyWorkScreen() {
                     <li key={task.id} className="planning-card-dates">
                       <span>{task.title}</span>
                       {task.due_date && <span className="planning-date">{format(parseISO(task.due_date), 'MMM d')}</span>}
-                      {task.document && <Link to={`/documents/${task.document.id}`} className="planning-initiative">{task.document.title}</Link>}
+                      {task.document && <Link to={paths.document(task.document)} className="planning-initiative">{task.document.title}</Link>}
                       <Select
                         aria-label={`Status of ${task.title}`}
                         value={task.status}

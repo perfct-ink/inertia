@@ -19,7 +19,10 @@ module PathResolver
     Folder.find_by(parent_id: folder.id, slug: segments.last) || Document.find_by(folder_id: folder.id, slug: segments.last)
   end
 
+  # An item that moved to another Space keeps its old alias rows, but those
+  # paths must not lead there, so the target has to still be in this Space.
   def aliased(workspace, segments)
-    PathAlias.find_by(workspace_id: workspace.id, path: Slug.join(segments))&.target
+    target = PathAlias.find_by(workspace_id: workspace.id, path: Slug.join(segments))&.target
+    target if target&.slug_workspace_id == workspace.id
   end
 end

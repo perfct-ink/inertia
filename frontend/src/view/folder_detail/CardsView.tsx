@@ -5,6 +5,7 @@ import { taskCards } from '@/data/task'
 import { todayISO } from '@/util/date'
 import { ProgressBar } from '@/components/Timeline'
 import './CardsView.scss'
+import { usePaths } from '@/hooks/usePaths'
 
 const STATUS_LABEL: Record<Task['status'], string> = {
   backlog: 'Backlog', todo: 'To Do', in_progress: 'In Progress', in_review: 'In Review', done: 'Done',
@@ -13,13 +14,14 @@ const STATUS_LABEL: Record<Task['status'], string> = {
 // A gallery of the folder's tasks as cards: title, status, due date, epic and
 // subtask progress. Each card opens the document the task lives in.
 export default function CardsView({ tasks, epics }: { tasks: Task[]; epics: Epic[] }) {
+  const paths = usePaths()
   const cards = taskCards(tasks, epics, todayISO())
   if (cards.length === 0) return <p className="cards_view-empty view-cards_view--empty">No tasks yet. Add a checklist item in a document to see it here.</p>
   return (
     <div className="view-cards_view" role="list" aria-label="Task cards">
       {cards.map(({ task, epicTitle, subtasks, overdue }) => (
         <div key={task.id} role="listitem" className="cards_view-item">
-        <Link to={`/documents/${task.document_id}`} className={`cards_view-card cards_view-card--${task.status}`}>
+        <Link to={paths.document(task.document_id)} className={`cards_view-card cards_view-card--${task.status}`}>
           <span className="cards_view-status">{STATUS_LABEL[task.status]}</span>
           <h2 className="cards_view-title">{task.title}</h2>
           {epicTitle && <span className="cards_view-epic">{epicTitle}</span>}

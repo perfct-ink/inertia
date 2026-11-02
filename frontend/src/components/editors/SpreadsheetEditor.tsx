@@ -5,6 +5,7 @@ import { Loader2 } from 'lucide-react'
 import WorkspaceLayout from '@/components/WorkspaceLayout'
 import { useDocument, useUpdateDocument } from '@/api/documents'
 import { useTabsStore } from '@/store/tabs'
+import { usePaths } from '@/hooks/usePaths'
 import type { Sheet } from '@fortune-sheet/core'
 
 const EMPTY_SHEETS: Sheet[] = [
@@ -27,12 +28,13 @@ export default function SpreadsheetEditor({ docId }: { docId: number }) {
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
   const pendingRef = useRef<Sheet[] | null>(null)
   const { openTab } = useTabsStore()
+  const paths = usePaths()
 
   useEffect(() => {
     if (!doc) return
     openTab({
       id: String(doc.id),
-      path: `/documents/${doc.id}`,
+      path: paths.document(doc),
       title: doc.title || 'Untitled',
       docType: 'spreadsheet',
     })

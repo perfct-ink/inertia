@@ -24,6 +24,7 @@ import { useInitiatives } from '@/api/initiatives'
 import type { Document, Task, WorkspaceEvent, Epic } from '@/types'
 import './FolderDetailScreen.scss'
 import { usePageTitle } from '@/hooks/usePageTitle'
+import { usePaths } from '@/hooks/usePaths'
 import { useBoardStatuses } from '@/hooks/useBoardStatuses'
 import { StatusSettings } from '@/components/workspace/StatusSettings'
 import { donePercent, milestoneMarkers } from '@/data/schedule'
@@ -247,9 +248,10 @@ function CalendarView({ events }: { events: WorkspaceEvent[] }) {
 // whether this section has any data, since Overview doubles as the
 // navigation hub for "every other way to look at this folder."
 function ViewLink({ folderId, view, label, navigate }: { folderId: number; view: string; label: string; navigate: (path: string) => void }) {
+  const paths = usePaths()
   return (
     <Button
-      onClick={() => navigate(`/folders/${folderId}?view=${view}`)}
+      onClick={() => navigate(`${paths.folder(folderId)}?view=${view}`)}
       className="folder_detail-subtle"
     >
       {label} →
@@ -267,6 +269,7 @@ function OverviewView({
   events: WorkspaceEvent[]
   navigate: (path: string) => void
 }) {
+  const paths = usePaths()
   const todayStr = format(new Date(), 'yyyy-MM-dd')
   const upcomingEvents = events.filter((e) => e.date >= todayStr).slice(0, 5)
   const openTasks = tasks.filter((t) => t.status !== 'done')
@@ -284,7 +287,7 @@ function OverviewView({
               {documents.map((doc) => (
                 <Link
                   key={doc.id}
-                  to={`/documents/${doc.id}`}
+                  to={paths.document(doc)}
                   className="folder_detail-doc"
                 >
                   {doc.doc_type === 'table'
@@ -374,10 +377,13 @@ function OverviewView({
 
 // ── Page ──────────────────────────────────────────────────────────────────────
 
-export default function FolderDetailScreen() {
-  const { id } = useParams<{ id: string }>()
-  const folderId = Number(id)
+// `id` comes from ItemRoute (the page's address names the folder); without it
+// the id is read from a /folders/:id route.
+export default function FolderDetailScreen({ id }: { id?: number }) {
+  const params = useParams<{ id: string }>()
+  const folderId = id ?? Number(params.id)
   const navigate = useNavigate()
+  const paths = usePaths()
   const [searchParams] = useSearchParams()
   const view = VIEWS.find((v) => v.key === searchParams.get('view'))?.key ?? 'overview'
 
@@ -416,7 +422,7 @@ export default function FolderDetailScreen() {
             {VIEWS.map(({ key, label, icon: Icon }) => (
               <Button
                 key={key}
-                onClick={() => navigate(`/folders/${folderId}?view=${key}`)}
+                onClick={() => navigate(`${paths.folder(folderId)}?view=${key}`)}
                 className={classNames('folder_detail-subtle folder_detail-tab', view === key && 'folder_detail-tab--active')}
               >
                 <Icon className="folder_detail-icon--sm" />
@@ -454,7 +460,7 @@ export default function FolderDetailScreen() {
             {documents.map((doc) => (
               <Link
                 key={doc.id}
-                to={`/documents/${doc.id}`}
+                to={paths.document(doc)}
                 className="folder_detail-doc folder_detail-doc--chip"
               >
                 {doc.doc_type === 'table'

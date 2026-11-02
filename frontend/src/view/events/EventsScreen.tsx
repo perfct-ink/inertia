@@ -21,6 +21,7 @@ import { usePageTitle } from '@/hooks/usePageTitle'
 import { dateStatus, todayISO } from '@/util/date'
 import { useStatusesForFolder } from '@/hooks/useBoardStatuses'
 import { taskFolderId } from '@/data/task'
+import { usePaths } from '@/hooks/usePaths'
 
 // A task's status dot, in the colors its own folder's board gives that status.
 function TaskStatusDot({ task }: { task: Task }) {
@@ -113,6 +114,7 @@ function EventSidebar({ state, onClose }: { state: SidebarState; onClose: () => 
   }, [!!state])
 
   const navigate = useNavigate()
+  const paths = usePaths()
   const createEvent = useCreateEvent()
   const deleteEvent = useDeleteEvent()
   const addTask = useAddTaskToEvent()
@@ -294,7 +296,7 @@ function EventSidebar({ state, onClose }: { state: SidebarState; onClose: () => 
                 <TaskStatusDot task={task} />
                 <span
                   className="events-task-title"
-                  onClick={() => task.document_id && navigate(`/documents/${task.document_id}`)}
+                  onClick={() => task.document_id && navigate(paths.document(task.document_id))}
                 >
                   {task.title}
                 </span>

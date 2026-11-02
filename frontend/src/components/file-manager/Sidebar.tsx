@@ -1,4 +1,6 @@
 import { flattenFolders } from '@/data/folder'
+import { idPath } from '@/data/path'
+import { usePaths } from '@/hooks/usePaths'
 import { WorkspaceSwitcher } from '@/components/workspace/WorkspaceSwitcher'
 import { TransferHost } from '@/components/workspace/TransferDialog'
 import { Button, Input, Select, DatePicker } from '@/components/ui'
@@ -74,6 +76,7 @@ function RailButton({ icon: Icon, label, active, onClick }: {
 export default function Sidebar() {
   const navigate = useNavigate()
   const location = useLocation()
+  const paths = usePaths()
   const { data: workspace, isLoading } = useWorkspace()
   const createFolder = useCreateFolder()
   const createDocument = useCreateDocument()
@@ -223,11 +226,10 @@ export default function Sidebar() {
   // The folder the user is "in": the open folder page, or the folder of the
   // open document. Falls back to the workspace root on any other page.
   function scopeFolderId() {
-    const folderMatch = location.pathname.match(/^\/folders\/(\d+)/)
-    if (folderMatch) return Number(folderMatch[1])
-    const docMatch = location.pathname.match(/^\/documents\/(\d+)/)
-    if (docMatch) {
-      const folder = flattenFolders(workspace?.folders ?? []).find((f) => f.documents?.some((d) => d.id === Number(docMatch[1])))
+    const item = paths.itemAt(location.pathname)
+    if (item?.type === 'folder') return item.id
+    if (item?.type === 'document') {
+      const folder = flattenFolders(workspace?.folders ?? []).find((f) => f.documents?.some((d) => d.id === item.id))
       if (folder) return folder.id
     }
     return undefined
@@ -244,7 +246,7 @@ export default function Sidebar() {
       if (!folderId) throw new Error('The space root is unavailable. Please try again.')
       const title = type === 'document' ? 'Untitled' : type === 'table' ? 'Untitled Collection' : 'Untitled Sheet'
       const doc = await createDocument.mutateAsync({ folderId, title, doc_type: type })
-      navigate(`/documents/${doc.id}`)
+      navigate(idPath({ type: 'document', id: doc.id }))
     } catch (error) {
       setCreationError(errorMessage(error))
     } finally {
@@ -261,7 +263,7 @@ export default function Sidebar() {
   const pinnedFolders = allFolders.filter((f) => f.pinned)
   const hasPinned = pinnedDocs.length > 0 || pinnedFolders.length > 0
 
-  const isDocumentsSection = location.pathname === '/' || location.pathname.startsWith('/documents')
+  const isDocumentsSection = location.pathname === '/' || location.pathname.startsWith('/documents') || paths.itemAt(location.pathname)?.type === 'document'
 
   return (
     <>
@@ -348,7 +350,7 @@ export default function Sidebar() {
                 return (
                   <Button
                     key={folder.id}
-                    onClick={() => firstDoc && navigate(`/documents/${firstDoc.id}`)}
+                    onClick={() => firstDoc && navigate(paths.document(firstDoc))}
                     className="sidebar-pinned_item"
                   >
                     <Folder className="sidebar-icon--sm sidebar-icon--muted sidebar-icon--shrink" />
@@ -365,11 +367,11 @@ export default function Sidebar() {
                 )
               })}
               {pinnedDocs.map((doc) => {
-                const active = location.pathname === `/documents/${doc.id}`
+                const active = location.pathname === paths.document(doc)
                 return (
                   <Button
                     key={doc.id}
-                    onClick={() => navigate(`/documents/${doc.id}`)}
+                    onClick={() => navigate(paths.document(doc))}
                     className={`sidebar-pinned_item${active ? ' sidebar-pinned_item--active' : ''}`}
                   >
                     {doc.doc_type === 'table'
@@ -456,7 +458,7 @@ export default function Sidebar() {
                   <div key={folder.id} className="sidebar-archived_row">
                     <Folder className="sidebar-icon--sm sidebar-icon--muted sidebar-icon--shrink" />
                     <Button
-                      onClick={() => navigate(`/folders/${folder.id}`)}
+                      onClick={() => navigate(paths.folder(folder.id))}
                       className="sidebar-archived_open"
                     >
                       {folder.name}

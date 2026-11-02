@@ -2,6 +2,7 @@ import { useNavigate } from 'react-router-dom'
 import { useWorkspace } from '@/api/workspace'
 import { useCreateDocument } from '@/api/documents'
 import { untitledTitle } from '@/data/document'
+import { idPath } from '@/data/path'
 import type { Document } from '@/types'
 
 // Creates an untitled document of a type (in a folder, else the Space's Root)
@@ -14,6 +15,6 @@ export function useNewDocument() {
     const target = folderId ?? workspace?.root_folder_id ?? workspace?.folders?.[0]?.id
     if (!target) throw new Error('The space root is unavailable. Please try again.')
     const doc = await create.mutateAsync({ folderId: target, title: untitledTitle(type), doc_type: type })
-    navigate(`/documents/${doc.id}`)
+    navigate(idPath({ type: 'document', id: doc.id }))
   }
 }

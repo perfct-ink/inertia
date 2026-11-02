@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
 import { allocationPeriod, formatHours, weekLabel } from '@/data/resource'
 import type { PersonLoad, ProjectLoad } from '@/data/resource'
+import { usePaths } from '@/hooks/usePaths'
 
 type ProjectCardProps = {
   project: ProjectLoad
@@ -11,12 +12,13 @@ type ProjectCardProps = {
 
 // One project: the hours allocated to it in each visible week and who is on it.
 export default function ProjectCard({ project, name, people }: ProjectCardProps) {
+  const paths = usePaths()
   const personName = (userId: number) => people.find((p) => p.userId === userId)?.name ?? 'Former member'
   return (
     <section className="resources-card" aria-labelledby={`resources-project-${project.folderId}`}>
       <div className="resources-card-top">
         <h2 id={`resources-project-${project.folderId}`} className="resources-card-title">
-          <Link to={`/folders/${project.folderId}`} className="resources-link">{name}</Link>
+          <Link to={paths.folder(project.folderId)} className="resources-link">{name}</Link>
         </h2>
       </div>
 

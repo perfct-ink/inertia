@@ -21,7 +21,7 @@ module Slug
     login signup logout shared invite
     space workspace documents folders
     tasks events epics initiatives milestones sprints roadmap okrs hierarchy projects
-    my-work portfolio calendar timeline releases inbox ideas workload pivot
+    my-work portfolio calendar timeline releases inbox ideas workload pivot resources
     task-table sprint-board project-requests plan objectives-map
     features pricing about robots sitemap
     settings search dashboard dashboards notifications teams reports files new

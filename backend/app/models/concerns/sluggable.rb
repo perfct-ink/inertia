@@ -40,6 +40,11 @@ module Sluggable
     public_send(slug_parent_association)
   end
 
+  # The Space this item is in, through its parent folder.
+  def slug_workspace_id
+    slug_parent&.workspace_id
+  end
+
   # The slugs from just under the Root down to this item.
   def path_segments
     parent = slug_parent
@@ -96,7 +101,8 @@ module Sluggable
   def remember_previous_paths(workspace_id, entries)
     old_parent = Folder.find_by(id: attribute_before_last_save(self.class.slug_parent_key))
     old_slug = slug_before_last_save
-    return if old_parent.nil? || old_slug.blank?
+    # Aliases are per Space, so an item moved to another Space leaves none behind.
+    return if old_parent.nil? || old_slug.blank? || old_parent.workspace_id != workspace_id
     old_location = old_parent.path_segments + [ old_slug ]
     own_length = entries.first.last.length
     PathAlias.remember(workspace_id, entries.map { |record, segments| [ record, old_location + segments.drop(own_length) ] })

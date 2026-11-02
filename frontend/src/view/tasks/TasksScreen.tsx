@@ -43,6 +43,7 @@ import { useBoardStatuses } from '@/hooks/useBoardStatuses'
 import { StatusSettings } from '@/components/workspace/StatusSettings'
 import { BOARD_STATUSES, NEXT_STATUS, TASK_STATUSES, nextStatusLabel } from '@/data/task_status'
 import { flattenFolders } from '@/data/folder'
+import { usePaths } from '@/hooks/usePaths'
 
 function isColumnId(id: UniqueIdentifier): id is TaskStatus {
   return BOARD_STATUSES.includes(id as TaskStatus)
@@ -320,6 +321,7 @@ function AddTaskInput({ onAdd, onCancel, epics, sprints, milestones }: AddTaskIn
 // ── Page ──────────────────────────────────────────────────────────────────────
 
 export default function TasksScreen() {
+  const paths = usePaths()
   usePageTitle('Tasks')
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
@@ -621,7 +623,7 @@ export default function TasksScreen() {
                           task={task}
                           onNext={NEXT_STATUS[task.status] ? () => updateTask.mutate({ id: task.id, status: NEXT_STATUS[task.status]! }) : null}
                           nextLabel={nextStatusLabel(statuses, task.status)}
-                          onNavigate={() => navigate(`/documents/${task.document_id}`)}
+                          onNavigate={() => navigate(paths.document(task.document_id))}
                           epicTitle={task.epic_id ? epicById.get(task.epic_id)?.title : undefined}
                           fields={taskFields}
                           onEditFields={() => setFieldsTaskId(task.id)}
@@ -708,7 +710,7 @@ export default function TasksScreen() {
                     )}
                     {task.document && (
                       <Button
-                        onClick={() => navigate(`/documents/${task.document_id}`)}
+                        onClick={() => navigate(paths.document(task.document_id))}
                         className="tasks-doc_link tasks-doc_link--row"
                       >
                         {task.document.title}
