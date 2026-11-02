@@ -7,6 +7,7 @@ class Folder < ApplicationRecord
   has_many :events, dependent: :destroy
   has_many :epics, dependent: :nullify
   has_many :shares, as: :shareable, dependent: :destroy
+  has_many :resource_allocations, dependent: :destroy
 
   # A project is a folder of docs shown on the Projects screen.
   enum :kind, { folder: 0, project: 1 }, scopes: false

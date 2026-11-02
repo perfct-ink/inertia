@@ -17,6 +17,7 @@ import HierarchyScreen from '@/view/hierarchy/HierarchyScreen'
 import RoadmapScreen from '@/view/roadmap/RoadmapScreen'
 import OkrsScreen from '@/view/okrs/OkrsScreen'
 import SprintBoardScreen from '@/view/sprint_board/SprintBoardScreen'
+import ResourcesScreen from '@/view/resources/ResourcesScreen'
 import ProjectsScreen from '@/view/projects/ProjectsScreen'
 import FolderDetailScreen from '@/view/folder_detail/FolderDetailScreen'
 import SharedScreen from '@/view/shared/SharedScreen'
@@ -152,6 +153,14 @@ export default function App() {
           element={
             <PrivateRoute>
               <OkrsScreen />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/resources"
+          element={
+            <PrivateRoute>
+              <ResourcesScreen />
             </PrivateRoute>
           }
         />
