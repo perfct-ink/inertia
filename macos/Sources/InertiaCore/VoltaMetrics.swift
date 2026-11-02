@@ -33,6 +33,7 @@ public enum VoltaMetrics {
     public struct Padding: Equatable {
         public let horizontal: Double
         public let vertical: Double
+        public init(horizontal: Double, vertical: Double) { self.horizontal = horizontal; self.vertical = vertical }
     }
 }
 
