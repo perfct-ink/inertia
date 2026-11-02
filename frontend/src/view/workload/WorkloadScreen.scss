@@ -1,0 +1,43 @@
+@use 'tokens' as *;
+
+@layer view {
+  .view-workload {
+    @at-root .workload-table {
+      border-collapse: collapse;
+      @include text('sm');
+
+      th,
+      td {
+        padding: space(1.5) space(3);
+        border-width: 1px;
+        text-align: right;
+        font-variant-numeric: tabular-nums;
+      }
+
+      th[scope='row'],
+      thead th:first-child {
+        text-align: left;
+      }
+    }
+
+    @at-root .workload-cell--over {
+      background: palette('red-500', 0.12);
+      font-weight: 600;
+    }
+
+    @at-root .workload-warning {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: space(1);
+      color: palette('red-500');
+      font-weight: 400;
+      @include text('xs');
+    }
+
+    @at-root .workload-icon {
+      width: space(3);
+      height: space(3);
+    }
+  }
+}

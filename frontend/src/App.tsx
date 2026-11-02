@@ -26,6 +26,7 @@ import IoMapScreen from '@/view/io_map/IoMapScreen'
 import CalendarScreen from '@/view/calendar/CalendarScreen'
 import PivotScreen from '@/view/pivot/PivotScreen'
 import TaskTableScreen from '@/view/task_table/TaskTableScreen'
+import WorkloadScreen from '@/view/workload/WorkloadScreen'
 import FolderDetailScreen from '@/view/folder_detail/FolderDetailScreen'
 import SharedScreen from '@/view/shared/SharedScreen'
 import AppearanceEffect from '@/components/AppearanceEffect'
@@ -161,6 +162,14 @@ export default function App() {
           element={
             <PrivateRoute>
               <RoadmapScreen />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/workload"
+          element={
+            <PrivateRoute>
+              <WorkloadScreen />
             </PrivateRoute>
           }
         />

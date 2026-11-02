@@ -1,6 +1,6 @@
 import type { ComponentType } from 'react'
 import {
-  CalendarDays, CalendarRange, CheckSquare, Flag, GanttChart, Goal, Lightbulb, ListTree, Map as MapIcon,
+  CalendarDays, CalendarRange, CheckSquare, Flag, Gauge, GanttChart, Goal, Lightbulb, ListTree, Map as MapIcon,
   Milestone, Network, Rocket, Rows3, Table2, Target, UserCheck, Users,
 } from 'lucide-react'
 
@@ -45,6 +45,7 @@ export const SECTION_GROUPS: { heading: string | null; sections: Section[] }[] =
   ] },
   { heading: 'Delivery', sections: [
     { label: 'Resources', path: '/resources', icon: Users },
+    { label: 'Workload', path: '/workload', icon: Gauge, sharedOnly: true },
   ] },
 ]
 
