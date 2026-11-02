@@ -3,7 +3,7 @@ import { NodeViewWrapper, NodeViewContent, type NodeViewProps } from '@tiptap/re
 import { format, parseISO } from 'date-fns'
 import { CalendarDays } from 'lucide-react'
 import { useTasks, useUpdateTask } from '@/api/tasks'
-import { Button, Input } from '@/components/ui'
+import { Button, DatePicker } from '@/components/ui'
 import './WorkspaceTaskItemView.scss'
 
 const STATUS_DOT: Record<string, string> = {
@@ -23,8 +23,7 @@ function DueDateControl({ taskId, dueDate }: { taskId: number; dueDate: string |
 
   if (editing) {
     return (
-      <Input
-        type="date"
+      <DatePicker
         autoFocus
         defaultValue={dueDate ?? ''}
         contentEditable={false}

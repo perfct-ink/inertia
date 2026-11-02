@@ -1,6 +1,7 @@
 export { Button, ButtonLink } from './Button'
 export { AttachmentCard } from './AttachmentCard'
 export { Input } from './Input'
+export { DatePicker } from './DatePicker'
 export { Select } from './Select'
 export { Textarea } from './Textarea'
 export { FormError } from './FormError'

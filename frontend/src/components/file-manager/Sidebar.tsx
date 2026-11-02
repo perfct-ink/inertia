@@ -1,6 +1,6 @@
 import { flattenFolders } from '@/data/folder'
 import { WorkspaceSwitcher } from '@/components/workspace/WorkspaceSwitcher'
-import { Button, Input, Select } from '@/components/ui'
+import { Button, Input, Select, DatePicker } from '@/components/ui'
 import './Sidebar.scss'
 import { Database } from 'lucide-react'
 import { useState, useRef, useEffect, type ComponentType } from 'react'
@@ -697,8 +697,7 @@ export default function Sidebar() {
 
             <label className="sidebar-inline_field">
               {quickAddType === 'task' ? 'Due date' : 'Date'}
-              <Input
-                type="date"
+              <DatePicker
                 value={quickAddDate}
                 onChange={(e) => setQuickAddDate(e.target.value)}
                 className="sidebar-input sidebar-input--compact"

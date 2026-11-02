@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react'
 import { Plus, X, Milestone as MilestoneIcon, Loader2 } from 'lucide-react'
-import { Button, HealthBadge, Input, Select } from '@/components/ui'
+import { Button, HealthBadge, Input, Select, DatePicker } from '@/components/ui'
 import WorkspaceLayout from '@/components/WorkspaceLayout'
 import { ProgressBar } from '@/components/Timeline'
 import { useMilestones, useCreateMilestone, useUpdateMilestone, useDeleteMilestone } from '@/api/milestones'
@@ -77,8 +77,7 @@ export default function MilestonesScreen() {
                 <div className="milestones-card-fields">
                   <label className="milestones-field">
                     <span>Target date</span>
-                    <Input
-                      type="date"
+                    <DatePicker
                       value={milestone.target_date ?? ''}
                       onChange={(e) => updateMilestone.mutate({ id: milestone.id, target_date: e.target.value || null })}
                       className="milestones-date"

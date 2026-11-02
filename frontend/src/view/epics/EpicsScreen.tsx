@@ -1,4 +1,4 @@
-import { Button, Input, Select } from '@/components/ui'
+import { Button, Input, Select, DatePicker } from '@/components/ui'
 import { useState, useRef } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { Plus, X, Target, Loader2, ListChecks } from 'lucide-react'
@@ -145,15 +145,13 @@ export default function EpicsScreen() {
                   </Button>
                 </div>
                 <div className="planning-card-dates" onClick={(e) => e.stopPropagation()}>
-                  <Input
-                    type="date"
+                  <DatePicker
                     value={epic.start_date ?? ''}
                     onChange={(e) => updateEpic.mutate({ id: epic.id, start_date: e.target.value || null })}
                     className="planning-date"
                   />
                   <span>&rarr;</span>
-                  <Input
-                    type="date"
+                  <DatePicker
                     value={epic.target_date ?? ''}
                     onChange={(e) => updateEpic.mutate({ id: epic.id, target_date: e.target.value || null })}
                     className="planning-date"

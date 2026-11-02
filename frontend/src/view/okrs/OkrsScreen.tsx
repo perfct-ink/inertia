@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react'
 import { Goal, Loader2, Plus, X } from 'lucide-react'
-import { Button, FormError, HealthBadge, Input, Select } from '@/components/ui'
+import { Button, FormError, HealthBadge, Input, Select, DatePicker } from '@/components/ui'
 import WorkspaceLayout from '@/components/WorkspaceLayout'
 import { ProgressBar } from '@/components/Timeline'
 import {
@@ -96,16 +96,14 @@ function ObjectiveCard({ objective, initiatives }: { objective: Objective; initi
       </div>
 
       <div className="okrs-period">
-        <Input
-          type="date"
+        <DatePicker
           aria-label="Period start"
           value={objective.start_date ?? ''}
           onChange={(e) => updateObjective.mutate({ id: objective.id, start_date: e.target.value || null })}
           className="okrs-date"
         />
         <span aria-hidden="true">&rarr;</span>
-        <Input
-          type="date"
+        <DatePicker
           aria-label="Period end"
           value={objective.target_date ?? ''}
           onChange={(e) => updateObjective.mutate({ id: objective.id, target_date: e.target.value || null })}
