@@ -24,5 +24,5 @@ Scoped to the current Space. I did not check role-based limits on changing `kind
 - The "Make Project" menu entry has no test.
 
 ## History
-- Implemented 2026-10-15 to 2026-10-18. Committed locally; not pushed or deployed.
+- Implemented 2026-10-15 to 2026-10-18. On `main` (pushed); whether Coolify deployed it was not checked in the rules audit of 2026-11-02.
 - Not verified: lint, type-check, tests, migration and the screens were not run (no dependencies installed, no network).

@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Disc3, Loader2, Plus, X } from 'lucide-react'
-import { Button, Input, Select } from '@/components/ui'
+import { Button, Input, Select, DatePicker } from '@/components/ui'
 import WorkspaceLayout from '@/components/WorkspaceLayout'
 import { ProgressBar } from '@/components/Timeline'
 import {
@@ -90,8 +90,7 @@ function ReleaseCard({ release, songs }: { release: Release; songs: Document[] }
         <Select aria-label="Kind" value={release.kind} onChange={(e) => update.mutate({ id: release.id, kind: e.target.value as ReleaseKind })}>
           {RELEASE_KINDS.map((k) => <option key={k.value} value={k.value}>{k.label}</option>)}
         </Select>
-        <Input
-          type="date"
+        <DatePicker
           aria-label="Release date"
           value={release.release_date ?? ''}
           onChange={(e) => update.mutate({ id: release.id, release_date: e.target.value || null })}

@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react'
-import { Button, FormError, Input, Select, Textarea } from '@/components/ui'
+import { Button, FormError, Input, Select, Textarea, DatePicker } from '@/components/ui'
 import {
   PROJECT_REQUEST_PRIORITIES,
   PROJECT_REQUEST_PRIORITY_LABEL,
@@ -66,11 +66,11 @@ export default function ProjectRequestForm({ initial, submitLabel, busy, onSubmi
       <div className="project_requests-form-row">
         <label className="project_requests-field">
           <span>Start date</span>
-          <Input type="date" value={draft.start_date} onChange={(e) => set('start_date', e.target.value)} />
+          <DatePicker value={draft.start_date} onChange={(e) => set('start_date', e.target.value)} />
         </label>
         <label className="project_requests-field">
           <span>Target date</span>
-          <Input type="date" value={draft.target_date} onChange={(e) => set('target_date', e.target.value)} />
+          <DatePicker value={draft.target_date} onChange={(e) => set('target_date', e.target.value)} />
         </label>
         <label className="project_requests-field">
           <span>Priority</span>

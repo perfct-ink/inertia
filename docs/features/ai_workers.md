@@ -28,5 +28,5 @@ The foundation supports multiple named workers per Space. The product spec (Alex
 No model adapter, no UI, no cost limits, no retry or cancel, and runs stuck in `running` after a restart are not cleaned up. Task text would be sent to Anthropic once connected.
 
 ## History
-- Implemented 2026-10-18 (foundation only). Committed locally; not pushed or deployed.
+- Implemented 2026-10-18 (foundation only). On `main` (pushed); whether Coolify deployed it was not checked in the rules audit of 2026-11-02.
 - Not verified: the tests were not run (no gems installed), the migration was not run, and no real model call was made.

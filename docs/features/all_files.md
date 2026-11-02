@@ -21,7 +21,7 @@ Anyone who can open the Space sees the list. The page changes nothing itself.
 - Archived folders are not filtered by `spaceFiles`; I did not check whether the Space payload already omits them.
 
 ## History
-- Implemented 2026-10-15 to 2026-10-18. Committed locally; not pushed or deployed.
+- Implemented 2026-10-15 to 2026-10-18. On `main` (pushed); whether Coolify deployed it was not checked in the rules audit of 2026-11-02.
 - Not verified: lint, type-check, tests and the screen were not run (no dependencies installed, no network).
 - Filters added 2026-10-19 on branch `backlog/filter-all-files-by-project-type-and-owner`, not merged. "Owner" means creator; there is no separate owner field. Not verified: lint, type-check, tests and the browser did not run (no node_modules).
 

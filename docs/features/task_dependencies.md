@@ -40,7 +40,7 @@ Folder page, Gantt tab.
 - Creating, changing or removing a link never moves any dates, whatever the mode.
 
 ## History
-- Implemented 2026-10-17 (links, arrows, editor, critical path). Committed locally; not pushed or deployed.
+- Implemented 2026-10-17 (links, arrows, editor, critical path). On `main` (pushed); whether Coolify deployed it was not checked in the rules audit of 2026-11-02.
 - Not implemented: drawing a link by dragging.
 - 2026-11-01 (branch `backlog/dependency-modes-server-enforcement`, not deployed): links are now also read on the server when a task's dates are saved; see the History in [gantt_scheduling.md](gantt_scheduling.md).
 - Drag to link added 2026-10-19 on branch `backlog/gantt-drag-to-link-dependencies`, not merged; lint, type-check, frontend tests and the browser did not run (no node_modules), so the drag was never tried in a real browser.

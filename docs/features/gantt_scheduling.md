@@ -31,11 +31,7 @@ Everything is scoped to the current Space. Task and epic updates need the member
 - The roadmap uses the same `Timeline` but keeps its own lanes (`roadmapLanes`) and is read-only.
 
 ## Tests
-<<<<<<< HEAD
-`data/schedule.test.ts` (grouping, `shiftedRange`), `data/dependency.test.ts` (`planReschedule`, including pulling earlier), `view/folder_detail/GanttPane.reschedule.test.tsx` (strict refusal in the browser, shifted tasks saved, server refusal shown), `backend/test/models/folder_test.rb` (mode default and values), `backend/test/services/scheduling/dependency_planner_test.rb` (the rules; no Rails needed), `backend/test/controllers/tasks_controller_test.rb` (strict refusal, push, pull, gap left alone, document's folder, other folder's mode ignored).
-=======
-`data/schedule.test.ts` (grouping, group date spans, empty and unlisted parents, `planningGanttRows`, `milestoneMarkers`, `shiftedRange`), `data/milestone.test.ts` (`compareByTargetDate`), `data/dependency.test.ts` (`planReschedule`), `backend/test/models/folder_test.rb` (mode default and values), `view/folder_detail/GanttPane.test.tsx` (grouped rows, group bars not draggable), `components/PlanningTimeline.test.tsx` (global timeline rows, diamonds, read-only).
->>>>>>> origin/backlog/gantt-initiative-and-milestone-grouping
+`data/schedule.test.ts` (grouping, group date spans, empty and unlisted parents, `planningGanttRows`, `milestoneMarkers`, `shiftedRange`), `data/milestone.test.ts` (`compareByTargetDate`), `data/dependency.test.ts` (`planReschedule`, including pulling earlier), `view/folder_detail/GanttPane.test.tsx` (grouped rows, group bars not draggable), `view/folder_detail/GanttPane.reschedule.test.tsx` (strict refusal in the browser, shifted tasks saved, server refusal shown), `components/PlanningTimeline.test.tsx` (global timeline rows, diamonds, read-only), `backend/test/models/folder_test.rb` (mode default and values), `backend/test/services/scheduling/dependency_planner_test.rb` (the rules; no Rails needed), `backend/test/controllers/tasks_controller_test.rb` (strict refusal, push, pull, gap left alone, document's folder, other folder's mode ignored).
 
 ## Known limits
 - Server enforcement uses the mode of the folder a task sits in directly. A folder's Gantt also lists tasks from its sub-folders and applies the viewed folder's mode in the browser, so set the same mode on a sub-folder if edits made elsewhere should obey it too. A sub-folder that is stricter than the folder being viewed can refuse part of a multi-task shift.
@@ -52,10 +48,9 @@ The zoom and weekend choices are not remembered between visits. Weekends are not
 - The Epics and Initiatives timelines load every task in the Space and draw no dependency arrows.
 
 ## History
-- Implemented 2026-10-18: milestone diamonds, epic grouping, today line, drag to reschedule, dependency modes. Committed locally; not pushed or deployed.
+- Implemented 2026-10-18: milestone diamonds, epic grouping, today line, drag to reschedule, dependency modes. On `main` (pushed); whether Coolify deployed it was not checked in the rules audit of 2026-11-02.
 - Implemented 2026-11-01 (not deployed; on branch `backlog/dependency-modes-server-enforcement`): the folder's mode is enforced on `PATCH /api/v1/tasks/:id`, and Shift mode now also pulls dependants earlier. Decision for Alex: pulling earlier is limited to dependants that were exactly on their link, so existing gaps are never changed; say if Shift should instead keep the gap, or close it, or if pulling should be its own mode. No schema change.
 - Not verified: none of the tests were run, lint and type-check were not run, and the drag interaction and migration were not tried in a browser or database (no dependencies installed, no network).
-<<<<<<< HEAD
 - Not verified (2026-11-01 change): `rails test` and Jest (including the new `GanttPane.reschedule.test.tsx`), lint and the browser were not run. Run offline: `data/dependency.test.ts` through a small Jest shim (13 passing) and `dependency_planner_test.rb` with plain `ruby` and Minitest (12 passing); `Scheduling::TaskUpdate`, the controller and its tests only passed `ruby -c`.
 
 - Merged to main 2026-11-02 after running, merged with main: `rails db:migrate` (schema diff clean), `rails test`, `npm run lint`, `tsc -b`, Jest, and the collab-server tests, all passing. Not checked in a browser.
@@ -65,9 +60,7 @@ The zoom and weekend choices are not remembered between visits. Weekends are not
 - Zoom and weekend shading implemented 2026-10-19 on branch `backlog/gantt-zoom-and-weekends`; not merged or deployed. Not verified: Jest, lint, type-check, browser; the axis helpers' tests and a static check ran.
 
 - Merged to main 2026-11-02 after running, merged with main: `rails db:migrate` (schema diff clean), `rails test`, `npm run lint`, `tsc -b`, Jest, and the collab-server tests, all passing. Not checked in a browser.
-=======
 - Implemented 2026-11-01 (not deployed; on branch `backlog/gantt-initiative-and-milestone-grouping`): milestone and initiative group rows above epics, and tasks and milestone diamonds on the Epics and Initiatives timelines. Ran only the pure data tests (`data/schedule.test.ts`, `data/milestone.test.ts`, `data/roadmap.test.ts`) with an offline shim and a static parse of the changed files. Not run: `npm run lint`, the type-check, the React tests (`GanttPane.test.tsx`, `PlanningTimeline.test.tsx`), or a look at the folder Gantt and the Epics and Initiatives Timeline tabs in a browser at 375px and desktop, in light and dark mode.
 - Not implemented: dragging milestone or initiative bars, dependency arrows on the Space-wide timelines, and showing loose (epic-less) tasks there.
->>>>>>> origin/backlog/gantt-initiative-and-milestone-grouping
 
 - Merged to main 2026-11-02 after running, merged with main: `rails db:migrate` (schema diff clean), `rails test`, `npm run lint`, `tsc -b`, Jest, and the collab-server tests, all passing. Not checked in a browser.

@@ -55,7 +55,7 @@ Scoped to the current Space (`X-Workspace-Id`). Reading needs any membership; ev
 - Renumbering sends one PATCH per shifted sibling, not a single bulk request.
 
 ## History
-- Implemented 2026-10-18. Committed locally; not pushed or deployed.
+- Implemented 2026-10-18. On `main` (pushed); whether Coolify deployed it was not checked in the rules audit of 2026-11-02.
 - Implemented 2026-11-01 (not deployed; on branch `backlog/hierarchy-reparent-polish`): Move button and dialog, order by drop position, specific error on a rejected move, `position` on initiatives and epics.
 - Not implemented: reordering milestones, a bulk reorder endpoint, a drag that works by touch, drag with the keyboard sensor.
 - Not verified: tests, lint, type-check, the migration (`schema.rb` was edited by hand), the drag interaction and the page in a browser (mobile and desktop width, light and dark) were not run (no dependencies, database or network here). Ran: `ruby -c` on the Ruby files, the static checker and the pure data tests (`frontend/src/data/hierarchy.test.ts`) with the offline shim. Existing tests that build records across Spaces, which the same-Space validation would reject, were not checked.

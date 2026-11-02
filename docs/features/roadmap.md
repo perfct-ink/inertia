@@ -36,7 +36,7 @@ Scoped to the current Space. I did not check for role-based limits.
 - Board ordering inside a column is not saved or controllable.
 
 ## History
-- Implemented 2026-10-17 (timeline lanes, board, health). Committed locally; not pushed or deployed.
+- Implemented 2026-10-17 (timeline lanes, board, health). On `main` (pushed); whether Coolify deployed it was not checked in the rules audit of 2026-11-02.
 - Not implemented: quarter zoom.
 - Not verified: no tests, lint, type-check, migration or browser run (no dependencies installed, no network).
 - Shareable link added 2026-10-19 on branch `backlog/shareable-read-only-roadmap-link-external-stakeholders`, not merged. Tests: `roadmap_shares_controller_test.rb`, `RoadmapShare.test.tsx`, `SharedScreen.test.tsx`, `data/share.test.ts`. Not verified: Rails tests, lint, type-check, frontend tests and the browser did not run (no database, no node_modules).

@@ -17,7 +17,7 @@ No new tests for these screens.
 A task's milestone cannot be changed after creation (there is no task detail view).
 
 ## History
-- Implemented 2026-10-18. Committed locally; not pushed or deployed.
+- Implemented 2026-10-18. On `main` (pushed); whether Coolify deployed it was not checked in the rules audit of 2026-11-02.
 - Not verified: lint, type-check and the screens were not run (no dependencies installed, no network).
 
 ## Task start date

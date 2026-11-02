@@ -30,7 +30,7 @@ Scoped to the current Space; a key result of another Space's objective is 404. I
 - The client lists all initiatives in the link picker, including finished ones.
 
 ## History
-- Implemented 2026-10-17. Committed locally; not pushed or deployed.
+- Implemented 2026-10-17. On `main` (pushed); whether Coolify deployed it was not checked in the rules audit of 2026-11-02.
 - Not implemented: check-in history, IO Map link.
 - Not verified: no tests, lint, type-check, migration or browser run (no dependencies installed, no network).
 

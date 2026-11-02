@@ -21,7 +21,7 @@ Any signed-in user switches between their own Spaces and creates new ones. Membe
 - The menu does not flip upward or sideways when it would run off screen, and it does not type-ahead.
 
 ## History
-- Implemented before 2026-10-15 (switcher, create, members modal); see `docs/spaces.md`. Committed locally; not pushed or deployed.
+- Implemented before 2026-10-15 (switcher, create, members modal); see `docs/spaces.md`. On `main` (pushed); whether Coolify deployed it was not checked in the rules audit of 2026-11-02.
 - Not verified: lint, type-check, tests and the screen were not run.
 
 ## Space name placement (branch `backlog/space-name-prominent-on-every-screen`, not merged)
