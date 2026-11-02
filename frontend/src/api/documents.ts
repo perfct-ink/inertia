@@ -32,13 +32,14 @@ export function useUpdateDocument() {
     onSuccess: (doc) => {
       qc.setQueryData(['document', doc.id], doc)
       qc.invalidateQueries({ queryKey: ['workspace'] })
+      qc.invalidateQueries({ queryKey: ['shared-folders'] })
     },
   })
 }
 
 export const useCreateDocument = () =>
-  useApiMutation(({ folderId, ...data }: { folderId: number; title: string; doc_type?: Document['doc_type'] }) => documentApi.createIn(folderId, data), ['workspace', 'folder-contents'])
-export const useDeleteDocument = () => useApiMutation((id: number) => documentApi.destroy(id), ['workspace'])
+  useApiMutation(({ folderId, ...data }: { folderId: number; title: string; doc_type?: Document['doc_type'] }) => documentApi.createIn(folderId, data), ['workspace', 'folder-contents', 'shared-folders'])
+export const useDeleteDocument = () => useApiMutation((id: number) => documentApi.destroy(id), ['workspace', 'folder-contents', 'shared-folders'])
 export const usePinDocument = () =>
   useApiMutation(({ id, pinned }: { id: number; pinned: boolean }) => documentApi.update(id, { pinned }), ['workspace'])
 export const useMoveDocument = () =>

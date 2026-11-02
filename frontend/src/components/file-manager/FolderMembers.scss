@@ -1,0 +1,92 @@
+@use 'tokens' as *;
+
+@layer app.components {
+  .folder_members {
+    // Long lists scroll inside the dialog instead of running off a short screen.
+    &-list {
+      display: flex;
+      flex-direction: column;
+      gap: space(1);
+      max-height: min(50dvh, 22rem);
+      margin-top: space(3);
+      overflow-y: auto;
+    }
+
+    // The role and remove button wrap below the person on a phone.
+    &-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: space(2);
+    }
+
+    &-person {
+      flex: 1 1 10rem;
+      min-width: 0;
+    }
+
+    &-name {
+      @include text('sm');
+      @include truncate;
+
+      font-weight: 500;
+    }
+
+    &-email,
+    &-note {
+      color: color(muted-foreground);
+      @include text('xs');
+    }
+
+    &-email {
+      @include truncate;
+    }
+
+    &-role {
+      color: color(muted-foreground);
+      @include text('xs');
+    }
+
+    &-select {
+      width: auto;
+    }
+
+    // Icon-only buttons keep a 40px touch target.
+    &-icon_button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: space(10);
+      min-height: space(10);
+    }
+
+    &-icon {
+      flex-shrink: 0;
+      width: space(4);
+      height: space(4);
+    }
+
+    &-add {
+      display: flex;
+      flex-wrap: wrap;
+      gap: space(2);
+      margin-top: space(4);
+
+      .ui-input {
+        flex: 1 1 10rem;
+      }
+    }
+
+    &-hint {
+      margin-top: space(2);
+      color: color(muted-foreground);
+      @include text('xs');
+    }
+
+    &-footer {
+      display: flex;
+      justify-content: flex-end;
+      margin-top: space(4);
+    }
+  }
+}

@@ -12,6 +12,10 @@ export interface Document {
   updated_at: string
   content_updated_at: string | null
   content?: Record<string, unknown> | null
+  // Only on GET/POST/PATCH of one document: false when the signed-in user may
+  // read it but not change it (a Space viewer, or a viewer/commenter invited
+  // to its folder).
+  can_edit?: boolean
 }
 
 export type FolderKind = 'folder' | 'project' | 'feature'
@@ -44,6 +48,45 @@ export interface Folder {
 export type SpaceFolder = Pick<Folder, 'id' | 'name' | 'parent_id' | 'position' | 'root'>
 
 export type WorkspaceRole = 'viewer' | 'member' | 'admin' | 'owner'
+
+// A role on one folder, for a person who is not in the folder's Space. Least to
+// most privileged, like the Space roles.
+export type FolderRole = 'viewer' | 'commenter' | 'editor' | 'owner'
+
+// A person invited to a folder, as listed for it (FolderMembershipBlueprint).
+// `inherited` rows were made on a folder above and change there.
+export interface FolderMember {
+  id: number
+  role: FolderRole
+  user_id: number
+  folder_id: number
+  folder_name: string
+  inherited: boolean
+  invited_by: string | null
+  created_at: string
+  user: { id: number; name: string; email: string }
+}
+
+// One entry of "Shared with me": a folder someone invited the user to, with
+// its tree, the user's role on it and the Space it lives in.
+export interface SharedFolder {
+  // The invitation (what leaving the folder deletes).
+  id: number
+  role: FolderRole
+  folder_id: number
+  invited_by: string | null
+  space: { id: number; name: string }
+  folder: Folder
+}
+
+// What the signed-in user may do with a folder (FoldersController#contents).
+export interface FolderAccess {
+  // 'space' for a member of the folder's Space, 'folder' for an invitation.
+  source: 'space' | 'folder'
+  role: string | null
+  can_write: boolean
+  can_share: boolean
+}
 
 // A workspace the signed-in user belongs to; `role` is their role in it.
 export interface WorkspaceSummary {
@@ -293,6 +336,7 @@ export interface WorkspaceEvent {
 // its nested subfolders, in one request.
 export interface FolderContents {
   folder: Folder
+  access?: FolderAccess
   documents: Document[]
   tasks: Task[]
   events: WorkspaceEvent[]

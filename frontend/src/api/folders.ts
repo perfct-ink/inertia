@@ -26,7 +26,7 @@ export class FolderApi extends ApiResource<Folder, { name: string; parent_id?: n
 
 export const folderApi = new FolderApi()
 
-export const useCreateFolder = () => useApiMutation((data: { name: string; parent_id?: number; kind?: FolderKind }) => folderApi.create(data), ['workspace'])
+export const useCreateFolder = () => useApiMutation((data: { name: string; parent_id?: number; kind?: FolderKind }) => folderApi.create(data), ['workspace', 'shared-folders'])
 export const useUpdateFolder = () =>
   useApiMutation(({ id, ...data }: FolderFields & { id: number }) => folderApi.update(id, data), ['workspace', 'archived-folders'])
 export const usePinFolder = () =>
