@@ -1,4 +1,4 @@
-import type { Task } from '@/types'
+import type { Task, TaskPriority } from '@/types'
 
 // The task statuses the API accepts, in board order (mirrors Task.statuses in the backend).
 export const TASK_STATUSES: Task['status'][] = ['backlog', 'todo', 'in_progress', 'in_review', 'done']
@@ -92,4 +92,32 @@ export function taskCards(tasks: Task[], epics: { id: number; title: string }[],
     subtasks: countBelow(node),
     overdue: !!node.due_date && node.status !== 'done' && node.due_date < today,
   }))
+}
+
+export const TASK_PRIORITIES: { value: TaskPriority; label: string }[] = [
+  { value: 'none', label: 'No priority' },
+  { value: 'low', label: 'Low' },
+  { value: 'medium', label: 'Medium' },
+  { value: 'high', label: 'High' },
+  { value: 'urgent', label: 'Urgent' },
+]
+
+// The priority's label, or null when a task has none (so cards show nothing).
+export function priorityLabel(priority: TaskPriority | undefined): string | null {
+  if (!priority || priority === 'none') return null
+  return TASK_PRIORITIES.find((p) => p.value === priority)?.label ?? null
+}
+
+// "5 pts" or "5 → 8 pts" (estimated then actual) or "8 pts actual"; null when neither is set.
+export function pointsLabel(task: Pick<Task, 'story_points' | 'actual_story_points'>): string | null {
+  const { story_points: estimated, actual_story_points: actual } = task
+  if (estimated != null && actual != null) return `${estimated} → ${actual} pts`
+  if (estimated != null) return `${estimated} pts`
+  if (actual != null) return `${actual} pts actual`
+  return null
+}
+
+// "6.5 h" or null.
+export function estimateLabel(hours: number | null | undefined): string | null {
+  return hours == null ? null : `${hours} h`
 }

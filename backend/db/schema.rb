@@ -469,6 +469,10 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_01_140001) do
     t.bigint "parent_id"
     t.bigint "milestone_id"
     t.bigint "sprint_id"
+    t.integer "priority", default: 0, null: false
+    t.decimal "estimate_hours", precision: 7, scale: 2
+    t.integer "story_points"
+    t.integer "actual_story_points"
     t.index ["assignee_id"], name: "index_tasks_on_assignee_id"
     t.index ["document_id"], name: "index_tasks_on_document_id"
     t.index ["epic_id"], name: "index_tasks_on_epic_id"

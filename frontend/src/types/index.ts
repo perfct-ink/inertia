@@ -95,6 +95,8 @@ export interface TaskStatusSetting {
   color: TaskStatusColor | null
 }
 
+export type TaskPriority = 'none' | 'low' | 'medium' | 'high' | 'urgent'
+
 export interface Task {
   id: number
   title: string
@@ -110,6 +112,10 @@ export interface Task {
   sprint_id?: number | null
   parent_id: number | null
   folder_id: number | null
+  priority?: TaskPriority
+  estimate_hours?: number | null
+  story_points?: number | null
+  actual_story_points?: number | null
   document?: Document
   // Values of the Space's custom task fields, keyed by field id; fields with
   // no value are absent. Only the task list endpoint includes them.

@@ -1,5 +1,5 @@
 import type { Task } from '@/types'
-import { buildTaskTree, taskFolderId, dueBucket, myWork, taskCards } from './task'
+import { buildTaskTree, taskFolderId, dueBucket, myWork, taskCards, estimateLabel, pointsLabel, priorityLabel } from './task'
 
 const task = (id: number, parent_id: number | null = null) => ({ id, title: `T${id}`, parent_id }) as unknown as Task
 
@@ -56,4 +56,17 @@ test('taskCards makes one card per top-level task with epic, subtask progress an
   expect(cards.map((c) => c.task.id)).toEqual([1, 4])
   expect(cards[0]).toMatchObject({ epicTitle: 'Launch', subtasks: { done: 1, total: 2 }, overdue: true })
   expect(cards[1]).toMatchObject({ epicTitle: null, subtasks: { done: 0, total: 0 }, overdue: false })
+})
+
+test('priorityLabel hides none, pointsLabel and estimateLabel format what is set', () => {
+  expect(priorityLabel('none')).toBeNull()
+  expect(priorityLabel(undefined)).toBeNull()
+  expect(priorityLabel('urgent')).toBe('Urgent')
+  expect(pointsLabel({ story_points: 5, actual_story_points: null })).toBe('5 pts')
+  expect(pointsLabel({ story_points: 5, actual_story_points: 8 })).toBe('5 → 8 pts')
+  expect(pointsLabel({ story_points: null, actual_story_points: 3 })).toBe('3 pts actual')
+  expect(pointsLabel({ story_points: null, actual_story_points: null })).toBeNull()
+  expect(pointsLabel({ story_points: 0, actual_story_points: null })).toBe('0 pts')
+  expect(estimateLabel(6.5)).toBe('6.5 h')
+  expect(estimateLabel(null)).toBeNull()
 })

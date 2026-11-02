@@ -59,3 +59,4 @@ One file per implemented feature, written from the code (see `docs/rules/feature
 | Task table: inline editing, sort, group, filter, hide columns | [task_table.md](task_table.md) |
 | Feature folders: a folder flagged as holding features | [feature_folders.md](feature_folders.md) |
 | Cards view of a folder's tasks | [cards_view.md](cards_view.md) |
+| Task priority, effort estimate and story points | [task_estimates.md](task_estimates.md) |

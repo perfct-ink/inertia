@@ -9,6 +9,10 @@ class TaskBlueprint < Blueprinter::Base
   field :milestone_id
   field :folder_id
   field :parent_id
+  field :priority
+  field(:estimate_hours) { |task| task.estimate_hours&.to_f }
+  field :story_points
+  field :actual_story_points
 
   view :with_document do
     association :document, blueprint: DocumentBlueprint do |task, _options|

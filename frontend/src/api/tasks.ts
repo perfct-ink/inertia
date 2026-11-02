@@ -22,6 +22,9 @@ export interface NewTask {
   sprintId?: number
   milestoneId?: number
   parentId?: number
+  priority?: Task['priority']
+  estimate_hours?: number
+  story_points?: number
 }
 
 export class TaskApi extends ApiResource<Task, NewTask> {
