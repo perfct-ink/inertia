@@ -37,7 +37,7 @@ module Api
       end
 
       def initiative_params
-        params.require(:initiative).permit(:title, :description, :status, :owner_id, :milestone_id, :start_date, :target_date, :horizon)
+        params.require(:initiative).permit(:title, :description, :status, :owner_id, :milestone_id, :start_date, :target_date, :horizon, :position)
       end
     end
   end

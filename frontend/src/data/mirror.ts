@@ -1,4 +1,4 @@
-import type { DataType, TableField } from '@/api/tables'
+import type { FieldDataType, TableField } from '@/api/tables'
 
 // Mirror fields in collections: a mirror reads through one relation (connect)
 // field of its own collection and shows one field of the collection that
@@ -6,9 +6,10 @@ import type { DataType, TableField } from '@/api/tables'
 export type MirroredValue = string | number | boolean
 export interface LinkedTable { fields: TableField[] }
 
-// A mirror shows a value the linked record holds itself, so not another link
-// or another mirror (TableField::UNMIRRORABLE_TYPES).
-const UNMIRRORABLE_TYPES: DataType[] = ['relation', 'mirror']
+// A mirror shows a plain value the linked record holds itself: not a link,
+// another mirror, a formula (worked out in the browser) or uploaded files
+// (lists of file ids). Mirrors TableField::UNMIRRORABLE_TYPES.
+const UNMIRRORABLE_TYPES: FieldDataType[] = ['relation', 'mirror', 'formula', 'file', 'files']
 
 export const relationFields = (fields: TableField[]): TableField[] => fields.filter(f => f.data_type === 'relation')
 
@@ -34,7 +35,7 @@ export function mirrorSummary(mirror: TableField, fields: TableField[], linked: 
 
 // Same wording as the editor's boolean select; dates and times are UTC, as
 // everywhere in the collection editor.
-export function formatMirrorValue(value: MirroredValue, type?: DataType): string {
+export function formatMirrorValue(value: MirroredValue, type?: FieldDataType): string {
   if (typeof value === 'boolean') return value ? 'True' : 'False'
   if (type === 'datetime') {
     const date = new Date(String(value))
@@ -45,7 +46,7 @@ export function formatMirrorValue(value: MirroredValue, type?: DataType): string
 
 // The cell text for one record: its mirrored values (a list, empty when
 // nothing is linked) joined with commas.
-export const mirrorText = (values: MirroredValue[] | undefined, type?: DataType): string =>
+export const mirrorText = (values: MirroredValue[] | undefined, type?: FieldDataType): string =>
   (values ?? []).map(value => formatMirrorValue(value, type)).join(', ')
 
 // The field form's two choices, as the API takes them.

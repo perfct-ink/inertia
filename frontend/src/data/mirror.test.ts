@@ -7,13 +7,16 @@ const field = (id: number, name: string, data_type: TableField['data_type'], ext
 const company = field(1, 'Company', 'relation', { relation_table_id: 9 })
 const mirror = field(3, 'Company name', 'mirror', { mirror_relation_field_id: 1, mirror_field_id: 20 })
 const fields = [company, field(2, 'Age', 'integer'), mirror]
-const companies = { fields: [field(20, 'Name', 'text'), field(21, 'Founded', 'datetime'), field(22, 'Parent', 'relation', { relation_table_id: 9 }), field(23, 'Seen by', 'mirror')] }
+const companies = { fields: [
+  field(20, 'Name', 'text'), field(21, 'Founded', 'datetime'), field(22, 'Parent', 'relation', { relation_table_id: 9 }), field(23, 'Seen by', 'mirror'),
+  field(24, 'Logo', 'file'), field(25, 'Photos', 'files'), field(26, 'Score', 'formula', { formula: '1 + 1' }),
+] }
 
 test('only relation fields can be connected through', () => {
   expect(relationFields(fields).map(f => f.name)).toEqual(['Company'])
 })
 
-test('a mirror can show any field of the linked collection except a link or another mirror', () => {
+test('a mirror can show a plain field of the linked collection, not a link, mirror, formula or file', () => {
   expect(mirrorSources(companies).map(f => f.name)).toEqual(['Name', 'Founded'])
   expect(mirrorSources(undefined)).toEqual([])
 })

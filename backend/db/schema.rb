@@ -14,6 +14,34 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_01_170001) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
+  create_table "active_storage_attachments", force: :cascade do |t|
+    t.string "name", null: false
+    t.string "record_type", null: false
+    t.bigint "record_id", null: false
+    t.bigint "blob_id", null: false
+    t.datetime "created_at", null: false
+    t.index ["blob_id"], name: "index_active_storage_attachments_on_blob_id"
+    t.index ["record_type", "record_id", "name", "blob_id"], name: "index_active_storage_attachments_uniqueness", unique: true
+  end
+
+  create_table "active_storage_blobs", force: :cascade do |t|
+    t.string "key", null: false
+    t.string "filename", null: false
+    t.string "content_type"
+    t.text "metadata"
+    t.string "service_name", null: false
+    t.bigint "byte_size", null: false
+    t.string "checksum"
+    t.datetime "created_at", null: false
+    t.index ["key"], name: "index_active_storage_blobs_on_key", unique: true
+  end
+
+  create_table "active_storage_variant_records", force: :cascade do |t|
+    t.bigint "blob_id", null: false
+    t.string "variation_digest", null: false
+    t.index ["blob_id", "variation_digest"], name: "index_active_storage_variant_records_uniqueness", unique: true
+  end
+
   create_table "ai_runs", force: :cascade do |t|
     t.bigint "workspace_id", null: false
     t.bigint "ai_worker_id", null: false
@@ -67,6 +95,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_01_170001) do
     t.bigint "initiative_id"
     t.bigint "milestone_id"
     t.integer "horizon"
+    t.integer "position", default: 0, null: false
     t.index ["folder_id"], name: "index_epics_on_folder_id"
     t.index ["initiative_id"], name: "index_epics_on_initiative_id"
     t.index ["milestone_id"], name: "index_epics_on_milestone_id"
@@ -114,6 +143,20 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_01_170001) do
     t.index ["workspace_id"], name: "index_folders_on_workspace_id"
   end
 
+  create_table "ideas", force: :cascade do |t|
+    t.bigint "workspace_id", null: false
+    t.bigint "submitted_by_id"
+    t.string "title", null: false
+    t.text "description"
+    t.integer "status", default: 0, null: false
+    t.string "promoted_type"
+    t.bigint "promoted_id"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["submitted_by_id"], name: "index_ideas_on_submitted_by_id"
+    t.index ["workspace_id"], name: "index_ideas_on_workspace_id"
+  end
+
   create_table "initiatives", force: :cascade do |t|
     t.string "title", null: false
     t.bigint "workspace_id", null: false
@@ -126,9 +169,27 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_01_170001) do
     t.integer "status", default: 0, null: false
     t.bigint "owner_id"
     t.integer "horizon"
+    t.integer "position", default: 0, null: false
     t.index ["milestone_id"], name: "index_initiatives_on_milestone_id"
     t.index ["owner_id"], name: "index_initiatives_on_owner_id"
     t.index ["workspace_id"], name: "index_initiatives_on_workspace_id"
+  end
+
+  create_table "io_nodes", force: :cascade do |t|
+    t.bigint "workspace_id", null: false
+    t.bigint "parent_id"
+    t.integer "kind", default: 0, null: false
+    t.string "title", null: false
+    t.text "description"
+    t.integer "position", default: 0, null: false
+    t.bigint "objective_id"
+    t.bigint "initiative_id"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["initiative_id"], name: "index_io_nodes_on_initiative_id"
+    t.index ["objective_id"], name: "index_io_nodes_on_objective_id"
+    t.index ["parent_id"], name: "index_io_nodes_on_parent_id"
+    t.index ["workspace_id"], name: "index_io_nodes_on_workspace_id"
   end
 
   create_table "jwt_denylists", force: :cascade do |t|
@@ -181,6 +242,28 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_01_170001) do
     t.index ["workspace_id"], name: "index_objectives_on_workspace_id"
   end
 
+  create_table "project_requests", force: :cascade do |t|
+    t.bigint "workspace_id", null: false
+    t.bigint "requested_by_id"
+    t.bigint "decided_by_id"
+    t.bigint "project_id"
+    t.string "name", null: false
+    t.text "description"
+    t.text "justification"
+    t.integer "priority", default: 1, null: false
+    t.date "start_date"
+    t.date "target_date"
+    t.integer "status", default: 0, null: false
+    t.text "decision_note"
+    t.datetime "decided_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["decided_by_id"], name: "index_project_requests_on_decided_by_id"
+    t.index ["project_id"], name: "index_project_requests_on_project_id"
+    t.index ["requested_by_id"], name: "index_project_requests_on_requested_by_id"
+    t.index ["workspace_id"], name: "index_project_requests_on_workspace_id"
+  end
+
   create_table "quip_imports", force: :cascade do |t|
     t.bigint "workspace_id", null: false
     t.bigint "destination_folder_id"
@@ -196,6 +279,38 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_01_170001) do
     t.datetime "updated_at", null: false
     t.index ["destination_folder_id"], name: "index_quip_imports_on_destination_folder_id"
     t.index ["workspace_id"], name: "index_quip_imports_on_workspace_id"
+  end
+
+  create_table "release_documents", force: :cascade do |t|
+    t.bigint "release_id", null: false
+    t.bigint "document_id", null: false
+    t.index ["document_id"], name: "index_release_documents_on_document_id"
+    t.index ["release_id", "document_id"], name: "index_release_documents_on_release_id_and_document_id", unique: true
+    t.index ["release_id"], name: "index_release_documents_on_release_id"
+  end
+
+  create_table "releases", force: :cascade do |t|
+    t.bigint "workspace_id", null: false
+    t.string "title", null: false
+    t.integer "kind", default: 0, null: false
+    t.date "release_date"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["workspace_id"], name: "index_releases_on_workspace_id"
+  end
+
+  create_table "resource_allocations", force: :cascade do |t|
+    t.bigint "workspace_id", null: false
+    t.bigint "user_id", null: false
+    t.bigint "folder_id", null: false
+    t.decimal "hours_per_week", precision: 5, scale: 2, null: false
+    t.date "start_date"
+    t.date "end_date"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["folder_id"], name: "index_resource_allocations_on_folder_id"
+    t.index ["user_id"], name: "index_resource_allocations_on_user_id"
+    t.index ["workspace_id"], name: "index_resource_allocations_on_workspace_id"
   end
 
   create_table "shares", force: :cascade do |t|
@@ -275,6 +390,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_01_170001) do
     t.bigint "relation_table_id"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.text "formula"
     t.bigint "mirror_relation_field_id"
     t.bigint "mirror_field_id"
     t.index ["document_id", "name"], name: "index_table_fields_on_document_id_and_name", unique: true
@@ -304,6 +420,42 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_01_170001) do
     t.index ["workspace_id"], name: "index_task_dependencies_on_workspace_id"
   end
 
+  create_table "task_field_values", force: :cascade do |t|
+    t.bigint "task_id", null: false
+    t.bigint "task_field_id", null: false
+    t.json "value", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["task_field_id"], name: "index_task_field_values_on_task_field_id"
+    t.index ["task_id", "task_field_id"], name: "index_task_field_values_on_task_id_and_task_field_id", unique: true
+    t.index ["task_id"], name: "index_task_field_values_on_task_id"
+  end
+
+  create_table "task_fields", force: :cascade do |t|
+    t.bigint "workspace_id", null: false
+    t.string "name", null: false
+    t.string "field_type", null: false
+    t.json "options", default: [], null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["workspace_id", "name"], name: "index_task_fields_on_workspace_id_and_name", unique: true
+    t.index ["workspace_id"], name: "index_task_fields_on_workspace_id"
+  end
+
+  create_table "task_status_settings", force: :cascade do |t|
+    t.bigint "workspace_id", null: false
+    t.bigint "folder_id"
+    t.integer "status", null: false
+    t.string "label"
+    t.string "color"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["folder_id", "status"], name: "index_task_status_settings_on_folder_and_status", unique: true, where: "(folder_id IS NOT NULL)"
+    t.index ["folder_id"], name: "index_task_status_settings_on_folder_id"
+    t.index ["workspace_id", "status"], name: "index_task_status_settings_on_space_default", unique: true, where: "(folder_id IS NULL)"
+    t.index ["workspace_id"], name: "index_task_status_settings_on_workspace_id"
+  end
+
   create_table "tasks", force: :cascade do |t|
     t.string "title", null: false
     t.text "description"
@@ -321,6 +473,10 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_01_170001) do
     t.bigint "parent_id"
     t.bigint "milestone_id"
     t.bigint "sprint_id"
+    t.integer "priority", default: 0, null: false
+    t.decimal "estimate_hours", precision: 7, scale: 2
+    t.integer "story_points"
+    t.integer "actual_story_points"
     t.index ["assignee_id"], name: "index_tasks_on_assignee_id"
     t.index ["document_id"], name: "index_tasks_on_document_id"
     t.index ["epic_id"], name: "index_tasks_on_epic_id"
@@ -332,6 +488,26 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_01_170001) do
     t.index ["workspace_id"], name: "index_tasks_on_workspace_id"
   end
 
+  create_table "team_memberships", force: :cascade do |t|
+    t.bigint "team_id", null: false
+    t.bigint "user_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["team_id", "user_id"], name: "index_team_memberships_on_team_id_and_user_id", unique: true
+    t.index ["team_id"], name: "index_team_memberships_on_team_id"
+    t.index ["user_id"], name: "index_team_memberships_on_user_id"
+  end
+
+  create_table "teams", force: :cascade do |t|
+    t.bigint "workspace_id", null: false
+    t.string "name", null: false
+    t.integer "role", default: 1, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["workspace_id", "name"], name: "index_teams_on_workspace_id_and_name", unique: true
+    t.index ["workspace_id"], name: "index_teams_on_workspace_id"
+  end
+
   create_table "users", force: :cascade do |t|
     t.string "name", null: false
     t.string "email", default: "", null: false
@@ -341,6 +517,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_01_170001) do
     t.datetime "remember_created_at"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.json "onboarding"
     t.index ["email"], name: "index_users_on_email", unique: true
     t.index ["reset_password_token"], name: "index_users_on_reset_password_token", unique: true
   end
@@ -351,6 +528,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_01_170001) do
     t.integer "role", default: 1, null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.decimal "weekly_capacity_hours", precision: 5, scale: 2, default: "40.0", null: false
     t.index ["user_id"], name: "index_workspace_memberships_on_user_id"
     t.index ["workspace_id", "user_id"], name: "index_workspace_memberships_on_workspace_id_and_user_id", unique: true
     t.index ["workspace_id"], name: "index_workspace_memberships_on_workspace_id"
@@ -367,6 +545,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_01_170001) do
     t.index ["user_id"], name: "index_workspaces_on_user_id"
   end
 
+  add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
+  add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
   add_foreign_key "ai_runs", "ai_workers"
   add_foreign_key "ai_runs", "tasks"
   add_foreign_key "ai_runs", "workspaces"
@@ -383,9 +563,15 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_01_170001) do
   add_foreign_key "events", "workspaces"
   add_foreign_key "folders", "folders", column: "parent_id"
   add_foreign_key "folders", "workspaces"
+  add_foreign_key "ideas", "users", column: "submitted_by_id", on_delete: :nullify
+  add_foreign_key "ideas", "workspaces"
   add_foreign_key "initiatives", "milestones"
   add_foreign_key "initiatives", "users", column: "owner_id", on_delete: :nullify
   add_foreign_key "initiatives", "workspaces"
+  add_foreign_key "io_nodes", "initiatives", on_delete: :nullify
+  add_foreign_key "io_nodes", "io_nodes", column: "parent_id"
+  add_foreign_key "io_nodes", "objectives", on_delete: :nullify
+  add_foreign_key "io_nodes", "workspaces"
   add_foreign_key "key_results", "initiatives", on_delete: :nullify
   add_foreign_key "key_results", "objectives"
   add_foreign_key "milestones", "folders"
@@ -393,8 +579,18 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_01_170001) do
   add_foreign_key "milestones", "workspaces"
   add_foreign_key "objectives", "users", column: "owner_id", on_delete: :nullify
   add_foreign_key "objectives", "workspaces"
+  add_foreign_key "project_requests", "folders", column: "project_id", on_delete: :nullify
+  add_foreign_key "project_requests", "users", column: "decided_by_id", on_delete: :nullify
+  add_foreign_key "project_requests", "users", column: "requested_by_id", on_delete: :nullify
+  add_foreign_key "project_requests", "workspaces"
   add_foreign_key "quip_imports", "folders", column: "destination_folder_id"
   add_foreign_key "quip_imports", "workspaces"
+  add_foreign_key "release_documents", "documents"
+  add_foreign_key "release_documents", "releases"
+  add_foreign_key "releases", "workspaces"
+  add_foreign_key "resource_allocations", "folders"
+  add_foreign_key "resource_allocations", "users"
+  add_foreign_key "resource_allocations", "workspaces"
   add_foreign_key "shares", "users", column: "created_by_id"
   add_foreign_key "social_identities", "users"
   add_foreign_key "social_login_attempts", "users"
@@ -411,6 +607,11 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_01_170001) do
   add_foreign_key "task_dependencies", "tasks", column: "predecessor_id"
   add_foreign_key "task_dependencies", "tasks", column: "successor_id"
   add_foreign_key "task_dependencies", "workspaces"
+  add_foreign_key "task_field_values", "task_fields"
+  add_foreign_key "task_field_values", "tasks"
+  add_foreign_key "task_fields", "workspaces"
+  add_foreign_key "task_status_settings", "folders"
+  add_foreign_key "task_status_settings", "workspaces"
   add_foreign_key "tasks", "documents"
   add_foreign_key "tasks", "epics"
   add_foreign_key "tasks", "folders"
@@ -419,6 +620,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_01_170001) do
   add_foreign_key "tasks", "tasks", column: "parent_id"
   add_foreign_key "tasks", "users", column: "assignee_id"
   add_foreign_key "tasks", "workspaces"
+  add_foreign_key "team_memberships", "teams"
+  add_foreign_key "team_memberships", "users"
+  add_foreign_key "teams", "workspaces"
   add_foreign_key "workspace_memberships", "users"
   add_foreign_key "workspace_memberships", "workspaces"
   add_foreign_key "workspaces", "folders", column: "root_folder_id"

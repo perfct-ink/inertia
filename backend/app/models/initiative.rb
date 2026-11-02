@@ -3,6 +3,7 @@ class Initiative < ApplicationRecord
   include PlanningHealth
   include BelongsToMilestone
   include RoadmapHorizon
+  include Positioned
 
   belongs_to :workspace
   has_many :epics, dependent: :nullify

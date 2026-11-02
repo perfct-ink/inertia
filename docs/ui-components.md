@@ -15,7 +15,12 @@ The online document tree has one permanent **Root** folder per workspace. Existi
 
 Native screens use `InertiaTextFieldStyle`, `EditorSheet`, `EditorActions`, `OptionalTextField`, `NotesEditor`, `ValidationMessage`, `CompletionProgress`, `ProviderSignInButton`, and `RefreshButton`. Standard SwiftUI controls provide platform behavior. The entire online workspace uses the shared `WorkspaceWebView` wrapper and the existing React `WorkspaceLayout` and `Sidebar` components. The native session is handed to its isolated WebView, and signing out returns to the native login.
 
-React screens import `Button`, `Input`, `Select`, `Textarea`, and `FormError` from `@/components/ui`. The shared primitives forward native element props and refs, so form submission, keyboard input, disabled controls, and editor focus continue working. Button variants cover primary, secondary, ghost, and destructive actions; unstyled controls support tabs and specialized interactive surfaces. Login and signup use one `AuthLayout`.
+<<<<<<< HEAD
+React screens import `Button`, `Input`, `Select`, `Textarea`, and `FormError` from `@/components/ui`. The shared primitives forward native element props and refs, so form submission, keyboard input, disabled controls, and editor focus continue working. Button variants cover primary, secondary, ghost, and destructive actions; unstyled controls support tabs and specialized interactive surfaces. `ButtonLink` draws a real link (a download, "open in a new tab") with the same button variants. `Modal` takes `wide` for roomy content such as a file preview. `AttachmentCard` is the card for a file (icon, name, type, size, audio player, Preview, Download, Remove); the editor's `audio` and `fileAttachment` nodes render it through `components/editors/AttachmentView.tsx`. Login and signup use one `AuthLayout`.
+React screens import `Button`, `Input`, `DatePicker`, `Select`, `Textarea`, and `FormError` from `@/components/ui` (`DatePicker` is the date field: use it instead of `<Input type="date">`). The shared primitives forward native element props and refs, so form submission, keyboard input, disabled controls, and editor focus continue working. Button variants cover primary, secondary, ghost, and destructive actions; unstyled controls support tabs and specialized interactive surfaces. Login and signup use one `AuthLayout`.
+=======
+React screens import `Button`, `Input`, `Select`, `Textarea`, and `FormError` from `@/components/ui`. The shared primitives forward native element props and refs, so form submission, keyboard input, disabled controls, and editor focus continue working. Button variants cover primary, secondary, ghost, and destructive actions; unstyled controls support tabs and specialized interactive surfaces. Login and signup use one `AuthLayout`. `StatusDot` (`ui-status_dot`) draws a task status's color from the seven configurable status colors, so no screen styles its own status dot; `components/workspace/StatusSettings.tsx` is the editor that renames and recolors a board's statuses (see [features/configurable_statuses.md](features/configurable_statuses.md)).
+>>>>>>> origin/backlog/configurable-statuses
 
 Text fields have a minimum height of 40 points on macOS and 40 pixels in React. Both platforms provide visible focus states and preserve disabled behavior. Checkboxes and radios use compact dimensions; in React they and the select chevron are drawn by the app (the `checkable` mixin and `Select.scss`), so they look the same in every browser. How each of Alex's design principles is applied is in [features/design_principles.md](features/design_principles.md). Contextual class overrides support dense/editor layouts without copying a control implementation.
 
@@ -32,7 +37,7 @@ The React frontend uses SCSS (compiled by webpack's `sass-loader`); Tailwind is 
 - Classes passed to a `ui-` component do not override its base styles on their own. Views are in a later cascade layer, so a single view class is enough to override it.
 - Light and dark mode come from the Volta tokens (`prefers-color-scheme`, or `data-theme="dark"` on `<html>`), set to Inertia's theme in `_theme.scss`. Use `color()` tokens rather than hardcoded colors. Add a `dark` mixin block only for fixed palette colors.
 - Inline `style` is reserved for computed values (percent widths, nesting depth, drag transforms).
-- Use the `Modal`, `ConfirmDialog` and `PromptDialog` components instead of `window.alert`, `confirm` or `prompt`.
+- Use the `Modal`, `ConfirmDialog` and `PromptDialog` components instead of `window.alert`, `confirm` or `prompt`. `Modal` takes an optional `className` for contextual overrides, such as a wider, scrollable dialog (`task_fields-modal`).
 
 ## Design system: Volta
 
@@ -47,7 +52,7 @@ Volta's components are not used directly because the library isn't published to 
 
 ## API error handling
 
-`frontend/src/lib/api.ts` is the middleware for every API call. A failed call pushes its message to `store/notifications`, which `ToastRegion` (mounted in `App.tsx`) shows as an alert. Pass `{ silent: true }` when the caller renders the error itself (the login and signup forms do). A 401 clears the stored session, so the route guard sends the user to `/login`, and shows a "session expired" notice.
+`frontend/src/lib/api.ts` is the middleware for every API call. A failed call pushes its message to `store/notifications`, which `ToastRegion` (mounted in `App.tsx`) shows as an alert. Pass `{ silent: true }` when the caller renders the error itself (the login and signup forms do). Pass `{ failureContext: 'Couldn\'t move "Ship"' }` to name the action that failed; the notice then reads `Couldn't move "Ship": <reason>` (the Hierarchy page does this for moves). The server's word "workspace" is shown as "Space" (`util/errorMessage.ts`). A 401 clears the stored session, so the route guard sends the user to `/login`, and shows a "session expired" notice.
 
 ## Verification
 

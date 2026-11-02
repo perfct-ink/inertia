@@ -1,0 +1,87 @@
+@use 'tokens' as *;
+
+@layer app.components {
+  .heading_link_picker {
+    &-document {
+      margin-top: space(3);
+      color: color(muted-foreground);
+      @include text('sm');
+      @include truncate;
+    }
+
+    &-list {
+      display: flex;
+      flex-direction: column;
+      gap: space(1);
+      max-height: 50vh;
+      margin-top: space(3);
+      overflow-y: auto;
+    }
+
+    &-document + &-list {
+      margin-top: space(2);
+    }
+
+    &-item {
+      display: flex;
+      align-items: center;
+      gap: space(2);
+      width: 100%;
+      min-height: space(10);
+      padding: space(1) space(2);
+      border-radius: radius('md');
+      text-align: left;
+
+      &:hover {
+        background: color(accent);
+      }
+
+      // Headings are indented by how far they sit below the shallowest one.
+      @for $depth from 1 through 4 {
+        &--depth_#{$depth} {
+          padding-left: space(2 + $depth * 4);
+        }
+      }
+    }
+
+    &-icon {
+      flex-shrink: 0;
+      width: space(4);
+      height: space(4);
+    }
+
+    &-text {
+      min-width: 0;
+      overflow-wrap: anywhere;
+    }
+
+    &-path {
+      margin-left: auto;
+      color: color(muted-foreground);
+      @include text('xs');
+      @include truncate;
+
+      max-width: 50%;
+      flex-shrink: 0;
+    }
+
+    &-empty {
+      display: flex;
+      align-items: center;
+      gap: space(2);
+      margin-top: space(3);
+      color: color(muted-foreground);
+      @include text('sm');
+    }
+
+    &-spinner {
+      width: space(4);
+      height: space(4);
+      @include spin;
+    }
+
+    &-actions {
+      justify-content: flex-start;
+    }
+  }
+}

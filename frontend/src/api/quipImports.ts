@@ -1,17 +1,18 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import api from '@/lib/api'
+import { useQuery } from '@tanstack/react-query'
 import type { QuipImport } from '@/types'
+import { ApiResource, useResourceCreate } from './base'
 
 const RUNNING_STATUSES: QuipImport['status'][] = [ 'pending', 'running' ]
 
-export function useStartQuipImport() {
-  const qc = useQueryClient()
-  return useMutation({
-    mutationFn: (data: { token: string; domain: string }) =>
-      api.post('/api/v1/quip_imports', data).then((r) => r.data as QuipImport),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['quip_imports'] }),
-  })
+export class QuipImportApi extends ApiResource<QuipImport, { token: string; domain: string }> {
+  constructor() {
+    super('/api/v1/quip_imports', null, 'quip_imports')
+  }
 }
+
+export const quipImportApi = new QuipImportApi()
+
+export const useStartQuipImport = () => useResourceCreate(quipImportApi)
 
 // Polls while the import is still pending/running, stops once it settles —
 // there's no ActionCable/WebSocket push for this, and polling every 1.5s
@@ -19,7 +20,7 @@ export function useStartQuipImport() {
 export function useQuipImport(id: number | null) {
   return useQuery<QuipImport>({
     queryKey: [ 'quip_imports', id ],
-    queryFn: () => api.get(`/api/v1/quip_imports/${id}`).then((r) => r.data),
+    queryFn: () => quipImportApi.find(id as number),
     enabled: id != null,
     refetchInterval: (query) => (query.state.data && RUNNING_STATUSES.includes(query.state.data.status) ? 1500 : false),
   })

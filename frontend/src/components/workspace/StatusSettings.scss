@@ -1,0 +1,77 @@
+@use 'tokens' as *;
+
+@layer app.components {
+  .status_settings {
+    &-hint {
+      color: color(muted-foreground);
+      @include text('xs');
+    }
+
+    &-list {
+      display: flex;
+      flex-direction: column;
+      gap: space(3);
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    &-row {
+      display: flex;
+      flex-direction: column;
+      gap: space(1);
+    }
+
+    &-name {
+      display: flex;
+      align-items: center;
+      gap: space(2);
+
+      .ui-input {
+        flex: 1 1 0%;
+        min-width: 0;
+      }
+    }
+
+    &-colors {
+      display: flex;
+      flex-wrap: wrap;
+      gap: space(1);
+    }
+
+    // A tap target around a status dot. Selecting only changes the border
+    // color, so the swatches never move.
+    &-swatch {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: space(9);
+      height: space(9);
+      border: 2px solid transparent;
+      border-radius: radius('full');
+
+      &:hover {
+        background: color(accent);
+      }
+
+      &--selected,
+      &--selected:hover {
+        border-color: color(primary);
+      }
+
+      .ui-status_dot {
+        width: space(4);
+        height: space(4);
+      }
+    }
+
+    &-loading {
+      @include spin;
+
+      width: space(5);
+      height: space(5);
+      margin: space(4) auto;
+      color: color(muted-foreground);
+    }
+  }
+}

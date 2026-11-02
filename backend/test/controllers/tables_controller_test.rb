@@ -89,6 +89,47 @@ class TablesControllerTest < ActionDispatch::IntegrationTest
     assert_response :not_found
   end
 
+  test "formula fields are saved with their expression and reject values" do
+    post "/api/v1/tables/#{@table.id}/fields", params: { field: { name: "Double", data_type: "formula", formula: "{Age} * 2" } }, as: :json
+    assert_response :success
+    formula = response.parsed_body["fields"].last
+    assert_equal "formula", formula["data_type"]
+    assert_equal "{Age} * 2", formula["formula"]
+    assert_nil response.parsed_body["fields"].first["formula"]
+
+    post "/api/v1/tables/#{@table.id}/records", params: { record: { values: { @field.id.to_s => 21 } } }, as: :json
+    assert_response :success
+    row = response.parsed_body["records"].first
+    assert_equal({ @field.id.to_s => 21 }, row["values"])
+
+    assert_no_difference("TableCell.count") do
+      patch "/api/v1/tables/#{@table.id}/records/#{row['id']}", params: { record: { values: { formula["id"].to_s => 42 } } }, as: :json
+      assert_response :unprocessable_entity
+    end
+    assert_includes response.parsed_body["errors"].first, "calculated from its formula"
+  end
+
+  test "an invalid formula field is rejected and a type change drops the expression" do
+    post "/api/v1/tables/#{@table.id}/fields", params: { field: { name: "Empty", data_type: "formula" } }, as: :json
+    assert_response :unprocessable_entity
+    post "/api/v1/tables/#{@table.id}/fields", params: { field: { name: "Loop", data_type: "formula", formula: "{Loop} + 1" } }, as: :json
+    assert_response :unprocessable_entity
+    post "/api/v1/tables/#{@table.id}/fields", params: { field: { name: "Double", data_type: "formula", formula: "{Age} * 2" } }, as: :json
+    assert_response :success
+    id = response.parsed_body["fields"].last["id"]
+    patch "/api/v1/tables/#{@table.id}/fields/#{id}", params: { field: { data_type: "number" } }, as: :json
+    assert_response :success
+    assert_nil response.parsed_body["fields"].last["formula"]
+  end
+
+  test "renaming a field updates the formulas that use it" do
+    post "/api/v1/tables/#{@table.id}/fields", params: { field: { name: "Double", data_type: "formula", formula: "{Age} * 2" } }, as: :json
+    assert_response :success
+    patch "/api/v1/tables/#{@table.id}/fields/#{@field.id}", params: { field: { name: "Years" } }, as: :json
+    assert_response :success
+    assert_equal "{Years} * 2", response.parsed_body["fields"].last["formula"]
+  end
+
   test "folder deletion reports referenced tables and preserves the folder" do
     folder = @user.workspace.folders.create!(name: "Companies")
     target = folder.documents.create!(title: "Companies", doc_type: :table, created_by: @user)

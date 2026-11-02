@@ -27,15 +27,21 @@ module Api
         end
       end
 
+      # Changes a member's role, their weekly capacity in hours, or both.
       def update
         require_manage_in!(@workspace.id)
         membership = @workspace.memberships.find(params[:id])
-        role = requested_role
-        return render json: { errors: [ "Role is invalid" ] }, status: :unprocessable_entity unless role
+        attributes = {}
+        if params.key?(:role) || !params.key?(:weekly_capacity_hours)
+          role = requested_role
+          return render json: { errors: [ "Role is invalid" ] }, status: :unprocessable_entity unless role
 
-        authorize_role_grant!(role)
-        authorize_role_grant!(membership.role) # changing an owner's role is an owner-only action too
-        if membership.update(role: role)
+          authorize_role_grant!(role)
+          authorize_role_grant!(membership.role) # changing an owner's role is an owner-only action too
+          attributes[:role] = role
+        end
+        attributes[:weekly_capacity_hours] = params[:weekly_capacity_hours] if params.key?(:weekly_capacity_hours)
+        if membership.update(attributes)
           render json: WorkspaceMembershipBlueprint.render(membership)
         else
           render json: { errors: membership.errors.full_messages }, status: :unprocessable_entity

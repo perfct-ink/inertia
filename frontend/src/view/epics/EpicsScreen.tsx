@@ -1,13 +1,14 @@
-import { Button, Input, Select } from '@/components/ui'
+import { Button, Input, Select, DatePicker } from '@/components/ui'
 import { useState, useRef } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { Plus, X, Target, Loader2 } from 'lucide-react'
+import { Plus, X, Target, Loader2, ListChecks } from 'lucide-react'
 import WorkspaceLayout from '@/components/WorkspaceLayout'
 import { useEpics, useCreateEpic, useUpdateEpic, useDeleteEpic } from '@/api/epics'
 import { useInitiatives } from '@/api/initiatives'
 import { useMilestones } from '@/api/milestones'
 import '../planning/PlanningScreen.scss'
-import { ProgressBar, Timeline } from '@/components/Timeline'
+import { ProgressBar } from '@/components/Timeline'
+import PlanningTimeline from '@/components/PlanningTimeline'
 import { usePageTitle } from '@/hooks/usePageTitle'
 import { donePercent } from '@/data/schedule'
 
@@ -113,7 +114,7 @@ export default function EpicsScreen() {
               </div>
             )}
 
-            {!isLoading && epics.length > 0 && view === 'timeline' && <Timeline items={epics} />}
+            {!isLoading && epics.length > 0 && view === 'timeline' && <PlanningTimeline epics={epics} />}
 
             {!isLoading && view === 'list' && epics.map((epic) => (
               <div
@@ -128,6 +129,15 @@ export default function EpicsScreen() {
                     {epic.done_tasks_count}/{epic.tasks_count} done
                   </span>
                   <Button
+                    variant="ghost"
+                    onClick={(e) => { e.stopPropagation(); navigate(`/plan?epic_id=${epic.id}`) }}
+                    aria-label={`Plan ${epic.title}`}
+                    className="planning-card-plan"
+                  >
+                    <ListChecks className="planning-delete_icon" aria-hidden="true" />
+                    Plan
+                  </Button>
+                  <Button
                     onClick={(e) => { e.stopPropagation(); deleteEpic.mutate(epic.id) }}
                     aria-label="Delete epic"
                     className="planning-card-delete"
@@ -136,15 +146,13 @@ export default function EpicsScreen() {
                   </Button>
                 </div>
                 <div className="planning-card-dates" onClick={(e) => e.stopPropagation()}>
-                  <Input
-                    type="date"
+                  <DatePicker
                     value={epic.start_date ?? ''}
                     onChange={(e) => updateEpic.mutate({ id: epic.id, start_date: e.target.value || null })}
                     className="planning-date"
                   />
                   <span>&rarr;</span>
-                  <Input
-                    type="date"
+                  <DatePicker
                     value={epic.target_date ?? ''}
                     onChange={(e) => updateEpic.mutate({ id: epic.id, target_date: e.target.value || null })}
                     className="planning-date"
