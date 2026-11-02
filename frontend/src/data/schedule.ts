@@ -288,6 +288,21 @@ export function rowKeyParts(key: string | undefined): { kind: RowKind; id: numbe
   return match ? { kind: match[1] as RowKind, id: Number(match[2]) } : null
 }
 
+// Whether a bar on the Space-wide timelines (Epics, Initiatives, Roadmap) can
+// be moved: an epic always, an initiative only when it has dates of its own (a
+// bar without them is a roll-up of the epics under it, so there is nothing of
+// its own to change). Milestone rows are diamonds' roll-ups and task rows keep
+// their folder's dependency mode, so both stay put here.
+export function planningRowMovable(
+  row: { key?: string },
+  initiatives: { id: number; start_date: string | null; target_date: string | null }[],
+): boolean {
+  const parts = rowKeyParts(row.key)
+  if (parts?.kind === 'epic') return true
+  if (parts?.kind !== 'initiative') return false
+  return initiatives.some((i) => i.id === parts.id && Boolean(i.start_date && i.target_date))
+}
+
 
 // ── Gantt zoom ───────────────────────────────────────────────────────────────
 

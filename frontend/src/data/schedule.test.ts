@@ -1,5 +1,5 @@
 import {
-  axisTicks, barKeyAction, donePercent, drawnRange, groupGanttRows, milestoneMarkers, planningGanttRows, rowKeyParts, shiftedRange, trackWidthPx, weekendSpans,
+  axisTicks, barKeyAction, donePercent, drawnRange, groupGanttRows, milestoneMarkers, planningGanttRows, planningRowMovable, rowKeyParts, shiftedRange, trackWidthPx, weekendSpans,
   type Scheduled, flatTaskRows,
 } from './schedule'
 
@@ -196,6 +196,22 @@ test('rowKeyParts reads the kind and id from a row key', () => {
   expect(rowKeyParts('no-milestone')).toBe(null)
   expect(rowKeyParts('epic-x')).toBe(null)
   expect(rowKeyParts(undefined)).toBe(null)
+})
+
+test('planningRowMovable allows epics and initiatives with their own dates, nothing else', () => {
+  const initiatives = [
+    { id: 5, start_date: '2026-03-01', target_date: '2026-03-31' },
+    { id: 6, start_date: null, target_date: null },
+    { id: 7, start_date: '2026-03-01', target_date: null },
+  ]
+  expect(planningRowMovable({ key: 'epic-1' }, initiatives)).toBe(true)
+  expect(planningRowMovable({ key: 'initiative-5' }, initiatives)).toBe(true)
+  expect(planningRowMovable({ key: 'initiative-6' }, initiatives)).toBe(false)
+  expect(planningRowMovable({ key: 'initiative-7' }, initiatives)).toBe(false)
+  expect(planningRowMovable({ key: 'initiative-99' }, initiatives)).toBe(false)
+  expect(planningRowMovable({ key: 'milestone-1' }, initiatives)).toBe(false)
+  expect(planningRowMovable({ key: 'task-1' }, initiatives)).toBe(false)
+  expect(planningRowMovable({}, initiatives)).toBe(false)
 })
 
 describe('gantt zoom axis', () => {

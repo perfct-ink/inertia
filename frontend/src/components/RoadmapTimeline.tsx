@@ -1,13 +1,22 @@
 import { useMemo } from 'react'
 import { format, parseISO } from 'date-fns'
 import { HealthBadge } from '@/components/ui'
-import { ProgressBar, Timeline } from '@/components/Timeline'
+import { ProgressBar, Timeline, type TimelineReschedule } from '@/components/Timeline'
 import { roadmapLanes, roadmapRange } from '@/data/roadmap'
+import { planningRowMovable } from '@/data/schedule'
+import { usePlanningReschedule } from '@/hooks/usePlanningReschedule'
 import type { Epic, Initiative, Milestone } from '@/types'
 
 // Milestone lanes on one shared month axis. Used by the Roadmap page and by
-// the public read-only roadmap link, so both draw the same chart.
-export default function RoadmapTimeline({ milestones, initiatives, epics }: { milestones: Milestone[]; initiatives: Initiative[]; epics: Epic[] }) {
+// the public read-only roadmap link, so both draw the same chart. Bars can be
+// moved only when `onReschedule` is given (the Roadmap page does; the public
+// link doesn't).
+export default function RoadmapTimeline({ milestones, initiatives, epics, onReschedule }: {
+  milestones: Milestone[]
+  initiatives: Initiative[]
+  epics: Epic[]
+  onReschedule?: TimelineReschedule
+}) {
   const lanes = useMemo(() => roadmapLanes(milestones, initiatives, epics), [milestones, initiatives, epics])
   const range = useMemo(() => roadmapRange(lanes) ?? undefined, [lanes])
 
@@ -34,6 +43,8 @@ export default function RoadmapTimeline({ milestones, initiatives, epics }: { mi
               <Timeline
                 items={lane.rows}
                 range={range}
+                onReschedule={onReschedule}
+                canReschedule={(row) => planningRowMovable(row, initiatives)}
                 milestones={lane.milestone?.target_date ? [{ id: lane.milestone.id, title: lane.milestone.title, target_date: lane.milestone.target_date }] : []}
               />
             )}
@@ -41,4 +52,11 @@ export default function RoadmapTimeline({ milestones, initiatives, epics }: { mi
       ))}
     </div>
   )
+}
+
+// The same chart for signed-in users: dragging a bar, or moving it with the
+// arrow keys, saves the initiative's or epic's dates.
+export function EditableRoadmapTimeline(props: Omit<Parameters<typeof RoadmapTimeline>[0], 'onReschedule'>) {
+  const reschedule = usePlanningReschedule()
+  return <RoadmapTimeline {...props} onReschedule={reschedule} />
 }
