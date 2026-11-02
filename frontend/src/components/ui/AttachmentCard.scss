@@ -1,0 +1,98 @@
+@use 'tokens' as *;
+
+@layer app.ui {
+  // A file in a document: icon, name and type on the left, actions on the right.
+  // On a phone the actions wrap under the name so nothing runs off the screen.
+  .ui-attachment {
+    display: flex;
+    flex-direction: column;
+    gap: space(3);
+    max-width: 100%;
+    padding: space(3);
+    border-width: 1px;
+    border-radius: radius('lg');
+    background: color(card);
+    color: color(card-foreground);
+
+    &--selected {
+      @include focus-ring;
+    }
+
+    &-main {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: space(3);
+    }
+
+    &-icon {
+      flex-shrink: 0;
+      width: space(8);
+      height: space(8);
+      color: color(muted-foreground);
+    }
+
+    &-text {
+      display: flex;
+      flex: 1 1 10rem;
+      flex-direction: column;
+      min-width: 0;
+    }
+
+    &-name {
+      font-weight: 500;
+      @include text('sm');
+      @include truncate;
+    }
+
+    &-meta {
+      color: color(muted-foreground);
+      @include text('xs');
+    }
+
+    &-actions {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: space(2);
+    }
+
+    &-action {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: space(1.5);
+
+      // The icon-only Remove button keeps a finger-sized target.
+      &--icon {
+        min-width: space(10);
+        min-height: space(10);
+      }
+    }
+
+    &-action_icon {
+      flex-shrink: 0;
+      width: space(4);
+      height: space(4);
+    }
+
+    &-player {
+      width: 100%;
+    }
+
+    &-preview {
+      display: block;
+      max-width: 100%;
+      max-height: 70dvh;
+      margin: space(3) auto 0;
+      border-radius: radius();
+      object-fit: contain;
+
+      &--pdf {
+        width: 100%;
+        height: 70dvh;
+        border-width: 1px;
+      }
+    }
+  }
+}

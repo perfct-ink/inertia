@@ -34,8 +34,16 @@
     }
 
     @at-root .timeline-chart {
+      // Title column + count column + the gaps around the track.
+      --timeline-side-columns: #{space(36) + space(14) + space(6)};
+
       min-width: 700px;
       max-width: 56rem;
+
+      // Day, week, quarter and year zoom size the track by days, and scroll.
+      &--zoomed {
+        max-width: none;
+      }
     }
 
     // Month labels sit over the track column only (same offsets as the
@@ -53,10 +61,29 @@
       @include text('xs');
       @include truncate;
 
+      &--day {
+        text-align: center;
+      }
+
       flex-shrink: 0;
       padding-bottom: space(1);
       font-weight: 500;
       color: color(muted-foreground);
+    }
+
+    @at-root .timeline-linking {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      overflow: visible;
+      pointer-events: none;
+
+      &-line {
+        stroke: color(primary);
+        stroke-width: 2;
+        stroke-dasharray: 4 3;
+      }
     }
 
     @at-root .timeline-rows {
@@ -78,6 +105,11 @@
 
       flex-shrink: 0;
       width: space(36);
+
+      // Milestone and initiative rows heading the epics under them.
+      &--group {
+        font-weight: 600;
+      }
     }
 
     @at-root .timeline-track {
@@ -131,6 +163,50 @@
         }
       }
 
+      // Dots on each side that start a dependency link when dragged.
+      &-link {
+        position: absolute;
+        top: 50%;
+        width: space(2.5);
+        height: space(2.5);
+        transform: translateY(-50%);
+        border: 1px solid color(primary);
+        border-radius: radius('full');
+        background: color(background);
+        cursor: crosshair;
+        opacity: 0;
+        transition: opacity 0.15s;
+
+        &--start {
+          left: calc(-1 * #{space(3)});
+        }
+
+        &--end {
+          right: calc(-1 * #{space(3)});
+        }
+
+        &:hover,
+        &:focus-visible {
+          background: color(primary);
+        }
+      }
+
+      &:hover > .timeline-bar-link,
+      &--dragging > .timeline-bar-link {
+        opacity: 1;
+      }
+
+      // Group rows read as a header over the bars beneath: neutral, so the
+      // health colors below still win on a group that is at risk.
+      &--group {
+        border-color: color(foreground, 0.5);
+        background: color(foreground, 0.12);
+
+        .timeline-bar-fill {
+          background: color(foreground, 0.3);
+        }
+      }
+
       // Roadmap colors bars by health; on track keeps the default primary.
       &--at_risk {
         border-color: palette('yellow-500');
@@ -162,6 +238,14 @@
       position: absolute;
       inset: 0 calc(#{space(14)} + #{space(3)}) 0 calc(#{space(36)} + #{space(3)});
       pointer-events: none;
+    }
+
+    // A Saturday-Sunday run behind the bars (day and week zoom).
+    @at-root .timeline-weekend {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      background: color(muted, 0.5);
     }
 
     // Dependency arrows: same horizontal span as the today overlay.

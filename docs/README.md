@@ -86,7 +86,7 @@ DELETE /api/v1/tables/:id/records/:record_id
 GET    /api/v1/documents/:document_id/tasks
 POST   /api/v1/documents/:document_id/tasks
 GET    /api/v1/tasks           # all tasks across workspace
-PATCH  /api/v1/tasks/:id
+PATCH  /api/v1/tasks/:id         # moving dates obeys the task folder's dependency mode (422 when strict refuses)
 DELETE /api/v1/tasks/:id
 
 POST   /api/v1/shares
