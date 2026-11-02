@@ -48,3 +48,4 @@ One file per implemented feature, written from the code (see `docs/rules/feature
 >>>>>>> origin/backlog/upload-files-and-images-into-a-folder
 | Appearance: light/dark/system and accent colour | [appearance.md](appearance.md) |
 | Document breadcrumb: Space > folders > document | [document_breadcrumb.md](document_breadcrumb.md) |
+| My work: my open tasks by due date | [my_work.md](my_work.md) |

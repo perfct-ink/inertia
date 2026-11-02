@@ -18,6 +18,7 @@ import RoadmapScreen from '@/view/roadmap/RoadmapScreen'
 import OkrsScreen from '@/view/okrs/OkrsScreen'
 import SprintBoardScreen from '@/view/sprint_board/SprintBoardScreen'
 import ResourcesScreen from '@/view/resources/ResourcesScreen'
+import MyWorkScreen from '@/view/my_work/MyWorkScreen'
 import ProjectsScreen from '@/view/projects/ProjectsScreen'
 import ProjectRequestsScreen from '@/view/project_requests/ProjectRequestsScreen'
 import FolderDetailScreen from '@/view/folder_detail/FolderDetailScreen'
@@ -150,6 +151,14 @@ export default function App() {
           element={
             <PrivateRoute>
               <SprintBoardScreen />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/my-work"
+          element={
+            <PrivateRoute>
+              <MyWorkScreen />
             </PrivateRoute>
           }
         />
