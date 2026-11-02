@@ -231,4 +231,21 @@ final class VoltaControlsTests: XCTestCase {
         XCTAssertEqual(SelectOption.label(for: 9, in: options), "")
         XCTAssertEqual(SelectOption<String>.label(for: "a", in: []), "")
     }
+
+    func testChoicesBuiltFromRecords() {
+        let users = [UserRecord(name: "Ada"), UserRecord(name: "Grace")]
+        let required = SelectChoices.records(users, id: \.id, label: \.name)
+        XCTAssertEqual(required.map(\.label), ["Ada", "Grace"])
+        XCTAssertEqual(required.map(\.value), users.map(\.id))
+
+        let optional = SelectChoices.optional(none: "Unassigned", users, id: \.id, label: \.name)
+        XCTAssertEqual(optional.map(\.label), ["Unassigned", "Ada", "Grace"])
+        XCTAssertNil(optional[0].value)
+        XCTAssertEqual(optional[2].value, users[1].id)
+        XCTAssertEqual(SelectOption.label(for: Optional(users[0].id), in: optional), "Ada")
+
+        let filters = SelectChoices.filter(all: "All epics", unassigned: "Unassigned", users, id: \.id, label: \.name)
+        XCTAssertEqual(filters.map(\.value), ["all", "unassigned", String(users[0].id), String(users[1].id)])
+        XCTAssertEqual(SelectChoices.optional(none: "None", [UserRecord](), id: \.id, label: \.name).count, 1)
+    }
 }

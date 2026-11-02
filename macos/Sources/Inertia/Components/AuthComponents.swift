@@ -14,20 +14,18 @@ struct ProviderSignInButton: View {
 
     var body: some View {
         Button(action: action) {
-            Group {
-                if let symbol = provider.symbol { Label(provider.title, systemImage: symbol) }
-                else { Text(provider.title) }
-            }.frame(maxWidth: .infinity)
-        }.buttonStyle(.bordered).controlSize(.large)
+            if let symbol = provider.symbol { Label(provider.title, systemImage: symbol) }
+            else { Text(provider.title) }
+        }.buttonStyle(.volta(.secondary, fullWidth: true))
     }
 }
 
 struct AuthDivider: View {
     var body: some View {
         HStack {
-            Rectangle().frame(height: 1)
+            Rectangle().fill(Volta.border).frame(height: 1)
             Text("or sign in with email").fixedSize()
-            Rectangle().frame(height: 1)
-        }.foregroundStyle(.secondary)
+            Rectangle().fill(Volta.border).frame(height: 1)
+        }.voltaCaption()
     }
 }

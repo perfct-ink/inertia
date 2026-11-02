@@ -142,3 +142,21 @@ public struct SelectOption<Value: Hashable>: Hashable {
         options.first { $0.value == selection }?.label ?? placeholder
     }
 }
+
+/// Options for the selects on the native screens, built from the records a task file holds.
+public enum SelectChoices {
+    /// One option per record, labelled with `label`.
+    public static func records<Record>(_ records: [Record], id: KeyPath<Record, Int>, label: KeyPath<Record, String>) -> [SelectOption<Int>] {
+        records.map { SelectOption($0[keyPath: id], $0[keyPath: label]) }
+    }
+
+    /// For a choice that may be left empty: `none` (selected by `nil`) first, then one option per record.
+    public static func optional<Record>(none: String, _ records: [Record], id: KeyPath<Record, Int>, label: KeyPath<Record, String>) -> [SelectOption<Int?>] {
+        [SelectOption<Int?>(nil, none)] + records.map { SelectOption(Optional($0[keyPath: id]), $0[keyPath: label]) }
+    }
+
+    /// For the board filters, which hold a string: `"all"`, `"unassigned"`, or a record's id as text.
+    public static func filter<Record>(all: String, unassigned: String, _ records: [Record], id: KeyPath<Record, Int>, label: KeyPath<Record, String>) -> [SelectOption<String>] {
+        [SelectOption("all", all), SelectOption("unassigned", unassigned)] + records.map { SelectOption(String($0[keyPath: id]), $0[keyPath: label]) }
+    }
+}
