@@ -49,6 +49,7 @@
 
     @at-root .workspace_layout-brand {
       @include text('sm');
+      @include truncate;
 
       font-weight: 600;
     }

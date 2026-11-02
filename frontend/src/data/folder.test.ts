@@ -1,5 +1,5 @@
-import type { Document, Folder } from '@/types'
-import { documentsIn, flattenFolders, projectLastModified, projectsOf, searchSpaceFiles, spaceFiles } from './folder'
+import type { Document, Folder, SpaceFolder } from '@/types'
+import { documentsIn, filterSpaceFiles, flattenFolders, folderChoices, projectLastModified, projectsOf, searchSpaceFiles, spaceFiles, folderTrail, featureFoldersOf } from './folder'
 
 const folder = (id: number, children: Folder[] = []) => ({ id, name: `F${id}`, children }) as unknown as Folder
 
@@ -48,4 +48,62 @@ test('documentsIn and projectLastModified cover nested folders', () => {
   expect(documentsIn(messages).map((d) => d.title)).toEqual(['Spec', 'Mockups'])
   expect(projectLastModified(messages)).toBe('2026-10-09T00:00:00Z')
   expect(projectLastModified(tree()[0].children[2])).toBeNull()
+})
+
+test('filterSpaceFiles filters by project, type and owner, and an unset filter matches all', () => {
+  const owned = (d: Document, owner: number, type: Document['doc_type'] = 'document') => ({ ...d, created_by_id: owner, doc_type: type }) as Document
+  const t = tree()
+  t[0].documents = [owned(t[0].documents[0], 7)]
+  t[0].children[0].documents = [owned(t[0].children[0].documents[0], 8, 'spreadsheet')]
+  t[0].children[0].children[0].documents = [owned(t[0].children[0].children[0].documents[0], 7)]
+  const files = spaceFiles(t)
+
+  expect(filterSpaceFiles(files, {})).toHaveLength(3)
+  expect(filterSpaceFiles(files, { projectId: 2 }).map((f) => f.document.title)).toEqual(['Spec', 'Mockups'])
+  expect(filterSpaceFiles(files, { projectId: 0 }).map((f) => f.document.title)).toEqual(['Readme'])
+  expect(filterSpaceFiles(files, { docType: 'spreadsheet' }).map((f) => f.document.title)).toEqual(['Spec'])
+  expect(filterSpaceFiles(files, { ownerId: 7 }).map((f) => f.document.title)).toEqual(['Readme', 'Mockups'])
+  expect(filterSpaceFiles(files, { projectId: 2, ownerId: 7 }).map((f) => f.document.title)).toEqual(['Mockups'])
+})
+
+const spaceFolder = (id: number, name: string, parent_id: number | null, position = 0, root = false): SpaceFolder =>
+  ({ id, name, parent_id, position, root })
+
+test("folderChoices lists a Space's folders in tree order with their paths", () => {
+  const folders = [
+    spaceFolder(4, 'Design', 2),
+    spaceFolder(3, 'Billing', 1, 1),
+    spaceFolder(2, 'Messages', 1, 0),
+    spaceFolder(1, 'Root', null, 0, true),
+  ]
+  expect(folderChoices(folders)).toEqual([
+    { id: 1, label: 'Top level' },
+    { id: 2, label: 'Messages' },
+    { id: 4, label: 'Messages / Design' },
+    { id: 3, label: 'Billing' },
+  ])
+})
+
+test('folderChoices orders siblings by position, then name, and skips folders cut off from the top', () => {
+  const folders = [
+    spaceFolder(1, 'Root', null, 0, true),
+    spaceFolder(2, 'Zeta', 1, 0),
+    spaceFolder(3, 'Alpha', 1, 0),
+    spaceFolder(4, 'Orphan', 99, 0),
+  ]
+  expect(folderChoices(folders).map((c) => c.label)).toEqual(['Top level', 'Alpha', 'Zeta'])
+  expect(folderChoices([])).toEqual([])
+})
+
+test('folderTrail lists the folders from the top down, without Root', () => {
+  expect(folderTrail(tree(), 3).map((f) => f.name)).toEqual(['Messages', 'Design'])
+  expect(folderTrail(tree(), 2).map((f) => f.name)).toEqual(['Messages'])
+  expect(folderTrail(tree(), 1)).toEqual([])
+  expect(folderTrail(tree(), 99)).toEqual([])
+})
+
+test('featureFoldersOf lists active feature folders by name', () => {
+  const f = (id: number, name: string, kind: Folder['kind'], archived = false, children: Folder[] = []) => ({ id, name, kind, archived, children, documents: [] }) as unknown as Folder
+  const tree = [f(1, 'Root', 'folder', false, [f(2, 'Zeta', 'feature'), f(3, 'Alpha', 'feature', false, [f(4, 'Old', 'feature', true)]), f(5, 'Plain', 'folder')])]
+  expect(featureFoldersOf(tree).map((x) => x.name)).toEqual(['Alpha', 'Zeta'])
 })

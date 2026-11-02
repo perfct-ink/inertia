@@ -78,7 +78,8 @@
       border-top-width: 1px;
     }
 
-    a {
+    // Not the Download button on an attachment card, which is drawn as a button.
+    a:not(.ui-button) {
       color: palette('blue-500');
       text-decoration: underline;
       cursor: pointer;

@@ -49,6 +49,31 @@
       padding-bottom: space(1.5);
     }
 
+    @at-root .table_editor-modes {
+      display: flex;
+      gap: space(1);
+      padding: space(3) space(6) 0;
+    }
+
+    & .table_editor-mode_button {
+      display: flex;
+      align-items: center;
+      gap: space(1.5);
+      min-height: space(10);
+      padding: space(1) space(3);
+      border-radius: radius('md');
+      @include text('sm');
+
+      &:hover:not(:disabled),
+      &--active {
+        background: color(accent);
+      }
+    }
+
+    @at-root .table_editor-mode_icon {
+      @include icon(space(4));
+    }
+
     @at-root .table_editor-summary {
       padding: space(3) space(6);
       @include text('xs');
@@ -247,6 +272,44 @@
       @include text('xs');
 
       font-weight: 400;
+      color: color(muted-foreground);
+    }
+
+    /* A formula field's expression, under its name; the full text is in the title. */
+    @at-root .table_editor-column_formula {
+      display: block;
+      max-width: space(48);
+      overflow: hidden;
+      @include text('xs');
+
+      font-weight: 400;
+      color: color(muted-foreground);
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    /* A formula field's value: read-only, so it takes the muted fill and does not react to the cursor. */
+    @at-root .table_editor-formula_result {
+      display: block;
+      min-width: space(32);
+      padding: space(1.5) space(2);
+      border: 1px solid transparent;
+      border-radius: radius();
+      background-color: color(muted, 0.3);
+      overflow-wrap: anywhere;
+      @include text('sm');
+
+      font-variant-numeric: tabular-nums;
+
+      &--error {
+        color: palette('red-500');
+      }
+    }
+
+    @at-root .table_editor-formula_message {
+      display: block;
+      @include text('xs');
+
       color: color(muted-foreground);
     }
 

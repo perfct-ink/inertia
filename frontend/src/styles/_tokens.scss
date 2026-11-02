@@ -259,9 +259,15 @@ $select-chevron-room: space(6);
   border-radius: 0;
   background-color: transparent;
 
-  &[type='date'],
+  &.ui-date_picker-input,
   &.ui-select {
     cursor: pointer;
+  }
+
+  // The calendar mark is for full-size fields.
+  &.ui-date_picker-input {
+    padding-right: 0;
+    background-image: none;
   }
 
   &:hover:not(:disabled) {

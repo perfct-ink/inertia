@@ -17,3 +17,15 @@ test('records new steps once and remembers a dismissal', () => {
   dismiss(1)
   expect(useOnboardingStore.getState().users[1].dismissed).toBe(true)
 })
+
+test('reopen brings back a hidden checklist with its ticks, and starts one for an older account', () => {
+  const { start, record, dismiss, reopen } = useOnboardingStore.getState()
+  start(1)
+  record(1, ['space'])
+  dismiss(1)
+  reopen(1)
+  expect(useOnboardingStore.getState().users[1]).toEqual({ dismissed: false, done: ['space'] })
+
+  reopen(2)
+  expect(useOnboardingStore.getState().users[2]).toEqual({ dismissed: false, done: [] })
+})

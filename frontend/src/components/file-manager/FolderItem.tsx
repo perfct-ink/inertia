@@ -2,13 +2,15 @@ import { Button, Input } from '@/components/ui'
 import { Database } from 'lucide-react'
 import { useState, useRef, useEffect } from 'react'
 import { useNavigate, useLocation, Link } from 'react-router-dom'
-import { ChevronRight, Folder, FolderKanban, FileText, TableIcon, Pin, CheckSquare, CalendarDays, MoreVertical } from 'lucide-react'
-import {
-  useCreateFolder, useCreateDocument, useDeleteFolder, useDeleteDocument,
-  usePinFolder, usePinDocument, useUpdateFolder,
-} from '@/api/workspace'
-import { useUpdateDocument } from '@/api/documents'
+import { ChevronRight, Folder, FolderKanban, FileText, TableIcon, Pin, CheckSquare, CalendarDays, MoreVertical, Layers } from 'lucide-react'
+import { useCreateFolder, useDeleteFolder, usePinFolder, useUpdateFolder } from '@/api/folders'
+import { useCreateDocument, useDeleteDocument, usePinDocument, useUpdateDocument } from '@/api/documents'
+import { useUploadFiles } from '@/api/workspace'
 import { errorMessage } from '@/api/tables'
+import { documentsIn } from '@/data/folder'
+import type { TransferRequest } from '@/data/transfer'
+import { useTransferTargets } from '@/hooks/useTransferTargets'
+import { useTransferStore } from '@/store/transfer'
 import type { Folder as FolderType, Document } from '@/types'
 import './FolderItem.scss'
 
@@ -90,6 +92,9 @@ function InlineInput({ defaultValue, onConfirm, onCancel }: { defaultValue: stri
 
 // ── FolderItem ────────────────────────────────────────────────────────────────
 
+// Whether a drag carries files from outside the page (not an item being moved inside it).
+const hasFiles = (transfer: DataTransfer) => Array.from(transfer.types).includes('Files')
+
 export function FolderItem({ folder, depth = 0 }: { folder: FolderType; depth?: number }) {
   const navigate = useNavigate()
   const location = useLocation()
@@ -109,10 +114,21 @@ export function FolderItem({ folder, depth = 0 }: { folder: FolderType; depth?: 
   const pinDocument = usePinDocument()
   const updateFolder = useUpdateFolder()
   const updateDocument = useUpdateDocument()
+  const openTransfer = useTransferStore((s) => s.open)
+  // Moving or copying needs another Space to put things in.
+  const canTransfer = useTransferTargets().targets.length > 0
+  const uploadFiles = useUploadFiles()
+  const [dropTarget, setDropTarget] = useState(false)
 
   const indent = depth * 12
   const isProject = folder.kind === 'project'
-  const FolderIcon = isProject ? FolderKanban : Folder
+  const isFeature = folder.kind === 'feature'
+  const FolderIcon = isProject ? FolderKanban : isFeature ? Layers : Folder
+
+  const transferItems = (describe: () => Omit<TransferRequest, 'mode'>): MenuItem[] => canTransfer ? [
+    { label: 'Move to Space…', action: () => openTransfer({ mode: 'move', ...describe() }) },
+    { label: 'Copy to Space…', action: () => openTransfer({ mode: 'copy', ...describe() }) },
+  ] : []
 
   async function createItem(type: Document['doc_type']) {
     setOpen(true)
@@ -131,7 +147,9 @@ export function FolderItem({ folder, depth = 0 }: { folder: FolderType; depth?: 
     { label: folder.pinned ? 'Unpin' : 'Pin', action: () => pinFolder.mutate({ id: folder.id, pinned: !folder.pinned }) },
     { label: 'Rename', action: () => setRenamingFolder(true) },
     ...(folder.root ? [] : [
+      ...transferItems(() => ({ kind: 'folder', id: folder.id, name: folder.name, documentIds: documentsIn(folder).map((d) => d.id) })),
       { label: isProject ? 'Make Folder' : 'Make Project', action: () => updateFolder.mutate({ id: folder.id, kind: isProject ? 'folder' : 'project' }) },
+      { label: isFeature ? 'Make Folder' : 'Make Feature Folder', action: () => updateFolder.mutate({ id: folder.id, kind: isFeature ? 'folder' : 'feature' }) },
       { label: 'Archive', action: () => updateFolder.mutate({ id: folder.id, archived: true }) },
       { label: 'Delete', action: () => deleteFolder.mutate(folder.id, { onError: e => setActionError(errorMessage(e)) }), danger: true },
     ]),
@@ -142,9 +160,18 @@ export function FolderItem({ folder, depth = 0 }: { folder: FolderType; depth?: 
       {actionError && <div role="alert" className="folder_item-error">{actionError}<Button className="folder_item-dismiss" onClick={() => setActionError('')}>Dismiss</Button></div>}
       {/* Folder row */}
       <div
-        className={`folder_item-row folder_item-row--folder${location.pathname === `/folders/${folder.id}` ? ' folder_item-row--active' : ''}`}
+        className={`folder_item-row folder_item-row--folder${location.pathname === `/folders/${folder.id}` ? ' folder_item-row--active' : ''}${dropTarget ? ' folder_item-row--drop' : ''}`}
         style={{ paddingLeft: `${8 + indent}px`, paddingRight: '8px' }}
         onContextMenu={(e) => { e.preventDefault(); e.stopPropagation(); setFolderCtx({ x: e.clientX, y: e.clientY }) }}
+        onDragOver={(e) => { if (hasFiles(e.dataTransfer)) { e.preventDefault(); setDropTarget(true) } }}
+        onDragLeave={() => setDropTarget(false)}
+        onDrop={async (e) => {
+          setDropTarget(false)
+          if (!hasFiles(e.dataTransfer)) return
+          e.preventDefault()
+          setActionError('')
+          try { await uploadFiles.mutateAsync({ folderId: folder.id, files: Array.from(e.dataTransfer.files) }); setOpen(true) } catch (error) { setActionError(errorMessage(error)) }
+        }}
       >
         <Button
           onClick={() => setOpen((o) => !o)}
@@ -154,7 +181,7 @@ export function FolderItem({ folder, depth = 0 }: { folder: FolderType; depth?: 
         >
           <ChevronRight className={`folder_item-chevron${open ? ' folder_item-chevron--open' : ''}`} />
         </Button>
-        <FolderIcon className="folder_item-icon folder_item-icon--sm" aria-label={isProject ? 'Project' : undefined} />
+        <FolderIcon className="folder_item-icon folder_item-icon--sm" aria-label={isProject ? 'Project' : isFeature ? 'Feature folder' : undefined} />
         {renamingFolder ? (
           <InlineInput
             defaultValue={folder.name}
@@ -242,6 +269,7 @@ export function FolderItem({ folder, depth = 0 }: { folder: FolderType; depth?: 
           items={[
             { label: 'Rename', action: () => setRenamingDocId(docCtx.doc.id) },
             { label: docCtx.doc.pinned ? 'Unpin' : 'Pin', action: () => pinDocument.mutate({ id: docCtx.doc.id, pinned: !docCtx.doc.pinned }) },
+            ...transferItems(() => ({ kind: 'document', id: docCtx.doc.id, name: docCtx.doc.title, documentIds: [docCtx.doc.id] })),
             { label: 'Delete', action: () => deleteDocument.mutate(docCtx.doc.id, { onError: e => setActionError(errorMessage(e)) }), danger: true },
           ]}
           onClose={() => setDocCtx(null)}

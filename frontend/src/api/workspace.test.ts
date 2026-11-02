@@ -3,7 +3,7 @@ import api from '@/lib/api'
 import { useAuthStore } from '@/store/auth'
 import { useNotificationStore } from '@/store/notifications'
 import { useWorkspaceStore } from '@/store/workspaces'
-import { fetchWorkspace } from './workspace'
+import { activeWorkspaceApi } from './workspace'
 
 const originalAdapter = api.defaults.adapter
 
@@ -29,7 +29,7 @@ const messages = () => useNotificationStore.getState().notifications.map((n) => 
 
 test('a failed workspace request shows an error even though the first attempt is silent', async () => {
   api.defaults.adapter = reply(500, { error: 'Something broke' })
-  await expect(fetchWorkspace()).rejects.toBeDefined()
+  await expect(activeWorkspaceApi.find()).rejects.toBeDefined()
   expect(messages()).toEqual(['Something broke'])
 })
 
@@ -40,14 +40,14 @@ test('a lost workspace falls back to the personal one without an error', async (
     calls += 1
     return calls === 1 ? reply(404)(config) : reply(200, { id: 1, name: 'Personal' })(config)
   }
-  await expect(fetchWorkspace()).resolves.toEqual({ id: 1, name: 'Personal' })
+  await expect(activeWorkspaceApi.find()).resolves.toEqual({ id: 1, name: 'Personal' })
   expect(useWorkspaceStore.getState().activeWorkspaceId).toBeNull()
   expect(messages()).toEqual([])
 })
 
 test('a 401 signs the user out and leaves the notice to the login redirect', async () => {
   api.defaults.adapter = reply(401)
-  await expect(fetchWorkspace()).rejects.toBeDefined()
+  await expect(activeWorkspaceApi.find()).rejects.toBeDefined()
   expect(useAuthStore.getState().token).toBeNull()
   expect(messages()).toEqual([])
 })

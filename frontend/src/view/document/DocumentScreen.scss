@@ -113,6 +113,19 @@
       }
     }
 
+    // Headings ease to and from the highlight that marks where a heading link
+    // landed; the highlight only changes color, so nothing shifts.
+    & .ProseMirror :is(h1, h2, h3, h4, h5, h6) {
+      scroll-margin-top: space(4);
+      @include transition(background-color, box-shadow);
+    }
+
+    @at-root .document-heading--target {
+      border-radius: radius();
+      background: color(primary, 0.15);
+      box-shadow: 0 0 0 space(1) color(primary, 0.15);
+    }
+
     // Tasks only: fold every top-level block except headings and task lists in place.
     @at-root .document-page--tasks_only
       .ProseMirror

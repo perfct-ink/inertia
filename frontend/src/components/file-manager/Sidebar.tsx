@@ -1,20 +1,22 @@
 import { flattenFolders } from '@/data/folder'
 import { WorkspaceSwitcher } from '@/components/workspace/WorkspaceSwitcher'
-import { Button, Input, Select } from '@/components/ui'
+import { TransferHost } from '@/components/workspace/TransferDialog'
+import { Button, Input, Select, DatePicker } from '@/components/ui'
 import './Sidebar.scss'
 import { Database } from 'lucide-react'
 import { useState, useRef, useEffect, type ComponentType } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useSidebarStore } from '@/store/sidebar'
+import { useActiveOnboarding, useOnboardingStore } from '@/store/onboarding'
+import AppearanceDialog from '@/components/AppearanceDialog'
 import {
   FolderPlus, CheckSquare, FilePlus, FileText,
   Table as TableIcon, Pin, Folder, Loader2, CalendarDays,
-  Plus, Target, Flag, FolderKanban, Milestone, Rocket, ListTree, Map as MapIcon, Goal, Archive, ArchiveRestore, Keyboard, Download,
+  Plus, Target, Flag, FolderKanban, ClipboardList, Milestone, Rocket, ListTree, Map as MapIcon, Goal, Users, Archive, ArchiveRestore, Keyboard, Download, UserCheck, GanttChart, Lightbulb, Network, Disc3, CalendarRange, Table2, Rows3,
 } from 'lucide-react'
-import {
-  useWorkspace, useCreateFolder, useCreateDocument, usePinDocument, usePinFolder,
-  useArchivedFolders, useUpdateFolder,
-} from '@/api/workspace'
+import { useWorkspace } from '@/api/workspace'
+import { useArchivedFolders, useCreateFolder, usePinFolder, useUpdateFolder } from '@/api/folders'
+import { useCreateDocument, usePinDocument } from '@/api/documents'
 import { useCreateTask } from '@/api/tasks'
 import { useCreateEvent } from '@/api/events'
 import { useEpics } from '@/api/epics'
@@ -89,6 +91,8 @@ export default function Sidebar() {
   const [showArchived, setShowArchived] = useState(false)
   const { data: archivedFolders = [] } = useArchivedFolders()
   const [accountOpen, setAccountOpen] = useState(false)
+  const onboardingVisible = useActiveOnboarding(user?.id) !== null
+  const [appearanceOpen, setAppearanceOpen] = useState(false)
   const [shortcutsOpen, setShortcutsOpen] = useState(false)
   const [quipImportOpen, setQuipImportOpen] = useState(false)
   const [quipToken, setQuipToken] = useState('')
@@ -280,15 +284,25 @@ export default function Sidebar() {
         <div className="sidebar-rail_group">
           <RailButton icon={FileText} label="All files" active={isDocumentsSection} onClick={() => navigate('/documents')} />
           <RailButton icon={FolderKanban} label="Projects" active={location.pathname === '/projects'} onClick={() => navigate('/projects')} />
+          <RailButton icon={ClipboardList} label="Project requests" active={location.pathname === '/project-requests'} onClick={() => navigate('/project-requests')} />
+          <RailButton icon={UserCheck} label="My work" active={location.pathname === '/my-work'} onClick={() => navigate('/my-work')} />
+          <RailButton icon={Rows3} label="Task table" active={location.pathname === '/task-table'} onClick={() => navigate('/task-table')} />
+          <RailButton icon={Table2} label="Pivot" active={location.pathname === '/pivot'} onClick={() => navigate('/pivot')} />
           <RailButton icon={CheckSquare} label="Tasks" active={location.pathname === '/tasks'} onClick={() => navigate('/tasks?view=backlog')} />
+          <RailButton icon={CalendarRange} label="Calendar" active={location.pathname === '/calendar'} onClick={() => navigate('/calendar')} />
           <RailButton icon={CalendarDays} label="Events" active={location.pathname === '/events'} onClick={() => navigate('/events?view=list')} />
           <RailButton icon={Target} label="Epics" active={location.pathname === '/epics'} onClick={() => navigate('/epics')} />
           <RailButton icon={Flag} label="Initiatives" active={location.pathname === '/initiatives'} onClick={() => navigate('/initiatives')} />
+          <RailButton icon={GanttChart} label="Timeline" active={location.pathname === '/timeline'} onClick={() => navigate('/timeline')} />
           <RailButton icon={Milestone} label="Milestones" active={location.pathname === '/milestones'} onClick={() => navigate('/milestones')} />
           <RailButton icon={Rocket} label="Sprints" active={location.pathname === '/sprints'} onClick={() => navigate('/sprints')} />
+          <RailButton icon={Lightbulb} label="Ideas" active={location.pathname === '/ideas'} onClick={() => navigate('/ideas')} />
+          <RailButton icon={Network} label="Objectives map" active={location.pathname === '/objectives-map'} onClick={() => navigate('/objectives-map')} />
+          <RailButton icon={Disc3} label="Releases" active={location.pathname === '/releases'} onClick={() => navigate('/releases')} />
           <RailButton icon={Goal} label="OKRs" active={location.pathname === '/okrs'} onClick={() => navigate('/okrs')} />
           <RailButton icon={MapIcon} label="Roadmap" active={location.pathname === '/roadmap'} onClick={() => navigate('/roadmap')} />
           <RailButton icon={ListTree} label="Hierarchy" active={location.pathname === '/hierarchy'} onClick={() => navigate('/hierarchy')} />
+          <RailButton icon={Users} label="Resources" active={location.pathname === '/resources'} onClick={() => navigate('/resources')} />
         </div>
         <div className="sidebar-rail_spacer sidebar-drag" />
         <div className="sidebar-rail_group">
@@ -316,8 +330,8 @@ export default function Sidebar() {
         >
           <img src={logoMark} alt="" className="sidebar-logo" />
           <div className="sidebar-brand">
-            <p className="sidebar-brand_name">Inertia</p>
             <WorkspaceSwitcher />
+            <p className="sidebar-brand_name">Inertia</p>
           </div>
         </div>
 
@@ -525,6 +539,20 @@ export default function Sidebar() {
                 <Download className="sidebar-icon--sm" />
                 Import from Quip
               </Button>
+              {user && !onboardingVisible && (
+                <Button variant="secondary"
+                  onClick={() => { useOnboardingStore.getState().reopen(user.id); setAccountOpen(false); navigate('/space') }}
+                  className="sidebar-wide_button"
+                >
+                  Show getting started
+                </Button>
+              )}
+              <Button variant="secondary"
+                onClick={() => { setAccountOpen(false); setAppearanceOpen(true) }}
+                className="sidebar-wide_button"
+              >
+                Appearance
+              </Button>
               <Button variant="secondary"
                 onClick={handleLogout}
                 className="sidebar-wide_button sidebar-signout"
@@ -632,6 +660,10 @@ export default function Sidebar() {
         </div>
       )}
 
+      {/* Move or copy to another Space — opened from the tree's menus */}
+      <TransferHost />
+      <AppearanceDialog open={appearanceOpen} onClose={() => setAppearanceOpen(false)} />
+
       {/* Keyboard shortcuts modal */}
       {shortcutsOpen && (
         <div className="sidebar-overlay" onClick={() => setShortcutsOpen(false)}>
@@ -687,8 +719,7 @@ export default function Sidebar() {
 
             <label className="sidebar-inline_field">
               {quickAddType === 'task' ? 'Due date' : 'Date'}
-              <Input
-                type="date"
+              <DatePicker
                 value={quickAddDate}
                 onChange={(e) => setQuickAddDate(e.target.value)}
                 className="sidebar-input sidebar-input--compact"

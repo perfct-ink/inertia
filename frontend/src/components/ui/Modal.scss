@@ -25,6 +25,12 @@
       box-shadow: shadow('lg');
     }
 
+    &-content--wide {
+      max-width: 60rem;
+      max-height: calc(100dvh - #{space(8)});
+      overflow-y: auto;
+    }
+
     &-title {
       font-weight: 600;
       @include text('sm');

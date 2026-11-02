@@ -12,9 +12,9 @@ jest.mock('react-router-dom', () => ({ useNavigate: () => mockNavigate }))
 jest.mock('@/api/workspace', () => ({ useWorkspace: () => ({ data: mockWorkspace }) }))
 jest.mock('@/api/workspaces', () => ({
   useWorkspaces: () => ({ data: [mockWorkspace] }),
-  useWorkspaceMembers: () => ({ data: [] }),
   useCreateWorkspace: () => ({ mutate: jest.fn() }),
 }))
+jest.mock('@/api/workspaceMembers', () => ({ useWorkspaceMembers: () => ({ data: [] }) }))
 jest.mock('@/api/tasks', () => ({ useTasks: () => ({ data: mockTasks }) }))
 jest.mock('@/hooks/useNewDocument', () => ({ useNewDocument: () => mockNewDocument }))
 jest.mock('@/hooks/useSwitchWorkspace', () => ({ useSwitchWorkspace: () => jest.fn() }))

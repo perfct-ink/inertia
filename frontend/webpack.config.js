@@ -59,6 +59,10 @@ module.exports = (_env, argv) => {
         'process.env.API_URL': JSON.stringify(process.env.API_URL),
         'process.env.COLLAB_URL': JSON.stringify(process.env.COLLAB_URL),
         'process.env.BYPASS_AUTH': JSON.stringify(process.env.BYPASS_AUTH),
+        // Optional map tiles for the Collection map view; unset means no tiles
+        // and no requests to any map server (docs/services.md).
+        'process.env.MAP_TILE_URL': JSON.stringify(process.env.MAP_TILE_URL),
+        'process.env.MAP_TILE_ATTRIBUTION': JSON.stringify(process.env.MAP_TILE_ATTRIBUTION),
       }),
       !isDev && new MiniCssExtractPlugin({ filename: '[name].[contenthash].css' }),
       isDev && new ReactRefreshWebpackPlugin(),
