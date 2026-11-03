@@ -40,11 +40,14 @@ module Api
 
       # Moving a task's dates obeys the dependency mode of its folder (PM-14):
       # strict can answer 422, flexible also moves the tasks that wait on it and
-      # lists them as `rescheduled`.
+      # lists them as `rescheduled`. A change of status then runs the Space's
+      # automations (see Automations::Runner) before the task is returned, so
+      # the answer shows what they did, and `automations` names the rules that ran.
       def update
         scheduling = Scheduling::TaskUpdate.new(@task)
         if scheduling.call(task_params)
-          render json: TaskBlueprint.render_as_hash(@task).merge(rescheduled: TaskBlueprint.render_as_hash(scheduling.rescheduled))
+          automations = run_automations
+          render json: TaskBlueprint.render_as_hash(@task).merge(rescheduled: TaskBlueprint.render_as_hash(scheduling.rescheduled), automations: automations)
         else
           render json: { errors: scheduling.errors }, status: :unprocessable_entity
         end
@@ -56,6 +59,14 @@ module Api
       end
 
       private
+
+      # The rules that ran because this edit changed the task's status.
+      def run_automations
+        from, = @task.saved_change_to_status
+        return [] unless from
+
+        Automations::Runner.new(current_workspace).task_status_changed(@task, from: from).applied
+      end
 
       def set_task
         @task = current_workspace.tasks.find(params[:id])

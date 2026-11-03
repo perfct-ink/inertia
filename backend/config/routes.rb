@@ -96,6 +96,8 @@ Rails.application.routes.draw do
       resources :task_dependencies, only: [ :index, :create, :destroy ]
       resources :ai_workers, only: [ :index, :create, :update, :destroy ]
       resources :ai_runs, only: [ :index, :create ]
+      # Automations; switched on or off with `enabled` on an update.
+      resources :automation_rules, only: [ :index, :create, :update, :destroy ]
       resource :onboarding, only: [ :show, :update ]
       resources :ideas, only: [ :index, :create, :update, :destroy ] do
         post :promote, on: :member

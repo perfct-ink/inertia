@@ -14,6 +14,7 @@ class Workspace < ApplicationRecord
   has_many :task_fields, dependent: :destroy
   has_many :ai_workers, dependent: :destroy
   has_many :ai_runs, dependent: :destroy
+  has_many :automation_rules, dependent: :destroy
   has_many :events, dependent: :destroy
   has_many :epics, dependent: :destroy
   has_many :initiatives, dependent: :destroy

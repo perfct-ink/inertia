@@ -69,6 +69,21 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_03_120001) do
     t.index ["workspace_id"], name: "index_ai_workers_on_workspace_id"
   end
 
+  create_table "automation_rules", force: :cascade do |t|
+    t.bigint "workspace_id", null: false
+    t.bigint "created_by_id"
+    t.string "name", null: false
+    t.boolean "enabled", default: true, null: false
+    t.string "trigger_type", null: false
+    t.json "trigger_config", default: {}, null: false
+    t.json "conditions", default: [], null: false
+    t.json "actions", default: [], null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["created_by_id"], name: "index_automation_rules_on_created_by_id"
+    t.index ["workspace_id", "trigger_type"], name: "index_automation_rules_on_workspace_id_and_trigger_type"
+  end
+
   create_table "documents", force: :cascade do |t|
     t.string "title", null: false
     t.json "content"
@@ -561,6 +576,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_03_120001) do
   add_foreign_key "ai_runs", "tasks"
   add_foreign_key "ai_runs", "workspaces"
   add_foreign_key "ai_workers", "workspaces"
+  add_foreign_key "automation_rules", "users", column: "created_by_id", on_delete: :nullify
+  add_foreign_key "automation_rules", "workspaces"
   add_foreign_key "documents", "folders"
   add_foreign_key "documents", "users", column: "created_by_id"
   add_foreign_key "epics", "folders"

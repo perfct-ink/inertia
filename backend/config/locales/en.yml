@@ -53,6 +53,9 @@ en:
       task_status_setting:
         one: "Task status setting"
         other: "Task status settings"
+      automation_rule:
+        one: "Automation"
+        other: "Automations"
     attributes:
       folder:
         workspace: "Space"
@@ -82,5 +85,7 @@ en:
         workspace: "Space"
         decision_note: "Reason"
       task_status_setting:
+        workspace: "Space"
+      automation_rule:
         workspace: "Space"
 
