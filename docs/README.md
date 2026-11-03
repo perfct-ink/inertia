@@ -30,6 +30,18 @@ docker compose up --build
 | PostgreSQL | localhost:5432 |
 | Redis | localhost:6379 |
 
+### Against the live database
+
+`make dev-live` runs the same local stack, but the API uses the production database (`inertia_production` on shared-postgres). Because the database isn't public, `scripts/dev-live-db.sh` opens an SSH tunnel through the server (`ssh general`, which must be in the server's `docker` group), reads `DATABASE_URL` from the running production `api` container, and points the local backend at `host.docker.internal:15432`; `docker-compose.live-db.yml` is layered on top. Nothing is written to disk.
+
+- **Writes are real.** Use `make dev-live-readonly` to open every transaction read-only (anything that saves, signing in included if it writes, will fail).
+- Auth bypass is off, so you sign in with your production account rather than acting as `User.first`.
+- The backend skips `db:prepare`, so local migrations never run against production. Don't run `make db-migrate` or other `db-*` targets while it's up.
+- Uploads live on the server's storage volume, so attachments and file previews don't load locally.
+- `make dev-live-down` stops the stack and closes the tunnel; `make dev` switches back to the local database.
+
+Overrides: `LIVE_DB_SSH_HOST` (default `general`) and `LIVE_DB_PORT` (default `15432`).
+
 ## Project structure
 
 ```

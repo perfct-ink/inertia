@@ -50,6 +50,7 @@ See [Mac social sign-in](mac-social-sign-in.md) for provider setup steps.
 | `JWT_SECRET_KEY` | Signs auth tokens (Devise JWT). | Required in dev. Tests supply a test-only default before boot. In production it comes from credentials. |
 | `DATABASE_HOST`, `DATABASE_USERNAME`, `DATABASE_PASSWORD` | PostgreSQL connection in dev and test. | Dev compose: `postgres` / `postgres` / `password`. |
 | `DATABASE_URL` | Production PostgreSQL connection (shared PostgreSQL on Coolify). | Required in production. |
+| `LIVE_DB_SSH_HOST`, `LIVE_DB_PORT`, `LIVE_DB_READONLY` | `make dev-live`: SSH host for the tunnel to the live database, the local tunnel port, and `1` for read-only transactions (see [README.md](README.md#against-the-live-database)). | Defaults: `general`, `15432`, off. |
 | `RAILS_MAX_THREADS`, `PORT`, `RAILS_LOG_LEVEL` | Puma/Rails runtime tuning. | Optional. |
 | `CORS_ORIGINS` | Comma-separated origins allowed to call the API. | Dev: `http://localhost:5174,capacitor://localhost` (the iOS WKWebView origin). |
 | `APP_URL` | Public base URL of the API. | Dev: `http://localhost:3000`. |

@@ -44,6 +44,16 @@ dev: ## Rebuild all services, start detached, and open browser
 	@sleep 3
 	open http://localhost:5174
 
+.PHONY: dev-live dev-live-readonly dev-live-down
+dev-live: ## Like dev, but against the LIVE database over an SSH tunnel (writes are real)
+	HTTP_PROXY=$(HOST_PROXY) HTTPS_PROXY=$(HOST_PROXY) bash scripts/dev-live-db.sh
+
+dev-live-readonly: ## Like dev-live, but every database transaction is read-only
+	HTTP_PROXY=$(HOST_PROXY) HTTPS_PROXY=$(HOST_PROXY) LIVE_DB_READONLY=1 bash scripts/dev-live-db.sh
+
+dev-live-down: ## Stop the dev-live stack and close its SSH tunnel
+	bash scripts/dev-live-db.sh down
+
 dev-backend: ## Rebuild and restart the backend service only
 	$(COMPOSE) build backend
 	$(COMPOSE) up -d backend

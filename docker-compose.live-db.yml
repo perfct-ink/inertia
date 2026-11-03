@@ -1,0 +1,17 @@
+# Layered on docker-compose.yml by scripts/dev-live-db.sh (`make dev-live`):
+# the backend talks to the live database through an SSH tunnel on the host.
+services:
+  backend:
+    environment:
+      # Rails merges DATABASE_URL over the development block in database.yml.
+      DATABASE_URL: ${LIVE_DATABASE_URL:?run through make dev-live}
+      # Sign in as yourself: the bypass would act as User.first on live data.
+      BYPASS_AUTH: "false"
+    # No db:prepare: local migrations must not run against production.
+    command: ["bash", "-c", "rm -f tmp/pids/server.pid && bundle exec rails server -b 0.0.0.0"]
+    extra_hosts:
+      - host.docker.internal:host-gateway
+
+  frontend:
+    environment:
+      BYPASS_AUTH: "false"
