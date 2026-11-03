@@ -496,7 +496,7 @@ export default function Sidebar() {
                   </div>
                 )}
 
-                {!isLoading && workspace?.folders?.length === 0 && !addingFolder && (
+                {!isLoading && workspace?.folders?.every((f) => f.root && !f.children?.length && !f.documents?.length) && !addingFolder && (
                   <div className="sidebar-empty">
                     <FilePlus className="sidebar-icon--lg sidebar-icon--faint" />
                   </div>
