@@ -54,7 +54,7 @@ See [Mac social sign-in](mac-social-sign-in.md) for provider setup steps.
 | `RAILS_MAX_THREADS`, `PORT`, `RAILS_LOG_LEVEL` | Puma/Rails runtime tuning. | Optional. |
 | `CORS_ORIGINS` | Comma-separated origins allowed to call the API. | Dev: `http://localhost:5174,capacitor://localhost` (the iOS WKWebView origin). |
 | `APP_URL` | Public base URL of the API. | Dev: `http://localhost:3000`. |
-| `BYPASS_AUTH` | `true` makes every request run as the first seeded user. Never enable in production. | Dev compose defaults to `true`. Set `false` to test real accounts. |
+| `BYPASS_AUTH` | `true` makes every request run as the first seeded user. Never enable in production. | Dev compose defaults to `false`, so the app requires sign up or login. Set `BYPASS_AUTH=true` to skip it. |
 | `OAUTH_CALLBACK_BASE_URL` | Public origin that receives OAuth provider callbacks. | Required for social sign-in. |
 | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | Google OAuth web client. | Optional; provider is disabled when unset. |
 | `APPLE_CLIENT_ID`, `APPLE_TEAM_ID`, `APPLE_KEY_ID`, `APPLE_PRIVATE_KEY` | Sign in with Apple (Services ID, team, key ID, `.p8` contents). | Optional; provider is disabled when unset. |

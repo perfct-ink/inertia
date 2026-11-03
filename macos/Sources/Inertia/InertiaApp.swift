@@ -13,7 +13,12 @@ import InertiaCore
         }
         .windowStyle(.hiddenTitleBar)
         .commands {
-            CommandGroup(after: .newItem) {
+            // The workspace's own shortcuts (Cmd+N, Cmd+Shift+N) live in the web app; a menu
+            // item that owns the key equivalent is the only way WKWebView ever sees it.
+            CommandGroup(replacing: .newItem) {
+                Button("New Document") { NotificationCenter.default.post(name: .workspaceShortcut, object: "n") }.keyboardShortcut("n")
+                Button("New Sheet") { NotificationCenter.default.post(name: .workspaceShortcut, object: "N") }.keyboardShortcut("n", modifiers: [.command, .shift])
+                Button("New Task File") { NSDocumentController.shared.newDocument(nil) }.keyboardShortcut("n", modifiers: [.command, .option])
                 Button("Refresh Space") { NotificationCenter.default.post(name: .refreshWorkspace, object: nil) }.keyboardShortcut("r")
             }
         }
@@ -30,5 +35,6 @@ final class LaunchDelegate: NSObject, NSApplicationDelegate {
 }
 
 extension Notification.Name {
+    static let workspaceShortcut = Notification.Name("InertiaWorkspaceShortcut")
     static let refreshWorkspace = Notification.Name("InertiaRefreshWorkspace")
 }

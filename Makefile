@@ -37,11 +37,11 @@ setup: deps ## Install host dependencies (Homebrew, Docker, Node), then build im
 	$(MAKE) hooks
 	@echo "✓ Setup complete"
 
-dev: deps ## Rebuild all services, start detached, and open browser
+dev: deps ## Rebuild all services, start attached (streaming logs), and open browser
 	$(COMPOSE) down --remove-orphans
 	$(COMPOSE) build
-	$(COMPOSE) up -d
-	@bash scripts/open-app.sh
+	@bash scripts/open-app.sh &
+	$(COMPOSE) up
 
 .PHONY: dev-live dev-live-readonly dev-live-down
 dev-live: deps ## Like dev, but against the LIVE database over an SSH tunnel (writes are real)

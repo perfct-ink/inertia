@@ -48,6 +48,7 @@ struct WorkspaceWebView: NSViewRepresentable {
         view.uiDelegate = context.coordinator
         context.coordinator.webView = view
         context.coordinator.observeRefresh()
+        context.coordinator.observeShortcuts()
         view.load(URLRequest(url: Requests.workspaceURL(base: session.web)))
         return view
     }
@@ -60,8 +61,23 @@ struct WorkspaceWebView: NSViewRepresentable {
         let session: Session
         weak var webView: WKWebView?
         private var refreshObserver: NSObjectProtocol?
+        private var shortcutObserver: NSObjectProtocol?
         init(session: Session) { self.session = session }
-        deinit { if let refreshObserver { NotificationCenter.default.removeObserver(refreshObserver) } }
+        deinit {
+            if let refreshObserver { NotificationCenter.default.removeObserver(refreshObserver) }
+            if let shortcutObserver { NotificationCenter.default.removeObserver(shortcutObserver) }
+        }
+
+        /// Replays a menu-owned Command shortcut into the page as a keydown the web app already handles.
+        func observeShortcuts() {
+            shortcutObserver = NotificationCenter.default.addObserver(forName: .workspaceShortcut, object: nil, queue: .main) { [weak self] note in
+                Task { @MainActor in
+                    guard let key = note.object as? String, let webView = self?.webView else { return }
+                    let shift = key == key.uppercased()
+                    _ = try? await webView.evaluateJavaScript("window.dispatchEvent(new KeyboardEvent('keydown',{key:'\(key)',metaKey:true,shiftKey:\(shift),bubbles:true}))")
+                }
+            }
+        }
 
         func observeRefresh() {
             refreshObserver = NotificationCenter.default.addObserver(forName: .refreshWorkspace, object: nil, queue: .main) { [weak self] _ in
