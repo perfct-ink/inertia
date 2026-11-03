@@ -1,9 +1,8 @@
-import { useEffect, useState, type ComponentType } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import {
-  Archive, ArchiveRestore, CalendarDays, Database, FilePlus, FolderPlus, Table as SheetIcon, ChevronsUpDown, Folder as FolderIcon, FolderKanban, CalendarRange, CheckSquare, ClipboardList, Disc3, FileText, Flag, GanttChart, Goal,
-  LayoutDashboard, Lightbulb, ListTree, Map as MapIcon, Milestone, Network, Plus, Rocket, Rows3, Smile,
-  Table2, Target, UserCheck, Users,
+  Archive, ArchiveRestore, Database, FilePlus, FolderPlus, Table as SheetIcon, ChevronsUpDown, Folder as FolderIcon, FolderKanban, ClipboardList, FileText,
+  LayoutDashboard, Plus, Smile,
 } from 'lucide-react'
 import { Button, FormError, Input, Menu, PromptDialog, classNames } from '@/components/ui'
 import ProjectIcon from '@/components/project/ProjectIcon'
@@ -12,6 +11,7 @@ import { useWorkspace } from '@/api/workspace'
 import { useArchivedFolders, useCreateFolder, useUpdateFolder } from '@/api/folders'
 import { errorMessage } from '@/api/tables'
 import { documentsIn, folderOfDocument, projectOf, projectsOf } from '@/data/folder'
+import { isActivePath } from '@/data/project'
 import { useSelectProject } from '@/hooks/useSelectProject'
 import { useOpenProject } from '@/hooks/useOpenProject'
 import { useNewDocument } from '@/hooks/useNewDocument'
@@ -19,44 +19,8 @@ import type { Document } from '@/types'
 import { useProjectStore } from '@/store/projects'
 import type { Folder } from '@/types'
 import { FolderItem } from './FolderItem'
+import { SECTION_GROUPS } from './projectSections'
 import './ProjectNav.scss'
-
-type Section = { label: string; path: string; icon: ComponentType<{ className?: string }> }
-
-// The pages under an open project, grouped by what they're for. Each lists
-// only that project's records (the API reads X-Project-Id, see backend
-// ProjectScoped). The first group has no heading.
-const SECTION_GROUPS: { heading: string | null; sections: Section[] }[] = [
-  { heading: null, sections: [
-    { label: 'All files', path: '/documents', icon: FileText },
-    { label: 'My work', path: '/my-work', icon: UserCheck },
-  ] },
-  { heading: 'Tasks', sections: [
-    { label: 'Tasks', path: '/tasks?view=backlog', icon: CheckSquare },
-    { label: 'Task table', path: '/task-table', icon: Rows3 },
-    { label: 'Pivot', path: '/pivot', icon: Table2 },
-    { label: 'Calendar', path: '/calendar', icon: CalendarRange },
-    { label: 'Events', path: '/events?view=list', icon: CalendarDays },
-  ] },
-  { heading: 'Planning', sections: [
-    { label: 'Roadmap', path: '/roadmap', icon: MapIcon },
-    { label: 'Timeline', path: '/timeline', icon: GanttChart },
-    { label: 'Milestones', path: '/milestones', icon: Milestone },
-    { label: 'Initiatives', path: '/initiatives', icon: Flag },
-    { label: 'Epics', path: '/epics', icon: Target },
-    { label: 'Sprints', path: '/sprints', icon: Rocket },
-    { label: 'Hierarchy', path: '/hierarchy', icon: ListTree },
-  ] },
-  { heading: 'Goals', sections: [
-    { label: 'OKRs', path: '/okrs', icon: Goal },
-    { label: 'Objectives map', path: '/objectives-map', icon: Network },
-    { label: 'Ideas', path: '/ideas', icon: Lightbulb },
-  ] },
-  { heading: 'Delivery', sections: [
-    { label: 'Releases', path: '/releases', icon: Disc3 },
-    { label: 'Resources', path: '/resources', icon: Users },
-  ] },
-]
 
 // The Space's projects as a flat list; selecting one switches the sidebar to
 // that project's pages and files, with a way back to the list.
@@ -110,7 +74,7 @@ export function ProjectNav() {
     }
   }
 
-  const isActive = (path: string) => location.pathname === path.split('?')[0]
+  const isActive = (path: string) => isActivePath(location.pathname, path)
   const onPage = !!openProject && (location.pathname === `/folders/${openProject.id}` || SECTION_GROUPS.some((g) => g.sections.some((sec) => isActive(sec.path))))
   // Files or Pages: whichever holds the page you're on, until one is chosen.
   const [chosenTab, setTab] = useState<'files' | 'pages' | null>(null)

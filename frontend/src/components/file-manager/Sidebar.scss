@@ -83,7 +83,10 @@ $shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
       display: flex;
       flex-direction: column;
       width: space(64);
-      max-width: 85vw;
+
+      // On a phone the drawer holds the panel and the rail, and leaves a strip
+      // of the page to tap to close it.
+      max-width: calc(85vw - #{space(14)});
       height: 100dvh;
       padding-top: env(safe-area-inset-top);
       padding-bottom: env(safe-area-inset-bottom);
@@ -479,7 +482,7 @@ $shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
   /* ── Tinted sidebar ───────────────────────────────────────────────────────── */
 
   /* A colour theme that tints the sidebar (data/appearance.ts, set by
-     AppearanceEffect): the panel takes its deep colour, and the
+     AppearanceEffect): the panel and rail take its deep colour, and the
      sidebar's tokens switch to light text on it. */
   :root[data-sidebar='tinted'] .view-sidebar {
     --foreground: var(--sidebar-foreground);
@@ -494,7 +497,8 @@ $shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
 
     color: color(foreground);
 
-    .sidebar-panel {
+    .sidebar-panel,
+    .sidebar-rail {
       background: var(--sidebar-background);
     }
 

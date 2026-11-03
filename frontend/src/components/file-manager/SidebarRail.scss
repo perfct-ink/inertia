@@ -1,0 +1,76 @@
+@use 'tokens' as *;
+
+@layer app.components {
+  // The icon rail: a narrow column of page buttons to the right of the sidebar
+  // panel (inside the same drawer on a phone).
+  .sidebar-rail {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex-shrink: 0;
+    width: space(14);
+    height: 100dvh;
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+    border-right-width: 1px;
+    background: color(muted, 0.3);
+    user-select: none;
+
+    // The page buttons take the height that's left and scroll when there are
+    // too many for it, so the quick actions below never leave the screen.
+    &_pages {
+      display: flex;
+      flex: 1 1 0%;
+      flex-direction: column;
+      align-items: center;
+      gap: space(1);
+      width: 100%;
+      min-height: 0;
+      padding: space(2) 0;
+      overflow-y: auto;
+      scrollbar-width: none;
+    }
+
+    &_group {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: space(1);
+
+      &--actions {
+        padding: space(2) 0;
+      }
+    }
+
+    &_divider {
+      width: space(6);
+      height: 1px;
+      margin: space(1) 0;
+      background: color(border);
+    }
+
+    &_button {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      width: space(10);
+      height: space(10);
+      border-radius: radius('lg');
+      color: color(muted-foreground);
+      @include transition(background-color, color);
+
+      &:hover,
+      &--active {
+        background: color(accent);
+        color: color(foreground);
+      }
+    }
+
+    &_icon {
+      flex-shrink: 0;
+      width: space(5);
+      height: space(5);
+    }
+  }
+}

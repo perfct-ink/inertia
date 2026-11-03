@@ -25,6 +25,7 @@ import { useQueryClient } from '@tanstack/react-query'
 import { useAuthStore } from '@/store/auth'
 import { useTabsStore } from '@/store/tabs'
 import { ProjectNav } from './ProjectNav'
+import { SidebarRail } from './SidebarRail'
 import { useProjectStore } from '@/store/projects'
 import api from '@/lib/api'
 import logoMark from '@/assets/logo-mark.svg'
@@ -338,6 +339,9 @@ export default function Sidebar() {
           </Menu>
         </div>
       </aside>
+
+      {/* The icon rail, to the right of the panel: a button for every page. */}
+      <SidebarRail onQuickAdd={openQuickAdd} onShortcuts={() => setShortcutsOpen(true)} />
       </div>
 
       {/* Import from Quip */}

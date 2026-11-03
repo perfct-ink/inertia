@@ -10,6 +10,7 @@ Inside a Space are projects. A project is a folder (`folders.kind: project`) tha
   - **Planning**: Roadmap, Timeline, Milestones, Initiatives, Epics, Sprints, Hierarchy
   - **Goals**: OKRs, Objectives map, Ideas
   - **Delivery**: Releases, Resources
+- **Icon rail** (`file-manager/SidebarRail.tsx`, `SidebarRail.scss`): a narrow column of icon buttons to the right of the sidebar panel, inside the same drawer on a phone. It has a link for Projects (`/space`), Project requests and every page in the groups above, with dividers between the groups, then Quick add and Keyboard shortcuts at the bottom (the account menu in the panel's footer has the same two). The page you're on is highlighted and has `aria-current="page"`. The links go to the same paths as the Pages tab and share its list (`file-manager/projectSections.ts`), so they open the page for the open project, or the whole Space when none is open. The middle of the rail scrolls when the window is too short for every button. With a tinted colour theme the rail takes the panel's colour.
 - **Every page is per-project.** The open project is remembered (`store/projects.ts`, like the current Space) and sent with every API call as `X-Project-Id` (`lib/api.ts`). The list endpoints return only that project's records, its subfolders included, and new records are filed in it. Opening a folder or document inside a project opens that project. Switching project resets the cached lists except the Space tree. Switching Space or signing out forgets the open project, and a project that is archived, deleted or made a plain folder is closed.
 - **Icon**: pick one of 24 emojis, type any emoji, or upload an image (it goes through `POST /api/v1/uploads`). An image wins over an emoji; with neither, the default project icon shows (`components/project/`).
 - **Project page** (`/folders/:id`): the folder page, whose Overview lists the project's documents, files and collections and its tasks, epics and upcoming events, subfolders included (`GET /api/v1/folders/:id/contents`).
@@ -21,7 +22,7 @@ Inside a Space are projects. A project is a folder (`folders.kind: project`) tha
 - `folders.icon` (string, up to 16 characters) and `folders.image_url` (a `http(s)://` or `/` address), permitted on `PATCH /api/v1/folders/:id` and returned by `FolderBlueprint`.
 - `X-Project-Id` header, read by the `ProjectScoped` controller concern. A folder in another Space is a 404. It narrows `GET` on tasks (through their folder or their document's folder), events, epics, milestones, initiatives, sprints, ideas, io_nodes, releases, objectives and resource_allocations. On `POST` to those, a record that names no folder is filed in the project. Single-record reads and updates ignore it. A promoted idea passes its project to the epic or initiative it becomes.
 - `folder_id` (nullable, the database nullifies it when the folder is deleted) was added to initiatives, sprints, ideas, io_nodes, releases and objectives through the `ProjectItem` model concern, which also rejects a folder from another Space. Epics, events, milestones, tasks and resource allocations already had one. Migration `20261103120001_add_projects_to_planning_items`.
-- Pure helpers `projectsOf`, `projectOf`, `folderOfDocument`, `documentsIn`, `projectLastModified` are in `frontend/src/data/folder.ts`, and `projectIconOf` and the emoji list in `frontend/src/data/project.ts`.
+- Pure helpers `projectsOf`, `projectOf`, `folderOfDocument`, `documentsIn`, `projectLastModified` are in `frontend/src/data/folder.ts`, and `projectIconOf` and the emoji list in `frontend/src/data/project.ts` (also `isActivePath`, which both the rail and the Pages tab use to find the current page).
 
 ## Who can view and change
 Scoped to the current Space; writes need the member role, like the rest of the Space. I did not check role-based limits on changing `kind` or the icon.
@@ -33,6 +34,7 @@ Scoped to the current Space; writes need the member role, like the rest of the S
 - `backend/test/controllers/project_scoping_test.rb`: lists hold only the project's records, subfolders included; tasks through a document; new records filed in the project; a promoted idea keeps its project; another Space's folder is a 404; icon and image saved, a `javascript:` address rejected.
 - `backend/test/models/folder_test.rb` ("a folder can be a project, but the document root cannot").
 - `frontend/src/components/file-manager/ProjectNav.test.tsx`: the list is flat and has no other files; All files and archived items; selecting a project shows Files and Pages tabs, opening on the right one; the Files toolbar creates in the project; the dropdown switches project and All projects returns to the list; opening a document inside a project opens it.
+- `frontend/src/components/file-manager/SidebarRail.test.tsx`: the links and their order, the current page (also when the link carries a query), no current page away from every section, the quick-action handlers.
 - `frontend/src/lib/api.test.ts` (the header, and sign-out forgets the project), `frontend/src/data/project.test.ts`, `frontend/src/data/folder.test.ts`, `frontend/src/view/projects/ProjectsScreen.test.tsx`, `frontend/src/view/workspace/WorkspaceScreen.test.tsx`.
 
 ## Known limits
@@ -46,6 +48,7 @@ Scoped to the current Space; writes need the member role, like the rest of the S
 - The "Make Project" menu entry has no test.
 
 ## History
+- 2026-11-03: the icon rail came back, to the right of the sidebar panel (it had been removed when projects moved into the sidebar). Ran: the data tests and the rail, ProjectNav, WorkspaceLayout and GettingStarted component tests in a Jest stand-in, plus a static parse of the changed files. Not run: `npm run lint`, `tsc -b`, the real Jest suite, or the sidebar in a browser (desktop, phone width, light and dark, tinted theme, Electron).
 - 2026-11-03: projects moved into the sidebar. A flat list replaced the icon rail; selecting a project shows its grouped pages and files. Every page became per-project (`X-Project-Id`, new `folder_id` columns), and projects gained an emoji or image icon. Verified in the browser against the local dev server and database; not deployed.
 - 2026-11-03: Projects became the Space home page; the old welcome screen with Documents/Tasks/Events links was removed.
 - Implemented 2026-10-15 to 2026-10-18.

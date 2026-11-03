@@ -14,3 +14,9 @@ export function projectIconOf(project: { icon?: string | null; image_url?: strin
   if (project.icon?.trim()) return { emoji: project.icon.trim() }
   return null
 }
+
+// Whether the page at `pathname` is the one a navigation link opens. A link
+// may carry a query (`/tasks?view=backlog`), which doesn't change the page.
+export function isActivePath(pathname: string, link: string): boolean {
+  return pathname === link.split('?')[0]
+}
