@@ -89,6 +89,28 @@ export function settlePatch(patches: TaskPatches, id: number, changes: Partial<T
   return next
 }
 
+// What the epic's tasks add up to in one estimate unit: the sum over all of
+// them, the sum over the done ones, and how many tasks have an estimate at all.
+export interface EstimateTotal {
+  total: number
+  done: number
+  tasks: number
+}
+
+function estimateTotal(tasks: Task[], pick: (task: Task) => number | null | undefined): EstimateTotal {
+  const estimated = tasks.filter((t) => pick(t) != null)
+  // Hours have two decimals, so round away float noise like 0.1 + 0.2.
+  const sum = (list: Task[]) => Math.round(list.reduce((acc, t) => acc + (pick(t) ?? 0), 0) * 100) / 100
+  return { total: sum(estimated), done: sum(estimated.filter((t) => t.status === 'done')), tasks: estimated.length }
+}
+
+// "13 of 21 points done", or null when no task has an estimate in this unit so
+// the rollup shows nothing for it. `unit` is the singular word.
+export function estimateRollup({ total, done, tasks }: EstimateTotal, unit: string): string | null {
+  if (tasks === 0) return null
+  return `${done} of ${total} ${total === 1 ? unit : `${unit}s`} done`
+}
+
 export interface EpicPlan {
   total: number
   done: number
@@ -105,6 +127,9 @@ export interface EpicPlan {
   // The tasks' dates reach outside the epic's own start/target dates.
   startsBeforeEpic: boolean
   endsAfterEpic: boolean
+  // Story points and hours: a done task counts its estimate, not its actual points.
+  points: EstimateTotal
+  hours: EstimateTotal
 }
 
 // The epic's rollup, computed from its tasks. `today` is a yyyy-MM-dd date;
@@ -127,5 +152,7 @@ export function epicPlan(epic: Pick<Epic, 'start_date' | 'target_date'>, tasks: 
     lastDate,
     startsBeforeEpic: !!firstDate && !!epic.start_date && firstDate < epic.start_date,
     endsAfterEpic: !!lastDate && !!epic.target_date && lastDate > epic.target_date,
+    points: estimateTotal(tasks, (t) => t.story_points),
+    hours: estimateTotal(tasks, (t) => t.estimate_hours),
   }
 }

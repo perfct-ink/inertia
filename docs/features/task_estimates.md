@@ -15,8 +15,8 @@ Same as any task in the Space.
 `backend/test/models/task_estimates_test.rb`, `backend/test/controllers/tasks_estimates_controller_test.rb`, `frontend/src/data/task.test.ts`.
 
 ## Known limits
-- The values can be set when a task is created but not edited afterwards in the UI (there is no task detail view yet: `docs/backlog/task-detail-edit-milestone.md`); the API accepts edits. They are not on document task lines either.
-- Nothing uses them yet: no sorting or filtering by priority, no totals per sprint, and the workload and agile report views (`workload-view`, `agile-reports`) are unbuilt.
+- The values can be set when a task is created, and the estimated story points and hours can be edited afterwards on the epic planning page (`epic_planning.md`); there is no task detail view yet (`docs/backlog/task-detail-edit-milestone.md`), and actual story points cannot be edited in the UI. The API accepts every edit. They are not on document task lines either.
+- The only totals are the epic's on the epic planning page; there is no sorting or filtering by priority, no totals per sprint, and the workload and agile report views (`workload-view`, `agile-reports`) are unbuilt.
 
 ## History
 - Implemented 2026-10-19 on branch `backlog/task-priority-effort-and-story-points`. Not merged or deployed.

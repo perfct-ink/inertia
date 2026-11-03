@@ -1,5 +1,5 @@
 import type { Task } from '@/types'
-import { buildTaskTree, taskFolderId, dueBucket, myWork, taskCards, estimateLabel, pointsLabel, priorityLabel } from './task'
+import { buildTaskTree, taskFolderId, dueBucket, myWork, taskCards, estimateLabel, parseEstimate, pointsLabel, priorityLabel } from './task'
 
 const task = (id: number, parent_id: number | null = null) => ({ id, title: `T${id}`, parent_id }) as unknown as Task
 
@@ -69,4 +69,19 @@ test('priorityLabel hides none, pointsLabel and estimateLabel format what is set
   expect(pointsLabel({ story_points: 0, actual_story_points: null })).toBe('0 pts')
   expect(estimateLabel(6.5)).toBe('6.5 h')
   expect(estimateLabel(null)).toBeNull()
+})
+
+test('parseEstimate clears on empty text and refuses what the server would reject', () => {
+  expect(parseEstimate('')).toBeNull()
+  expect(parseEstimate('  ')).toBeNull()
+  expect(parseEstimate('6.5')).toBe(6.5)
+  expect(parseEstimate(' 0 ')).toBe(0)
+  expect(parseEstimate('0.25')).toBe(0.25)
+  expect(parseEstimate('1.005')).toBeUndefined()
+  expect(parseEstimate('-1')).toBeUndefined()
+  expect(parseEstimate('abc')).toBeUndefined()
+  expect(parseEstimate('100000')).toBeUndefined()
+  expect(parseEstimate('5', true)).toBe(5)
+  expect(parseEstimate('2.5', true)).toBeUndefined()
+  expect(parseEstimate('', true)).toBeNull()
 })

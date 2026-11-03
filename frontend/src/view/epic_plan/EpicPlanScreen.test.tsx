@@ -170,3 +170,82 @@ test('the backlog hides its search when there is nothing to plan', () => {
   expect(screen.queryByLabelText('Search the backlog')).not.toBeInTheDocument()
   expect(screen.getByText('Nothing left to plan.')).toBeInTheDocument()
 })
+
+describe('estimates', () => {
+  const rollup = () => screen.getByRole('region', { name: 'Billing rollup' })
+
+  test('the rollup says nothing about estimates while no task has one', () => {
+    renderScreen()
+    expect(rollup()).not.toHaveTextContent('points done')
+    expect(rollup()).not.toHaveTextContent('hours done')
+  })
+
+  test('the rollup totals story points and hours, and how much of them is done', () => {
+    mockTasks = [
+      task(1, 'Write invoices', { epic_id: 7, status: 'todo', story_points: 8, estimate_hours: 6.5 }),
+      task(2, 'Ship receipts', { epic_id: 7, status: 'done', story_points: 13 }),
+      task(3, 'Loose idea', { status: 'backlog', story_points: 40 }),
+    ]
+    renderScreen()
+    expect(rollup()).toHaveTextContent('13 of 21 points done')
+    expect(rollup()).toHaveTextContent('0 of 6.5 hours done')
+    expect(screen.getByLabelText('Story points of Write invoices')).toHaveValue(8)
+    expect(screen.getByLabelText('Estimate in hours of Write invoices')).toHaveValue(6.5)
+  })
+
+  test('story points are saved when the field is left, and the totals follow at once', () => {
+    renderScreen()
+    const points = screen.getByLabelText('Story points of Write invoices')
+    fireEvent.change(points, { target: { value: '8' } })
+    expect(mockUpdateTask.mutateAsync).not.toHaveBeenCalled()
+    fireEvent.blur(points)
+    expect(mockUpdateTask.mutateAsync).toHaveBeenCalledTimes(1)
+    expect(mockUpdateTask.mutateAsync).toHaveBeenCalledWith({ id: 1, story_points: 8 })
+    expect(rollup()).toHaveTextContent('0 of 8 points done')
+  })
+
+  test('Enter saves the hours and clearing the field clears the estimate', () => {
+    mockTasks = [task(1, 'Write invoices', { epic_id: 7, estimate_hours: 4 })]
+    renderScreen()
+    const hours = screen.getByLabelText('Estimate in hours of Write invoices')
+    fireEvent.change(hours, { target: { value: '6.5' } })
+    fireEvent.keyDown(hours, { key: 'Enter' })
+    expect(mockUpdateTask.mutateAsync).toHaveBeenCalledWith({ id: 1, estimate_hours: 6.5 })
+    fireEvent.change(hours, { target: { value: '' } })
+    fireEvent.blur(hours)
+    expect(mockUpdateTask.mutateAsync).toHaveBeenLastCalledWith({ id: 1, estimate_hours: null })
+    expect(rollup()).not.toHaveTextContent('hours done')
+  })
+
+  test('leaving a field without changing it saves nothing', () => {
+    mockTasks = [task(1, 'Write invoices', { epic_id: 7, story_points: 5 })]
+    renderScreen()
+    const points = screen.getByLabelText('Story points of Write invoices')
+    fireEvent.change(points, { target: { value: '5' } })
+    fireEvent.blur(points)
+    expect(mockUpdateTask.mutateAsync).not.toHaveBeenCalled()
+  })
+
+  test('text the server would refuse is marked and dropped, not sent', () => {
+    mockTasks = [task(1, 'Write invoices', { epic_id: 7, story_points: 5 })]
+    renderScreen()
+    const points = screen.getByLabelText('Story points of Write invoices')
+    fireEvent.change(points, { target: { value: '2.5' } })
+    expect(points).toHaveAttribute('aria-invalid', 'true')
+    fireEvent.blur(points)
+    expect(mockUpdateTask.mutateAsync).not.toHaveBeenCalled()
+    expect(points).toHaveValue(5)
+    expect(points).not.toHaveAttribute('aria-invalid')
+  })
+
+  test('a failed save puts the estimate back to what the server has', async () => {
+    mockTasks = [task(1, 'Write invoices', { epic_id: 7, story_points: 5 })]
+    mockUpdateTask.mutateAsync.mockRejectedValue(new Error('nope'))
+    renderScreen()
+    const points = screen.getByLabelText('Story points of Write invoices')
+    fireEvent.change(points, { target: { value: '8' } })
+    fireEvent.blur(points)
+    await waitFor(() => expect(points).toHaveValue(5))
+    expect(rollup()).toHaveTextContent('0 of 5 points done')
+  })
+})

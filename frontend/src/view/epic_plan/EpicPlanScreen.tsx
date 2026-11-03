@@ -23,9 +23,10 @@ import { useInitiatives } from '@/api/initiatives'
 import { useMilestones } from '@/api/milestones'
 import { useTasks, useUpdateTask } from '@/api/tasks'
 import {
-  PLAN_STATUSES, STATUS_LABEL, UNPLANNED, addPatch, epicPlan, epicTasks, groupByStatus, isPlanTarget, patchTasks, planMove,
+  PLAN_STATUSES, STATUS_LABEL, UNPLANNED, addPatch, epicPlan, epicTasks, estimateRollup, groupByStatus, isPlanTarget, patchTasks, planMove,
   settlePatch, unplannedTasks, type EpicPlan, type PlanTarget, type TaskPatches, type TaskStatus,
 } from '@/data/epic'
+import { parseEstimate } from '@/data/task'
 import { usePageTitle } from '@/hooks/usePageTitle'
 import { todayISO } from '@/util/date'
 import type { Epic, Task } from '@/types'
@@ -183,6 +184,19 @@ function EpicPlanner({ epic, tasks }: { epic: Epic; tasks: Task[] }) {
                     onChange={(e) => save(task, { due_date: e.target.value || null })}
                     className="epic_plan-date"
                   />
+                  <EstimateField
+                    label={`Story points of ${task.title}`}
+                    unit="pts"
+                    whole
+                    value={task.story_points}
+                    onSave={(value) => save(task, { story_points: value })}
+                  />
+                  <EstimateField
+                    label={`Estimate in hours of ${task.title}`}
+                    unit="h"
+                    value={task.estimate_hours}
+                    onSave={(value) => save(task, { estimate_hours: value })}
+                  />
                   <Button
                     onClick={() => move(task, UNPLANNED)}
                     aria-label={`Remove ${task.title} from the epic`}
@@ -224,6 +238,8 @@ function EpicPlanner({ epic, tasks }: { epic: Epic; tasks: Task[] }) {
 function PlanSummary({ epic, plan, initiative, milestone }: { epic: Epic; plan: EpicPlan; initiative?: string; milestone?: string }) {
   const updateEpic = useUpdateEpic()
   const parents = [initiative && `Initiative: ${initiative}`, milestone && `Milestone: ${milestone}`].filter(Boolean)
+  // "13 of 21 points done" and the same for hours; a unit no task has is left out.
+  const estimates = [estimateRollup(plan.points, 'point'), estimateRollup(plan.hours, 'hour')].filter(Boolean)
   return (
     <section className="epic_plan-summary" aria-label={`${epic.title} rollup`}>
       <div className="epic_plan-summary_top">
@@ -245,6 +261,7 @@ function PlanSummary({ epic, plan, initiative, milestone }: { epic: Epic; plan: 
           {plan.overdue > 0 && ` · ${plan.overdue} overdue`}
         </p>
       )}
+      {estimates.length > 0 && <p className="epic_plan-meta">{estimates.join(' · ')}</p>}
 
       <div className="epic_plan-epic_dates">
         <label className="epic_plan-field">
@@ -318,6 +335,47 @@ function BacklogPane({ showSearch, query, onQuery, count, children }: {
         ? <ul className="epic_plan-list">{children}</ul>
         : <p className="epic_plan-meta">{query.trim() ? 'No tasks match.' : 'Nothing left to plan.'}</p>}
     </aside>
+  )
+}
+
+// A number field that saves when it is left or on Enter, not on every
+// keystroke, so typing "13" is one save rather than two. Text the server would
+// reject is marked invalid and dropped on leaving; an empty field clears the
+// estimate.
+function EstimateField({ label, unit, whole = false, value, onSave }: {
+  label: string
+  unit: string
+  whole?: boolean
+  value: number | null | undefined
+  onSave: (value: number | null) => void
+}) {
+  const [draft, setDraft] = useState<string | null>(null)
+  const text = draft ?? (value == null ? '' : String(value))
+  const parsed = parseEstimate(text, whole)
+
+  function commit() {
+    if (parsed !== undefined && parsed !== (value ?? null)) onSave(parsed)
+    setDraft(null)
+  }
+
+  return (
+    <span className="epic_plan-estimate_field">
+      <Input
+        type="number"
+        min={0}
+        step={whole ? 1 : 0.25}
+        inputMode={whole ? 'numeric' : 'decimal'}
+        aria-label={label}
+        aria-invalid={parsed === undefined || undefined}
+        placeholder="–"
+        value={text}
+        onChange={(e) => setDraft(e.target.value)}
+        onBlur={commit}
+        onKeyDown={(e) => { if (e.key === 'Enter') commit() }}
+        className="epic_plan-estimate"
+      />
+      <span className="epic_plan-estimate_unit" aria-hidden="true">{unit}</span>
+    </span>
   )
 }
 

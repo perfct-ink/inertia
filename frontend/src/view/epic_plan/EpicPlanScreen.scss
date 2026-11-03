@@ -221,7 +221,8 @@
 
     /* Compact controls; two classes beat the shared control styles. */
     .epic_plan-status,
-    .epic_plan-date {
+    .epic_plan-date,
+    .epic_plan-estimate {
       @include field-underline;
 
       @include text('xs');
@@ -233,6 +234,31 @@
 
     .epic_plan-status {
       max-width: space(28);
+    }
+
+    /* Story points or hours: a narrow number with its unit after it. The red
+       underline for text the server would refuse also wins over hover and focus. */
+    .epic_plan-estimate {
+      width: space(12);
+
+      &[aria-invalid='true'],
+      &[aria-invalid='true']:hover:not(:disabled),
+      &[aria-invalid='true']:focus {
+        border-color: palette('red-500');
+      }
+    }
+
+    @at-root .epic_plan-estimate_field {
+      display: inline-flex;
+      flex-shrink: 0;
+      align-items: center;
+      gap: space(1);
+    }
+
+    @at-root .epic_plan-estimate_unit {
+      color: color(muted-foreground);
+      user-select: none;
+      @include text('xs');
     }
 
     @at-root .epic_plan-arrow {

@@ -121,3 +121,19 @@ export function pointsLabel(task: Pick<Task, 'story_points' | 'actual_story_poin
 export function estimateLabel(hours: number | null | undefined): string | null {
   return hours == null ? null : `${hours} h`
 }
+
+// The largest estimate the database column holds (decimal 7,2).
+const MAX_ESTIMATE = 99999.99
+
+// The number typed into an estimate field: null when it is empty (cleared),
+// undefined when it is not a valid estimate. The server takes zero or more
+// hours (two decimals at most) and whole story points, so anything else is
+// refused here rather than sent to be rejected.
+export function parseEstimate(text: string, whole = false): number | null | undefined {
+  const trimmed = text.trim()
+  if (trimmed === '') return null
+  const value = Number(trimmed)
+  if (!Number.isFinite(value) || value < 0 || value > MAX_ESTIMATE) return undefined
+  const scaled = value * (whole ? 1 : 100)
+  return Math.abs(scaled - Math.round(scaled)) > 1e-9 ? undefined : value
+}

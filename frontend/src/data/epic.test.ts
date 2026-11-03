@@ -1,6 +1,6 @@
 import type { Task } from '@/types'
 import {
-  UNPLANNED, addPatch, epicPlan, epicTasks, groupByStatus, isPlanTarget, patchTasks, planMove, settlePatch, unplannedTasks,
+  UNPLANNED, addPatch, epicPlan, epicTasks, estimateRollup, groupByStatus, isPlanTarget, patchTasks, planMove, settlePatch, unplannedTasks,
 } from './epic'
 
 let nextId = 1
@@ -104,6 +104,7 @@ describe('epicPlan', () => {
     expect(epicPlan(epic, [], '2026-11-10')).toMatchObject({
       total: 0, done: 0, percent: 0, scheduled: 0, unscheduled: 0, overdue: 0, firstDate: null, lastDate: null,
       startsBeforeEpic: false, endsAfterEpic: false,
+      points: { total: 0, done: 0, tasks: 0 }, hours: { total: 0, done: 0, tasks: 0 },
     })
   })
 
@@ -145,4 +146,38 @@ describe('epicPlan', () => {
     expect(plan.startsBeforeEpic).toBe(false)
     expect(plan.endsAfterEpic).toBe(false)
   })
+
+  describe('estimate totals', () => {
+    const noDates = { start_date: null, target_date: null }
+
+    test('sums story points and hours, and the part that is done', () => {
+      const plan = epicPlan(noDates, [
+        task({ story_points: 8, estimate_hours: 6.5, status: 'done' }),
+        task({ story_points: 5, estimate_hours: 0.1, status: 'done' }),
+        task({ story_points: 8, estimate_hours: 0.2, status: 'in_progress' }),
+        task({ status: 'todo' }),
+      ], '2026-11-10')
+      expect(plan.points).toEqual({ total: 21, done: 13, tasks: 3 })
+      // 0.1 + 0.2 stays 0.3, not 0.30000000000000004.
+      expect(plan.hours).toEqual({ total: 6.8, done: 6.6, tasks: 3 })
+    })
+
+    test('a done task counts its estimate, not its actual points', () => {
+      const plan = epicPlan(noDates, [task({ status: 'done', story_points: 3, actual_story_points: 8 })], '2026-11-10')
+      expect(plan.points).toEqual({ total: 3, done: 3, tasks: 1 })
+    })
+
+    test('tasks without an estimate count for nothing, and a lone zero is still an estimate', () => {
+      const plan = epicPlan(noDates, [task({ story_points: null, estimate_hours: null }), task({ story_points: 0, status: 'done' })], '2026-11-10')
+      expect(plan.points).toEqual({ total: 0, done: 0, tasks: 1 })
+      expect(plan.hours.tasks).toBe(0)
+    })
+  })
+})
+
+test('estimateRollup words the totals and hides a unit nobody estimated', () => {
+  expect(estimateRollup({ total: 21, done: 13, tasks: 3 }, 'point')).toBe('13 of 21 points done')
+  expect(estimateRollup({ total: 1, done: 0, tasks: 1 }, 'point')).toBe('0 of 1 point done')
+  expect(estimateRollup({ total: 12, done: 6.5, tasks: 2 }, 'hour')).toBe('6.5 of 12 hours done')
+  expect(estimateRollup({ total: 0, done: 0, tasks: 0 }, 'point')).toBeNull()
 })
