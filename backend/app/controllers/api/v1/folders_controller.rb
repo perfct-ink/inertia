@@ -3,7 +3,7 @@ module Api
     class FoldersController < ApplicationController
       include WorkspaceScoped
       include SpaceTransferable
-      before_action :set_folder, only: [ :show, :update, :destroy, :contents, :copy, :move ]
+      before_action :set_folder, only: [ :show, :update, :destroy, :contents, :attached_records, :copy, :move ]
 
       def index
         if params[:archived] == "1"
@@ -90,6 +90,13 @@ module Api
         else
           render json: { errors: @folder.errors.full_messages.presence || [ "Folder contains a collection referenced elsewhere" ] }, status: :unprocessable_entity
         end
+      end
+
+      # What moving or copying the folder does to the tasks, events, epics and
+      # other records filed directly under it: the counts the transfer dialog
+      # shows before the user chooses. See SpaceTransfer.attached_summary.
+      def attached_records
+        render json: SpaceTransfer.attached_summary(@folder)
       end
 
       # Duplicates the folder, its subfolders and their documents into a folder

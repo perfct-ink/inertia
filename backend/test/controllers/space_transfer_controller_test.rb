@@ -120,13 +120,44 @@ class SpaceTransferControllerTest < ActionDispatch::IntegrationTest
     assert_equal @folder, @document.reload.folder
   end
 
-  test "moving a folder with tasks attached to it directly is rejected" do
-    @user.workspace.tasks.create!(title: "Loose", folder: @folder)
+  test "moving a folder detaches the tasks attached to it directly" do
+    loose = @user.workspace.tasks.create!(title: "Loose", folder: @folder)
 
     post "/api/v1/folders/#{@folder.id}/move", params: { target_folder_id: @team_root.id }, headers: headers_for(@user), as: :json
 
+    assert_response :success
+    assert_equal @team, @folder.reload.workspace
+    assert_equal [ @user.workspace.id, nil ], loose.reload.slice(:workspace_id, :folder_id).values
+  end
+
+  test "moving a project that has allocations is rejected and says why" do
+    project = @user.workspace.folders.create!(name: "Messages", kind: :project)
+    @user.workspace.resource_allocations.create!(user: @user, folder: project, hours_per_week: 8)
+
+    post "/api/v1/folders/#{project.id}/move", params: { target_folder_id: @team_root.id }, headers: headers_for(@user), as: :json
+
     assert_response :unprocessable_entity
-    assert_equal @user.workspace, @folder.reload.workspace
+    assert_match(/resource allocations/, response.parsed_body["errors"].first)
+    assert_equal @user.workspace, project.reload.workspace
+  end
+
+  test "a folder's attached records are counted before it moves or copies" do
+    @user.workspace.tasks.create!(title: "Loose", folder: @folder)
+    @user.workspace.tasks.create!(title: "From the doc", document: @document, folder: @folder)
+    @user.workspace.events.create!(title: "Launch", date: Date.new(2026, 12, 1), folder: @folder)
+
+    get "/api/v1/folders/#{@folder.id}/attached_records", headers: headers_for(@user)
+
+    assert_response :success
+    assert_equal({ "detach" => { "tasks" => 1, "events" => 1 }, "blocked" => {} }, response.parsed_body)
+  end
+
+  test "another Space's folder has no attached records to read" do
+    stranger = User.create!(name: "Stranger", email: "transfer-attached-api@example.com", password: "password123")
+
+    get "/api/v1/folders/#{@folder.id}/attached_records", headers: headers_for(stranger)
+
+    assert_response :not_found
   end
 
   test "the Root folder can't be moved to another Space" do

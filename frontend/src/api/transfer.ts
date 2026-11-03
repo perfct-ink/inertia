@@ -1,7 +1,8 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import api from '@/lib/api'
-import type { TransferKind, TransferMode } from '@/data/transfer'
+import type { AttachedRecords, TransferKind, TransferMode } from '@/data/transfer'
 import type { Document, Folder, SpaceFolder } from '@/types'
+import { folderApi } from './folders'
 
 // What a move or copy answers: the Space the item is now in, and the item.
 export interface TransferResult {
@@ -17,6 +18,17 @@ export function useSpaceFolders(workspaceId: number | null) {
     queryKey: ['space-folders', workspaceId],
     queryFn: () => api.get(`/api/v1/workspaces/${workspaceId}/folders`).then((r) => r.data),
     enabled: workspaceId != null,
+  })
+}
+
+// What a move or copy of a folder does to the records filed directly under it.
+// Read-only and always fresh, because the answer decides what the dialog says.
+export function useAttachedRecords(folderId: number | null) {
+  return useQuery<AttachedRecords>({
+    queryKey: ['folder-attached-records', folderId],
+    queryFn: () => folderApi.attachedRecords(folderId as number),
+    enabled: folderId != null,
+    gcTime: 0,
   })
 }
 

@@ -9,6 +9,14 @@
 # not a member of the new Space). A copy duplicates the tasks and points the
 # copied checklist lines at them.
 #
+# A folder can also have records filed directly under it, not through a
+# document (tasks, events, epics, milestones, initiatives, sprints, ideas,
+# objectives, objectives map nodes, releases, project requests). They belong to
+# the old Space, so a move detaches them (folder cleared, the record stays
+# where it is) and a copy leaves them behind. Allocations cannot be detached
+# (a person's time on a project is the project), so a folder that has any is
+# not moved. `attached_summary` tells the user all this beforehand.
+#
 # Everything runs in one transaction: a transfer either completes or leaves
 # both Spaces untouched. Problems the user can fix raise SpaceTransfer::Error.
 class SpaceTransfer
@@ -21,6 +29,41 @@ class SpaceTransfer
   LINKED_COLLECTION = "A Collection links to a Collection that is not part of this transfer. " \
                       "Transfer them together (for example by transferring the folder that holds both) " \
                       "or remove the link first.".freeze
+
+  # Records filed directly under the given folders, by the name the dialog
+  # uses: { detach: {...}, blocked: {...} }, each { name => [relation, folder
+  # column] }. Tasks of a document that goes with the folder move with the
+  # document instead, so they are not listed here.
+  def self.attached_records(folder_ids)
+    document_task_ids = Task.unscoped.where(document_id: Document.where(folder_id: folder_ids).select(:id)).select(:id)
+    filed = ->(model) { [ model.where(folder_id: folder_ids), :folder_id ] }
+    {
+      detach: {
+        "tasks" => [ Task.unscoped.where(folder_id: folder_ids).where.not(id: document_task_ids), :folder_id ],
+        "events" => filed.(Event),
+        "epics" => filed.(Epic),
+        "milestones" => filed.(Milestone),
+        "initiatives" => filed.(Initiative),
+        "sprints" => filed.(Sprint),
+        "ideas" => filed.(Idea),
+        "objectives" => filed.(Objective),
+        "io_nodes" => filed.(IoNode),
+        "releases" => filed.(Release),
+        "project_requests" => [ ProjectRequest.where(project_id: folder_ids), :project_id ]
+      },
+      blocked: { "resource_allocations" => filed.(ResourceAllocation) }
+    }
+  end
+
+  # What a move or copy of the folder does to the records filed directly under
+  # it or its subfolders: { detach: { name => count }, blocked: { name => count } }.
+  # Only names with records are listed. A move clears `detach` from the folder
+  # and refuses while `blocked` has any; a copy leaves both behind.
+  def self.attached_summary(folder)
+    attached_records(folder.self_and_descendant_ids).transform_values do |records|
+      records.transform_values { |relation, _column| relation.count }.select { |_name, count| count.positive? }
+    end
+  end
 
   # Points every checklist line in a document's content at the copy of its
   # task (`task_ids` maps old task id => new task id). A line whose task was
@@ -83,8 +126,9 @@ class SpaceTransfer
       require_other_space!(folder.workspace_id)
       folder_ids = folder.self_and_descendant_ids
       documents = Document.where(folder_id: folder_ids).to_a
-      reject_attached_records!(folder_ids, documents)
+      detach_attached_records!(folder_ids)
       move_documents(documents)
+      TaskStatusSetting.where(folder_id: folder_ids).update_all(workspace_id: @workspace.id)
       QuipImport.where(destination_folder_id: folder_ids).update_all(destination_folder_id: nil)
       Folder.where(id: folder_ids).update_all(workspace_id: @workspace.id)
       folder.reload.update!(parent: @target_folder)
@@ -224,21 +268,18 @@ class SpaceTransfer
     moved.where.not(assignee_id: @workspace.memberships.select(:user_id)).update_all(assignee_id: nil)
   end
 
-  # Tasks, events, epics and milestones can hang directly off a folder (not
-  # through a document). They belong to the old Space and have nowhere to go,
-  # so a folder that has any is not moved.
-  def reject_attached_records!(folder_ids, documents)
-    document_task_ids = Task.unscoped.where(document_id: documents.map(&:id)).select(:id)
-    attached = {
-      "tasks" => Task.unscoped.where(folder_id: folder_ids).where.not(id: document_task_ids),
-      "events" => Event.where(folder_id: folder_ids),
-      "epics" => Epic.where(folder_id: folder_ids),
-      "milestones" => Milestone.where(folder_id: folder_ids)
-    }.select { |_name, records| records.exists? }.keys
-    return if attached.empty?
+  # Records filed directly under the folders (see attached_records) belong to
+  # the old Space and have nowhere to go: they stay in it with their folder
+  # cleared. Skips callbacks and validations on purpose, like rehome_tasks.
+  # Allocations cannot be detached, so a folder that has any is not moved.
+  def detach_attached_records!(folder_ids)
+    records = self.class.attached_records(folder_ids)
+    blocked = records[:blocked].select { |_name, (relation, _column)| relation.exists? }.keys.map { |name| name.tr("_", " ") }
+    if blocked.any?
+      raise Error, "This folder has #{blocked.to_sentence} attached to it that a move can't detach. " \
+                   "Remove them first, or copy the folder instead."
+    end
 
-    raise Error, "This folder has #{attached.to_sentence} attached to it directly. " \
-                 "Only documents, with their tasks, can move to another Space. " \
-                 "Detach or delete them first, or copy the folder instead."
+    records[:detach].each_value { |relation, column| relation.update_all(column => nil) }
   end
 end

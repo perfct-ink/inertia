@@ -2,7 +2,7 @@ import { fireEvent, render, screen } from '@testing-library/react'
 import '@testing-library/jest-dom'
 import { TransferDialog } from './TransferDialog'
 import { useTabsStore } from '@/store/tabs'
-import type { TransferRequest } from '@/data/transfer'
+import type { AttachedRecords, TransferRequest } from '@/data/transfer'
 import type { SpaceFolder, WorkspaceSummary } from '@/types'
 
 const mockNavigate = jest.fn()
@@ -12,12 +12,14 @@ let mockPath = '/documents/7'
 let mockTargets: WorkspaceSummary[] = []
 let mockFolders: Record<number, SpaceFolder[]> = {}
 let mockTransfer: { mutate: jest.Mock; isPending: boolean; isError: boolean; error: unknown }
+let mockAttached: { data?: AttachedRecords; isError: boolean }
 
 jest.mock('react-router-dom', () => ({ useNavigate: () => mockNavigate, useLocation: () => ({ pathname: mockPath }) }))
 jest.mock('@/hooks/useSwitchWorkspace', () => ({ useSwitchWorkspace: () => mockSwitch }))
 jest.mock('@/hooks/useTransferTargets', () => ({ useTransferTargets: () => ({ targets: mockTargets, isLoading: false }) }))
 jest.mock('@/api/transfer', () => ({
   useSpaceFolders: (id: number | null) => ({ data: id == null ? undefined : mockFolders[id], isLoading: false, isError: false }),
+  useAttachedRecords: (id: number | null) => (id == null ? { isError: false } : mockAttached),
   useTransfer: () => mockTransfer,
 }))
 
@@ -35,6 +37,7 @@ beforeEach(() => {
     3: [folder(30, 'Root', null, true), folder(31, 'Briefs', 30)],
   }
   mockTransfer = { mutate: mockMutate, isPending: false, isError: false, error: null }
+  mockAttached = { data: { detach: {}, blocked: {} }, isError: false }
   useTabsStore.setState({ tabs: [{ id: '7', path: '/documents/7', title: 'Plan' }, { id: '8', path: '/documents/8', title: 'Other' }], activeId: '8' })
 })
 afterEach(() => jest.clearAllMocks())
@@ -109,4 +112,44 @@ test('with no other Space to add to it says so', () => {
   render(<TransferDialog request={request()} onClose={jest.fn()} />)
   expect(screen.getByText(/There is no other Space you can add to/)).toBeInTheDocument()
   expect(screen.queryByRole('button', { name: 'Copy' })).toBeNull()
+})
+
+describe('a folder with records filed directly under it', () => {
+  const folderRequest = (mode: 'move' | 'copy') => request({ mode, kind: 'folder', id: 3, name: 'Plans', documentIds: [7] })
+  const attached = (detach: AttachedRecords['detach'], blocked: AttachedRecords['blocked'] = {}) => ({ data: { detach, blocked }, isError: false })
+
+  test('a move says how many of each kind it detaches and sends on Move', () => {
+    mockAttached = attached({ tasks: 2, events: 1 })
+    render(<TransferDialog request={folderRequest('move')} onClose={jest.fn()} />)
+    expect(screen.getByText(/The move detaches 2 tasks and 1 event filed directly under this folder/)).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Move' }))
+    expect(mockMutate).toHaveBeenCalledWith({ mode: 'move', kind: 'folder', id: 3, targetFolderId: 20 }, expect.anything())
+  })
+
+  test('a copy says what it leaves behind, including what a move could not detach', () => {
+    mockAttached = attached({ tasks: 2 }, { resource_allocations: 1 })
+    render(<TransferDialog request={folderRequest('copy')} onClose={jest.fn()} />)
+    expect(screen.getByText(/The copy leaves behind 2 tasks and 1 allocation/)).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Copy' })).toBeEnabled()
+  })
+
+  test('nothing is said when nothing is filed under the folder', () => {
+    render(<TransferDialog request={folderRequest('move')} onClose={jest.fn()} />)
+    expect(screen.queryByText(/filed directly/)).toBeNull()
+    expect(screen.getByRole('button', { name: 'Move' })).toBeEnabled()
+  })
+
+  test('records that cannot be detached stop the move and say why', () => {
+    mockAttached = attached({ tasks: 2 }, { resource_allocations: 1 })
+    render(<TransferDialog request={folderRequest('move')} onClose={jest.fn()} />)
+    expect(screen.getByRole('alert')).toHaveTextContent("A move can't detach 1 allocation")
+    expect(screen.getByRole('button', { name: 'Move' })).toBeDisabled()
+  })
+
+  test('a move waits for the count, and says so when it could not be read', () => {
+    mockAttached = { data: undefined, isError: true }
+    render(<TransferDialog request={folderRequest('move')} onClose={jest.fn()} />)
+    expect(screen.getByRole('alert')).toHaveTextContent("Couldn't check what is filed directly under this folder.")
+    expect(screen.getByRole('button', { name: 'Move' })).toBeDisabled()
+  })
 })

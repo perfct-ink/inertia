@@ -1,14 +1,14 @@
 import { useState, type FormEvent } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { Button, FormError, Modal, Select } from '@/components/ui'
-import { useSpaceFolders, useTransfer, type TransferResult } from '@/api/transfer'
+import { useSpaceFolders, useTransfer, useAttachedRecords, type TransferResult } from '@/api/transfer'
 import { useSwitchWorkspace } from '@/hooks/useSwitchWorkspace'
 import { useTransferTargets } from '@/hooks/useTransferTargets'
 import { useTabsStore } from '@/store/tabs'
 import { useTransferStore } from '@/store/transfer'
 import { folderChoices } from '@/data/folder'
 import {
-  isMovedPage, transferDone, transferPath, transferSummary, transferTitle, transferVerb, type TransferRequest,
+  attachedBlocker, attachedNotice, isMovedPage, transferDone, transferPath, transferSummary, transferTitle, transferVerb, type TransferRequest,
 } from '@/data/transfer'
 import { errorMessage } from '@/util/errorMessage'
 import type { WorkspaceSummary } from '@/types'
@@ -43,6 +43,13 @@ export function TransferDialog({ request, onClose }: { request: TransferRequest;
   const choices = folderChoices(folders ?? [])
   const folderId = choices.some((c) => c.id === chosenFolderId) ? chosenFolderId : (choices[0]?.id ?? null)
 
+  // A folder can have tasks, events and other records filed directly under it.
+  // Say what happens to them before the user chooses; a move waits for the answer.
+  const attached = useAttachedRecords(kind === 'folder' ? id : null)
+  const notice = attached.data ? attachedNotice(mode, attached.data) : null
+  const blocker = attached.data ? attachedBlocker(mode, attached.data) : null
+  const awaitingAttached = kind === 'folder' && mode === 'move' && !attached.data
+
   // Whatever left this Space can't stay open or in a tab here.
   function leaveMovedPages() {
     useTabsStore.getState().removeTabs(request.documentIds.map(String))
@@ -68,7 +75,11 @@ export function TransferDialog({ request, onClose }: { request: TransferRequest;
     if (item) navigate(transferPath(kind, item.id))
   }
 
-  const error = foldersFailed ? "Couldn't load that Space's folders." : transfer.isError ? errorMessage(transfer.error) : null
+  const error = foldersFailed
+    ? "Couldn't load that Space's folders."
+    : attached.isError
+      ? "Couldn't check what is filed directly under this folder."
+      : transfer.isError ? errorMessage(transfer.error) : null
   const description = finished ? transferDone(request, finished.space.name) : transferSummary(request)
 
   return (
@@ -101,10 +112,12 @@ export function TransferDialog({ request, onClose }: { request: TransferRequest;
               {choices.map((c) => <option key={c.id} value={c.id}>{c.label}</option>)}
             </Select>
           </label>
+          {notice && <p className="transfer_dialog-note">{notice}</p>}
+          <FormError message={blocker} />
           <FormError message={error} />
           <div className="ui-modal-actions transfer_dialog-actions">
             <Button type="button" variant="secondary" onClick={onClose}>Cancel</Button>
-            <Button type="submit" variant="primary" disabled={transfer.isPending || folderId == null}>{transferVerb(mode)}</Button>
+            <Button type="submit" variant="primary" disabled={transfer.isPending || folderId == null || awaitingAttached || blocker != null}>{transferVerb(mode)}</Button>
           </div>
         </form>
       )}

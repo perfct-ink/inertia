@@ -50,6 +50,7 @@ Rails.application.routes.draw do
         end
         member do
           get :contents
+          get :attached_records
           post :copy
           post :move
         end

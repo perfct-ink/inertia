@@ -1,4 +1,7 @@
-import { isMovedPage, transferDone, transferPath, transferSummary, transferTitle, transferVerb, type TransferRequest } from './transfer'
+import {
+  attachedBlocker, attachedNotice, isMovedPage, recordList, transferDone, transferPath, transferSummary, transferTitle, transferVerb,
+  type AttachedRecords, type TransferRequest,
+} from './transfer'
 
 const request = (overrides: Partial<TransferRequest> = {}): TransferRequest =>
   ({ mode: 'move', kind: 'document', id: 7, name: 'Plan', documentIds: [7], ...overrides })
@@ -38,4 +41,38 @@ test('a moved item, or any document that went with it, is no longer a page of th
   expect(isMovedPage(folder, '/documents/9')).toBe(false)
   expect(isMovedPage(request(), '/documents/7')).toBe(true)
   expect(isMovedPage(request(), '/tasks')).toBe(false)
+})
+
+describe('records filed directly under a folder', () => {
+  const some: AttachedRecords = { detach: { tasks: 2, events: 1 }, blocked: { resource_allocations: 1 } }
+  const none: AttachedRecords = { detach: {}, blocked: {} }
+
+  test('the counts read as one list with the right plurals', () => {
+    expect(recordList({})).toBe('')
+    expect(recordList({ tasks: 1 })).toBe('1 task')
+    expect(recordList({ tasks: 2, events: 1 })).toBe('2 tasks and 1 event')
+    expect(recordList({ tasks: 2, events: 1, io_nodes: 3, epics: 0 })).toBe('2 tasks, 1 event and 3 objectives map items')
+    expect(recordList({ something_new: 2 })).toBe('2 something new')
+  })
+
+  test('a move says what it detaches and a copy what it leaves behind', () => {
+    expect(attachedNotice('move', some)).toBe(
+      'The move detaches 2 tasks and 1 event filed directly under this folder or its subfolders. They stay in this Space.',
+    )
+    expect(attachedNotice('copy', some)).toContain('The copy leaves behind 2 tasks, 1 event and 1 allocation filed directly')
+  })
+
+  test('there is nothing to say when nothing is filed under the folder', () => {
+    expect(attachedNotice('move', none)).toBeNull()
+    expect(attachedNotice('copy', none)).toBeNull()
+    expect(attachedNotice('move', { detach: {}, blocked: { resource_allocations: 2 } })).toBeNull()
+  })
+
+  test('records that cannot be detached block a move but not a copy', () => {
+    expect(attachedBlocker('move', some)).toBe(
+      "A move can't detach 1 allocation from this folder or its subfolders. Remove them first, or copy the folder instead.",
+    )
+    expect(attachedBlocker('copy', some)).toBeNull()
+    expect(attachedBlocker('move', none)).toBeNull()
+  })
 })

@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import api from '@/lib/api'
+import type { AttachedRecords } from '@/data/transfer'
 import type { DependencyMode, Folder, FolderContents, FolderKind } from '@/types'
 import { ApiResource, useApiMutation } from './base'
 
@@ -23,6 +24,12 @@ export class FolderApi extends ApiResource<Folder, { name: string; parent_id?: n
   // subfolder nested underneath.
   contents(id: number) {
     return api.get<FolderContents>(`${this.url(id)}/contents`).then((r) => r.data)
+  }
+
+  // Counts of the tasks, events, epics and other records filed directly under
+  // the folder or its subfolders: what a move detaches or a copy leaves behind.
+  attachedRecords(id: number) {
+    return api.get<AttachedRecords>(`${this.url(id)}/attached_records`).then((r) => r.data)
   }
 }
 

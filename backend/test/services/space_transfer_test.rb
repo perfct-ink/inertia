@@ -39,6 +39,27 @@ class SpaceTransferTest < ActiveSupport::TestCase
     [ companies, contacts ]
   end
 
+  # One record of every kind that can be filed directly under a folder, in the
+  # source Space. Keys match the names SpaceTransfer.attached_summary uses.
+  def attach_records(folder)
+    {
+      "tasks" => @source.tasks.create!(title: "Loose", folder: folder),
+      "events" => @source.events.create!(title: "Launch", date: Date.new(2026, 12, 1), folder: folder),
+      "epics" => @source.epics.create!(title: "Epic", folder: folder),
+      "milestones" => @source.milestones.create!(title: "Beta", folder: folder),
+      "initiatives" => @source.initiatives.create!(title: "Growth", folder: folder),
+      "sprints" => @source.sprints.create!(title: "Sprint 1", folder: folder),
+      "ideas" => @source.ideas.create!(title: "Dark mode", folder: folder),
+      "objectives" => @source.objectives.create!(title: "Delight", folder: folder),
+      "io_nodes" => @source.io_nodes.create!(kind: :goal, title: "Be the default", folder: folder),
+      "releases" => @source.releases.create!(title: "EP", folder: folder)
+    }
+  end
+
+  def allocate_to(project)
+    @source.resource_allocations.create!(user: @user, folder: project, hours_per_week: 10)
+  end
+
   test "remap_task_ids points checklist lines at the copies and unlinks the rest" do
     content = task_lines(5, 99)
     content["content"] << { "type" => "paragraph", "attrs" => { "taskId" => 5 } }
@@ -215,24 +236,90 @@ class SpaceTransferTest < ActiveSupport::TestCase
     assert_not_includes @source.folders.reload.to_a, @source_folder
   end
 
-  test "a folder with tasks, events, epics or milestones attached to it directly is not moved" do
-    @source.tasks.create!(title: "Loose", folder: @source_folder)
-    @source.events.create!(title: "Launch", date: Date.new(2026, 12, 1), folder: @source_folder)
+  test "moving a folder detaches the records filed directly under it and leaves them in the old Space" do
+    nested = @source.folders.create!(name: "Nested", parent: @source_folder)
+    records = attach_records(@source_folder)
+    deep = @source.events.create!(title: "Deep", date: Date.new(2026, 12, 2), folder: nested)
+    request = @source.project_requests.create!(name: "Plans", project: @source_folder)
+    document = nested.documents.create!(title: "Plan", created_by: @user)
+    from_document = @source.tasks.create!(title: "From the document", document: document, folder: nested)
 
-    error = assert_raises(SpaceTransfer::Error) { transfer_into(@team_root).move_folder(@source_folder) }
+    moved = transfer_into(@team_root).move_folder(@source_folder)
 
-    assert_match(/tasks and events/, error.message)
-    assert_equal @source, @source_folder.reload.workspace
+    assert_equal @team, moved.workspace
+    (records.values + [ deep ]).each do |record|
+      assert_equal [ @source.id, nil ], record.reload.slice(:workspace_id, :folder_id).values, "#{record.class} stays, detached"
+    end
+    assert_equal [ @source.id, nil ], request.reload.slice(:workspace_id, :project_id).values
+    assert_equal [ @team.id, nil ], from_document.reload.slice(:workspace_id, :folder_id).values
+    assert_equal 0, @team.tasks.where(title: "Loose").count
+  end
+
+  test "a folder's task status settings go with it" do
+    @source.task_status_settings.create!(status: :todo, label: "Queued", folder: @source_folder)
+
+    transfer_into(@team_root).move_folder(@source_folder)
+
+    setting = TaskStatusSetting.find_by!(folder: @source_folder)
+    assert_equal [ @team.id, "Queued" ], [ setting.workspace_id, setting.label ]
+  end
+
+  test "a folder with allocations is not moved and nothing is detached" do
+    project = @source.folders.create!(name: "Messages", kind: :project)
+    loose = @source.tasks.create!(title: "Loose", folder: project)
+    allocate_to(project)
+
+    error = assert_raises(SpaceTransfer::Error) { transfer_into(@team_root).move_folder(project) }
+
+    assert_match(/resource allocations attached to it that a move can't detach/, error.message)
+    assert_equal [ @source, project ], [ project.reload.workspace, loose.reload.folder ]
+  end
+
+  test "the summary counts what a move detaches and a copy leaves behind" do
+    nested = @source.folders.create!(name: "Nested", parent: @source_folder)
+    @source.tasks.create!(title: "One", folder: @source_folder)
+    @source.tasks.create!(title: "Two", folder: nested)
+    @source.events.create!(title: "Launch", date: Date.new(2026, 12, 1), folder: nested)
+    document = nested.documents.create!(title: "Plan", created_by: @user)
+    @source.tasks.create!(title: "From a checklist", document: document, folder: nested)
+    allocate_to(@source.folders.create!(name: "Messages", kind: :project, parent: @source_folder))
+
+    summary = SpaceTransfer.attached_summary(@source_folder)
+
+    assert_equal({ detach: { "tasks" => 2, "events" => 1 }, blocked: { "resource_allocations" => 1 } }, summary)
+    assert_equal({ detach: {}, blocked: {} }, SpaceTransfer.attached_summary(@source.folders.create!(name: "Empty")))
+  end
+
+  test "copying a folder leaves the records filed under it in the source" do
+    records = attach_records(@source_folder)
+    project = @source.folders.create!(name: "Messages", kind: :project, parent: @source_folder)
+    allocation = allocate_to(project)
+    @source_folder.documents.create!(title: "Plan", created_by: @user)
+
+    copy = transfer_into(@team_root).copy_folder(@source_folder)
+
+    assert_equal %w[Plan], copy.documents.map(&:title)
+    assert_equal [ "Messages" ], copy.children.map(&:name)
+    records.each_value { |record| assert_equal @source_folder.id, record.reload.folder_id }
+    assert_equal project.id, allocation.reload.folder_id
+    assert_empty @team.tasks
+    assert_empty @team.events
+    assert_equal 0, @team.resource_allocations.count
   end
 
   test "a failed move leaves both Spaces as they were" do
     document = @source_folder.documents.create!(title: "Plan", created_by: @user)
     task = @source.tasks.create!(title: "Keep", document: document)
-    @source.tasks.create!(title: "Loose", folder: @source_folder)
+    loose = @source.tasks.create!(title: "Loose", folder: @source_folder)
+    @source.events.create!(title: "Launch", date: Date.new(2026, 12, 1), folder: @source_folder)
+    contacts = linked_collections(@source.folders.create!(name: "Other")).last
+    contacts.update!(folder: @source_folder)
 
     assert_raises(SpaceTransfer::Error) { transfer_into(@team_root).move_folder(@source_folder) }
 
     assert_equal @source.id, task.reload.workspace_id
     assert_equal @source_folder, document.reload.folder
+    assert_equal @source_folder, loose.reload.folder
+    assert_equal @source, @source_folder.reload.workspace
   end
 end
