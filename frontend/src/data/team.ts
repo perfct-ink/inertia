@@ -52,3 +52,15 @@ export function teamPeopleLabel(team: Pick<Team, 'members'>): string {
   if (count === 0) return 'No one yet'
   return count === 1 ? '1 person' : `${count} people`
 }
+
+// The signed-in user's own place on a team (their team membership), if any.
+export function ownTeamMembership(team: Pick<Team, 'members'>, userId: number | undefined): TeamMember | undefined {
+  return userId === undefined ? undefined : team.members.find((m) => m.user_id === userId)
+}
+
+// Whether leaving `team` takes the whole Space away from the user: it is the
+// only way in when they have no membership of their own and are on no other team.
+export function leavingEndsAccess(teams: Team[], team: Team, userId: number, hasOwnMembership: boolean): boolean {
+  if (hasOwnMembership) return false
+  return !teams.some((other) => other.id !== team.id && ownTeamMembership(other, userId))
+}

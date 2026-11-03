@@ -7,6 +7,7 @@ A team is a named group of people inside a Space that holds one role there toget
 - **Admins and owners** create a team (name plus a role, default member), change a team's role, rename it, delete it (after a confirmation), add a person by the email of an existing user, and remove a person. Everyone else in the Space sees the same list read-only. A personal Space has no Teams button because it cannot be shared.
 - **Roles**: a team can be `viewer`, `member` or `admin`, never `owner`. A person's role in the Space is the highest of their own membership and every team they are on, so a team never lowers someone's own role. A person who is only on a team still sees the Space in the Space switcher, with the team's role, and can open it.
 - **Effect everywhere**: every API that checks a Space role (writes need `member`, renaming and member/team management need `admin`) and every lookup by document, table or folder id uses the combined role. Initiative, milestone and sprint owners may be someone who is on a team in the Space.
+- **Leaving a team**: anyone on a team sees a "Leave team" button on it in the Teams dialog and can take themselves off, whatever their role (admins get it instead of the remove button on their own row). A confirmation says what is lost. If the team was their only way into the Space (no membership of their own, no other team) it says they will leave the Space too, and afterwards the dialog closes and the app switches to their personal Space.
 - Removing a person from a team, or deleting the team, removes the access it gave. It never touches anyone's own membership.
 
 ## API and models
@@ -16,9 +17,10 @@ A team is a named group of people inside a Space that holds one role there toget
 - Endpoints, all under a Space named in the path (like members); `X-Workspace-Id` is not used:
   - `GET /api/v1/workspaces/:workspace_id/teams`: teams with `members: [{ id, user_id, user: { id, name, email } }]`, ordered by name. Any member of the Space.
   - `POST /api/v1/workspaces/:workspace_id/teams` (`{ team: { name, role } }`), `PATCH .../teams/:id`, `DELETE .../teams/:id`: admin or owner.
-  - `POST .../teams/:team_id/members` (`{ email }`, an existing user) and `DELETE .../teams/:team_id/members/:id` (the team membership id): admin or owner; both answer with the updated team.
-  - Errors: 404 for a Space the caller cannot reach (and for a team of another Space), 403 for a non-admin write, 422 with `errors` for a duplicate or blank name, a role other than viewer, member or admin, a personal Space, an unknown email, or someone already on the team.
-- Frontend: `frontend/src/data/team.ts` (types, `TEAM_ROLES`, role descriptions, `sortTeams`, `teamNameTaken`, `teamPeopleLabel`), `frontend/src/api/teams.ts` (React Query hooks), `frontend/src/components/workspace/WorkspaceTeams.tsx` and `.scss`. Changing a team refreshes the teams, the Space list and the open Space so the signed-in user's own role updates. Failed requests show the shared error notice from `lib/api.ts`.
+  - `POST .../teams/:team_id/members` (`{ email }`, an existing user): admin or owner; answers with the updated team.
+  - `DELETE .../teams/:team_id/members/:id` (the team membership id): admin or owner, or the person whose membership it is (leaving). Removing someone answers with the updated team; leaving answers 204 with no body, because the person may have just lost access to the Space.
+  - Errors: 404 for a Space the caller cannot reach (and for a team of another Space), 403 for a non-admin write (including removing someone else's team membership), 422 with `errors` for a duplicate or blank name, a role other than viewer, member or admin, a personal Space, an unknown email, or someone already on the team.
+- Frontend: `frontend/src/data/team.ts` (types, `TEAM_ROLES`, role descriptions, `sortTeams`, `teamNameTaken`, `teamPeopleLabel`, `ownTeamMembership`, `leavingEndsAccess`), `frontend/src/api/teams.ts` (React Query hooks, including `useLeaveTeam`, which refetches nothing when leaving ends access to the Space so no request goes to a Space the user can no longer reach), `frontend/src/components/workspace/WorkspaceTeams.tsx` and `.scss`. Changing a team refreshes the teams, the Space list and the open Space so the signed-in user's own role updates. Failed requests show the shared error notice from `lib/api.ts`.
 - User-facing names are in `backend/config/locales/en.yml` (Team, Team membership; a team's workspace is "Space").
 
 ## Who can view and change
@@ -29,13 +31,14 @@ Sidebar header, Space name, "Teams" button (`components/workspace/WorkspaceSwitc
 
 ## Tests
 - `backend/test/models/team_test.rb`: name rules, role cap, personal Space, cascade deletes, combined role (highest of membership and teams), access removed when the team goes, initiative owner on a team.
-- `backend/test/controllers/teams_controller_test.rb`: list, create, update, delete, add and remove people, who may do what, 404 across Spaces, and the combined role through the rest of the API (tasks, documents, rename, delete a Space).
-- `frontend/src/data/team.test.ts` (run offline with a small Jest shim) and `frontend/src/components/workspace/WorkspaceTeams.test.tsx`.
+- `backend/test/controllers/teams_controller_test.rb`: list, create, update, delete, add and remove people, leaving a team (204, access lost, own membership and role kept, an admin leaving, a team member cannot remove someone else, no access to the Space is a 404), who may do what, 404 across Spaces, and the combined role through the rest of the API (tasks, documents, rename, delete a Space).
+- `frontend/src/data/team.test.ts` (run offline with a small Jest shim) and `frontend/src/components/workspace/WorkspaceTeams.test.tsx` (including leaving a team: confirmation text, the request, closing and switching to the personal Space, and no Space switch when other access stays).
 
 ## Known limits
 - A team belongs to one Space. There are no account-wide teams that could be granted a role in several Spaces; that needs an owner for the team outside any Space.
 - The Members dialog and the owner pickers (`GET .../members`) list direct memberships only, so a person who is only on a team does not appear there. See `docs/backlog/show-team-members-in-space-member-lists.md`.
-- Only admins and owners can take someone off a team; a person cannot leave a team (or the Space, if the team is their only access) themselves. See `docs/backlog/leave-a-team.md`.
+- Whether leaving ends access to the Space is worked out in the browser from the teams list and the Members list, so it is only as current as those two lists; the server does not refuse leaving the last way into a Space (it simply makes the Space unreachable).
+- An admin who leaves the only admin-granting team can leave the Space without an admin other than its owner; nothing stops that.
 - Team members are added by the email of an existing user, like members; there are no invitations (`docs/backlog/invite-people-without-an-account.md`).
 - Teams grant a role in the whole Space. Per-folder permissions are `docs/backlog/guests-and-per-folder-permissions.md`.
 - The dialog lists every team with all its people; it scrolls but is not searchable.
@@ -46,3 +49,5 @@ Sidebar header, Space name, "Teams" button (`components/workspace/WorkspaceSwitc
 - Not verified: no check was run on the test suites, because this machine has no `node_modules`, database or usable Bundler. Run offline: the static checker over the changed files (TypeScript parse, SCSS compile, `ruby -c`), the pure `data/team.test.ts`, and a plain-Ruby check of the `WorkspaceAccess` role logic with stub models. Not run: `rails db:migrate` (and the diff of `schema.rb`, which was edited by hand), `rails test`, `npm run lint`, the TypeScript build, the Jest component tests, or the screen in a browser at 375px and desktop, in light and dark.
 
 - Merged to main 2026-11-02 after running, merged with main: `rails db:migrate` (schema diff clean), `rails test`, `npm run lint`, `tsc -b`, Jest, and the collab-server tests, all passing. Not checked in a browser.
+
+- Leaving a team implemented 2026-11-03 (not deployed; on branch `backlog/leave-a-team`). Ran offline: `ruby -c`, the pure `data/team.test.ts`, the static checker, and `WorkspaceTeams.test.tsx` in a Jest stand-in with stubs for axios, react-query, zustand, lucide and the Radix dialog and popover (16 of 16 passed). Not run: `rails test`, `npm run lint`, `tsc -b`, the real Jest suite, or the dialog in a browser at 375px and desktop, light and dark.

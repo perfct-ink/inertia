@@ -130,6 +130,13 @@
       margin-top: space(4);
     }
 
+    // "Leave team" sits at the end of the card, apart from the add form.
+    &-leave {
+      display: flex;
+      justify-content: flex-end;
+      margin-top: space(3);
+    }
+
     &-error {
       margin-top: space(2);
     }

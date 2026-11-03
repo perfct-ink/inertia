@@ -2,12 +2,13 @@ module Api
   module V1
     # The people on a team. Admins and owners add an existing user by email
     # and remove people; both answer with the updated team. Anyone added gets
-    # the team's role in the workspace straight away.
+    # the team's role in the workspace straight away. Anyone can take
+    # themselves off a team (leave), whatever their role.
     class TeamMembersController < ApplicationController
       include WorkspaceScoped
       skip_before_action :require_current_workspace_write!
       before_action :set_team
-      before_action :require_manage
+      before_action :require_manage, only: :create
 
       def create
         user = User.find_by(email: params.require(:email).to_s.strip.downcase)
@@ -21,9 +22,20 @@ module Api
         end
       end
 
+      # Admins and owners remove people (answering with the updated team);
+      # anyone can remove themselves. Leaving answers 204, like leaving a
+      # space: the person may have just lost access to the team's workspace, so
+      # no team details come back.
       def destroy
-        @team.memberships.find(params[:id]).destroy
-        render json: TeamBlueprint.render(@team.reload)
+        membership = @team.memberships.find(params[:id])
+        leaving = membership.user_id == current_user.id
+        require_manage unless leaving
+        membership.destroy
+        if leaving
+          head :no_content
+        else
+          render json: TeamBlueprint.render(@team.reload)
+        end
       end
 
       private

@@ -1,23 +1,41 @@
 import { useState, type FormEvent } from 'react'
 import { Pencil, Trash2, X } from 'lucide-react'
 import { Button, ConfirmDialog, FormError, Input, Modal, PromptDialog, Select } from '@/components/ui'
-import { canManageWorkspace } from '@/api/workspaces'
-import { useAddTeamMember, useCreateTeam, useDeleteTeam, useRemoveTeamMember, useTeams, useUpdateTeam } from '@/api/teams'
-import { TEAM_ROLES, TEAM_ROLE_HELP, normalizeTeamName, sortTeams, teamNameTaken, teamPeopleLabel, type Team, type TeamRole } from '@/data/team'
+import { canManageWorkspace, useWorkspaces } from '@/api/workspaces'
+import { useWorkspaceMembers } from '@/api/workspaceMembers'
+import { useAddTeamMember, useCreateTeam, useDeleteTeam, useLeaveTeam, useRemoveTeamMember, useTeams, useUpdateTeam } from '@/api/teams'
+import { useSwitchWorkspace } from '@/hooks/useSwitchWorkspace'
+import { useAuthStore } from '@/store/auth'
+import { TEAM_ROLES, TEAM_ROLE_HELP, leavingEndsAccess, normalizeTeamName, ownTeamMembership, sortTeams, teamNameTaken, teamPeopleLabel, type Team, type TeamMember, type TeamRole } from '@/data/team'
 import type { WorkspaceSummary } from '@/types'
 import './WorkspaceTeams.scss'
 
+type TeamProps = {
+  team: Team
+  workspace: WorkspaceSummary
+  canManage: boolean
+  // The signed-in user's place on this team, and whether leaving it takes the
+  // whole Space away from them.
+  mine?: TeamMember
+  endsAccess: boolean
+  // Called after the user left the Space by leaving this team.
+  onLeftSpace: () => void
+}
+
 // One team: its role in the Space, the people on it, and (for admins and
-// owners) renaming, deleting and adding or removing people. Failed requests
-// show an error notice through the shared API client.
-function WorkspaceTeam({ team, workspaceId, canManage }: { team: Team; workspaceId: number; canManage: boolean }) {
+// owners) renaming, deleting and adding or removing people. Anyone on the team
+// can leave it. Failed requests show an error notice through the shared API client.
+function WorkspaceTeam({ team, workspace, canManage, mine, endsAccess, onLeftSpace }: TeamProps) {
+  const workspaceId = workspace.id
   const updateTeam = useUpdateTeam(workspaceId)
   const deleteTeam = useDeleteTeam(workspaceId)
   const addMember = useAddTeamMember(workspaceId)
   const removeMember = useRemoveTeamMember(workspaceId)
+  const leaveTeam = useLeaveTeam(workspaceId)
   const [email, setEmail] = useState('')
   const [renaming, setRenaming] = useState(false)
   const [deleting, setDeleting] = useState(false)
+  const [leaving, setLeaving] = useState(false)
   const nameId = `workspace_teams-name-${team.id}`
 
   function add(e: FormEvent) {
@@ -30,6 +48,11 @@ function WorkspaceTeam({ team, workspaceId, canManage }: { team: Team; workspace
   function rename(next: string) {
     const name = normalizeTeamName(next)
     if (name && name !== team.name) updateTeam.mutate({ id: team.id, name })
+  }
+
+  function leave() {
+    if (!mine) return
+    leaveTeam.mutate({ teamId: team.id, membershipId: mine.id, endsAccess }, { onSuccess: () => { if (endsAccess) onLeftSpace() } })
   }
 
   return (
@@ -70,7 +93,7 @@ function WorkspaceTeam({ team, workspaceId, canManage }: { team: Team; workspace
                 <p className="workspace_teams-person_name">{m.user.name}</p>
                 <p className="workspace_teams-person_email">{m.user.email}</p>
               </div>
-              {canManage && (
+              {canManage && m.id !== mine?.id && (
                 <Button
                   variant="ghost"
                   className="workspace_teams-icon_button"
@@ -93,6 +116,12 @@ function WorkspaceTeam({ team, workspaceId, canManage }: { team: Team; workspace
         </form>
       )}
 
+      {mine && (
+        <div className="workspace_teams-leave">
+          <Button variant="secondary" aria-label={`Leave team ${team.name}`} disabled={leaveTeam.isPending} onClick={() => setLeaving(true)}>Leave team</Button>
+        </div>
+      )}
+
       <PromptDialog open={renaming} title="Rename team" label="Team name" initialValue={team.name} onSubmit={rename} onClose={() => setRenaming(false)} />
       <ConfirmDialog
         open={deleting}
@@ -103,6 +132,17 @@ function WorkspaceTeam({ team, workspaceId, canManage }: { team: Team; workspace
         onConfirm={() => deleteTeam.mutate(team.id)}
         onClose={() => setDeleting(false)}
       />
+      <ConfirmDialog
+        open={leaving}
+        title={`Leave ${team.name}?`}
+        description={endsAccess
+          ? `${team.name} is your only way into ${workspace.name}, so you will leave the Space too and go back to your personal Space.`
+          : 'You lose the access this team gives you. Access you have through your own membership or other teams stays.'}
+        confirmLabel="Leave team"
+        destructive
+        onConfirm={leave}
+        onClose={() => setLeaving(false)}
+      />
     </li>
   )
 }
@@ -111,12 +151,25 @@ function WorkspaceTeam({ team, workspaceId, canManage }: { team: Team; workspace
 // in the Space can read them; admins and owners create and change them. Personal
 // Spaces cannot be shared, so they have no teams.
 export function WorkspaceTeams({ workspace, open, onClose }: { workspace: WorkspaceSummary; open: boolean; onClose: () => void }) {
+  const me = useAuthStore((s) => s.user)
+  const switchWorkspace = useSwitchWorkspace()
   const { data: teams = [] } = useTeams(workspace.id, open)
+  const { data: members = [] } = useWorkspaceMembers(workspace.id)
+  const { data: workspaces = [] } = useWorkspaces()
   const createTeam = useCreateTeam(workspace.id)
   const [name, setName] = useState('')
   const [role, setRole] = useState<TeamRole>('member')
   const canManage = canManageWorkspace(workspace.role) && !workspace.personal
   const taken = teamNameTaken(teams, name)
+  const hasOwnMembership = members.some((m) => m.user_id === me?.id)
+
+  // Leaving the team that was the only way in drops the Space: close this
+  // dialog and go to the personal Space (or any other the user still has).
+  function leftSpace() {
+    onClose()
+    const next = workspaces.find((w) => w.personal) ?? workspaces.find((w) => w.id !== workspace.id)
+    if (next) switchWorkspace(next)
+  }
 
   function submit(e: FormEvent) {
     e.preventDefault()
@@ -132,7 +185,15 @@ export function WorkspaceTeams({ workspace, open, onClose }: { workspace: Worksp
       ) : (
         <ul className="workspace_teams-list">
           {sortTeams(teams).map((team) => (
-            <WorkspaceTeam key={team.id} team={team} workspaceId={workspace.id} canManage={canManage} />
+            <WorkspaceTeam
+              key={team.id}
+              team={team}
+              workspace={workspace}
+              canManage={canManage}
+              mine={ownTeamMembership(team, me?.id)}
+              endsAccess={me ? leavingEndsAccess(teams, team, me.id, hasOwnMembership) : false}
+              onLeftSpace={leftSpace}
+            />
           ))}
         </ul>
       )}

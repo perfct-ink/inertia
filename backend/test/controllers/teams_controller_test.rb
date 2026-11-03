@@ -161,6 +161,51 @@ class TeamsControllerTest < ActionDispatch::IntegrationTest
     assert_response :not_found
   end
 
+  test "a person on a team can leave it and loses the access it gave them" do
+    delete teams_path(@design.id, "members", @design_ada.id), headers: headers_for(@ada)
+    assert_response :no_content
+    assert_not TeamMembership.exists?(@design_ada.id)
+
+    get "/api/v1/workspace", headers: headers_for(@ada, workspace: @space)
+    assert_response :not_found
+  end
+
+  test "leaving a team keeps the person's own membership and role" do
+    @space.memberships.create!(user: @ada, role: :viewer)
+    @design.update!(role: :admin)
+    get "/api/v1/workspace", headers: headers_for(@ada, workspace: @space)
+    assert_equal "admin", response.parsed_body["role"]
+
+    delete teams_path(@design.id, "members", @design_ada.id), headers: headers_for(@ada)
+    assert_response :no_content
+
+    get "/api/v1/workspace", headers: headers_for(@ada, workspace: @space)
+    assert_response :success
+    assert_equal "viewer", response.parsed_body["role"]
+  end
+
+  test "an admin can leave a team they are on" do
+    admin_row = @design.memberships.create!(user: @admin)
+    delete teams_path(@design.id, "members", admin_row.id), headers: headers_for(@admin)
+    assert_response :no_content
+    assert_not TeamMembership.exists?(admin_row.id)
+  end
+
+  test "leaving a team does not let a team member remove someone else" do
+    bo_row = @design.memberships.create!(user: @bo)
+
+    delete teams_path(@design.id, "members", bo_row.id), headers: headers_for(@ada)
+    assert_response :forbidden
+    assert TeamMembership.exists?(bo_row.id)
+    assert TeamMembership.exists?(@design_ada.id)
+  end
+
+  test "someone with no access to the Space cannot use a team membership id" do
+    delete teams_path(@design.id, "members", @design_ada.id), headers: headers_for(@bo)
+    assert_response :not_found
+    assert TeamMembership.exists?(@design_ada.id)
+  end
+
   test "team roles decide what a team-only person can do" do
     @space.teams.create!(name: "Readers", role: :viewer).memberships.create!(user: @bo)
 

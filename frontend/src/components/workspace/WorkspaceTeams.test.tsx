@@ -1,11 +1,16 @@
 import '@testing-library/jest-dom'
 import { fireEvent, render, screen, within } from '@testing-library/react'
 import { WorkspaceTeams } from './WorkspaceTeams'
+import { useAuthStore } from '@/store/auth'
 import type { Team } from '@/data/team'
-import type { WorkspaceSummary } from '@/types'
+import type { WorkspaceMember, WorkspaceSummary } from '@/types'
 
 let mockTeams: Team[] = []
+let mockMembers: Partial<WorkspaceMember>[] = []
+let mockSpaces: WorkspaceSummary[] = []
 const mockUseTeams = jest.fn()
+const mockLeave = { mutate: jest.fn(), isPending: false }
+const mockSwitch = jest.fn()
 const mockCreate = { mutate: jest.fn(), isPending: false }
 const mockUpdate = { mutate: jest.fn() }
 const mockDelete = { mutate: jest.fn() }
@@ -14,7 +19,12 @@ const mockRemove = { mutate: jest.fn() }
 
 jest.mock('@/api/workspaces', () => ({
   canManageWorkspace: (role: string | null | undefined) => role === 'admin' || role === 'owner',
+  useWorkspaces: () => ({ data: mockSpaces }),
 }))
+jest.mock('@/api/workspaceMembers', () => ({
+  useWorkspaceMembers: () => ({ data: mockMembers }),
+}))
+jest.mock('@/hooks/useSwitchWorkspace', () => ({ useSwitchWorkspace: () => mockSwitch }))
 jest.mock('@/api/teams', () => ({
   useTeams: (...args: unknown[]) => { mockUseTeams(...args); return { data: mockTeams } },
   useCreateTeam: () => mockCreate,
@@ -22,6 +32,7 @@ jest.mock('@/api/teams', () => ({
   useDeleteTeam: () => mockDelete,
   useAddTeamMember: () => mockAdd,
   useRemoveTeamMember: () => mockRemove,
+  useLeaveTeam: () => mockLeave,
 }))
 
 const person = (id: number, name: string) => ({ id: id * 10, user_id: id, user: { id, name, email: `${name.toLowerCase()}@example.com` } })
@@ -30,6 +41,9 @@ const space = (role: WorkspaceSummary['role'], personal = false): WorkspaceSumma
 
 beforeEach(() => {
   mockTeams = [team(2, 'writers', 'viewer'), team(1, 'Design', 'member', [person(7, 'Ada'), person(8, 'Bo')])]
+  mockMembers = []
+  mockSpaces = [{ id: 9, name: 'My Space', personal: true, role: 'owner' }, space('member')]
+  useAuthStore.setState({ token: 't', user: { id: 7, name: 'Ada', email: 'ada@example.com' } })
 })
 afterEach(() => jest.clearAllMocks())
 
@@ -122,4 +136,52 @@ test('deleting a team asks first', () => {
 test('a personal Space offers no way to make teams', () => {
   render(<WorkspaceTeams workspace={space('owner', true)} open onClose={jest.fn()} />)
   expect(screen.queryByRole('button', { name: 'Create team' })).not.toBeInTheDocument()
+})
+
+test('a team the signed-in user is not on has no Leave action', () => {
+  useAuthStore.setState({ user: { id: 99, name: 'Zed', email: 'zed@example.com' } })
+  render(<WorkspaceTeams workspace={space('admin')} open onClose={jest.fn()} />)
+  expect(screen.queryByRole('button', { name: /Leave team/ })).not.toBeInTheDocument()
+})
+
+test('a member leaves a team they are on after confirming, without a Space switch when other access stays', () => {
+  mockMembers = [{ id: 1, user_id: 7, role: 'viewer' }]
+  const onClose = jest.fn()
+  render(<WorkspaceTeams workspace={space('member')} open onClose={onClose} />)
+  expect(screen.getAllByRole('button', { name: /Leave team/ })).toHaveLength(1)
+  fireEvent.click(screen.getByRole('button', { name: 'Leave team Design' }))
+  expect(mockLeave.mutate).not.toHaveBeenCalled()
+  expect(screen.getByText(/Access you have through your own membership or other teams stays/)).toBeInTheDocument()
+  fireEvent.click(screen.getByRole('button', { name: 'Leave team', hidden: false }))
+  expect(mockLeave.mutate).toHaveBeenCalledWith({ teamId: 1, membershipId: 70, endsAccess: false }, expect.anything())
+  mockLeave.mutate.mock.calls[0][1].onSuccess()
+  expect(onClose).not.toHaveBeenCalled()
+  expect(mockSwitch).not.toHaveBeenCalled()
+})
+
+test('leaving the only team into the Space warns, then closes the dialog and switches to the personal Space', () => {
+  const onClose = jest.fn()
+  render(<WorkspaceTeams workspace={space('member')} open onClose={onClose} />)
+  fireEvent.click(screen.getByRole('button', { name: 'Leave team Design' }))
+  expect(screen.getByText(/is your only way into Studio, so you will leave the Space too/)).toBeInTheDocument()
+  fireEvent.click(screen.getByRole('button', { name: 'Leave team', hidden: false }))
+  expect(mockLeave.mutate).toHaveBeenCalledWith({ teamId: 1, membershipId: 70, endsAccess: true }, expect.anything())
+  mockLeave.mutate.mock.calls[0][1].onSuccess()
+  expect(onClose).toHaveBeenCalled()
+  expect(mockSwitch).toHaveBeenCalledWith(expect.objectContaining({ id: 9, personal: true }))
+})
+
+test('a second team keeps the Space, so leaving one does not end access', () => {
+  mockTeams = [team(1, 'Design', 'member', [person(7, 'Ada')]), team(2, 'writers', 'viewer', [person(7, 'Ada')])]
+  render(<WorkspaceTeams workspace={space('member')} open onClose={jest.fn()} />)
+  fireEvent.click(screen.getByRole('button', { name: 'Leave team Design' }))
+  fireEvent.click(screen.getByRole('button', { name: 'Leave team', hidden: false }))
+  expect(mockLeave.mutate).toHaveBeenCalledWith({ teamId: 1, membershipId: 70, endsAccess: false }, expect.anything())
+})
+
+test('an admin gets Leave instead of Remove on their own row but can still remove others', () => {
+  render(<WorkspaceTeams workspace={space('admin')} open onClose={jest.fn()} />)
+  expect(screen.queryByRole('button', { name: 'Remove Ada from Design' })).not.toBeInTheDocument()
+  expect(screen.getByRole('button', { name: 'Remove Bo from Design' })).toBeInTheDocument()
+  expect(screen.getByRole('button', { name: 'Leave team Design' })).toBeInTheDocument()
 })

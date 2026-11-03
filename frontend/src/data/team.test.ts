@@ -1,4 +1,4 @@
-import { TEAM_ROLES, TEAM_ROLE_HELP, normalizeTeamName, sortTeams, teamNameTaken, teamPeopleLabel, type Team } from './team'
+import { TEAM_ROLES, TEAM_ROLE_HELP, leavingEndsAccess, normalizeTeamName, ownTeamMembership, sortTeams, teamNameTaken, teamPeopleLabel, type Team } from './team'
 
 const team = (id: number, name: string, memberCount = 0): Team => ({
   id,
@@ -39,4 +39,26 @@ test('the people count reads naturally', () => {
   expect(teamPeopleLabel(team(1, 'Design'))).toBe('No one yet')
   expect(teamPeopleLabel(team(1, 'Design', 1))).toBe('1 person')
   expect(teamPeopleLabel(team(1, 'Design', 3))).toBe('3 people')
+})
+
+test('finds the signed-in user on a team, and nothing without a user', () => {
+  const design = team(1, 'Design', 2)
+  expect(ownTeamMembership(design, 2)?.id).toBe(101)
+  expect(ownTeamMembership(design, 9)).toBeUndefined()
+  expect(ownTeamMembership(design, undefined)).toBeUndefined()
+})
+
+test('leaving the only team ends access to the Space unless the user has their own membership', () => {
+  const design = team(1, 'Design', 2)
+  const writers = team(2, 'Writers', 0)
+  expect(leavingEndsAccess([design, writers], design, 1, false)).toBe(true)
+  expect(leavingEndsAccess([design, writers], design, 1, true)).toBe(false)
+})
+
+test('leaving one of several teams keeps access through the others', () => {
+  const design = team(1, 'Design', 2)
+  const writers = team(2, 'Writers', 1)
+  expect(leavingEndsAccess([design, writers], design, 1, false)).toBe(false)
+  // Someone only on Design (user 2) still loses everything when they leave it.
+  expect(leavingEndsAccess([design, writers], design, 2, false)).toBe(true)
 })
