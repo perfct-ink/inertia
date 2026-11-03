@@ -20,6 +20,9 @@ Tasks can be rolled up from whats inside documents. Tasks are created in documen
 ### Spaces (code: workspaces)
 Users see workspaces as **Spaces**. Use "Space" in every label, message, page title and doc meant for users. Code, API paths, the `X-Workspace-Id` header and the database keep the name `workspace`. Rails model names are translated in `backend/config/locales/en.yml`. See `docs/spaces.md`.
 
+### Projects
+Inside a Space are Projects, and Projects are the Space's home page (`/space`). Each project has its own documents, files, collections, events and tasks. In code a project is a folder with `kind: project` (see `docs/features/projects.md`).
+
 ### Design principles
 
 From Alex (2026-10-22). They apply to every page, feature and backlog task; a task isn't done until it meets them.

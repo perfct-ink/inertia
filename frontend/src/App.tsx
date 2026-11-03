@@ -26,7 +26,6 @@ import ReleasesScreen from '@/view/releases/ReleasesScreen'
 import CalendarScreen from '@/view/calendar/CalendarScreen'
 import PivotScreen from '@/view/pivot/PivotScreen'
 import TaskTableScreen from '@/view/task_table/TaskTableScreen'
-import ProjectsScreen from '@/view/projects/ProjectsScreen'
 import ProjectRequestsScreen from '@/view/project_requests/ProjectRequestsScreen'
 import FolderDetailScreen from '@/view/folder_detail/FolderDetailScreen'
 import SharedScreen from '@/view/shared/SharedScreen'
@@ -249,14 +248,8 @@ export default function App() {
             </PrivateRoute>
           }
         />
-        <Route
-          path="/projects"
-          element={
-            <PrivateRoute>
-              <ProjectsScreen />
-            </PrivateRoute>
-          }
-        />
+        {/* Projects are the Space's home page. */}
+        <Route path="/projects" element={<Navigate to="/space" replace />} />
         <Route
           path="/project-requests"
           element={

@@ -13,9 +13,10 @@ import { documentsIn, projectLastModified, projectsOf } from '@/data/folder'
 import { usePageTitle } from '@/hooks/usePageTitle'
 import './ProjectsScreen.scss'
 
-// The Space's projects, each with the docs inside it (including docs in its
-// subfolders). A project is a folder with kind "project", so it also shows
-// in the sidebar tree and opens on the folder page.
+// The Space's home page (/space): its projects, each with the docs inside it
+// (including docs in its subfolders). A project is a folder with kind
+// "project", so it also shows in the sidebar tree and opens on the folder
+// page, which holds its documents, files, collections, tasks and events.
 export default function ProjectsScreen() {
   usePageTitle('Projects')
   const { data: workspace, isLoading } = useWorkspace()
@@ -67,7 +68,7 @@ export default function ProjectsScreen() {
             {!isLoading && projects.length === 0 && !adding && (
               <div className="projects-empty">
                 <FolderKanban className="projects-empty_icon" aria-hidden="true" />
-                <p>No projects yet. A project groups the docs, sheets and collections for one piece of work.</p>
+                <p>No projects yet. A project holds the documents, files, collections, tasks and events for one piece of work.</p>
               </div>
             )}
 

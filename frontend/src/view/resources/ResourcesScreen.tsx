@@ -91,7 +91,7 @@ export default function ResourcesScreen() {
 
             {canManage && !isLoading && projectChoices.length === 0 && (
               <p className="resources-hint">
-                Allocating people needs a project. Create one on the <Link to="/projects" className="resources-link">Projects page</Link> or make a folder a project from the sidebar.
+                Allocating people needs a project. Create one on the <Link to="/space" className="resources-link">Projects page</Link> or make a folder a project from the sidebar.
               </p>
             )}
 

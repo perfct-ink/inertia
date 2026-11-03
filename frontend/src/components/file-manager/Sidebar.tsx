@@ -282,8 +282,8 @@ export default function Sidebar() {
           <div className="sidebar-titlebar sidebar-drag" />
         )}
         <div className="sidebar-rail_group">
+          <RailButton icon={FolderKanban} label="Projects" active={location.pathname === '/space'} onClick={() => navigate('/space')} />
           <RailButton icon={FileText} label="All files" active={isDocumentsSection} onClick={() => navigate('/documents')} />
-          <RailButton icon={FolderKanban} label="Projects" active={location.pathname === '/projects'} onClick={() => navigate('/projects')} />
           <RailButton icon={ClipboardList} label="Project requests" active={location.pathname === '/project-requests'} onClick={() => navigate('/project-requests')} />
           <RailButton icon={UserCheck} label="My work" active={location.pathname === '/my-work'} onClick={() => navigate('/my-work')} />
           <RailButton icon={Rows3} label="Task table" active={location.pathname === '/task-table'} onClick={() => navigate('/task-table')} />
