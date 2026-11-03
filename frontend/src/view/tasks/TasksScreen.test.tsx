@@ -35,8 +35,14 @@ const mockTasks = [
   { id: 1, title: 'Write copy', status: 'todo', epic_id: null, document_id: 1, folder_id: 2 },
   { id: 2, title: 'Old idea', status: 'backlog', epic_id: null, document_id: 1, folder_id: 2 },
 ]
+let mockTasksRenders = 0
+let mockTasksQuery: { data?: typeof mockTasks, isLoading: boolean } = { data: mockTasks, isLoading: false }
 jest.mock('@/api/tasks', () => ({
-  useTasks: () => ({ data: mockTasks, isLoading: false }),
+  useTasks: () => {
+    // A render loop would spin forever in jsdom; fail fast instead.
+    if (++mockTasksRenders > 500) throw new Error('TasksScreen re-rendered in a loop')
+    return mockTasksQuery
+  },
   useCreateTask: () => mockMutation,
   useUpdateTask: () => mockMutation,
   useDeleteTask: () => mockMutation,
@@ -64,6 +70,15 @@ beforeEach(() => {
   jest.clearAllMocks()
   mockRole = 'member'
   mockSettings = []
+  mockTasksQuery = { data: mockTasks, isLoading: false }
+  mockTasksRenders = 0
+})
+
+test('re-rendering while the tasks query is still pending does not loop', () => {
+  mockTasksQuery = { data: undefined, isLoading: true }
+  const { rerender } = renderScreen('/tasks')
+  // A second render (another query settling, say) used to hand the sync effect a new empty array each time.
+  expect(() => rerender(<MemoryRouter initialEntries={['/tasks']}><TasksScreen /></MemoryRouter>)).not.toThrow()
 })
 
 test('the workboard columns and the move arrow use the Space\'s status names', () => {

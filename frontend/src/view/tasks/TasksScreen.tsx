@@ -44,6 +44,9 @@ import { StatusSettings } from '@/components/workspace/StatusSettings'
 import { BOARD_STATUSES, NEXT_STATUS, TASK_STATUSES, nextStatusLabel } from '@/data/task_status'
 import { flattenFolders } from '@/data/folder'
 
+// Stable default so the server → local sync effect doesn't re-run every render while the query has no data.
+const NO_TASKS: Task[] = []
+
 function isColumnId(id: UniqueIdentifier): id is TaskStatus {
   return BOARD_STATUSES.includes(id as TaskStatus)
 }
@@ -364,7 +367,7 @@ export default function TasksScreen() {
     ...(searchQ.trim() ? { q: searchQ.trim() } : {}),
   }
 
-  const { data: tasks = [], isLoading } = useTasks(activeFilters)
+  const { data: tasks = NO_TASKS, isLoading } = useTasks(activeFilters)
   const createTask = useCreateTask()
   const updateTask = useUpdateTask()
   const deleteTask = useDeleteTask()
