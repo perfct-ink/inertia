@@ -49,3 +49,4 @@ One file per implemented feature, written from the code (see `docs/rules/feature
 | Cards view of a folder's tasks | [cards_view.md](cards_view.md) |
 | Task priority, effort estimate and story points | [task_estimates.md](task_estimates.md) |
 | Clean URLs: real paths on the web (`/login`, `/space`), hashes only in the native apps | [clean_urls.md](clean_urls.md) |
+| Component gallery: every shared control in its states, in a light and a dark panel, at `/styleguide` in development (Volta parity audit in [../volta_parity.md](../volta_parity.md)) | [component_gallery.md](component_gallery.md) |

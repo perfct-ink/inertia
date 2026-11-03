@@ -45,6 +45,8 @@ Inertia uses [Volta](https://github.com/kriogenx0/volta), Alex's React UI librar
 
 Volta's components are not used directly because the library isn't published to a registry, ships plain JavaScript without types, injects its CSS from JavaScript (Inertia loads cached CSS files in cascade layers), and brings dependencies Inertia doesn't need (TinyMCE, Quill, moment). Changing Inertia's look means changing Volta and copying the tokens across.
 
+[volta_parity.md](volta_parity.md) has the rest: which Volta version the tokens were copied from and how they are kept in sync, what importing Volta's components would take, the React-to-Volta-to-native component inventory, and the keyboard, accessibility and narrow-layout findings for each control. In development, `/styleguide` shows every control in its states in a light and a dark panel ([features/component_gallery.md](features/component_gallery.md)); `_theme.scss` lets any element with `data-theme="light"` or `"dark"` pin a theme.
+
 ## API error handling
 
 `frontend/src/lib/api.ts` is the middleware for every API call. A failed call pushes its message to `store/notifications`, which `ToastRegion` (mounted in `App.tsx`) shows as an alert. Pass `{ silent: true }` when the caller renders the error itself (the login and signup forms do). Pass `{ failureContext: 'Couldn\'t move "Ship"' }` to name the action that failed; the notice then reads `Couldn't move "Ship": <reason>` (the Hierarchy page does this for moves). The server's word "workspace" is shown as "Space" (`util/errorMessage.ts`). A 401 clears the stored session, so the route guard sends the user to `/login`, and shows a "session expired" notice.
