@@ -6,8 +6,11 @@ import { ProjectNav } from './ProjectNav'
 
 jest.mock('./FolderItem', () => ({ FolderItem: ({ folder }: { folder: { name: string } }) => <p>Files of {folder.name}</p> }))
 jest.mock('@/components/project/ProjectIconDialog', () => function DialogMock() { return null })
+const mockNewDocument = jest.fn()
+jest.mock('@/hooks/useNewDocument', () => ({ useNewDocument: () => mockNewDocument }))
+const mockCreateFolder = jest.fn()
 jest.mock('@/api/folders', () => ({
-  useCreateFolder: () => ({ mutateAsync: jest.fn() }),
+  useCreateFolder: () => ({ mutateAsync: jest.fn(), mutate: mockCreateFolder }),
   useUpdateFolder: () => ({ mutate: jest.fn() }),
   useArchivedFolders: () => ({ data: [] }),
 }))
@@ -91,6 +94,21 @@ test('a project with no files says so', () => {
   renderAt('/folders/3')
   fireEvent.click(screen.getByRole('tab', { name: 'Files' }))
   expect(screen.getByText('No files yet.')).toBeInTheDocument()
+})
+
+test('the Files tab creates documents, sheets, Collections and folders in the project', () => {
+  useProjectStore.setState({ activeProjectId: 2 })
+  renderAt('/documents/9')
+  fireEvent.click(screen.getByRole('button', { name: 'New document' }))
+  fireEvent.click(screen.getByRole('button', { name: 'New sheet' }))
+  fireEvent.click(screen.getByRole('button', { name: 'New Collection' }))
+  expect(mockNewDocument.mock.calls).toEqual([['document', 2], ['spreadsheet', 2], ['table', 2]])
+
+  fireEvent.click(screen.getByRole('button', { name: 'New folder' }))
+  const name = screen.getByRole('textbox', { name: 'Folder name' })
+  fireEvent.change(name, { target: { value: 'Drafts' } })
+  fireEvent.keyDown(name, { key: 'Enter' })
+  expect(mockCreateFolder).toHaveBeenCalledWith({ name: 'Drafts', parent_id: 2 }, expect.anything())
 })
 
 test('opening a document inside a project opens that project on its Files tab', () => {

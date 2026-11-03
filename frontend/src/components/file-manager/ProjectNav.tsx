@@ -1,7 +1,7 @@
 import { useEffect, useState, type ComponentType } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import {
-  Archive, ArchiveRestore, CalendarDays, ChevronsUpDown, Folder as FolderIcon, FolderKanban, CalendarRange, CheckSquare, ClipboardList, Disc3, FileText, Flag, GanttChart, Goal,
+  Archive, ArchiveRestore, CalendarDays, Database, FilePlus, FolderPlus, Table as SheetIcon, ChevronsUpDown, Folder as FolderIcon, FolderKanban, CalendarRange, CheckSquare, ClipboardList, Disc3, FileText, Flag, GanttChart, Goal,
   LayoutDashboard, Lightbulb, ListTree, Map as MapIcon, Milestone, Network, Plus, Rocket, Rows3, Smile,
   Table2, Target, UserCheck, Users,
 } from 'lucide-react'
@@ -14,6 +14,8 @@ import { errorMessage } from '@/api/tables'
 import { documentsIn, folderOfDocument, projectOf, projectsOf } from '@/data/folder'
 import { useSelectProject } from '@/hooks/useSelectProject'
 import { useOpenProject } from '@/hooks/useOpenProject'
+import { useNewDocument } from '@/hooks/useNewDocument'
+import type { Document } from '@/types'
 import { useProjectStore } from '@/store/projects'
 import type { Folder } from '@/types'
 import { FolderItem } from './FolderItem'
@@ -71,6 +73,8 @@ export function ProjectNav() {
   const [showArchived, setShowArchived] = useState(false)
   const { data: archivedFolders = [] } = useArchivedFolders()
   const updateFolder = useUpdateFolder()
+  const newDocument = useNewDocument()
+  const [addingFolder, setAddingFolder] = useState(false)
   const [error, setError] = useState('')
   const [iconFor, setIconFor] = useState<Folder | null>(null)
   const folders = workspace?.folders ?? []
@@ -111,6 +115,22 @@ export function ProjectNav() {
   // Files or Pages: whichever holds the page you're on, until one is chosen.
   const [chosenTab, setTab] = useState<'files' | 'pages' | null>(null)
   const tab = chosenTab ?? (onPage ? 'pages' : 'files')
+
+  async function createIn(project: Folder, type: Document['doc_type']) {
+    setError('')
+    try {
+      await newDocument(type, project.id)
+    } catch (e) {
+      setError(errorMessage(e))
+    }
+  }
+
+  function addFolder(project: Folder, name: string) {
+    setAddingFolder(false)
+    if (!name) return
+    setError('')
+    createFolder.mutate({ name, parent_id: project.id }, { onError: (e) => setError(errorMessage(e)) })
+  }
 
   const iconButton = (project: Folder) => (
     <Button title="Change icon" aria-label={`Change icon for ${project.name}`} onClick={() => setIconFor(project)} className="project_nav-action">
@@ -167,6 +187,35 @@ export function ProjectNav() {
           {/* The project's documents, sheets, Collections and files, subfolders included. */}
           {tab === 'files' && (
             <div role="tabpanel" id="project_nav-panel-files" aria-labelledby="project_nav-tab-files" className="project_nav-files">
+              <div className="project_nav-file_tools">
+                <Button title="New document (⌘N)" aria-label="New document" onClick={() => createIn(openProject, 'document')} className="project_nav-tool">
+                  <FilePlus className="project_nav-icon" />
+                </Button>
+                <Button title="New sheet (⌘⇧N)" aria-label="New sheet" onClick={() => createIn(openProject, 'spreadsheet')} className="project_nav-tool">
+                  <SheetIcon className="project_nav-icon" />
+                </Button>
+                <Button title="New Collection" aria-label="New Collection" onClick={() => createIn(openProject, 'table')} className="project_nav-tool">
+                  <Database className="project_nav-icon" />
+                </Button>
+                <Button title="New folder" aria-label="New folder" onClick={() => setAddingFolder(true)} className="project_nav-tool">
+                  <FolderPlus className="project_nav-icon" />
+                </Button>
+              </div>
+              <FormError message={error} />
+              {addingFolder && (
+                <div className="project_nav-new">
+                  <Input
+                    autoFocus
+                    aria-label="Folder name"
+                    placeholder="Folder name"
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') addFolder(openProject, e.currentTarget.value.trim())
+                      if (e.key === 'Escape') setAddingFolder(false)
+                    }}
+                    onBlur={(e) => addFolder(openProject, e.currentTarget.value.trim())}
+                  />
+                </div>
+              )}
               {documentsIn(openProject).length === 0 && !openProject.children?.length
                 ? <p className="project_nav-note">No files yet.</p>
                 : <FolderItem folder={openProject} bare />}

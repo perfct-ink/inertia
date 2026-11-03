@@ -190,6 +190,13 @@
     }
   }
 
+  .project_nav-file_tools {
+    display: flex;
+    justify-content: flex-end;
+    gap: space(0.5);
+    padding: 0 space(2) space(1);
+  }
+
   .project_nav-files {
     padding-bottom: space(3);
   }
