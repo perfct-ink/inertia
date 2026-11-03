@@ -12,10 +12,10 @@ module.exports = (_env, argv) => {
     output: {
       path: path.resolve(__dirname, 'dist'),
       filename: isDev ? '[name].js' : '[name].[contenthash].js',
-      // Relative asset paths in production so the bundle also works loaded
-      // via file:// in the packaged Electron app. webpack-dev-server needs
-      // an absolute root instead, or its request routing breaks.
-      publicPath: isDev ? '/' : './',
+      // Absolute on the web so deep links like /shared/abc find their
+      // bundles. The Electron and iOS builds load dist/index.html off disk,
+      // so they set PUBLIC_PATH=./ (see package.json) for relative paths.
+      publicPath: process.env.PUBLIC_PATH || '/',
       clean: true,
     },
     resolve: {

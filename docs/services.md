@@ -69,6 +69,7 @@ See [Mac social sign-in](mac-social-sign-in.md) for provider setup steps.
 | `COLLAB_URL` | WebSocket URL of the collab server. |
 | `BYPASS_AUTH` | Skips the login screen in development. |
 | `ELECTRON_DEV_SERVER_URL` | Dev server the Electron shell loads (`npm run electron:dev`). |
+| `PUBLIC_PATH` | Where the bundle loads its assets from. Unset means `/`, which the web needs so deep links like `/shared/abc` find their scripts. `npm run electron:build-mac` and `npm run cap:sync` set `./` because those apps load `dist/index.html` off disk. |
 | `MAP_TILE_URL` | Optional. An https tile template with `{z}`, `{x}` and `{y}` for the Collection map's base map, for example `https://tiles.example.com/{z}/{x}/{y}.png`. Unset or invalid means no tiles. Public: baked into the bundle, so never put a secret in it. Read by `webpack.config.js`; the production Dockerfile and `docker-compose.coolify.yml` do not pass it through yet. |
 | `MAP_TILE_ATTRIBUTION` | Optional. The credit line the tile provider requires, shown in the corner of the map when tiles are on. |
 
