@@ -90,6 +90,15 @@ function toBoolean(value: Value): boolean {
 
 const isBlank = (value: Value): boolean => value === null || value === ''
 
+// The most characters a piece of text can have, as in a spreadsheet cell. It also stops a chain of formulas
+// that each join a text onto itself from filling the memory of whoever works it out.
+export const MAX_TEXT_LENGTH = 32767
+
+function checkedText(text: string): string {
+  if (text.length > MAX_TEXT_LENGTH) throw new FormulaError('#VALUE!', `The text is longer than ${MAX_TEXT_LENGTH} characters`)
+  return text
+}
+
 function checkedNumber(n: number): number {
   if (!Number.isFinite(n)) throw new FormulaError('#NUM!', 'The result is not a finite number')
   return cleanNumber(n)
@@ -199,7 +208,7 @@ const FUNCTIONS = new Map<string, FunctionSpec>(Object.entries<FunctionSpec>({
   },
   MIN: { min: 1, max: Infinity, run: args => extreme(args, Math.min) },
   MAX: { min: 1, max: Infinity, run: args => extreme(args, Math.max) },
-  CONCAT: { min: 1, max: Infinity, run: args => args.map(formatValue).join('') },
+  CONCAT: { min: 1, max: Infinity, run: args => checkedText(args.map(formatValue).join('')) },
   LEN: { min: 1, max: 1, run: ([value]) => formatValue(value).length },
   UPPER: { min: 1, max: 1, run: ([value]) => formatValue(value).toUpperCase() },
   LOWER: { min: 1, max: 1, run: ([value]) => formatValue(value).toLowerCase() },
@@ -427,7 +436,7 @@ function applyBinary(op: BinaryOperator, left: Value, right: Value): Value {
       return checkedNumber(toNumber(left) / divisor)
     }
     case '^': return checkedNumber(toNumber(left) ** toNumber(right))
-    case '&': return formatValue(left) + formatValue(right)
+    case '&': return checkedText(formatValue(left) + formatValue(right))
     case '=': return compareValues(left, right) === 0
     case '<>': return compareValues(left, right) !== 0
     case '<': return compareValues(left, right) < 0

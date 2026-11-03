@@ -22,10 +22,20 @@ module Formula
 
     # ----- Numbers
 
-    # Floating point noise (0.1 + 0.2) is rounded away, as spreadsheets do.
+    # Floating point noise (0.1 + 0.2) is rounded away, as spreadsheets do:
+    # Number(n.toPrecision(15)) in the browser.
     def clean_number(number)
       number = number.to_f
-      number.finite? ? Float(format("%.15g", number)) : number
+      return number unless number.finite?
+      sixteen = format("%.15e", number)
+      mantissa, exponent = sixteen.split("e")
+      if mantissa.end_with?("5") && Rational(sixteen) == Rational(number)
+        # Exactly halfway: toPrecision rounds away from zero where printf rounds to even.
+        digits = mantissa.delete("-.")[0, 15].to_i + 1
+        sign = number.negative? ? "-" : ""
+        return Float("#{sign}#{digits}e#{exponent.to_i - 14}")
+      end
+      Float(format("%.14e", number))
     end
 
     def checked_number(number)
@@ -46,7 +56,7 @@ module Formula
       number.finite? ? number.truncate.to_f : number
     end
 
-    def sign(number)
+    def signum(number)
       number.nan? ? number : (number <=> 0)
     end
 
@@ -121,6 +131,18 @@ module Formula
       value.nil? || value == ""
     end
 
+    # The most characters a piece of text can have, as in a spreadsheet cell. It also stops a chain of
+    # formulas that each join a text onto itself from filling the memory of the server.
+    MAX_TEXT_LENGTH = 32_767
+
+    def checked_text(text)
+      # A character is at most as many UTF-16 units as it has bytes, so a short string needs no counting.
+      if text.bytesize > MAX_TEXT_LENGTH && utf16_length(text) > MAX_TEXT_LENGTH
+        raise Error.new("#VALUE!", "The text is longer than #{MAX_TEXT_LENGTH} characters")
+      end
+      text
+    end
+
     # ----- Comparing
 
     # Numbers sort before text, text before booleans; text ignores case. A
@@ -139,7 +161,7 @@ module Formula
       b = right.nil? ? blank_like(left) : right
       return rank(a) - rank(b) if rank(a) != rank(b)
       if a.is_a?(Numeric)
-        sign(clean_number(a) - clean_number(b))
+        signum(clean_number(a) - clean_number(b))
       elsif a.is_a?(String)
         utf16(js_downcase(a)) <=> utf16(js_downcase(b))
       else

@@ -60,6 +60,26 @@ class FormulaResultsTest < ActiveSupport::TestCase
     assert_equal 1, calls
   end
 
+  test "text is limited to the size of a spreadsheet cell, counted in UTF-16 units" do
+    text = Field.new(1, "T", "text", nil)
+    half = "a" * 16_383
+    out = results([ text, formula(2, "Fits", 'LEN({T} & {T} & "a")'), formula(3, "Over", '{T} & {T} & "ab"'), formula(4, "Concat", 'CONCAT({T}, {T}, "ab")') ], "1" => half)
+    assert_equal({ value: 32_767 }, out["2"])
+    assert_equal({ error: "#VALUE!", message: "The text is longer than 32767 characters" }, out["3"])
+    assert_equal "#VALUE!", out["4"][:error]
+    # 16,384 characters, but 32,768 UTF-16 units.
+    assert_equal "#VALUE!", results([ text, formula(2, "Both", "{T} & {T}") ], "1" => "😀" * 8192)["2"][:error]
+    assert_equal({ value: 32_764 }, results([ text, formula(2, "Both", "LEN({T} & {T})") ], "1" => "😀" * 8191)["2"])
+  end
+
+  test "a chain of formulas that each double a text stops at the limit instead of filling memory" do
+    chain = (1..40).map { |i| formula(i + 1, "F#{i}", i == 1 ? "{T} & {T}" : "{F#{i - 1}} & {F#{i - 1}}") }
+    out = results([ Field.new(1, "T", "text", nil) ] + chain, "1" => "ab")
+    assert_equal 16_384, out["14"][:value].length
+    assert_equal "#VALUE!", out["15"][:error]
+    assert_equal "#VALUE!", out["41"][:error]
+  end
+
   test "a formula that fails in an unexpected way gives an error for that field only" do
     broken = Field.new(1, "Broken", "formula", nil)
     broken.define_singleton_method(:formula) { raise "boom" }

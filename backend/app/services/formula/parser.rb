@@ -147,20 +147,21 @@ module Formula
       token.kind == :end ? parse_error("The formula ends too early", token.pos) : parse_error("Unexpected \"#{token.text}\"", token.pos)
     end
 
-    def binary_level(operators, deeper)
-      left = send(deeper)
+    # One precedence level: operands from the next level in (the block), joined by any of operators, left to right.
+    def binary_level(operators)
+      left = yield
       while op?(*operators)
         op = advance.text
-        left = Binary.new(op, left, send(deeper))
+        left = Binary.new(op, left, yield)
       end
       left
     end
 
-    def comparison = binary_level(%w[= <> < <= > >=], :concat)
-    def concat = binary_level(%w[&], :additive)
-    def additive = binary_level(%w[+ -], :term)
-    def term = binary_level(%w[* /], :power)
-    def power = binary_level(%w[^], :unary)
+    def comparison = binary_level(%w[= <> < <= > >=]) { concat }
+    def concat = binary_level(%w[&]) { additive }
+    def additive = binary_level(%w[+ -]) { term }
+    def term = binary_level(%w[* /]) { power }
+    def power = binary_level(%w[^]) { unary }
 
     def unary
       return primary unless op?("-", "+")

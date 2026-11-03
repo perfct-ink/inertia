@@ -35,7 +35,7 @@ module Formula
       factor = 10.0**digits
       scaled = V.clean_number(number.abs * factor)
       rounded = scaled.finite? ? scaled.round(half: :up).to_f : scaled
-      V.sign(number) * rounded / factor
+      V.signum(number) * rounded / factor
     end
 
     # Math.floor and Math.ceil, which leave 1e999 and the like alone.
@@ -52,8 +52,9 @@ module Formula
       "ISBLANK" => Spec.new(1, 1, ->(args, _now) { V.blank_value?(args[0]) }),
       "ABS" => Spec.new(1, 1, ->(args, _now) { V.to_number(args[0]).abs }),
       "ROUND" => Spec.new(1, 2, lambda { |args, _now|
+        number = V.to_number(args[0])
         digits = args.size > 1 ? V.trunc(V.to_number(args[1])) : 0.0
-        V.checked_number(ROUND_TO.call(V.to_number(args[0]), digits))
+        V.checked_number(ROUND_TO.call(number, digits))
       }),
       "FLOOR" => Spec.new(1, 1, ->(args, _now) { WHOLE.call(V.to_number(args[0]), :floor) }),
       "CEILING" => Spec.new(1, 1, ->(args, _now) { WHOLE.call(V.to_number(args[0]), :ceil) }),
@@ -76,7 +77,7 @@ module Formula
       }),
       "MIN" => Spec.new(1, Float::INFINITY, ->(args, _now) { EXTREME.call(args, :min) }),
       "MAX" => Spec.new(1, Float::INFINITY, ->(args, _now) { EXTREME.call(args, :max) }),
-      "CONCAT" => Spec.new(1, Float::INFINITY, ->(args, _now) { args.map { |arg| V.format_value(arg) }.join }),
+      "CONCAT" => Spec.new(1, Float::INFINITY, ->(args, _now) { V.checked_text(args.map { |arg| V.format_value(arg) }.join) }),
       "LEN" => Spec.new(1, 1, ->(args, _now) { V.utf16_length(V.format_value(args[0])).to_f }),
       "UPPER" => Spec.new(1, 1, ->(args, _now) { V.format_value(args[0]).upcase }),
       "LOWER" => Spec.new(1, 1, ->(args, _now) { V.js_downcase(V.format_value(args[0])) }),

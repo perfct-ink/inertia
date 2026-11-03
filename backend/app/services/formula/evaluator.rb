@@ -48,7 +48,7 @@ module Formula
         raise Error.new("#DIV/0!", "Cannot divide by zero") if divisor.zero?
         V.checked_number(V.to_number(left) / divisor)
       when "^" then V.checked_number(power(V.to_number(left), V.to_number(right)))
-      when "&" then V.format_value(left) + V.format_value(right)
+      when "&" then V.checked_text(V.format_value(left) + V.format_value(right))
       when "=" then V.compare(left, right) == 0
       when "<>" then V.compare(left, right) != 0
       when "<" then V.compare(left, right) < 0

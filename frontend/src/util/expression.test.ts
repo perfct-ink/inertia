@@ -1,4 +1,4 @@
-import { FUNCTION_NAMES, FormulaError, evaluateExpression, formatValue, parseExpression, referencesIn, type Value } from './expression'
+import { FUNCTION_NAMES, FormulaError, MAX_TEXT_LENGTH, evaluateExpression, formatValue, parseExpression, referencesIn, type Value } from './expression'
 
 const NOW = new Date('2026-11-01T15:30:00Z')
 
@@ -217,4 +217,16 @@ test('formatValue shows blanks, booleans and numbers as cells do', () => {
   expect(formatValue(false)).toBe('FALSE')
   expect(formatValue(0.1 + 0.2)).toBe('0.3')
   expect(formatValue('x')).toBe('x')
+})
+
+test('text is limited to the size of a spreadsheet cell, counted in UTF-16 units', () => {
+  const half = 'a'.repeat(16383)
+  expect(MAX_TEXT_LENGTH).toBe(32767)
+  expect(run('LEN({T} & {T} & "a")', { T: half })).toBe(32767)
+  expect(errorOf('{T} & {T} & "ab"', { T: half }).code).toBe('#VALUE!')
+  expect(errorOf('{T} & {T} & "ab"', { T: half }).message).toBe('The text is longer than 32767 characters')
+  expect(errorOf('CONCAT({T}, {T}, "ab")', { T: half }).code).toBe('#VALUE!')
+  // 16,384 characters, but 32,768 UTF-16 units.
+  expect(errorOf('{T} & {T}', { T: '😀'.repeat(8192) }).code).toBe('#VALUE!')
+  expect(run('LEN({T} & {T})', { T: '😀'.repeat(8191) })).toBe(32764)
 })
