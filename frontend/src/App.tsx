@@ -1,3 +1,4 @@
+import { Suspense, lazy } from 'react'
 import { Routes, Route, Navigate, useParams } from 'react-router-dom'
 import { useAuthStore } from '@/store/auth'
 import { ToastRegion } from '@/components/ui'
@@ -31,6 +32,13 @@ import FolderDetailScreen from '@/view/folder_detail/FolderDetailScreen'
 import SharedScreen from '@/view/shared/SharedScreen'
 import AppearanceEffect from '@/components/AppearanceEffect'
 import OnboardingSync from '@/components/onboarding/OnboardingSync'
+
+// The component gallery (docs/volta_parity.md) is a development tool. The
+// condition is a build-time constant, so a production build leaves out the
+// route and the gallery's chunk.
+const StyleguideScreen = process.env.NODE_ENV !== 'production'
+  ? lazy(() => import('@/view/styleguide/StyleguideScreen'))
+  : null
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
   const token = useAuthStore((s) => s.token)
@@ -266,6 +274,9 @@ export default function App() {
             </PrivateRoute>
           }
         />
+        {StyleguideScreen && (
+          <Route path="/styleguide" element={<Suspense fallback={null}><StyleguideScreen /></Suspense>} />
+        )}
         <Route path="*" element={<Navigate to="/space" replace />} />
       </Routes>
       <ToastRegion />
