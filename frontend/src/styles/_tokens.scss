@@ -263,7 +263,8 @@ $select-chevron-room: space(6);
     background-color: transparent;
   }
 
-  &:focus {
+  &:focus,
+  &.ui-select:focus-within {
     border-color: color(primary);
   }
 

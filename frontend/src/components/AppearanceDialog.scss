@@ -10,22 +10,85 @@
       @include text('sm');
     }
 
-    &-accents {
-      display: flex;
-      flex-wrap: wrap;
-      gap: space(2);
+    &-heading {
       margin-top: space(4);
+      @include text('sm');
     }
 
-    &-swatch {
-      width: space(7);
-      height: space(7);
-      border: 2px solid transparent;
-      border-radius: radius('full');
+    &-themes {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: space(2);
+      margin-top: space(1);
+    }
 
-      &--selected {
-        border-color: color(foreground);
-        box-shadow: 0 0 0 2px color(background) inset;
+    // A card per theme. The selected one has an accent border of the same
+    // width as the others' plain one, so nothing moves.
+    &-theme {
+      display: flex;
+      flex-direction: column;
+      gap: space(1.5);
+      min-width: 0;
+      padding: space(1.5);
+      border: 2px solid color(border);
+      border-radius: radius('lg');
+      @include transition(border-color, background-color);
+
+      &:hover {
+        border-color: color(border-strong);
+        background: color(muted);
+      }
+
+      &:focus-visible {
+        @include focus-ring;
+      }
+
+      &--selected,
+      &--selected:hover {
+        border-color: color(primary);
+      }
+
+      &_name {
+        @include text('xs');
+        @include truncate;
+
+        text-align: left;
+      }
+    }
+
+    &-preview {
+      display: flex;
+      height: space(10);
+      overflow: hidden;
+      border: 1px solid color(border);
+      border-radius: radius('md');
+      background: color(background);
+
+      &_sidebar {
+        width: 32%;
+        background: var(--preview-sidebar);
+      }
+
+      &_page {
+        display: flex;
+        flex: 1 1 0%;
+        flex-direction: column;
+        justify-content: center;
+        gap: space(1);
+        padding: 0 space(1.5);
+      }
+
+      &_line {
+        height: space(1);
+        border-radius: radius('full');
+        background: color(border-strong);
+      }
+
+      &_accent {
+        width: 60%;
+        height: space(1.5);
+        border-radius: radius('full');
+        background: var(--preview-accent);
       }
     }
   }

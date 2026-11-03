@@ -1,4 +1,4 @@
-import { ACCENTS, accentProperties, DEFAULT_APPEARANCE, isDark, themeAttribute } from './appearance'
+import { COLOR_THEMES, accentProperties, DEFAULT_APPEARANCE, isDark, sidebarColor, sidebarProperties, themeAttribute } from './appearance'
 
 test('system follows the OS; light and dark are fixed', () => {
   expect(isDark('system', true)).toBe(true)
@@ -13,14 +13,23 @@ test('only an explicit choice sets data-theme', () => {
   expect(themeAttribute('dark')).toBe('dark')
 })
 
-test('the default accent adds no override; others set the three tokens for the scheme', () => {
-  expect(DEFAULT_APPEARANCE).toEqual({ theme: 'system', accent: 'teal' })
+test('teal themes add no accent override; others set the three tokens for the mode', () => {
+  expect(DEFAULT_APPEARANCE).toEqual({ theme: 'system', colorTheme: 'teal' })
   expect(accentProperties('teal', false)).toBeNull()
+  expect(accentProperties('midnight', true)).toBeNull()
   expect(accentProperties('blue', false)).toEqual({ '--v-accent': 'hsl(217deg 72% 32%)', '--v-accent-hover': 'hsl(217deg 72% 27%)', '--v-accent-subtle': 'hsl(217deg 30% 90%)' })
   expect(accentProperties('blue', true)?.['--v-accent']).toBe('hsl(217deg 72% 42%)')
 })
 
-test('every preset has a unique id and hue', () => {
-  expect(new Set(ACCENTS.map((a) => a.id)).size).toBe(ACCENTS.length)
-  expect(new Set(ACCENTS.map((a) => a.hue)).size).toBe(ACCENTS.length)
+test('the default theme keeps the plain sidebar; others tint it, deeper in dark mode', () => {
+  expect(sidebarColor('teal', false)).toBeNull()
+  expect(sidebarProperties('teal', true)).toBeNull()
+  expect(sidebarColor('blue', false)).toBe('hsl(217deg 50% 24%)')
+  expect(sidebarColor('blue', true)).toBe('hsl(217deg 50% 18%)')
+  expect(sidebarProperties('blue', false)).toMatchObject({ '--sidebar-background': 'hsl(217deg 50% 24%)', '--sidebar-foreground': 'hsl(217deg 20% 96%)' })
+})
+
+test('every theme has a unique id and label', () => {
+  expect(new Set(COLOR_THEMES.map((t) => t.id)).size).toBe(COLOR_THEMES.length)
+  expect(new Set(COLOR_THEMES.map((t) => t.label)).size).toBe(COLOR_THEMES.length)
 })

@@ -46,7 +46,7 @@ One file per implemented feature, written from the code (see `docs/rules/feature
 =======
 | Uploaded files: any file type as a folder item, with preview and download | [uploaded_files.md](uploaded_files.md) |
 >>>>>>> origin/backlog/upload-files-and-images-into-a-folder
-| Appearance: light/dark/system and accent colour | [appearance.md](appearance.md) |
+| Appearance: light/dark/system and Slack-style colour themes | [appearance.md](appearance.md) |
 | Document breadcrumb: Space > folders > document | [document_breadcrumb.md](document_breadcrumb.md) |
 | My work: my open tasks by due date | [my_work.md](my_work.md) |
 | Task timeline: bars without dependencies | [task_timeline.md](task_timeline.md) |

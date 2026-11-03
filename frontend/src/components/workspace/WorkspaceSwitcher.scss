@@ -5,20 +5,38 @@
     &-trigger {
       display: flex;
       align-items: center;
-      gap: space(1);
-      max-width: 100%;
+      gap: space(2);
+      width: 100%;
+      padding: space(1.5);
+      border-radius: radius('lg');
       color: color(foreground);
-      font-weight: 600;
+      text-align: left;
+      user-select: none;
       -webkit-app-region: no-drag; // sits inside the sidebar's window-drag header
-      @include text('sm');
+      @include transition(background-color);
 
       &:hover {
-        color: color(muted-foreground);
+        background: color(accent);
       }
     }
 
+    &-text {
+      display: flex;
+      flex: 1 1 0%;
+      flex-direction: column;
+      min-width: 0;
+    }
+
     &-name {
+      font-weight: 600;
+      @include text('sm');
       @include truncate;
+    }
+
+    // Secondary line under the Space name (the app name in the sidebar).
+    &-caption {
+      color: color(muted-foreground);
+      @include text('xs');
     }
 
     &-icon {

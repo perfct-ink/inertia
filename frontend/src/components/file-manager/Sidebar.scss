@@ -141,11 +141,9 @@ $shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
       background: color(muted, 0.2);
     }
 
+    // Holds only the Space switcher, whose button fills the header.
     @at-root .sidebar-header {
-      display: flex;
-      align-items: center;
-      gap: space(2);
-      padding: space(3);
+      padding: space(1.5);
 
       &--electron {
         padding-top: space(8);
@@ -156,16 +154,6 @@ $shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
       flex-shrink: 0;
       width: space(6);
       height: space(6);
-    }
-
-    @at-root .sidebar-brand {
-      min-width: 0;
-    }
-
-    // The Space name (WorkspaceSwitcher) is the prominent line; the app name is secondary.
-    @at-root .sidebar-brand_name {
-      color: color(muted-foreground);
-      @include text('xs');
     }
 
     @at-root .sidebar-workspace_name {
@@ -180,6 +168,9 @@ $shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
       flex: 1 1 0%;
       flex-direction: column;
       gap: space(3);
+
+      // Without this the flex item grows to fit its content and never scrolls.
+      min-height: 0;
       overflow-y: auto;
       padding: space(2) 0;
     }
@@ -598,5 +589,41 @@ $shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
   .ui-select.sidebar-input--compact {
     flex: 1 1 0%;
     @include fm.field(2, 1, radius('md'), background);
+  }
+
+  /* ── Tinted sidebar ───────────────────────────────────────────────────────── */
+
+  /* A colour theme that tints the sidebar (data/appearance.ts, set by
+     AppearanceEffect): the rail and panel take its deep colour, and the
+     sidebar's tokens switch to light text on it. */
+  :root[data-sidebar='tinted'] .view-sidebar {
+    --foreground: var(--sidebar-foreground);
+    --muted-foreground: var(--sidebar-muted-foreground);
+    --accent: var(--sidebar-hover);
+    --muted: var(--sidebar-hover);
+    --border: var(--sidebar-border);
+    --border-strong: var(--sidebar-hover);
+    --input: var(--sidebar-border);
+    --background: var(--sidebar-field);
+    --card: var(--sidebar-field);
+
+    color: color(foreground);
+
+    .sidebar-rail {
+      background: var(--sidebar-rail);
+    }
+
+    .sidebar-panel {
+      background: var(--sidebar-background);
+    }
+
+    /* Menus that open inside the sidebar keep the page's colours. */
+    .ui-menu-list {
+      --foreground: var(--v-color-trim);
+      --muted-foreground: var(--v-color-trim-subtle);
+      --accent: var(--v-accent-subtle);
+      --border: var(--v-color-base-subtle);
+      --background: var(--v-color-base);
+    }
   }
 }

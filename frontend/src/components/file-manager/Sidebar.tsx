@@ -328,11 +328,9 @@ export default function Sidebar() {
         <div
           className={`sidebar-header sidebar-drag${isElectron ? ' sidebar-header--electron' : ''}`}
         >
-          <img src={logoMark} alt="" className="sidebar-logo" />
-          <div className="sidebar-brand">
-            <WorkspaceSwitcher />
-            <p className="sidebar-brand_name">Inertia</p>
-          </div>
+          <WorkspaceSwitcher caption="Inertia">
+            <img src={logoMark} alt="" className="sidebar-logo" />
+          </WorkspaceSwitcher>
         </div>
 
         <div className="sidebar-body">

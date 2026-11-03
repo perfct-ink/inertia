@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, type ReactNode } from 'react'
 import { ChevronsUpDown, Plus, Users, UsersRound } from 'lucide-react'
 import { Menu, PromptDialog, type MenuItem } from '@/components/ui'
 import { useWorkspace } from '@/api/workspace'
@@ -11,8 +11,9 @@ import './WorkspaceSwitcher.scss'
 
 // The sidebar header's Space name, which opens a dropdown menu to switch
 // between Spaces (projects with their own people), create one, or manage members
-// and teams.
-export function WorkspaceSwitcher() {
+// and teams. children (a logo) lead the button and caption sits under the
+// name, so the whole block is one click target.
+export function WorkspaceSwitcher({ children, caption }: { children?: ReactNode, caption?: string }) {
   const switchWorkspace = useSwitchWorkspace()
   const { data: current } = useWorkspace()
   const { data: workspaces = [] } = useWorkspaces()
@@ -46,7 +47,11 @@ export function WorkspaceSwitcher() {
   return (
     <>
       <Menu label={`Space: ${current?.name ?? 'My Space'}. Switch Space`} triggerClassName="workspace_switcher-trigger" items={items}>
-        <span className="workspace_switcher-name">{current?.name ?? 'My Space'}</span>
+        {children}
+        <span className="workspace_switcher-text">
+          <span className="workspace_switcher-name">{current?.name ?? 'My Space'}</span>
+          {caption && <span className="workspace_switcher-caption">{caption}</span>}
+        </span>
         <ChevronsUpDown className="workspace_switcher-icon" aria-hidden="true" />
       </Menu>
 

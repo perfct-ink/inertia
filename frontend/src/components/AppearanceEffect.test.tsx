@@ -10,20 +10,25 @@ beforeEach(() => {
   window.matchMedia = ((query: string) => ({ matches: false, media: query, addEventListener: jest.fn(), removeEventListener: jest.fn() })) as unknown as typeof window.matchMedia
 })
 
-test('system leaves data-theme unset and applies no accent override', () => {
+test('system leaves data-theme unset and applies no accent override or sidebar tint', () => {
   render(<AppearanceEffect />)
   expect(document.documentElement).not.toHaveAttribute('data-theme')
+  expect(document.documentElement).not.toHaveAttribute('data-sidebar')
   expect(document.documentElement.style.getPropertyValue('--v-accent')).toBe('')
 })
 
-test('dark sets data-theme and a chosen accent sets the tokens, which reset removes', () => {
-  useAppearanceStore.setState({ theme: 'dark', accent: 'blue' })
+test('dark sets data-theme and a colour theme sets its tokens and tints the sidebar, which reset removes', () => {
+  useAppearanceStore.setState({ theme: 'dark', colorTheme: 'blue' })
   const { rerender } = render(<AppearanceEffect />)
   expect(document.documentElement).toHaveAttribute('data-theme', 'dark')
   expect(document.documentElement.style.getPropertyValue('--v-accent')).toBe('hsl(217deg 72% 42%)')
+  expect(document.documentElement).toHaveAttribute('data-sidebar', 'tinted')
+  expect(document.documentElement.style.getPropertyValue('--sidebar-background')).toBe('hsl(217deg 50% 18%)')
 
   useAppearanceStore.getState().reset()
   rerender(<AppearanceEffect />)
   expect(document.documentElement).not.toHaveAttribute('data-theme')
   expect(document.documentElement.style.getPropertyValue('--v-accent')).toBe('')
+  expect(document.documentElement).not.toHaveAttribute('data-sidebar')
+  expect(document.documentElement.style.getPropertyValue('--sidebar-background')).toBe('')
 })
