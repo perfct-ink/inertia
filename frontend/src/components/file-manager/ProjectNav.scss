@@ -66,9 +66,6 @@
     margin: 0 space(1);
     padding-right: space(1);
 
-    &--open {
-      font-weight: 600;
-    }
   }
 
   .project_nav-list {
@@ -76,22 +73,8 @@
     flex-direction: column;
   }
 
-  .project_nav-back {
-    display: flex;
-    align-items: center;
-    gap: space(1.5);
-    margin: 0 space(1) space(1);
-    padding: space(1) space(2);
-    border-radius: radius('md');
-    color: color(muted-foreground);
-    user-select: none;
-    @include text('xs');
-    @include transition(background-color, color);
-
-    &:hover {
-      background: color(accent);
-      color: color(foreground);
-    }
+  .project_nav-switcher {
+    padding: 0 space(1) space(1);
   }
 
   .project_nav-open {

@@ -4,7 +4,7 @@
 Inside a Space are projects. A project is a folder (`folders.kind: project`) that holds the documents, files, collections, tasks, events and planning records for one piece of work, including those in its subfolders.
 - **Space home** (`/space`): the Projects page. `/projects` redirects there. While a new user's getting-started steps are active, `/space` shows those instead.
 - **Projects page**: one card per active project, sorted by name, with its icon (click it to change it), file count, last update, a link to the project page, the files inside (subfolders included) and a create menu that adds items to the project. "New project" asks for a name and creates a folder with `kind: project`.
-- **Sidebar** (`file-manager/ProjectNav.tsx`): a flat list of the Space's projects, which never expands or collapses, with "New project" and "Project requests" buttons. Files outside any project are listed below it under "Other files". Selecting a project replaces the list with that project: a "Projects" back link, the project's name and icon, its pages, then its files. The pages are not indented and are grouped under headings that don't collapse:
+- **Sidebar** (`file-manager/ProjectNav.tsx`): a flat list of the Space's projects, which never expands or collapses, with "New project" and "Project requests" buttons. Files outside any project are listed below it under "Other files". Selecting a project replaces the list with that project: a dropdown like the Space switcher (the project's icon and name; it lists the projects to switch to, with New project, Change icon and All projects), its pages, then its files. The pages are not indented and are grouped under headings that don't collapse:
   - Overview, All files, My work
   - **Tasks**: Tasks, Task table, Pivot, Calendar, Events
   - **Planning**: Roadmap, Timeline, Milestones, Initiatives, Epics, Sprints, Hierarchy
@@ -32,7 +32,7 @@ Scoped to the current Space; writes need the member role, like the rest of the S
 ## Tests
 - `backend/test/controllers/project_scoping_test.rb`: lists hold only the project's records, subfolders included; tasks through a document; new records filed in the project; a promoted idea keeps its project; another Space's folder is a 404; icon and image saved, a `javascript:` address rejected.
 - `backend/test/models/folder_test.rb` ("a folder can be a project, but the document root cannot").
-- `frontend/src/components/file-manager/ProjectNav.test.tsx`: the list is flat; selecting a project shows its grouped pages and files, and the back link returns to the list; opening a document inside a project opens it.
+- `frontend/src/components/file-manager/ProjectNav.test.tsx`: the list is flat; selecting a project shows its grouped pages and files; the dropdown switches project and All projects returns to the list; opening a document inside a project opens it.
 - `frontend/src/lib/api.test.ts` (the header, and sign-out forgets the project), `frontend/src/data/project.test.ts`, `frontend/src/data/folder.test.ts`, `frontend/src/view/projects/ProjectsScreen.test.tsx`, `frontend/src/view/workspace/WorkspaceScreen.test.tsx`.
 
 ## Known limits

@@ -11,9 +11,9 @@ import './WorkspaceSwitcher.scss'
 
 // The sidebar header's Space name, which opens a dropdown menu to switch
 // between Spaces (projects with their own people), create one, or manage members
-// and teams. children (a logo) lead the button and caption sits under the
-// name, so the whole block is one click target.
-export function WorkspaceSwitcher({ children, caption }: { children?: ReactNode, caption?: string }) {
+// and teams. children (a logo) lead the button, so the whole block is one
+// click target. The open project's switcher (ProjectNav) shares its styles.
+export function WorkspaceSwitcher({ children }: { children?: ReactNode }) {
   const switchWorkspace = useSwitchWorkspace()
   const { data: current } = useWorkspace()
   const { data: workspaces = [] } = useWorkspaces()
@@ -50,7 +50,6 @@ export function WorkspaceSwitcher({ children, caption }: { children?: ReactNode,
         {children}
         <span className="workspace_switcher-text">
           <span className="workspace_switcher-name">{current?.name ?? 'My Space'}</span>
-          {caption && <span className="workspace_switcher-caption">{caption}</span>}
         </span>
         <ChevronsUpDown className="workspace_switcher-icon" aria-hidden="true" />
       </Menu>

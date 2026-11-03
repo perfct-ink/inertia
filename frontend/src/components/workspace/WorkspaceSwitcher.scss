@@ -33,12 +33,6 @@
       @include truncate;
     }
 
-    // Secondary line under the Space name (the app name in the sidebar).
-    &-caption {
-      color: color(muted-foreground);
-      @include text('xs');
-    }
-
     &-icon {
       flex-shrink: 0;
       width: space(3.5);

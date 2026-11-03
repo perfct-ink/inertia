@@ -1,11 +1,11 @@
 import { useEffect, useState, type ComponentType } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import {
-  ArrowLeft, CalendarDays, CalendarRange, CheckSquare, ClipboardList, Disc3, FileText, Flag, GanttChart, Goal,
+  CalendarDays, ChevronsUpDown, FolderKanban, CalendarRange, CheckSquare, ClipboardList, Disc3, FileText, Flag, GanttChart, Goal,
   LayoutDashboard, Lightbulb, ListTree, Map as MapIcon, Milestone, Network, Plus, Rocket, Rows3, Smile,
   Table2, Target, UserCheck, Users,
 } from 'lucide-react'
-import { Button, FormError, Input, classNames } from '@/components/ui'
+import { Button, FormError, Input, Menu, PromptDialog, classNames } from '@/components/ui'
 import ProjectIcon from '@/components/project/ProjectIcon'
 import ProjectIconDialog from '@/components/project/ProjectIconDialog'
 import { useWorkspace } from '@/api/workspace'
@@ -67,6 +67,7 @@ export function ProjectNav() {
   const activeProjectId = useProjectStore((s) => s.activeProjectId)
   const openProject = useOpenProject()
   const [adding, setAdding] = useState(false)
+  const [naming, setNaming] = useState(false)
   const [error, setError] = useState('')
   const [iconFor, setIconFor] = useState<Folder | null>(null)
   const folders = workspace?.folders ?? []
@@ -114,16 +115,31 @@ export function ProjectNav() {
     <div className="view-project_nav">
       {openProject ? (
         <>
-          <Button onClick={() => navigate('/space')} className="project_nav-back">
-            <ArrowLeft className="project_nav-icon" />
-            Projects
-          </Button>
-          <div className="project_nav-row project_nav-row--open">
-            <Link to={`/folders/${openProject.id}`} className="project_nav-open">
+          {/* Like the Space switcher: the open project opens a menu to switch
+              projects, start one, change its icon or see them all. */}
+          <div className="project_nav-switcher">
+            <Menu
+              label={`Project: ${openProject.name}. Switch project`}
+              triggerClassName="workspace_switcher-trigger"
+              items={[
+                ...projects.map((project) => ({
+                  key: `project-${project.id}`,
+                  label: project.name,
+                  icon: <ProjectIcon project={project} />,
+                  checked: project.id === openProject.id,
+                  onSelect: () => open(project),
+                })),
+                { key: 'new', label: 'New project...', icon: <Plus className="project_nav-icon" />, separatorBefore: true, onSelect: () => setNaming(true) },
+                { key: 'icon', label: 'Change icon...', icon: <Smile className="project_nav-icon" />, onSelect: () => setIconFor(openProject) },
+                { key: 'all', label: 'All projects', icon: <FolderKanban className="project_nav-icon" />, onSelect: () => navigate('/space') },
+              ]}
+            >
               <ProjectIcon project={openProject} />
-              <span className="project_nav-name">{openProject.name}</span>
-            </Link>
-            {iconButton(openProject)}
+              <span className="workspace_switcher-text">
+                <span className="workspace_switcher-name">{openProject.name}</span>
+              </span>
+              <ChevronsUpDown className="workspace_switcher-icon" aria-hidden="true" />
+            </Menu>
           </div>
           <nav aria-label={`${openProject.name} pages`} className="project_nav-links">
             <Link to={`/folders/${openProject.id}`} className={classNames('project_nav-link', location.pathname === `/folders/${openProject.id}` && 'project_nav-link--active')}>
@@ -197,6 +213,7 @@ export function ProjectNav() {
         </>
       )}
 
+      <PromptDialog open={naming} title="New project" label="Project name" placeholder="e.g. Website relaunch" submitLabel="Create" onSubmit={add} onClose={() => setNaming(false)} />
       <ProjectIconDialog
         project={iconFor && (projects.find((p) => p.id === iconFor.id) ?? null)}
         onClose={() => setIconFor(null)}

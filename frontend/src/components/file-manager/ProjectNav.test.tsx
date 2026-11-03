@@ -50,7 +50,7 @@ test('the projects list is flat: projects only, no pages or files', () => {
   expect(screen.queryByRole('button', { name: 'Messages' })).not.toHaveAttribute('aria-expanded')
 })
 
-test('selecting a project shows its pages and files in place of the list', () => {
+test('selecting a project shows its pages and files in place of the list, with a project dropdown', () => {
   renderAt('/space')
   fireEvent.click(screen.getByRole('button', { name: 'Messages' }))
   expect(useProjectStore.getState().activeProjectId).toBe(2)
@@ -62,7 +62,15 @@ test('selecting a project shows its pages and files in place of the list', () =>
   expect(screen.getByText('Files of Messages')).toBeInTheDocument()
   expect(screen.queryByRole('button', { name: 'Billing' })).not.toBeInTheDocument()
 
-  fireEvent.click(screen.getByRole('button', { name: 'Projects' }))
+  // The open project's dropdown switches projects or goes back to them all.
+  fireEvent.click(screen.getByRole('button', { name: 'Project: Messages. Switch project' }))
+  expect(screen.getByRole('menuitemradio', { name: /Messages/ })).toHaveAttribute('aria-checked', 'true')
+  fireEvent.click(screen.getByRole('menuitemradio', { name: /Billing/ }))
+  expect(useProjectStore.getState().activeProjectId).toBe(3)
+  expect(screen.getByTestId('where')).toHaveTextContent('/folders/3')
+
+  fireEvent.click(screen.getByRole('button', { name: 'Project: Billing. Switch project' }))
+  fireEvent.click(screen.getByRole('menuitem', { name: /All projects/ }))
   expect(screen.getByTestId('where')).toHaveTextContent('/space')
   expect(screen.getByRole('button', { name: 'Billing' })).toBeInTheDocument()
 })
