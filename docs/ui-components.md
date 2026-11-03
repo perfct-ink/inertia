@@ -5,7 +5,7 @@ Inertia reuses the existing React workspace layout and sidebar across its client
 | UI | Component root | Organization |
 | --- | --- | --- |
 | Native macOS | `macos/Sources/Inertia/Components/` | Shared controls at the root, workspace screens in `Screens/`, editor forms in `Editors/`. |
-| React (browser, Electron, iOS, and embedded editors) | `frontend/src/components/` | Shared controls in `ui/`, shared authentication layout in `auth/`, embedded editors in `editors/`, file navigation in `file-manager/`. Page-level views live in `frontend/src/view/<name>/` (outside `components/`), each with its `.tsx` and `.scss` together. |
+| React (browser, Electron, iOS, and embedded editors) | `frontend/src/components/` | Shared controls in `ui/`, shared authentication layout in `auth/`, embedded editors in `editors/` (including `ReadOnlyDocument`, the read-only document that share links show), share links in `share/`, file navigation in `file-manager/`. Page-level views live in `frontend/src/view/<name>/` (outside `components/`), each with its `.tsx` and `.scss` together. |
 
 `InertiaApp.swift` handles native scenes and lifecycle. `App.tsx` and `main.tsx` compose React routing and application providers. Rendering components belong in their platform's component tree. Editor extensions keep document schema and commands in `frontend/src/extensions/`, while their React node views live in `components/editors/`.
 

@@ -440,7 +440,8 @@ export default function Sidebar() {
       {/* Move or copy to another Space — opened from the tree's menus */}
       <TransferHost />
       {/* Share links — opened from the tree's menus, the document toolbar and a folder's page */}
-      <ShareHost />      <AppearanceDialog open={appearanceOpen} onClose={() => setAppearanceOpen(false)} />
+      <ShareHost />
+      <AppearanceDialog open={appearanceOpen} onClose={() => setAppearanceOpen(false)} />
 
       {/* Keyboard shortcuts modal */}
       {shortcutsOpen && (

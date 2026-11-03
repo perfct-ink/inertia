@@ -49,3 +49,4 @@ One file per implemented feature, written from the code (see `docs/rules/feature
 | Cards view of a folder's tasks | [cards_view.md](cards_view.md) |
 | Task priority, effort estimate and story points | [task_estimates.md](task_estimates.md) |
 | Clean URLs: real paths on the web (`/login`, `/space`), hashes only in the native apps | [clean_urls.md](clean_urls.md) |
+| Share links: view-only links for a document or folder, expiry, turn off; the read-only `/shared/:token` page | [shared_links.md](shared_links.md) |

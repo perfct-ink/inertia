@@ -21,6 +21,7 @@ The Docker frontend starts through `frontend/scripts/start-dev.sh`. It compares 
 | PostgreSQL 16 | Primary database for all workspace data. | Dev and CI: `postgres:16-alpine` container. Production: `inertia_production` on the shared PostgreSQL in Coolify's Shared Infrastructure project, via `DATABASE_URL`. |
 | Redis 7 | Development container only. | Not used in production: `config/cable.yml` uses the in-process `async` adapter because no feature broadcasts yet. |
 | Active Storage (local disk) | Files embedded in documents: images, video, audio and any other file type, up to 100 MB each (`POST /api/v1/uploads`, see `features/embedded_files.md`). | Files live in `backend/storage` (the `storage` volume in `docker-compose.coolify.yml`). Its tables come from the `create_active_storage_tables` migration. nginx allows 105 MB request bodies on `/api/` (`frontend/nginx/default.conf`). No virus scanning or quota. |
+| Rails cache (`Rails.cache`) | Request counts for rate-limiting the public share-link endpoints (120 requests a minute per IP address, `rate_limit` in `SharesController`; see `features/shared_links.md`). | Production sets no `config.cache_store`, so Rails' default (a file store under `tmp/cache`) is used: shared by the processes on one host, lost when the container is replaced, not shared between hosts. Development uses `null_store` unless `rails dev:cache` turned caching on, and tests use `null_store`; with a null store nothing is limited. No variables to set. |
 
 ## External services
 

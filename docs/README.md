@@ -101,10 +101,12 @@ GET    /api/v1/tasks           # all tasks across workspace
 PATCH  /api/v1/tasks/:id         # moving dates obeys the task folder's dependency mode (422 when strict refuses)
 DELETE /api/v1/tasks/:id
 
-POST   /api/v1/shares
+GET    /api/v1/shares?document_id=:id   # or ?folder_id=:id; the links of one item (writers only)
+POST   /api/v1/shares                   # { document_id | folder_id, share: { permission: "view", expires_in_days } }
 GET    /api/v1/shares/:id
-DELETE /api/v1/shares/:id
-GET    /shared/:token
+DELETE /api/v1/shares/:id               # turn a link off
+GET    /api/v1/shared/:token            # public, no sign-in: read-only document, folder listing or roadmap
+GET    /api/v1/shared/:token/documents/:document_id   # public: a document inside a shared folder
 ```
 
 ## Deploy
