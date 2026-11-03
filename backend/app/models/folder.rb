@@ -28,7 +28,7 @@ class Folder < ApplicationRecord
 
   validates :name, presence: true
   validates :icon, length: { maximum: 16 }
-  validates :image_url, length: { maximum: 2048 }, format: { with: %r{\A(https?://|/)}, message: "must be a web address" }, allow_blank: true
+  validates :image_url, length: { maximum: 2048 }, format: { with: %r{\A(https?://|/)\S*\z}, message: "must be a web address" }, allow_blank: true
   before_validation :attach_to_root
   validate :validate_parent
   validate :protect_root_location

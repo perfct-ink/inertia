@@ -70,5 +70,7 @@ class ProjectScopingTest < ActionDispatch::IntegrationTest
 
     patch "/api/v1/folders/#{@project.id}", params: { folder: { image_url: "javascript:alert(1)" } }, headers: @headers, as: :json
     assert_response :unprocessable_entity
+    patch "/api/v1/folders/#{@project.id}", params: { folder: { image_url: "/ok.png\njavascript:alert(1)" } }, headers: @headers, as: :json
+    assert_response :unprocessable_entity, "the whole value must be one address"
   end
 end
