@@ -7,12 +7,17 @@ import type { TaskStatusSetting } from '@/types'
 jest.mock('@/components/WorkspaceLayout', () => function LayoutMock({ children }: { children: React.ReactNode }) { return <div>{children}</div> })
 jest.mock('@/components/CreateItem', () => function CreateItemMock() { return null })
 jest.mock('./GanttPane', () => function GanttPaneMock() { return null })
+jest.mock('@/components/project/ProjectFeaturesDialog', () => function FeaturesMock({ project }: { project: { name: string } | null }) {
+  return project ? <p>Features dialog for {project.name}</p> : null
+})
 
 const mockUpdate = { mutate: jest.fn() }
 let mockRole = 'member'
+let mockKind = 'folder'
+let mockFeatures: string[] | null = null
 const mockWorkspace = {
   get role() { return mockRole },
-  folders: [{ id: 1, name: 'Root', root: true, parent_id: null, documents: [], children: [{ id: 2, name: 'Messages', root: false, parent_id: 1, documents: [], children: [] }] }],
+  folders: [{ id: 1, name: 'Root', root: true, parent_id: null, documents: [], children: [{ id: 2, name: 'Messages', get kind() { return mockKind }, get features() { return mockFeatures }, root: false, parent_id: 1, documents: [], children: [] }] }],
 }
 const task = (id: number, title: string, status: string) => ({ id, title, status, parent_id: null, due_date: null, document_id: 1 })
 const mockContents = {
@@ -50,6 +55,8 @@ function renderScreen(view: string) {
 
 beforeEach(() => {
   mockRole = 'member'
+  mockKind = 'folder'
+  mockFeatures = null
   mockSettings = []
 })
 
@@ -94,4 +101,39 @@ test('members can open the status editor from the board; viewers and other views
   mockRole = 'member'
   renderScreen('gantt')
   expect(screen.queryByRole('button', { name: 'Statuses' })).not.toBeInTheDocument()
+})
+
+test('a project folder has a Features button for members, and a plain folder or a viewer does not', () => {
+  mockKind = 'project'
+  const { unmount } = renderScreen('overview')
+  fireEvent.click(screen.getByRole('button', { name: /Features/ }))
+  expect(screen.getByText('Features dialog for Messages')).toBeInTheDocument()
+  unmount()
+
+  mockRole = 'viewer'
+  const viewer = renderScreen('overview')
+  expect(screen.queryByRole('button', { name: /Features/ })).not.toBeInTheDocument()
+  viewer.unmount()
+
+  mockRole = 'member'
+  mockKind = 'folder'
+  renderScreen('overview')
+  expect(screen.queryByRole('button', { name: /Features/ })).not.toBeInTheDocument()
+})
+
+test('the overview shows tasks, epics and events until the project turns them off', () => {
+  mockKind = 'project'
+  const { unmount } = renderScreen('overview')
+  expect(screen.getByRole('heading', { name: 'Tasks' })).toBeInTheDocument()
+  expect(screen.getByRole('heading', { name: 'Epics' })).toBeInTheDocument()
+  expect(screen.getByRole('heading', { name: 'Upcoming Events' })).toBeInTheDocument()
+  unmount()
+
+  mockFeatures = ['epics']
+  renderScreen('overview')
+  expect(screen.queryByRole('heading', { name: 'Tasks' })).not.toBeInTheDocument()
+  expect(screen.getByRole('heading', { name: 'Epics' })).toBeInTheDocument()
+  expect(screen.queryByRole('heading', { name: 'Upcoming Events' })).not.toBeInTheDocument()
+  // The documents section is the project's files and always shows.
+  expect(screen.getByRole('heading', { name: /Documents/ })).toBeInTheDocument()
 })

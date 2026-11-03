@@ -26,6 +26,9 @@ export interface Folder {
   // A project's emoji, and an uploaded image shown instead when set.
   icon?: string | null
   image_url?: string | null
+  // The pages a project shows (all of them unless it chose); null on a plain
+  // folder. See data/projectFeature.ts.
+  features?: string[] | null
   dependency_mode?: DependencyMode
   parent_id: number | null
   root?: boolean

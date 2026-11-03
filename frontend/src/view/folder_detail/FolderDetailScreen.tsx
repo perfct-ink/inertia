@@ -5,7 +5,7 @@ import { useParams, useNavigate, useSearchParams, Link } from 'react-router-dom'
 import {
   Loader2, ArrowLeft, ArrowRight, Archive, ArchiveRestore,
   LayoutList, Kanban as KanbanIcon, Calendar as CalendarIcon, GanttChart,
-  ChevronLeft, ChevronRight, FileText, Table as TableIcon, LayoutDashboard, Palette, LayoutGrid,
+  ChevronLeft, ChevronRight, FileText, Table as TableIcon, LayoutDashboard, Palette, LayoutGrid, SlidersHorizontal,
 } from 'lucide-react'
 import {
   format, parseISO, startOfMonth, endOfMonth, startOfWeek, endOfWeek,
@@ -13,6 +13,7 @@ import {
   addMonths, subMonths,
 } from 'date-fns'
 import CreateItem from '@/components/CreateItem'
+import ProjectFeaturesDialog from '@/components/project/ProjectFeaturesDialog'
 import WorkspaceLayout from '@/components/WorkspaceLayout'
 import { ProgressBar } from '@/components/Timeline'
 import { useFolderContents, useUpdateFolder } from '@/api/folders'
@@ -21,7 +22,7 @@ import { canWriteWorkspace } from '@/api/workspaces'
 import { useUpdateTask } from '@/api/tasks'
 import { useMilestones } from '@/api/milestones'
 import { useInitiatives } from '@/api/initiatives'
-import type { Document, Task, WorkspaceEvent, Epic } from '@/types'
+import type { Document, Folder, Task, WorkspaceEvent, Epic } from '@/types'
 import './FolderDetailScreen.scss'
 import { usePageTitle } from '@/hooks/usePageTitle'
 import { useBoardStatuses } from '@/hooks/useBoardStatuses'
@@ -31,6 +32,8 @@ import { BOARD_STATUSES, NEXT_STATUS, nextStatusLabel, type BoardStatuses } from
 import GanttPane from './GanttPane'
 import CardsView from './CardsView'
 import { buildTaskTree, type TaskNode } from '@/data/task'
+import { flattenFolders } from '@/data/folder'
+import { projectFeatureOn } from '@/data/projectFeature'
 
 const dotClass = (name: string) => `folder_detail-dot folder_detail-dot--${name}`
 
@@ -258,9 +261,11 @@ function ViewLink({ folderId, view, label, navigate }: { folderId: number; view:
 }
 
 function OverviewView({
-  folderId, documents, tasks, epics, events, navigate,
+  folderId, project, documents, tasks, epics, events, navigate,
 }: {
   folderId: number
+  // The project this folder is, whose turned-off features hide their sections.
+  project: Folder | undefined
   documents: { id: number; title: string; doc_type: Document['doc_type'] }[]
   tasks: Task[]
   epics: Epic[]
@@ -302,7 +307,7 @@ function OverviewView({
 
         {/* Tasks — links to both task views (Board/List) regardless of
             whether there's anything open right now. */}
-        <section>
+        {projectFeatureOn(project, 'tasks') && <section>
           <div className="folder_detail-section_header">
             <h2 className="folder_detail-heading">Tasks</h2>
             <div className="folder_detail-section_links">
@@ -317,13 +322,13 @@ function OverviewView({
               {openTasks.length} open task{openTasks.length === 1 ? '' : 's'}
             </p>
           )}
-        </section>
+        </section>}
 
         {/* High-level tasks — this app's Epics already are that: a handful
             of top-level items each rolling up several Tasks' completion
             into one progress bar. Body only shows when there are any; the
             link to Gantt stays regardless, same as Tasks/Events above. */}
-        <section>
+        {projectFeatureOn(project, 'epics') && <section>
           <div className="folder_detail-section_header">
             <h2 className="folder_detail-heading">Epics</h2>
             <ViewLink folderId={folderId} view="gantt" label="Gantt" navigate={navigate} />
@@ -346,9 +351,9 @@ function OverviewView({
               })}
             </div>
           )}
-        </section>
+        </section>}
 
-        <section>
+        {projectFeatureOn(project, 'events') && <section>
           <div className="folder_detail-section_header">
             <h2 className="folder_detail-heading">Upcoming Events</h2>
             <ViewLink folderId={folderId} view="calendar" label="Calendar" navigate={navigate} />
@@ -366,7 +371,7 @@ function OverviewView({
               ))}
             </div>
           )}
-        </section>
+        </section>}
       </div>
     </div>
   )
@@ -385,6 +390,7 @@ export default function FolderDetailScreen() {
   const { data: workspace } = useWorkspace()
   const { statuses } = useBoardStatuses(folderId)
   const [showStatuses, setShowStatuses] = useState(false)
+  const [showFeatures, setShowFeatures] = useState(false)
   const updateFolder = useUpdateFolder()
   const updateTask = useUpdateTask()
   const { data: allMilestones = [] } = useMilestones()
@@ -402,6 +408,9 @@ export default function FolderDetailScreen() {
   }
 
   const { folder, documents, tasks, events, epics } = data
+  // The project's saved features come from the Space tree, which is refreshed
+  // when they change; the folder's own payload is not.
+  const project = flattenFolders(workspace?.folders ?? []).find((f) => f.id === folderId && f.kind === 'project')
   const milestones = milestoneMarkers(allMilestones.filter((m) => m.folder_id === folderId))
 
   return (
@@ -433,6 +442,16 @@ export default function FolderDetailScreen() {
               >
                 <Palette className="folder_detail-icon--sm" />
                 Statuses
+              </Button>
+            )}
+            {project && canWriteWorkspace(workspace?.role) && (
+              <Button
+                onClick={() => setShowFeatures(true)}
+                className="folder_detail-subtle folder_detail-action"
+                title="Choose which pages this project shows"
+              >
+                <SlidersHorizontal className="folder_detail-icon--sm" />
+                Features
               </Button>
             )}
             <Button
@@ -470,7 +489,7 @@ export default function FolderDetailScreen() {
         )}
 
         {view === 'overview' && (
-          <OverviewView folderId={folderId} documents={documents} tasks={tasks} epics={epics} events={events} navigate={navigate} />
+          <OverviewView folderId={folderId} project={project} documents={documents} tasks={tasks} epics={epics} events={events} navigate={navigate} />
         )}
         {view === 'board' && (
           <BoardView
@@ -495,6 +514,7 @@ export default function FolderDetailScreen() {
             />
           </div>
         )}
+        <ProjectFeaturesDialog project={showFeatures ? project ?? null : null} onClose={() => setShowFeatures(false)} />
         <StatusSettings open={showStatuses} folderId={folderId} boardName={folder.name} onClose={() => setShowStatuses(false)} />
       </div>
     </WorkspaceLayout>

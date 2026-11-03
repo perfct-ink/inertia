@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import api from '@/lib/api'
+import type { ProjectFeature } from '@/data/projectFeature'
 import type { DependencyMode, Folder, FolderContents, FolderKind } from '@/types'
 import { ApiResource, useApiMutation } from './base'
 
@@ -12,6 +13,8 @@ export interface FolderFields {
   dependency_mode?: DependencyMode
   icon?: string | null
   image_url?: string | null
+  // The pages a project shows; the whole list sets it.
+  features?: ProjectFeature[]
 }
 
 export class FolderApi extends ApiResource<Folder, { name: string; parent_id?: number; kind?: FolderKind }, FolderFields> {

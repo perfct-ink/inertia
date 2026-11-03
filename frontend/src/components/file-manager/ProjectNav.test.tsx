@@ -1,11 +1,14 @@
 import '@testing-library/jest-dom'
-import { fireEvent, render, screen } from '@testing-library/react'
+import { fireEvent, render, screen, within } from '@testing-library/react'
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom'
 import { useProjectStore } from '@/store/projects'
 import { ProjectNav } from './ProjectNav'
 
 jest.mock('./FolderItem', () => ({ FolderItem: ({ folder }: { folder: { name: string } }) => <p>Files of {folder.name}</p> }))
 jest.mock('@/components/project/ProjectIconDialog', () => function DialogMock() { return null })
+jest.mock('@/components/project/ProjectFeaturesDialog', () => function FeaturesMock({ project }: { project: { name: string } | null }) {
+  return project ? <p>Features dialog for {project.name}</p> : null
+})
 const mockNewDocument = jest.fn()
 jest.mock('@/hooks/useNewDocument', () => ({ useNewDocument: () => mockNewDocument }))
 const mockCreateFolder = jest.fn()
@@ -19,13 +22,16 @@ const mockReset = jest.fn()
 jest.mock('@tanstack/react-query', () => ({ useQueryClient: () => ({ resetQueries: mockReset }) }))
 
 const doc = { id: 9, title: 'Brief', doc_type: 'document' }
+let mockRole = 'member'
 const mockWorkspace = {
+  get role() { return mockRole },
   folders: [{
     id: 1, name: 'Root', root: true, kind: 'folder', documents: [],
     children: [
       { id: 2, name: 'Messages', kind: 'project', icon: '🚀', documents: [doc], children: [] },
       { id: 3, name: 'Billing', kind: 'project', documents: [], children: [] },
       { id: 4, name: 'Loose', kind: 'folder', documents: [], children: [] },
+      { id: 5, name: 'Slim', kind: 'project', features: ['tasks', 'okrs'], documents: [{ id: 10, title: 'Notes', doc_type: 'document' }], children: [] },
     ],
   }],
 }
@@ -46,6 +52,7 @@ function renderAt(path: string) {
 beforeEach(() => {
   useProjectStore.setState({ activeProjectId: null })
   mockReset.mockClear()
+  mockRole = 'member'
 })
 
 test('the projects list is flat: projects only, no pages or files', () => {
@@ -125,4 +132,50 @@ test('the projects list leads to all files and to archived items, not other file
   expect(screen.getByText('Nothing archived.')).toBeInTheDocument()
   fireEvent.click(screen.getByRole('button', { name: 'All files' }))
   expect(screen.getByTestId('where')).toHaveTextContent('/documents')
+})
+
+test('a project that never chose lists every page', () => {
+  useProjectStore.setState({ activeProjectId: 2 })
+  renderAt('/folders/2')
+  const pages = screen.getByRole('navigation', { name: 'Messages pages' })
+  // Overview, All files and the eighteen pages that can be turned off.
+  expect(within(pages).getAllByRole('link')).toHaveLength(20)
+  expect(within(pages).getByRole('link', { name: 'Sprints' })).toBeInTheDocument()
+})
+
+test('a project that turned pages off lists only the others, and still lists All files and its files', () => {
+  useProjectStore.setState({ activeProjectId: 5 })
+  renderAt('/folders/5')
+  const pages = screen.getByRole('navigation', { name: 'Slim pages' })
+  expect(within(pages).getAllByRole('link').map((link) => link.textContent)).toEqual(['Overview', 'All files', 'Tasks', 'OKRs'])
+  // A group with nothing left in it loses its heading too.
+  expect(screen.getByRole('group', { name: 'Tasks' })).toBeInTheDocument()
+  expect(screen.getByRole('group', { name: 'Goals' })).toBeInTheDocument()
+  expect(screen.queryByRole('group', { name: 'Planning' })).not.toBeInTheDocument()
+  expect(screen.queryByRole('group', { name: 'Delivery' })).not.toBeInTheDocument()
+
+  fireEvent.click(screen.getByRole('tab', { name: 'Files' }))
+  expect(screen.getByText('Files of Slim')).toBeInTheDocument()
+})
+
+test('a link to a page that is turned off still opens the Pages tab', () => {
+  useProjectStore.setState({ activeProjectId: 5 })
+  renderAt('/sprints')
+  expect(screen.getByRole('tab', { name: 'Pages' })).toHaveAttribute('aria-selected', 'true')
+  expect(screen.queryByRole('link', { name: 'Sprints' })).not.toBeInTheDocument()
+})
+
+test('members open the features dialog from the project dropdown; viewers do not get it', () => {
+  useProjectStore.setState({ activeProjectId: 5 })
+  const { unmount } = renderAt('/folders/5')
+  fireEvent.click(screen.getByRole('button', { name: 'Project: Slim. Switch project' }))
+  fireEvent.click(screen.getByRole('menuitem', { name: /Features/ }))
+  expect(screen.getByText('Features dialog for Slim')).toBeInTheDocument()
+  unmount()
+
+  mockRole = 'viewer'
+  renderAt('/folders/5')
+  fireEvent.click(screen.getByRole('button', { name: 'Project: Slim. Switch project' }))
+  expect(screen.getByRole('menuitem', { name: /Change icon/ })).toBeInTheDocument()
+  expect(screen.queryByRole('menuitem', { name: /Features/ })).not.toBeInTheDocument()
 })

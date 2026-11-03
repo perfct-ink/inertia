@@ -1,0 +1,55 @@
+@use 'tokens' as *;
+
+@layer app.components {
+  // A roomy dialog would be too wide for a checklist.
+  .ui-project_features_dialog-modal {
+    max-width: 32rem;
+  }
+
+  .ui-project_features_dialog {
+    display: flex;
+    flex-direction: column;
+    gap: space(3);
+    margin-top: space(3);
+  }
+
+  .ui-project_features_dialog-group {
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
+  }
+
+  .ui-project_features_dialog-heading {
+    padding: 0;
+    color: color(muted-foreground);
+    font-weight: 600;
+    @include text('xs');
+    user-select: none;
+  }
+
+  .ui-project_features_dialog-items {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(space(36), 1fr));
+    gap: space(0.5);
+    margin-top: space(1);
+  }
+
+  // The whole row is the target, 44px tall so a thumb can hit it.
+  .ui-project_features_dialog-item {
+    display: flex;
+    align-items: center;
+    gap: space(2);
+    min-height: space(11);
+    padding: 0 space(2);
+    border-radius: radius('md');
+    cursor: pointer;
+    user-select: none;
+    @include text('sm');
+    @include transition(background-color);
+
+    &:hover {
+      background: color(accent);
+    }
+  }
+}

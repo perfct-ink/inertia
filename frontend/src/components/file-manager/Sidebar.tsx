@@ -1,4 +1,6 @@
 import { flattenFolders } from '@/data/folder'
+import { quickAddTypesOf, projectFeatureOn } from '@/data/projectFeature'
+import { useOpenProject } from '@/hooks/useOpenProject'
 import { WorkspaceSwitcher } from '@/components/workspace/WorkspaceSwitcher'
 import { TransferHost } from '@/components/workspace/TransferDialog'
 import { Button, Input, Select, DatePicker, Menu } from '@/components/ui'
@@ -62,6 +64,9 @@ export default function Sidebar() {
   const createTask = useCreateTask()
   const createEvent = useCreateEvent()
   const { data: epics = [] } = useEpics()
+  const openProject = useOpenProject()
+  // What quick add can make: the open project's turned-off features are left out.
+  const quickAddTypes = quickAddTypesOf(openProject)
   const [creationError, setCreationError] = useState('')
   const onboardingVisible = useActiveOnboarding(user?.id) !== null
   const [appearanceOpen, setAppearanceOpen] = useState(false)
@@ -113,7 +118,8 @@ export default function Sidebar() {
   }, [ quipImport?.status ])
 
   function openQuickAdd() {
-    setQuickAddType('task')
+    if (quickAddTypes.length === 0) return
+    setQuickAddType(quickAddTypes[0])
     setQuickAddTitle('')
     setQuickAddDate('')
     setQuickAddEpicId('')
@@ -321,7 +327,9 @@ export default function Sidebar() {
             label={`Account: ${user?.name ?? 'not signed in'}`}
             triggerClassName="sidebar-user"
             items={[
-              { key: 'quick-add', label: 'Quick add', hint: '⌘K', icon: <Plus className="sidebar-icon--sm" />, onSelect: openQuickAdd },
+              ...(quickAddTypes.length > 0
+                ? [{ key: 'quick-add', label: 'Quick add', hint: '⌘K', icon: <Plus className="sidebar-icon--sm" />, onSelect: openQuickAdd }]
+                : []),
               { key: 'shortcuts', label: 'Keyboard shortcuts', hint: '⌘/', icon: <Keyboard className="sidebar-icon--sm" />, onSelect: () => setShortcutsOpen(true) },
               { key: 'appearance', label: 'Appearance', icon: <Palette className="sidebar-icon--sm" />, onSelect: () => setAppearanceOpen(true), separatorBefore: true },
               { key: 'quip', label: 'Import from Quip', icon: <Download className="sidebar-icon--sm" />, onSelect: () => setQuipImportOpen(true) },
@@ -465,20 +473,24 @@ export default function Sidebar() {
         <div className="sidebar-overlay" onClick={() => setQuickAddOpen(false)}>
           <div className="sidebar-dialog" onClick={(e) => e.stopPropagation()}>
             <div className="sidebar-tabs">
-              <Button
-                onClick={() => setQuickAddType('task')}
-                className={`sidebar-tab${quickAddType === 'task' ? ' sidebar-tab--active' : ''}`}
-              >
-                <CheckSquare className="sidebar-icon--sm" />
-                Task
-              </Button>
-              <Button
-                onClick={() => setQuickAddType('event')}
-                className={`sidebar-tab${quickAddType === 'event' ? ' sidebar-tab--active' : ''}`}
-              >
-                <CalendarDays className="sidebar-icon--sm" />
-                Event
-              </Button>
+              {quickAddTypes.includes('task') && (
+                <Button
+                  onClick={() => setQuickAddType('task')}
+                  className={`sidebar-tab${quickAddType === 'task' ? ' sidebar-tab--active' : ''}`}
+                >
+                  <CheckSquare className="sidebar-icon--sm" />
+                  Task
+                </Button>
+              )}
+              {quickAddTypes.includes('event') && (
+                <Button
+                  onClick={() => setQuickAddType('event')}
+                  className={`sidebar-tab${quickAddType === 'event' ? ' sidebar-tab--active' : ''}`}
+                >
+                  <CalendarDays className="sidebar-icon--sm" />
+                  Event
+                </Button>
+              )}
             </div>
 
             <Input
@@ -502,7 +514,7 @@ export default function Sidebar() {
               />
             </label>
 
-            {quickAddType === 'task' && epics.length > 0 && (
+            {quickAddType === 'task' && epics.length > 0 && projectFeatureOn(openProject, 'epics') && (
               <label className="sidebar-inline_field">
                 Epic
                 <Select

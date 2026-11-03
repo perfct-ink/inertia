@@ -79,4 +79,51 @@ class FolderTest < ActiveSupport::TestCase
     assert_not root.valid?
     assert_includes root.errors[:kind], "cannot make the document root a feature"
   end
+
+  test "a project shows every page until it chooses, and keeps them in sidebar order" do
+    user = User.create!(name: "Ada", email: "feat-order-ada@example.com", password: "password123")
+    project = user.workspace.folders.create!(name: "Messages", kind: :project)
+    assert_nil project.features
+    assert_equal Folder::PROJECT_FEATURES, project.enabled_features
+
+    project.update!(features: %w[sprints tasks])
+    assert_equal %w[tasks sprints], project.reload.enabled_features
+
+    project.update!(features: [])
+    assert_equal [], project.reload.enabled_features
+  end
+
+  test "choosing every page stores the default, so a page added later shows" do
+    user = User.create!(name: "Ada", email: "feat-all-ada@example.com", password: "password123")
+    project = user.workspace.folders.create!(name: "Messages", kind: :project, features: %w[tasks])
+
+    project.update!(features: Folder::PROJECT_FEATURES.reverse + [ "tasks" ])
+    assert_nil project.reload.features
+    assert_equal Folder::PROJECT_FEATURES, project.enabled_features
+  end
+
+  test "features must be known pages of a project" do
+    user = User.create!(name: "Ada", email: "feat-valid-ada@example.com", password: "password123")
+    project = user.workspace.folders.create!(name: "Messages", kind: :project)
+
+    project.features = %w[tasks bogus]
+    assert_not project.valid?
+    assert_match(/can only be/, project.errors[:features].first)
+
+    project.features = "tasks"
+    assert_not project.valid?
+
+    plain = user.workspace.folders.create!(name: "Drafts")
+    plain.features = %w[tasks]
+    assert_not plain.valid?
+    assert_includes plain.errors[:features], "can only be set on a project"
+  end
+
+  test "a project that already chose its pages can still be made a folder again" do
+    user = User.create!(name: "Ada", email: "feat-back-ada@example.com", password: "password123")
+    project = user.workspace.folders.create!(name: "Messages", kind: :project, features: %w[tasks])
+
+    project.update!(kind: :folder)
+    assert_equal %w[tasks], project.reload.features
+  end
 end

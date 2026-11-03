@@ -141,6 +141,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_03_120001) do
     t.integer "dependency_mode", default: 0, null: false
     t.string "icon"
     t.string "image_url"
+    t.json "features"
     t.index ["parent_id"], name: "index_folders_on_parent_id"
     t.index ["workspace_id"], name: "index_folders_on_workspace_id"
   end

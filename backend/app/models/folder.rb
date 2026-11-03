@@ -23,6 +23,15 @@ class Folder < ApplicationRecord
   # and archiving work unchanged.
   enum :kind, { folder: 0, project: 1, feature: 2 }, scopes: false
 
+  # The pages a project can turn off (docs/features/project_features.md), in
+  # sidebar order. Overview and All files are always on. Mirrors
+  # PROJECT_FEATURES in frontend/src/data/projectFeature.ts.
+  PROJECT_FEATURES = %w[
+    my_work tasks task_table pivot calendar events
+    roadmap timeline milestones initiatives epics sprints hierarchy
+    okrs objectives_map ideas releases resources
+  ].freeze
+
   # How the folder's Gantt reacts to dependency links on reschedule (PM-14).
   enum :dependency_mode, { none: 0, strict: 1, flexible: 2 }, prefix: :dependencies, scopes: false
 
@@ -30,9 +39,16 @@ class Folder < ApplicationRecord
   validates :icon, length: { maximum: 16 }
   validates :image_url, length: { maximum: 2048 }, format: { with: %r{\A(https?://|/)\S*\z}, message: "must be a web address" }, allow_blank: true
   before_validation :attach_to_root
+  before_validation :store_all_features_as_default
   validate :validate_parent
+  validate :features_are_known
   validate :protect_root_location
   before_destroy :protect_root_deletion, prepend: true
+
+  # The pages this project shows; a project that never chose shows all of them.
+  def enabled_features
+    features.nil? ? PROJECT_FEATURES : PROJECT_FEATURES & Array(features)
+  end
 
   def root?
     persisted? && workspace.root_folder_id == id
@@ -85,6 +101,21 @@ class Folder < ApplicationRecord
       end
       visited.add(ancestor.id)
       ancestor = ancestor.parent
+    end
+  end
+
+  # Every page on is the default, so it is stored as NULL: a page added later
+  # then shows in projects that never turned anything off.
+  def store_all_features_as_default
+    self.features = nil if features.is_a?(Array) && features.uniq.sort == PROJECT_FEATURES.sort
+  end
+
+  def features_are_known
+    return if features.nil?
+    if !features.is_a?(Array) || (features - PROJECT_FEATURES).any?
+      errors.add(:features, "can only be #{PROJECT_FEATURES.join(', ')}")
+    elsif !project? && will_save_change_to_features?
+      errors.add(:features, "can only be set on a project")
     end
   end
 

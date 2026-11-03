@@ -3,15 +3,18 @@ import { Link, useLocation, useNavigate } from 'react-router-dom'
 import {
   Archive, ArchiveRestore, CalendarDays, Database, FilePlus, FolderPlus, Table as SheetIcon, ChevronsUpDown, Folder as FolderIcon, FolderKanban, CalendarRange, CheckSquare, ClipboardList, Disc3, FileText, Flag, GanttChart, Goal,
   LayoutDashboard, Lightbulb, ListTree, Map as MapIcon, Milestone, Network, Plus, Rocket, Rows3, Smile,
-  Table2, Target, UserCheck, Users,
+  Table2, Target, UserCheck, Users, SlidersHorizontal,
 } from 'lucide-react'
 import { Button, FormError, Input, Menu, PromptDialog, classNames } from '@/components/ui'
 import ProjectIcon from '@/components/project/ProjectIcon'
 import ProjectIconDialog from '@/components/project/ProjectIconDialog'
+import ProjectFeaturesDialog from '@/components/project/ProjectFeaturesDialog'
 import { useWorkspace } from '@/api/workspace'
 import { useArchivedFolders, useCreateFolder, useUpdateFolder } from '@/api/folders'
 import { errorMessage } from '@/api/tables'
 import { documentsIn, folderOfDocument, projectOf, projectsOf } from '@/data/folder'
+import { PROJECT_FEATURE_GROUPS, projectFeatureGroups, type ProjectFeature } from '@/data/projectFeature'
+import { canWriteWorkspace } from '@/data/workspace'
 import { useSelectProject } from '@/hooks/useSelectProject'
 import { useOpenProject } from '@/hooks/useOpenProject'
 import { useNewDocument } from '@/hooks/useNewDocument'
@@ -21,42 +24,33 @@ import type { Folder } from '@/types'
 import { FolderItem } from './FolderItem'
 import './ProjectNav.scss'
 
-type Section = { label: string; path: string; icon: ComponentType<{ className?: string }> }
+// All files is always on: a project's files are not a feature.
+const ALL_FILES_PATH = '/documents'
 
-// The pages under an open project, grouped by what they're for. Each lists
-// only that project's records (the API reads X-Project-Id, see backend
-// ProjectScoped). The first group has no heading.
-const SECTION_GROUPS: { heading: string | null; sections: Section[] }[] = [
-  { heading: null, sections: [
-    { label: 'All files', path: '/documents', icon: FileText },
-    { label: 'My work', path: '/my-work', icon: UserCheck },
-  ] },
-  { heading: 'Tasks', sections: [
-    { label: 'Tasks', path: '/tasks?view=backlog', icon: CheckSquare },
-    { label: 'Task table', path: '/task-table', icon: Rows3 },
-    { label: 'Pivot', path: '/pivot', icon: Table2 },
-    { label: 'Calendar', path: '/calendar', icon: CalendarRange },
-    { label: 'Events', path: '/events?view=list', icon: CalendarDays },
-  ] },
-  { heading: 'Planning', sections: [
-    { label: 'Roadmap', path: '/roadmap', icon: MapIcon },
-    { label: 'Timeline', path: '/timeline', icon: GanttChart },
-    { label: 'Milestones', path: '/milestones', icon: Milestone },
-    { label: 'Initiatives', path: '/initiatives', icon: Flag },
-    { label: 'Epics', path: '/epics', icon: Target },
-    { label: 'Sprints', path: '/sprints', icon: Rocket },
-    { label: 'Hierarchy', path: '/hierarchy', icon: ListTree },
-  ] },
-  { heading: 'Goals', sections: [
-    { label: 'OKRs', path: '/okrs', icon: Goal },
-    { label: 'Objectives map', path: '/objectives-map', icon: Network },
-    { label: 'Ideas', path: '/ideas', icon: Lightbulb },
-  ] },
-  { heading: 'Delivery', sections: [
-    { label: 'Releases', path: '/releases', icon: Disc3 },
-    { label: 'Resources', path: '/resources', icon: Users },
-  ] },
-]
+// The icon of each page under an open project. Which pages exist, their
+// groups and paths, and which a project shows are in data/projectFeature.ts;
+// each lists only that project's records (the API reads X-Project-Id, see
+// backend ProjectScoped).
+const FEATURE_ICONS: Record<ProjectFeature, ComponentType<{ className?: string }>> = {
+  my_work: UserCheck,
+  tasks: CheckSquare,
+  task_table: Rows3,
+  pivot: Table2,
+  calendar: CalendarRange,
+  events: CalendarDays,
+  roadmap: MapIcon,
+  timeline: GanttChart,
+  milestones: Milestone,
+  initiatives: Flag,
+  epics: Target,
+  sprints: Rocket,
+  hierarchy: ListTree,
+  okrs: Goal,
+  objectives_map: Network,
+  ideas: Lightbulb,
+  releases: Disc3,
+  resources: Users,
+}
 
 // The Space's projects as a flat list; selecting one switches the sidebar to
 // that project's pages and files, with a way back to the list.
@@ -77,6 +71,7 @@ export function ProjectNav() {
   const [addingFolder, setAddingFolder] = useState(false)
   const [error, setError] = useState('')
   const [iconFor, setIconFor] = useState<Folder | null>(null)
+  const [featuresFor, setFeaturesFor] = useState<Folder | null>(null)
   const folders = workspace?.folders ?? []
   const projects = projectsOf(folders)
 
@@ -111,7 +106,7 @@ export function ProjectNav() {
   }
 
   const isActive = (path: string) => location.pathname === path.split('?')[0]
-  const onPage = !!openProject && (location.pathname === `/folders/${openProject.id}` || SECTION_GROUPS.some((g) => g.sections.some((sec) => isActive(sec.path))))
+  const onPage = !!openProject && (location.pathname === `/folders/${openProject.id}` || PROJECT_FEATURE_GROUPS.some((g) => g.features.some((f) => isActive(f.path))) || isActive(ALL_FILES_PATH))
   // Files or Pages: whichever holds the page you're on, until one is chosen.
   const [chosenTab, setTab] = useState<'files' | 'pages' | null>(null)
   const tab = chosenTab ?? (onPage ? 'pages' : 'files')
@@ -158,6 +153,9 @@ export function ProjectNav() {
                 })),
                 { key: 'new', label: 'New project...', icon: <Plus className="project_nav-icon" />, separatorBefore: true, onSelect: () => setNaming(true) },
                 { key: 'icon', label: 'Change icon...', icon: <Smile className="project_nav-icon" />, onSelect: () => setIconFor(openProject) },
+                ...(canWriteWorkspace(workspace?.role)
+                  ? [{ key: 'features', label: 'Features...', icon: <SlidersHorizontal className="project_nav-icon" />, onSelect: () => setFeaturesFor(openProject) }]
+                  : []),
                 { key: 'all', label: 'All projects', icon: <FolderKanban className="project_nav-icon" />, onSelect: () => navigate('/space') },
               ]}
             >
@@ -229,15 +227,25 @@ export function ProjectNav() {
               <LayoutDashboard className="project_nav-icon" />
               Overview
             </Link>
-            {SECTION_GROUPS.map(({ heading, sections }) => (
+            {projectFeatureGroups(openProject).map(({ heading, features }) => (
               <div key={heading ?? 'main'} role="group" aria-label={heading ?? undefined} className="project_nav-group">
                 {heading && <p className="project_nav-heading" aria-hidden="true">{heading}</p>}
-                {sections.map(({ label, path, icon: Icon }) => (
-                  <Link key={label} to={path} className={classNames('project_nav-link', isActive(path) && 'project_nav-link--active')}>
-                    <Icon className="project_nav-icon" />
-                    {label}
+                {/* The first group also holds All files, which is always shown. */}
+                {!heading && (
+                  <Link to={ALL_FILES_PATH} className={classNames('project_nav-link', isActive(ALL_FILES_PATH) && 'project_nav-link--active')}>
+                    <FileText className="project_nav-icon" />
+                    All files
                   </Link>
-                ))}
+                )}
+                {features.map(({ key, label, path }) => {
+                  const Icon = FEATURE_ICONS[key]
+                  return (
+                    <Link key={key} to={path} className={classNames('project_nav-link', isActive(path) && 'project_nav-link--active')}>
+                      <Icon className="project_nav-icon" />
+                      {label}
+                    </Link>
+                  )
+                })}
               </div>
             ))}
           </nav>
@@ -323,6 +331,10 @@ export function ProjectNav() {
       <ProjectIconDialog
         project={iconFor && (projects.find((p) => p.id === iconFor.id) ?? null)}
         onClose={() => setIconFor(null)}
+      />
+      <ProjectFeaturesDialog
+        project={featuresFor && (projects.find((p) => p.id === featuresFor.id) ?? null)}
+        onClose={() => setFeaturesFor(null)}
       />
     </div>
   )
