@@ -82,6 +82,17 @@
       gap: space(2);
     }
 
+    @at-root .projects-card-icon {
+      display: flex;
+      flex-shrink: 0;
+      border-radius: radius('md');
+      @include transition(box-shadow);
+
+      &:hover {
+        box-shadow: 0 0 0 2px color(primary, 0.4);
+      }
+    }
+
     @at-root .projects-card-title {
       flex: 1 1 0%;
       min-width: 0;

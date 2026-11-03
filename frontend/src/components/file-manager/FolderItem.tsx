@@ -95,7 +95,10 @@ function InlineInput({ defaultValue, onConfirm, onCancel }: { defaultValue: stri
 // Whether a drag carries files from outside the page (not an item being moved inside it).
 const hasFiles = (transfer: DataTransfer) => Array.from(transfer.types).includes('Files')
 
-export function FolderItem({ folder, depth = 0 }: { folder: FolderType; depth?: number }) {
+// `bare` draws only the folder's contents, without its own row: the Root, and
+// a project whose row the sidebar's project list already shows.
+// `hideProjects` leaves out project subfolders, which have their own list.
+export function FolderItem({ folder, depth = 0, bare = false, hideProjects = false }: { folder: FolderType; depth?: number; bare?: boolean; hideProjects?: boolean }) {
   const navigate = useNavigate()
   const location = useLocation()
   const [open, setOpen] = useState(true)
@@ -121,7 +124,8 @@ export function FolderItem({ folder, depth = 0 }: { folder: FolderType; depth?: 
   const [dropTarget, setDropTarget] = useState(false)
 
   // The Space's Root isn't shown as a row: its contents sit at the top level.
-  const level = folder.root ? depth - 1 : depth
+  const rowless = bare || !!folder.root
+  const level = rowless ? depth - 1 : depth
   const indent = level * 12
   const isProject = folder.kind === 'project'
   const isFeature = folder.kind === 'feature'
@@ -161,7 +165,7 @@ export function FolderItem({ folder, depth = 0 }: { folder: FolderType; depth?: 
     <div className="view-folder_item">
       {actionError && <div role="alert" className="folder_item-error">{actionError}<Button className="folder_item-dismiss" onClick={() => setActionError('')}>Dismiss</Button></div>}
       {/* Folder row */}
-      {!folder.root && <div
+      {!rowless && <div
         className={`folder_item-row folder_item-row--folder${location.pathname === `/folders/${folder.id}` ? ' folder_item-row--active' : ''}${dropTarget ? ' folder_item-row--drop' : ''}`}
         style={{ paddingLeft: `${8 + indent}px`, paddingRight: '8px' }}
         onContextMenu={(e) => { e.preventDefault(); e.stopPropagation(); setFolderCtx({ x: e.clientX, y: e.clientY }) }}
@@ -210,7 +214,7 @@ export function FolderItem({ folder, depth = 0 }: { folder: FolderType; depth?: 
 
       {folderCtx && <ContextMenu x={folderCtx.x} y={folderCtx.y} items={folderMenuItems} onClose={() => setFolderCtx(null)} />}
 
-      {(open || folder.root) && (
+      {(open || rowless) && (
         <div>
           {addingFolder && (
             <div style={{ paddingLeft: `${20 + indent}px` }} className="folder_item-new_folder">
@@ -222,7 +226,7 @@ export function FolderItem({ folder, depth = 0 }: { folder: FolderType; depth?: 
             </div>
           )}
 
-          {folder.children?.map((child) => (
+          {folder.children?.filter((child) => !(hideProjects && child.kind === 'project')).map((child) => (
             <FolderItem key={child.id} folder={child} depth={level + 1} />
           ))}
 

@@ -11,13 +11,16 @@ export const THEME_CHOICES: { value: ThemeChoice; label: string }[] = [
 // A sidebar tint: a deep colour the rail and panel are drawn in, with light text.
 interface SidebarTint { hue: number; saturation: number; lightness: number }
 
+// The hue of Inertia's own accent, the blue in _theme.scss.
+const DEFAULT_HUE = 217
+
 // Colour themes. `hue` is the accent; `sidebar` tints the sidebar, or null for
 // the plain one. 'teal' is Inertia's own theme (_theme.scss), so choosing it
-// applies no override. The ids of the first seven are the earlier accent
+// applies no override; it is blue now but keeps its id so saved choices load. The ids of the first seven are the earlier accent
 // presets, so a saved accent keeps its colour.
 export const COLOR_THEMES = [
-  { id: 'teal', label: 'Inertia', hue: 174, sidebar: null },
-  { id: 'midnight', label: 'Midnight', hue: 174, sidebar: { hue: 224, saturation: 40, lightness: 15 } },
+  { id: 'teal', label: 'Inertia', hue: DEFAULT_HUE, sidebar: null },
+  { id: 'midnight', label: 'Midnight', hue: DEFAULT_HUE, sidebar: { hue: 224, saturation: 40, lightness: 15 } },
   { id: 'blue', label: 'Harbor', hue: 217, sidebar: { hue: 217, saturation: 50, lightness: 24 } },
   { id: 'purple', label: 'Plum', hue: 262, sidebar: { hue: 285, saturation: 35, lightness: 24 } },
   { id: 'pink', label: 'Rose', hue: 330, sidebar: { hue: 335, saturation: 40, lightness: 26 } },
@@ -53,10 +56,11 @@ export function accentColor(hue: number, dark: boolean): string {
 }
 
 // Volta accent tokens for a theme, using the same lightness steps as _theme.scss
-// (light: 32%/27%, dark: 42%/36%). Null for Inertia's own teal: no override.
+// (light: 32%/27%, dark: 42%/36%). Null for a theme with Inertia's own accent:
+// _theme.scss already sets it.
 export function accentProperties(id: ColorThemeId, dark: boolean): Record<string, string> | null {
   const hue = findTheme(id)?.hue
-  if (hue === undefined || hue === 174) return null
+  if (hue === undefined || hue === DEFAULT_HUE) return null
   return dark
     ? { '--v-accent': accentColor(hue, true), '--v-accent-hover': `hsl(${hue}deg 72% 36%)`, '--v-accent-subtle': `hsl(${hue}deg 15% 18%)` }
     : { '--v-accent': accentColor(hue, false), '--v-accent-hover': `hsl(${hue}deg 72% 27%)`, '--v-accent-subtle': `hsl(${hue}deg 30% 90%)` }
@@ -80,7 +84,6 @@ export function sidebarProperties(id: ColorThemeId, dark: boolean): Record<strin
   const shade = (l: number) => `hsl(${hue}deg ${saturation}% ${l}%)`
   return {
     '--sidebar-background': shade(lightness),
-    '--sidebar-rail': shade(Math.max(lightness - 5, 4)),
     '--sidebar-hover': shade(lightness + 10),
     '--sidebar-border': shade(lightness + 8),
     '--sidebar-field': shade(Math.max(lightness - 3, 4)),
@@ -91,6 +94,6 @@ export function sidebarProperties(id: ColorThemeId, dark: boolean): Record<strin
 
 export const APPEARANCE_PROPERTY_NAMES = [
   '--v-accent', '--v-accent-hover', '--v-accent-subtle',
-  '--sidebar-background', '--sidebar-rail', '--sidebar-hover', '--sidebar-border', '--sidebar-field',
+  '--sidebar-background', '--sidebar-hover', '--sidebar-border', '--sidebar-field',
   '--sidebar-foreground', '--sidebar-muted-foreground',
 ] as const

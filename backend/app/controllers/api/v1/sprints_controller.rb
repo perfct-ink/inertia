@@ -2,14 +2,15 @@ module Api
   module V1
     class SprintsController < ApplicationController
       include WorkspaceScoped
+      include ProjectScoped
       before_action :set_sprint, only: [ :update, :destroy, :start, :close ]
 
       def index
-        render json: SprintBlueprint.render(current_workspace.sprints.order(Arel.sql("start_date IS NULL"), :start_date, :title))
+        render json: SprintBlueprint.render(in_current_project(current_workspace.sprints).order(Arel.sql("start_date IS NULL"), :start_date, :title))
       end
 
       def create
-        sprint = current_workspace.sprints.build(sprint_params)
+        sprint = file_in_current_project(current_workspace.sprints.build(sprint_params))
         if sprint.save
           render json: SprintBlueprint.render(sprint), status: :created
         else
@@ -53,7 +54,7 @@ module Api
       end
 
       def sprint_params
-        params.require(:sprint).permit(:title, :goal, :start_date, :end_date, :status, :owner_id)
+        params.require(:sprint).permit(:title, :goal, :start_date, :end_date, :status, :owner_id, :folder_id)
       end
     end
   end

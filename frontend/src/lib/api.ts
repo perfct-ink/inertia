@@ -2,6 +2,7 @@ import axios from 'axios'
 import { useAuthStore } from '@/store/auth'
 import { useNotificationStore } from '@/store/notifications'
 import { useWorkspaceStore } from '@/store/workspaces'
+import { useProjectStore } from '@/store/projects'
 import { errorMessage } from '@/util/errorMessage'
 
 declare module 'axios' {
@@ -23,6 +24,8 @@ api.interceptors.request.use((config) => {
   if (token) config.headers.Authorization = `Bearer ${token}`
   const workspaceId = useWorkspaceStore.getState().activeWorkspaceId
   if (workspaceId) config.headers['X-Workspace-Id'] = String(workspaceId)
+  const projectId = useProjectStore.getState().activeProjectId
+  if (projectId) config.headers['X-Project-Id'] = String(projectId)
   return config
 })
 

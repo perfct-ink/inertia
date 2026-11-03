@@ -5,6 +5,8 @@
 class Sprint < ApplicationRecord
   include PlanningItem
 
+  include ProjectItem
+
   belongs_to :workspace
   has_many :tasks, dependent: :nullify
 

@@ -2,17 +2,18 @@ module Api
   module V1
     class MilestonesController < ApplicationController
       include WorkspaceScoped
+      include ProjectScoped
       before_action :set_milestone, only: [ :update, :destroy ]
 
       # Each milestone with its rollup: progress and health computed from
       # everything beneath it (see MilestoneRollup).
       def index
-        milestones = current_workspace.milestones.order(Arel.sql("target_date IS NULL"), :target_date, :title)
+        milestones = in_current_project(current_workspace.milestones).order(Arel.sql("target_date IS NULL"), :target_date, :title)
         render json: MilestoneBlueprint.render(milestones, rollups: MilestoneRollup.for(current_workspace))
       end
 
       def create
-        milestone = current_workspace.milestones.build(milestone_params)
+        milestone = file_in_current_project(current_workspace.milestones.build(milestone_params))
         if milestone.save
           render json: MilestoneBlueprint.render(milestone, rollups: rollups), status: :created
         else

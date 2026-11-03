@@ -15,7 +15,7 @@ One file per implemented feature, written from the code (see `docs/rules/feature
 | Roadmap: milestone lanes, Now/Next/Later board, initiative health | [roadmap.md](roadmap.md) |
 | OKRs: objectives and key results | [okrs.md](okrs.md) |
 | All files: every document, sheet and Collection in a Space | [all_files.md](all_files.md) |
-| Projects: folders marked as projects | [projects.md](projects.md) |
+| Projects: the Space home and sidebar, per-project pages, emoji or image icons | [projects.md](projects.md) |
 | Checklist lines in documents become Space tasks | [document_task_lines.md](document_task_lines.md) |
 | Switching Spaces from the sidebar | [space_switcher.md](space_switcher.md) |
 | Collections naming (tables are called Collections in the UI) | [collections.md](collections.md) |

@@ -2,6 +2,7 @@ module Api
   module V1
     class TasksController < ApplicationController
       include WorkspaceScoped
+      include ProjectScoped
       before_action :set_task, only: [ :update, :destroy ]
 
       def index
@@ -17,6 +18,11 @@ module Api
           tasks = tasks.left_joins(:document)
             .where("tasks.folder_id = :fid OR documents.folder_id = :fid", fid: params[:folder_id])
         end
+        if current_project
+          # Same two routes into the project, across its subfolders.
+          tasks = tasks.left_joins(:document)
+            .where("tasks.folder_id IN (:ids) OR documents.folder_id IN (:ids)", ids: project_folder_ids)
+        end
         tasks = tasks.title_matching(params[:q]) if params[:q]
         render json: TaskBlueprint.render(tasks, view: :with_document_and_field_values)
       end
@@ -24,6 +30,7 @@ module Api
       def create
         task = current_workspace.tasks.build(task_params)
         task.document_id = params[:document_id] if params[:document_id].present?
+        file_in_current_project(task) unless task.document_id
         if task.save
           render json: TaskBlueprint.render(task), status: :created
         else

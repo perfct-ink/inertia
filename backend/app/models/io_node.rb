@@ -5,6 +5,8 @@ class IoNode < ApplicationRecord
   PARENT_KIND = { "goal" => nil, "csf" => "goal", "nc" => "csf" }.freeze
   CHILD_KIND = { "goal" => "csf", "csf" => "nc" }.freeze
 
+  include ProjectItem
+
   belongs_to :workspace
   belongs_to :parent, class_name: "IoNode", optional: true
   belongs_to :objective, optional: true

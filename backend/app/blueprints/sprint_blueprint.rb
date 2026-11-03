@@ -1,5 +1,6 @@
 class SprintBlueprint < Blueprinter::Base
   identifier :id
+  field :folder_id
   fields :title, :goal, :status, :owner_id, :created_at, :updated_at
   field :start_date
   field :end_date

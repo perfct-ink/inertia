@@ -5,6 +5,8 @@ class Objective < ApplicationRecord
   include PlanningItem
   include PlanningHealth
 
+  include ProjectItem
+
   belongs_to :workspace
   has_many :key_results, -> { order(:position, :id) }, dependent: :destroy, inverse_of: :objective
 

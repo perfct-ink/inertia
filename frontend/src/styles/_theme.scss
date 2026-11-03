@@ -1,16 +1,16 @@
 // App-wide theme, built on the Volta design system (_volta.scss).
 @use 'volta';
 
-// Inertia theme: Volta's tokens set to Inertia's teal palette. A different
+// Inertia theme: Volta's tokens set to Inertia's blue palette. A different
 // theme only needs to override these tokens.
 :root {
-  --v-accent: hsl(174deg 72% 32%);
-  --v-accent-hover: hsl(174deg 72% 27%);
-  --v-accent-subtle: hsl(174deg 30% 90%);
+  --v-accent: hsl(217deg 72% 32%);
+  --v-accent-hover: hsl(217deg 72% 27%);
+  --v-accent-subtle: hsl(217deg 30% 90%);
   --v-color-base: hsl(0deg 0% 100%);
-  --v-color-base-subtle: hsl(174deg 20% 88%);
-  --v-color-base-less-subtle: hsl(174deg 20% 78%);
-  --v-color-base-more-subtle: hsl(174deg 20% 94%);
+  --v-color-base-subtle: hsl(217deg 20% 88%);
+  --v-color-base-less-subtle: hsl(217deg 20% 78%);
+  --v-color-base-more-subtle: hsl(217deg 20% 94%);
   --v-color-trim: hsl(210deg 20% 16%);
   --v-color-trim-subtle: hsl(200deg 10% 40%);
   --v-color-danger: hsl(0deg 72% 51%);
@@ -19,23 +19,23 @@
   color-scheme: light;
 
   // Inertia colors Volta has no token for.
-  --accent-foreground: hsl(174deg 72% 20%);
+  --accent-foreground: hsl(217deg 72% 20%);
   --card: var(--v-color-base);
 }
 
 @include volta.dark-scheme {
   color-scheme: dark;
 
-  --v-accent: hsl(174deg 72% 42%);
-  --v-accent-hover: hsl(174deg 72% 36%);
-  --v-accent-subtle: hsl(174deg 15% 18%);
+  --v-accent: hsl(217deg 72% 42%);
+  --v-accent-hover: hsl(217deg 72% 36%);
+  --v-accent-subtle: hsl(217deg 15% 18%);
   --v-color-base: hsl(222deg 32% 10%);
   --v-color-base-subtle: hsl(222deg 22% 22%);
   --v-color-base-less-subtle: hsl(222deg 18% 32%);
   --v-color-base-more-subtle: hsl(222deg 26% 15%);
   --v-color-trim: hsl(0deg 0% 95%);
   --v-color-trim-subtle: hsl(220deg 12% 68%);
-  --accent-foreground: hsl(174deg 60% 75%);
+  --accent-foreground: hsl(217deg 60% 75%);
   --card: hsl(222deg 28% 13%);
 }
 

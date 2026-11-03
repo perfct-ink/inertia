@@ -1,5 +1,6 @@
 class InitiativeBlueprint < Blueprinter::Base
   identifier :id
+  field :folder_id
   fields :title, :created_at, :updated_at
   fields :description, :status, :owner_id, :milestone_id
   field :start_date

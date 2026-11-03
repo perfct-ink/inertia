@@ -3,6 +3,7 @@ import api from './api'
 import { useAuthStore } from '@/store/auth'
 import { useNotificationStore } from '@/store/notifications'
 import { useWorkspaceStore } from '@/store/workspaces'
+import { useProjectStore } from '@/store/projects'
 
 function failWith(status: number, data: unknown = {}): AxiosAdapter {
   return (config: InternalAxiosRequestConfig) => Promise.reject({
@@ -70,4 +71,20 @@ test('signing out forgets the active workspace', () => {
   useWorkspaceStore.getState().setActive(7)
   useAuthStore.getState().logout()
   expect(useWorkspaceStore.getState().activeWorkspaceId).toBeNull()
+})
+
+test('requests name the open project, and omit it when none is open', async () => {
+  const { adapter, seen } = captureHeaders()
+  useProjectStore.getState().setActive(11)
+  await api.get('/x', { adapter })
+  expect(seen()['X-Project-Id']).toBe('11')
+  useProjectStore.getState().setActive(null)
+  await api.get('/x', { adapter })
+  expect(seen()['X-Project-Id']).toBeUndefined()
+})
+
+test('signing out forgets the open project', () => {
+  useProjectStore.getState().setActive(11)
+  useAuthStore.getState().logout()
+  expect(useProjectStore.getState().activeProjectId).toBeNull()
 })

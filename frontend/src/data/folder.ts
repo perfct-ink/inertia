@@ -18,6 +18,16 @@ export function projectsOf(folders: Folder[]): Folder[] {
     .sort((a, b) => a.name.localeCompare(b.name))
 }
 
+// The project a folder is in (the nearest project at or above it), or null.
+export function projectOf(folders: Folder[], folderId: number): Folder | null {
+  return [...folderTrail(folders, folderId)].reverse().find((f) => f.kind === 'project') ?? null
+}
+
+// The folder holding a document, or undefined when it isn't in the tree.
+export function folderOfDocument(folders: Folder[], documentId: number): Folder | undefined {
+  return flattenFolders(folders).find((f) => f.documents?.some((d) => d.id === documentId))
+}
+
 // The folders from the top of the Space down to `folderId`, without the Root,
 // or [] when the folder is not found (or is the Root itself).
 export function folderTrail(folders: Folder[], folderId: number): Folder[] {

@@ -13,12 +13,13 @@ test('only an explicit choice sets data-theme', () => {
   expect(themeAttribute('dark')).toBe('dark')
 })
 
-test('teal themes add no accent override; others set the three tokens for the mode', () => {
+test('themes with the default blue add no accent override; others set the three tokens for the mode', () => {
   expect(DEFAULT_APPEARANCE).toEqual({ theme: 'system', colorTheme: 'teal' })
   expect(accentProperties('teal', false)).toBeNull()
   expect(accentProperties('midnight', true)).toBeNull()
-  expect(accentProperties('blue', false)).toEqual({ '--v-accent': 'hsl(217deg 72% 32%)', '--v-accent-hover': 'hsl(217deg 72% 27%)', '--v-accent-subtle': 'hsl(217deg 30% 90%)' })
-  expect(accentProperties('blue', true)?.['--v-accent']).toBe('hsl(217deg 72% 42%)')
+  expect(accentProperties('blue', false)).toBeNull()
+  expect(accentProperties('purple', false)).toEqual({ '--v-accent': 'hsl(262deg 72% 32%)', '--v-accent-hover': 'hsl(262deg 72% 27%)', '--v-accent-subtle': 'hsl(262deg 30% 90%)' })
+  expect(accentProperties('purple', true)?.['--v-accent']).toBe('hsl(262deg 72% 42%)')
 })
 
 test('the default theme keeps the plain sidebar; others tint it, deeper in dark mode', () => {

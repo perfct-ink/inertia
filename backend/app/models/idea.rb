@@ -3,6 +3,8 @@
 class Idea < ApplicationRecord
   PROMOTABLE = { "epic" => Epic, "initiative" => Initiative }.freeze
 
+  include ProjectItem
+
   belongs_to :workspace
   belongs_to :submitted_by, class_name: "User", optional: true
 
@@ -16,7 +18,7 @@ class Idea < ApplicationRecord
     model = PROMOTABLE.fetch(kind) { raise ArgumentError, "can only promote to an epic or initiative" }
     raise ArgumentError, "already promoted" if status_promoted?
     transaction do
-      attrs = { workspace: workspace, title: title }
+      attrs = { workspace: workspace, folder: folder, title: title }
       attrs[:description] = description if model == Initiative
       created = model.create!(attrs)
       update!(status: :promoted, promoted_type: model.name, promoted_id: created.id)

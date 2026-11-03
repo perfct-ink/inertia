@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_11_01_140001) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_03_120001) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -139,6 +139,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_01_140001) do
     t.datetime "archived_at"
     t.integer "kind", default: 0, null: false
     t.integer "dependency_mode", default: 0, null: false
+    t.string "icon"
+    t.string "image_url"
     t.index ["parent_id"], name: "index_folders_on_parent_id"
     t.index ["workspace_id"], name: "index_folders_on_workspace_id"
   end
@@ -153,6 +155,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_01_140001) do
     t.bigint "promoted_id"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.bigint "folder_id"
+    t.index ["folder_id"], name: "index_ideas_on_folder_id"
     t.index ["submitted_by_id"], name: "index_ideas_on_submitted_by_id"
     t.index ["workspace_id"], name: "index_ideas_on_workspace_id"
   end
@@ -170,6 +174,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_01_140001) do
     t.bigint "owner_id"
     t.integer "horizon"
     t.integer "position", default: 0, null: false
+    t.bigint "folder_id"
+    t.index ["folder_id"], name: "index_initiatives_on_folder_id"
     t.index ["milestone_id"], name: "index_initiatives_on_milestone_id"
     t.index ["owner_id"], name: "index_initiatives_on_owner_id"
     t.index ["workspace_id"], name: "index_initiatives_on_workspace_id"
@@ -186,6 +192,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_01_140001) do
     t.bigint "initiative_id"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.bigint "folder_id"
+    t.index ["folder_id"], name: "index_io_nodes_on_folder_id"
     t.index ["initiative_id"], name: "index_io_nodes_on_initiative_id"
     t.index ["objective_id"], name: "index_io_nodes_on_objective_id"
     t.index ["parent_id"], name: "index_io_nodes_on_parent_id"
@@ -238,6 +246,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_01_140001) do
     t.date "target_date"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.bigint "folder_id"
+    t.index ["folder_id"], name: "index_objectives_on_folder_id"
     t.index ["owner_id"], name: "index_objectives_on_owner_id"
     t.index ["workspace_id"], name: "index_objectives_on_workspace_id"
   end
@@ -296,6 +306,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_01_140001) do
     t.date "release_date"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.bigint "folder_id"
+    t.index ["folder_id"], name: "index_releases_on_folder_id"
     t.index ["workspace_id"], name: "index_releases_on_workspace_id"
   end
 
@@ -366,6 +378,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_01_140001) do
     t.date "end_date"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.bigint "folder_id"
+    t.index ["folder_id"], name: "index_sprints_on_folder_id"
     t.index ["owner_id"], name: "index_sprints_on_owner_id"
     t.index ["workspace_id"], name: "index_sprints_on_workspace_id"
   end
@@ -559,11 +573,14 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_01_140001) do
   add_foreign_key "events", "workspaces"
   add_foreign_key "folders", "folders", column: "parent_id"
   add_foreign_key "folders", "workspaces"
+  add_foreign_key "ideas", "folders", on_delete: :nullify
   add_foreign_key "ideas", "users", column: "submitted_by_id", on_delete: :nullify
   add_foreign_key "ideas", "workspaces"
+  add_foreign_key "initiatives", "folders", on_delete: :nullify
   add_foreign_key "initiatives", "milestones"
   add_foreign_key "initiatives", "users", column: "owner_id", on_delete: :nullify
   add_foreign_key "initiatives", "workspaces"
+  add_foreign_key "io_nodes", "folders", on_delete: :nullify
   add_foreign_key "io_nodes", "initiatives", on_delete: :nullify
   add_foreign_key "io_nodes", "io_nodes", column: "parent_id"
   add_foreign_key "io_nodes", "objectives", on_delete: :nullify
@@ -573,6 +590,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_01_140001) do
   add_foreign_key "milestones", "folders"
   add_foreign_key "milestones", "users", column: "owner_id", on_delete: :nullify
   add_foreign_key "milestones", "workspaces"
+  add_foreign_key "objectives", "folders", on_delete: :nullify
   add_foreign_key "objectives", "users", column: "owner_id", on_delete: :nullify
   add_foreign_key "objectives", "workspaces"
   add_foreign_key "project_requests", "folders", column: "project_id", on_delete: :nullify
@@ -583,6 +601,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_01_140001) do
   add_foreign_key "quip_imports", "workspaces"
   add_foreign_key "release_documents", "documents"
   add_foreign_key "release_documents", "releases"
+  add_foreign_key "releases", "folders", on_delete: :nullify
   add_foreign_key "releases", "workspaces"
   add_foreign_key "resource_allocations", "folders"
   add_foreign_key "resource_allocations", "users"
@@ -590,6 +609,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_01_140001) do
   add_foreign_key "shares", "users", column: "created_by_id"
   add_foreign_key "social_identities", "users"
   add_foreign_key "social_login_attempts", "users"
+  add_foreign_key "sprints", "folders", on_delete: :nullify
   add_foreign_key "sprints", "users", column: "owner_id", on_delete: :nullify
   add_foreign_key "sprints", "workspaces"
   add_foreign_key "table_cells", "table_fields"

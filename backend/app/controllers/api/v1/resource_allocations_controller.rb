@@ -4,11 +4,12 @@ module Api
     # the space can read the plan; only admins and owners change it.
     class ResourceAllocationsController < ApplicationController
       include WorkspaceScoped
+      include ProjectScoped
       before_action :require_current_workspace_manage!, unless: :read_request?
       before_action :set_allocation, only: [ :update, :destroy ]
 
       def index
-        render json: ResourceAllocationBlueprint.render(current_workspace.resource_allocations.order(:id))
+        render json: ResourceAllocationBlueprint.render(in_current_project(current_workspace.resource_allocations).order(:id))
       end
 
       def create

@@ -2,14 +2,15 @@ module Api
   module V1
     class InitiativesController < ApplicationController
       include WorkspaceScoped
+      include ProjectScoped
       before_action :set_initiative, only: [ :update, :destroy ]
 
       def index
-        render json: InitiativeBlueprint.render(current_workspace.initiatives)
+        render json: InitiativeBlueprint.render(in_current_project(current_workspace.initiatives))
       end
 
       def create
-        initiative = current_workspace.initiatives.build(initiative_params)
+        initiative = file_in_current_project(current_workspace.initiatives.build(initiative_params))
         if initiative.save
           render json: InitiativeBlueprint.render(initiative), status: :created
         else
@@ -37,7 +38,7 @@ module Api
       end
 
       def initiative_params
-        params.require(:initiative).permit(:title, :description, :status, :owner_id, :milestone_id, :start_date, :target_date, :horizon, :position)
+        params.require(:initiative).permit(:title, :description, :status, :owner_id, :milestone_id, :start_date, :target_date, :horizon, :position, :folder_id)
       end
     end
   end

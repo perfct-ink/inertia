@@ -1,5 +1,7 @@
 # A release with a date, the documents (songs) in it, and through them its tasks.
 class Release < ApplicationRecord
+  include ProjectItem
+
   belongs_to :workspace
   has_many :release_documents, dependent: :destroy
   has_many :documents, through: :release_documents

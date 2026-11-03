@@ -2,14 +2,15 @@ module Api
   module V1
     class IdeasController < ApplicationController
       include WorkspaceScoped
+      include ProjectScoped
       before_action :set_idea, only: [ :update, :destroy, :promote ]
 
       def index
-        render json: IdeaBlueprint.render(current_workspace.ideas.includes(:submitted_by).order(created_at: :desc))
+        render json: IdeaBlueprint.render(in_current_project(current_workspace.ideas).includes(:submitted_by).order(created_at: :desc))
       end
 
       def create
-        idea = current_workspace.ideas.build(idea_params.merge(submitted_by: current_user))
+        idea = file_in_current_project(current_workspace.ideas.build(idea_params.merge(submitted_by: current_user)))
         save_and_render(idea, :created)
       end
 
@@ -49,7 +50,7 @@ module Api
 
       # Status can be set to declined or reopened by hand; promotion goes through #promote.
       def idea_params
-        permitted = params.require(:idea).permit(:title, :description, :status)
+        permitted = params.require(:idea).permit(:title, :description, :status, :folder_id)
         permitted.delete(:status) unless %w[open declined].include?(permitted[:status])
         permitted
       end

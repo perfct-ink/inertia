@@ -2,15 +2,16 @@ module Api
   module V1
     class ReleasesController < ApplicationController
       include WorkspaceScoped
+      include ProjectScoped
       before_action :set_release, only: [ :update, :destroy, :tasks, :add_document, :remove_document ]
 
       def index
-        releases = current_workspace.releases.includes(:release_documents).order(Arel.sql("release_date IS NULL"), :release_date, :title)
+        releases = in_current_project(current_workspace.releases).includes(:release_documents).order(Arel.sql("release_date IS NULL"), :release_date, :title)
         render json: ReleaseBlueprint.render(releases)
       end
 
       def create
-        release = current_workspace.releases.build(release_params)
+        release = file_in_current_project(current_workspace.releases.build(release_params))
         save_and_render(release, :created)
       end
 
@@ -62,7 +63,7 @@ module Api
       end
 
       def release_params
-        params.require(:release).permit(:title, :kind, :release_date)
+        params.require(:release).permit(:title, :kind, :release_date, :folder_id)
       end
     end
   end

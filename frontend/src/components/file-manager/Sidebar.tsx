@@ -1,10 +1,10 @@
 import { flattenFolders } from '@/data/folder'
 import { WorkspaceSwitcher } from '@/components/workspace/WorkspaceSwitcher'
 import { TransferHost } from '@/components/workspace/TransferDialog'
-import { Button, Input, Select, DatePicker } from '@/components/ui'
+import { Button, Input, Select, DatePicker, Menu } from '@/components/ui'
 import './Sidebar.scss'
 import { Database } from 'lucide-react'
-import { useState, useRef, useEffect, type ComponentType } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useSidebarStore } from '@/store/sidebar'
 import { useActiveOnboarding, useOnboardingStore } from '@/store/onboarding'
@@ -12,7 +12,7 @@ import AppearanceDialog from '@/components/AppearanceDialog'
 import {
   FolderPlus, CheckSquare, FilePlus, FileText,
   Table as TableIcon, Pin, Folder, Loader2, CalendarDays,
-  Plus, Target, Flag, FolderKanban, ClipboardList, Milestone, Rocket, ListTree, Map as MapIcon, Goal, Users, Archive, ArchiveRestore, Keyboard, Download, UserCheck, GanttChart, Lightbulb, Network, Disc3, CalendarRange, Table2, Rows3,
+  Plus, Archive, ArchiveRestore, Keyboard, Download, Palette, Sparkles, LogOut, ChevronsUpDown,
 } from 'lucide-react'
 import { useWorkspace } from '@/api/workspace'
 import { useArchivedFolders, useCreateFolder, usePinFolder, useUpdateFolder } from '@/api/folders'
@@ -26,6 +26,9 @@ import { useQueryClient } from '@tanstack/react-query'
 import { useAuthStore } from '@/store/auth'
 import { useTabsStore } from '@/store/tabs'
 import { FolderItem } from './FolderItem'
+import { ProjectNav } from './ProjectNav'
+import { useProjectStore } from '@/store/projects'
+import { useOpenProject } from '@/hooks/useOpenProject'
 import api from '@/lib/api'
 import logoMark from '@/assets/logo-mark.svg'
 import { todayISO } from '@/util/date'
@@ -49,28 +52,6 @@ const KEYBOARD_SHORTCUTS: { keys: string; label: string }[] = [
 // so it just reads as unwanted empty padding.
 const isElectron = navigator.userAgent.toLowerCase().includes('electron')
 
-// Backlog/Workboard and List/Month toggles already live on each page's own
-// header (TasksPage, EventsPage) — the rail only needs to get you to a
-// section, not duplicate its sub-views too.
-function RailButton({ icon: Icon, label, active, onClick }: {
-  icon: ComponentType<{ className?: string }>
-  label: string
-  active?: boolean
-  onClick: () => void
-}) {
-  return (
-    <Button
-      onClick={onClick}
-      title={label}
-      aria-label={label}
-      aria-current={active ? 'page' : undefined}
-      className={`sidebar-rail_button${active ? ' sidebar-rail_button--active' : ''}`}
-    >
-      <Icon className="sidebar-icon--md" />
-    </Button>
-  )
-}
-
 export default function Sidebar() {
   const navigate = useNavigate()
   const location = useLocation()
@@ -90,7 +71,6 @@ export default function Sidebar() {
   const [addingFolder, setAddingFolder] = useState(false)
   const [showArchived, setShowArchived] = useState(false)
   const { data: archivedFolders = [] } = useArchivedFolders()
-  const [accountOpen, setAccountOpen] = useState(false)
   const onboardingVisible = useActiveOnboarding(user?.id) !== null
   const [appearanceOpen, setAppearanceOpen] = useState(false)
   const [shortcutsOpen, setShortcutsOpen] = useState(false)
@@ -101,6 +81,7 @@ export default function Sidebar() {
   const startQuipImport = useStartQuipImport()
   const { data: quipImport } = useQuipImport(startedQuipImportId)
   const qc = useQueryClient()
+  const openProject = useOpenProject()
   const [quickAddOpen, setQuickAddOpen] = useState(false)
   const [quickAddType, setQuickAddType] = useState<'task' | 'event'>('task')
   const [quickAddTitle, setQuickAddTitle] = useState('')
@@ -118,8 +99,6 @@ export default function Sidebar() {
   openQuickAddRef.current = openQuickAdd
   const shortcutsOpenRef = useRef(shortcutsOpen)
   shortcutsOpenRef.current = shortcutsOpen
-  const accountOpenRef = useRef(accountOpen)
-  accountOpenRef.current = accountOpen
   const quickAddOpenRef = useRef(quickAddOpen)
   quickAddOpenRef.current = quickAddOpen
   const quipImportOpenRef = useRef(quipImportOpen)
@@ -173,7 +152,6 @@ export default function Sidebar() {
         // Not gated by metaKey — Escape closes whichever of this rail's own
         // overlays is open, matching the "Esc" row in the shortcuts list.
         if (shortcutsOpenRef.current) setShortcutsOpen(false)
-        else if (accountOpenRef.current) setAccountOpen(false)
         else if (quickAddOpenRef.current) setQuickAddOpen(false)
         else if (quipImportOpenRef.current) setQuipImportOpen(false)
         else if (drawerOpenRef.current) closeDrawer()
@@ -230,7 +208,8 @@ export default function Sidebar() {
       const folder = flattenFolders(workspace?.folders ?? []).find((f) => f.documents?.some((d) => d.id === Number(docMatch[1])))
       if (folder) return folder.id
     }
-    return undefined
+    // Otherwise new things go in the open project.
+    return useProjectStore.getState().activeProjectId ?? undefined
   }
   scopeFolderIdRef.current = scopeFolderId()
 
@@ -261,8 +240,6 @@ export default function Sidebar() {
   const pinnedFolders = allFolders.filter((f) => f.pinned)
   const hasPinned = pinnedDocs.length > 0 || pinnedFolders.length > 0
 
-  const isDocumentsSection = location.pathname === '/' || location.pathname.startsWith('/documents')
-
   return (
     <>
       {/* Mobile-only backdrop — tap outside the drawer to close it. */}
@@ -272,63 +249,15 @@ export default function Sidebar() {
       <div
         className={`view-sidebar${drawerOpen ? ' view-sidebar--open' : ''}`}
       >
-      {/* Icon rail — top-level section nav. Traffic lights float over its
-          top-left corner, so the top strip and the flexible middle spacer
-          are both drag regions (nothing interactive sits in either). */}
-      <nav
-        className="sidebar-rail"
-      >
-        {isElectron && (
-          <div className="sidebar-titlebar sidebar-drag" />
-        )}
-        <div className="sidebar-rail_group">
-          <RailButton icon={FolderKanban} label="Projects" active={location.pathname === '/space'} onClick={() => navigate('/space')} />
-          <RailButton icon={FileText} label="All files" active={isDocumentsSection} onClick={() => navigate('/documents')} />
-          <RailButton icon={ClipboardList} label="Project requests" active={location.pathname === '/project-requests'} onClick={() => navigate('/project-requests')} />
-          <RailButton icon={UserCheck} label="My work" active={location.pathname === '/my-work'} onClick={() => navigate('/my-work')} />
-          <RailButton icon={Rows3} label="Task table" active={location.pathname === '/task-table'} onClick={() => navigate('/task-table')} />
-          <RailButton icon={Table2} label="Pivot" active={location.pathname === '/pivot'} onClick={() => navigate('/pivot')} />
-          <RailButton icon={CheckSquare} label="Tasks" active={location.pathname === '/tasks'} onClick={() => navigate('/tasks?view=backlog')} />
-          <RailButton icon={CalendarRange} label="Calendar" active={location.pathname === '/calendar'} onClick={() => navigate('/calendar')} />
-          <RailButton icon={CalendarDays} label="Events" active={location.pathname === '/events'} onClick={() => navigate('/events?view=list')} />
-          <RailButton icon={Target} label="Epics" active={location.pathname === '/epics'} onClick={() => navigate('/epics')} />
-          <RailButton icon={Flag} label="Initiatives" active={location.pathname === '/initiatives'} onClick={() => navigate('/initiatives')} />
-          <RailButton icon={GanttChart} label="Timeline" active={location.pathname === '/timeline'} onClick={() => navigate('/timeline')} />
-          <RailButton icon={Milestone} label="Milestones" active={location.pathname === '/milestones'} onClick={() => navigate('/milestones')} />
-          <RailButton icon={Rocket} label="Sprints" active={location.pathname === '/sprints'} onClick={() => navigate('/sprints')} />
-          <RailButton icon={Lightbulb} label="Ideas" active={location.pathname === '/ideas'} onClick={() => navigate('/ideas')} />
-          <RailButton icon={Network} label="Objectives map" active={location.pathname === '/objectives-map'} onClick={() => navigate('/objectives-map')} />
-          <RailButton icon={Disc3} label="Releases" active={location.pathname === '/releases'} onClick={() => navigate('/releases')} />
-          <RailButton icon={Goal} label="OKRs" active={location.pathname === '/okrs'} onClick={() => navigate('/okrs')} />
-          <RailButton icon={MapIcon} label="Roadmap" active={location.pathname === '/roadmap'} onClick={() => navigate('/roadmap')} />
-          <RailButton icon={ListTree} label="Hierarchy" active={location.pathname === '/hierarchy'} onClick={() => navigate('/hierarchy')} />
-          <RailButton icon={Users} label="Resources" active={location.pathname === '/resources'} onClick={() => navigate('/resources')} />
-        </div>
-        <div className="sidebar-rail_spacer sidebar-drag" />
-        <div className="sidebar-rail_group">
-          <RailButton icon={Plus} label="Quick add (⌘K)" onClick={openQuickAdd} />
-          <RailButton icon={Keyboard} label="Keyboard shortcuts (⌘/)" onClick={() => setShortcutsOpen(true)} />
-          <Button variant="primary"
-            onClick={() => setAccountOpen(true)}
-            title={user?.name ?? 'Account'}
-            aria-label={user?.name ?? 'Account'}
-            className="sidebar-avatar_button"
-          >
-            {initials}
-          </Button>
-        </div>
-      </nav>
-
-      {/* Detail panel — Pinned + the Documents tree, the content that's
-          actually unique to it now that Tasks/Events/Epics moved to the
-          rail. */}
+      {/* The panel: the Space switcher, pinned items, the projects (the open
+          one lists its pages and files), then files outside any project. */}
       <aside
         className="sidebar-panel"
       >
         <div
           className={`sidebar-header sidebar-drag${isElectron ? ' sidebar-header--electron' : ''}`}
         >
-          <WorkspaceSwitcher caption="Inertia">
+          <WorkspaceSwitcher>
             <img src={logoMark} alt="" className="sidebar-logo" />
           </WorkspaceSwitcher>
         </div>
@@ -391,15 +320,17 @@ export default function Sidebar() {
             </div>
           )}
 
+          <ProjectNav />
+
           {creationError && <p role="alert" className="sidebar-error">{creationError}</p>}
-          {/* Documents section (unified tree) */}
-          <div>
+          {/* Files outside any project, beside the projects list */}
+          {!openProject && <div>
             <div className="sidebar-section_bar sidebar-section_bar--documents">
               <Button
                 onClick={() => navigate('/documents')}
                 className="sidebar-section_label sidebar-section_link"
               >
-                Documents
+                Other files
               </Button>
               <div className="sidebar-tools">
                 <Button
@@ -496,71 +427,45 @@ export default function Sidebar() {
                   </div>
                 )}
 
-                {!isLoading && workspace?.folders?.every((f) => f.root && !f.children?.length && !f.documents?.length) && !addingFolder && (
+                {!isLoading && workspace?.folders?.every((f) => f.root && !f.children?.some((c) => c.kind !== 'project') && !f.documents?.length) && !addingFolder && (
                   <div className="sidebar-empty">
                     <FilePlus className="sidebar-icon--lg sidebar-icon--faint" />
                   </div>
                 )}
 
                 {workspace?.folders?.map((folder) => (
-                  <FolderItem key={folder.id} folder={folder} />
+                  <FolderItem key={folder.id} folder={folder} hideProjects />
                 ))}
               </>
             )}
-          </div>
+          </div>}
+        </div>
+
+        {/* The signed-in person, with the account menu */}
+        <div className="sidebar-footer">
+          <Menu
+            above
+            label={`Account: ${user?.name ?? 'not signed in'}`}
+            triggerClassName="sidebar-user"
+            items={[
+              { key: 'quick-add', label: 'Quick add', hint: '⌘K', icon: <Plus className="sidebar-icon--sm" />, onSelect: openQuickAdd },
+              { key: 'shortcuts', label: 'Keyboard shortcuts', hint: '⌘/', icon: <Keyboard className="sidebar-icon--sm" />, onSelect: () => setShortcutsOpen(true) },
+              { key: 'appearance', label: 'Appearance', icon: <Palette className="sidebar-icon--sm" />, onSelect: () => setAppearanceOpen(true), separatorBefore: true },
+              { key: 'quip', label: 'Import from Quip', icon: <Download className="sidebar-icon--sm" />, onSelect: () => setQuipImportOpen(true) },
+              ...(user && !onboardingVisible ? [{ key: 'onboarding', label: 'Show getting started', icon: <Sparkles className="sidebar-icon--sm" />, onSelect: () => { useOnboardingStore.getState().reopen(user.id); navigate('/space') } }] : []),
+              { key: 'sign-out', label: 'Sign out', icon: <LogOut className="sidebar-icon--sm" />, onSelect: handleLogout, separatorBefore: true },
+            ]}
+          >
+            <span className="sidebar-avatar" aria-hidden="true">{initials}</span>
+            <span className="sidebar-identity">
+              <span className="sidebar-user_name">{user?.name ?? 'Not signed in'}</span>
+              <span className="sidebar-user_email">{user?.email}</span>
+            </span>
+            <ChevronsUpDown className="sidebar-icon--sm sidebar-icon--muted sidebar-icon--shrink" aria-hidden="true" />
+          </Menu>
         </div>
       </aside>
       </div>
-
-      {/* Account panel — a sibling of the drawer div above, not nested in
-          it: that div gets a CSS transform on mobile (the slide-in/out
-          animation), and position:fixed descendants of a transformed
-          ancestor are positioned relative to IT, not the viewport — these
-          modals would otherwise slide off with a closed drawer. */}
-      {accountOpen && (
-        <div className="sidebar-overlay" onClick={() => setAccountOpen(false)}>
-          <div className="sidebar-dialog sidebar-dialog--narrow sidebar-dialog--roomy" onClick={(e) => e.stopPropagation()}>
-            <div className="sidebar-profile">
-              <div className="sidebar-avatar">
-                {initials}
-              </div>
-              <div className="sidebar-identity">
-                <p className="sidebar-user_name">{user?.name}</p>
-                <p className="sidebar-user_email">{user?.email}</p>
-              </div>
-            </div>
-            <div className="sidebar-account_actions">
-              <Button variant="secondary"
-                onClick={() => { setAccountOpen(false); setQuipImportOpen(true) }}
-                className="sidebar-wide_button sidebar-import_button"
-              >
-                <Download className="sidebar-icon--sm" />
-                Import from Quip
-              </Button>
-              {user && !onboardingVisible && (
-                <Button variant="secondary"
-                  onClick={() => { useOnboardingStore.getState().reopen(user.id); setAccountOpen(false); navigate('/space') }}
-                  className="sidebar-wide_button"
-                >
-                  Show getting started
-                </Button>
-              )}
-              <Button variant="secondary"
-                onClick={() => { setAccountOpen(false); setAppearanceOpen(true) }}
-                className="sidebar-wide_button"
-              >
-                Appearance
-              </Button>
-              <Button variant="secondary"
-                onClick={handleLogout}
-                className="sidebar-wide_button sidebar-signout"
-              >
-                Sign out
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Import from Quip */}
       {quipImportOpen && (

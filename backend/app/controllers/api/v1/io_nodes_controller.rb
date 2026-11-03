@@ -2,6 +2,7 @@ module Api
   module V1
     class IoNodesController < ApplicationController
       include WorkspaceScoped
+      include ProjectScoped
       before_action :set_node, only: [ :update, :destroy ]
 
       def index
@@ -10,7 +11,7 @@ module Api
 
       # Creating a goal needs no parent; a csf or nc names its parent_id.
       def create
-        node = current_workspace.io_nodes.build(node_params)
+        node = file_in_current_project(current_workspace.io_nodes.build(node_params))
         # Raises RecordNotFound (404) for a parent in another Space or that doesn't exist.
         parent = current_workspace.io_nodes.find(node.parent_id) if node.parent_id
         node.kind = IoNode::CHILD_KIND[parent&.kind] || "goal"
@@ -38,7 +39,7 @@ module Api
 
       # The whole map every time: nodes are few and progress depends on the tree.
       def render_nodes(status: :ok)
-        nodes = current_workspace.io_nodes.order(:position, :id)
+        nodes = in_current_project(current_workspace.io_nodes).order(:position, :id)
         render json: IoNodeBlueprint.render(nodes, progress: IoMap.progress_by_id(current_workspace)), status: status
       end
 
@@ -47,7 +48,7 @@ module Api
       end
 
       def node_params
-        params.require(:io_node).permit(:title, :description, :position, :parent_id, :objective_id, :initiative_id)
+        params.require(:io_node).permit(:title, :description, :position, :parent_id, :objective_id, :initiative_id, :folder_id)
       end
     end
   end

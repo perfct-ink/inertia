@@ -8,6 +8,12 @@
   border: 0 solid color(border);
 }
 
+// No elastic bounce when a scroll reaches the window's edge.
+html,
+body {
+  overscroll-behavior: none;
+}
+
 html {
   line-height: 1.5;
   text-size-adjust: 100%;

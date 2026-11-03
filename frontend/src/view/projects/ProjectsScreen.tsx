@@ -6,6 +6,9 @@ import { Button, FormError, Input } from '@/components/ui'
 import WorkspaceLayout from '@/components/WorkspaceLayout'
 import CreateItem from '@/components/CreateItem'
 import DocTypeIcon from '@/components/DocTypeIcon'
+import ProjectIcon from '@/components/project/ProjectIcon'
+import ProjectIconDialog from '@/components/project/ProjectIconDialog'
+import type { Folder } from '@/types'
 import { useWorkspace } from '@/api/workspace'
 import { useCreateFolder } from '@/api/folders'
 import { errorMessage } from '@/api/tables'
@@ -24,6 +27,7 @@ export default function ProjectsScreen() {
   const [adding, setAdding] = useState(false)
   const [error, setError] = useState('')
   const nameRef = useRef('')
+  const [iconFor, setIconFor] = useState<Folder | null>(null)
   const projects = projectsOf(workspace?.folders ?? [])
 
   function commitAdd() {
@@ -78,7 +82,9 @@ export default function ProjectsScreen() {
               return (
                 <section key={project.id} className="projects-card" aria-labelledby={`project-${project.id}`}>
                   <div className="projects-card-top">
-                    <FolderKanban className="projects-icon" aria-hidden="true" />
+                    <Button onClick={() => setIconFor(project)} aria-label={`Change icon for ${project.name}`} title="Change icon" className="projects-card-icon">
+                      <ProjectIcon project={project} size="lg" />
+                    </Button>
                     <h2 id={`project-${project.id}`} className="projects-card-title">
                       <Link to={`/folders/${project.id}`} className="projects-card-link">{project.name}</Link>
                     </h2>
@@ -107,6 +113,7 @@ export default function ProjectsScreen() {
             })}
           </div>
         </div>
+        <ProjectIconDialog project={iconFor && (projects.find((p) => p.id === iconFor.id) ?? null)} onClose={() => setIconFor(null)} />
       </div>
     </WorkspaceLayout>
   )

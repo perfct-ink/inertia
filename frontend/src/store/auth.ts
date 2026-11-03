@@ -1,6 +1,13 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import { useWorkspaceStore } from './workspaces'
+import { useProjectStore } from './projects'
+
+// A different account must never inherit the previous one's Space or project.
+function forgetPlace() {
+  useWorkspaceStore.getState().setActive(null)
+  useProjectStore.getState().setActive(null)
+}
 
 interface User {
   id: number
@@ -20,13 +27,12 @@ export const useAuthStore = create<AuthStore>()(
     (set) => ({
       token: null,
       user: null,
-      // A different account must never inherit the previous one's workspace.
       setAuth: (token, user) => {
-        useWorkspaceStore.getState().setActive(null)
+        forgetPlace()
         set({ token, user })
       },
       logout: () => {
-        useWorkspaceStore.getState().setActive(null)
+        forgetPlace()
         set({ token: null, user: null })
       },
     }),

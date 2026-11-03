@@ -5,6 +5,8 @@ class Initiative < ApplicationRecord
   include RoadmapHorizon
   include Positioned
 
+  include ProjectItem
+
   belongs_to :workspace
   has_many :epics, dependent: :nullify
   has_many :key_results, dependent: :nullify

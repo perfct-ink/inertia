@@ -1,0 +1,67 @@
+@use 'tokens' as *;
+
+@layer app.components {
+  .ui-project_icon_dialog {
+    display: flex;
+    flex-direction: column;
+    gap: space(4);
+  }
+
+  .ui-project_icon_dialog-current {
+    display: flex;
+    align-items: center;
+    gap: space(3);
+    color: color(muted-foreground);
+    @include text('sm');
+  }
+
+  .ui-project_icon_dialog-emojis {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(space(10), 1fr));
+    gap: space(1);
+  }
+
+  .ui-project_icon_dialog-emoji {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: space(10);
+    border: 1px solid transparent;
+    border-radius: radius('md');
+    font-size: 1.25rem;
+    @include transition(background-color, border-color);
+
+    &:hover {
+      background: color(accent);
+    }
+
+    &--active {
+      border-color: color(primary);
+      background: color(accent);
+    }
+  }
+
+  .ui-project_icon_dialog-field {
+    display: flex;
+    flex-direction: column;
+    gap: space(1.5);
+    @include text('sm');
+  }
+
+  .ui-project_icon_dialog-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: space(2);
+  }
+
+  .ui-project_icon_dialog-upload {
+    display: inline-flex;
+    align-items: center;
+    gap: space(2);
+  }
+
+  .ui-project_icon_dialog-button_icon {
+    width: space(4);
+    height: space(4);
+  }
+}

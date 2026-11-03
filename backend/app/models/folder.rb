@@ -9,6 +9,14 @@ class Folder < ApplicationRecord
   has_many :task_status_settings, dependent: :delete_all
   has_many :shares, as: :shareable, dependent: :destroy
   has_many :resource_allocations, dependent: :destroy
+  # Planning records filed under this project (ProjectItem); the database
+  # nullifies them when the folder goes.
+  has_many :initiatives, dependent: :nullify
+  has_many :sprints, dependent: :nullify
+  has_many :ideas, dependent: :nullify
+  has_many :io_nodes, dependent: :nullify
+  has_many :releases, dependent: :nullify
+  has_many :objectives, dependent: :nullify
 
   # A project is a folder of docs shown on the Projects screen; a feature
   # folder holds feature requirement docs. Same table, so nesting, sharing
@@ -19,6 +27,8 @@ class Folder < ApplicationRecord
   enum :dependency_mode, { none: 0, strict: 1, flexible: 2 }, prefix: :dependencies, scopes: false
 
   validates :name, presence: true
+  validates :icon, length: { maximum: 16 }
+  validates :image_url, length: { maximum: 2048 }, format: { with: %r{\A(https?://|/)}, message: "must be a web address" }, allow_blank: true
   before_validation :attach_to_root
   validate :validate_parent
   validate :protect_root_location

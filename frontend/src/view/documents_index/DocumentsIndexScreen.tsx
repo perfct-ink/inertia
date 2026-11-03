@@ -11,6 +11,7 @@ import FilesGallery from '@/components/FilesGallery'
 import { spaceFiles, searchSpaceFiles, filterSpaceFiles, projectsOf, type SpaceFileFilters } from '@/data/folder'
 import { useWorkspaceMembers } from '@/api/workspaceMembers'
 import { useWorkspaceStore } from '@/store/workspaces'
+import { useProjectStore } from '@/store/projects'
 import { DOC_TYPE_LABELS } from '@/data/document'
 import './DocumentsIndexScreen.scss'
 import type { Document } from '@/types'
@@ -30,7 +31,14 @@ export default function DocumentsIndexScreen() {
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc')
   const [query, setQuery] = useState('')
   // '' means "any"; the project filter's '0' is files outside every project.
-  const [projectFilter, setProjectFilter] = useState('')
+  // It starts on the project open in the sidebar.
+  const activeProjectId = useProjectStore((st) => st.activeProjectId)
+  const [projectFilter, setProjectFilter] = useState(activeProjectId ? String(activeProjectId) : '')
+  const [filteredFor, setFilteredFor] = useState(activeProjectId)
+  if (filteredFor !== activeProjectId) {
+    setFilteredFor(activeProjectId)
+    setProjectFilter(activeProjectId ? String(activeProjectId) : '')
+  }
   const [typeFilter, setTypeFilter] = useState('')
   const [ownerFilter, setOwnerFilter] = useState('')
   const workspaceId = useWorkspaceStore((st) => st.activeWorkspaceId) ?? 0

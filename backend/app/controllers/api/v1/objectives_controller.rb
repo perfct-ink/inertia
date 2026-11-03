@@ -2,16 +2,17 @@ module Api
   module V1
     class ObjectivesController < ApplicationController
       include WorkspaceScoped
+      include ProjectScoped
       before_action :set_objective, only: [ :update, :destroy ]
 
       def index
-        objectives = current_workspace.objectives.includes(key_results: :initiative)
+        objectives = in_current_project(current_workspace.objectives).includes(key_results: :initiative)
           .order(Arel.sql("target_date IS NULL"), :target_date, :title)
         render json: ObjectiveBlueprint.render(objectives)
       end
 
       def create
-        objective = current_workspace.objectives.build(objective_params)
+        objective = file_in_current_project(current_workspace.objectives.build(objective_params))
         if objective.save
           render json: ObjectiveBlueprint.render(objective), status: :created
         else
@@ -39,7 +40,7 @@ module Api
       end
 
       def objective_params
-        params.require(:objective).permit(:title, :description, :status, :owner_id, :start_date, :target_date)
+        params.require(:objective).permit(:title, :description, :status, :owner_id, :start_date, :target_date, :folder_id)
       end
     end
   end

@@ -2,17 +2,18 @@ module Api
   module V1
     class EpicsController < ApplicationController
       include WorkspaceScoped
+      include ProjectScoped
       before_action :set_epic, only: [ :update, :destroy ]
 
       def index
-        epics = current_workspace.epics
+        epics = in_current_project(current_workspace.epics)
         epics = epics.where(folder_id: params[:folder_id]) if params[:folder_id]
         epics = epics.with_task_counts
         render json: EpicBlueprint.render(epics)
       end
 
       def create
-        epic = current_workspace.epics.build(epic_params)
+        epic = file_in_current_project(current_workspace.epics.build(epic_params))
         if epic.save
           render json: EpicBlueprint.render(epic), status: :created
         else
