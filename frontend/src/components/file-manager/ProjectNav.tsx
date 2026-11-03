@@ -1,7 +1,7 @@
 import { useEffect, useState, type ComponentType } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import {
-  CalendarDays, ChevronsUpDown, FolderKanban, CalendarRange, CheckSquare, ClipboardList, Disc3, FileText, Flag, GanttChart, Goal,
+  Archive, ArchiveRestore, CalendarDays, ChevronsUpDown, Folder as FolderIcon, FolderKanban, CalendarRange, CheckSquare, ClipboardList, Disc3, FileText, Flag, GanttChart, Goal,
   LayoutDashboard, Lightbulb, ListTree, Map as MapIcon, Milestone, Network, Plus, Rocket, Rows3, Smile,
   Table2, Target, UserCheck, Users,
 } from 'lucide-react'
@@ -9,7 +9,7 @@ import { Button, FormError, Input, Menu, PromptDialog, classNames } from '@/comp
 import ProjectIcon from '@/components/project/ProjectIcon'
 import ProjectIconDialog from '@/components/project/ProjectIconDialog'
 import { useWorkspace } from '@/api/workspace'
-import { useCreateFolder } from '@/api/folders'
+import { useArchivedFolders, useCreateFolder, useUpdateFolder } from '@/api/folders'
 import { errorMessage } from '@/api/tables'
 import { documentsIn, folderOfDocument, projectOf, projectsOf } from '@/data/folder'
 import { useSelectProject } from '@/hooks/useSelectProject'
@@ -68,6 +68,9 @@ export function ProjectNav() {
   const openProject = useOpenProject()
   const [adding, setAdding] = useState(false)
   const [naming, setNaming] = useState(false)
+  const [showArchived, setShowArchived] = useState(false)
+  const { data: archivedFolders = [] } = useArchivedFolders()
+  const updateFolder = useUpdateFolder()
   const [error, setError] = useState('')
   const [iconFor, setIconFor] = useState<Folder | null>(null)
   const folders = workspace?.folders ?? []
@@ -104,6 +107,10 @@ export function ProjectNav() {
   }
 
   const isActive = (path: string) => location.pathname === path.split('?')[0]
+  const onPage = !!openProject && (location.pathname === `/folders/${openProject.id}` || SECTION_GROUPS.some((g) => g.sections.some((sec) => isActive(sec.path))))
+  // Files or Pages: whichever holds the page you're on, until one is chosen.
+  const [chosenTab, setTab] = useState<'files' | 'pages' | null>(null)
+  const tab = chosenTab ?? (onPage ? 'pages' : 'files')
 
   const iconButton = (project: Folder) => (
     <Button title="Change icon" aria-label={`Change icon for ${project.name}`} onClick={() => setIconFor(project)} className="project_nav-action">
@@ -141,19 +148,33 @@ export function ProjectNav() {
               <ChevronsUpDown className="workspace_switcher-icon" aria-hidden="true" />
             </Menu>
           </div>
-          {/* The project's documents, sheets, Collections and files, subfolders
-              included, before its pages. */}
-          <div className="project_nav-bar">
-            <span className="project_nav-label">Files</span>
+          <div role="tablist" aria-label={`${openProject.name} sections`} className="project_nav-tabs">
+            {(['files', 'pages'] as const).map((key) => (
+              <Button
+                key={key}
+                role="tab"
+                id={`project_nav-tab-${key}`}
+                aria-selected={tab === key}
+                aria-controls={`project_nav-panel-${key}`}
+                onClick={() => setTab(key)}
+                className={classNames('project_nav-tab', tab === key && 'project_nav-tab--active')}
+              >
+                {key === 'files' ? 'Files' : 'Pages'}
+              </Button>
+            ))}
           </div>
-          <div className="project_nav-files">
-            {documentsIn(openProject).length === 0 && !openProject.children?.length
-              ? <p className="project_nav-note">No files yet.</p>
-              : <FolderItem folder={openProject} bare />}
-          </div>
-          <div className="project_nav-bar">
-            <span className="project_nav-label">Pages</span>
-          </div>
+
+          {/* The project's documents, sheets, Collections and files, subfolders included. */}
+          {tab === 'files' && (
+            <div role="tabpanel" id="project_nav-panel-files" aria-labelledby="project_nav-tab-files" className="project_nav-files">
+              {documentsIn(openProject).length === 0 && !openProject.children?.length
+                ? <p className="project_nav-note">No files yet.</p>
+                : <FolderItem folder={openProject} bare />}
+            </div>
+          )}
+
+          {tab === 'pages' && (
+          <div role="tabpanel" id="project_nav-panel-pages" aria-labelledby="project_nav-tab-pages">
           <nav aria-label={`${openProject.name} pages`} className="project_nav-links">
             <Link to={`/folders/${openProject.id}`} className={classNames('project_nav-link', location.pathname === `/folders/${openProject.id}` && 'project_nav-link--active')}>
               <LayoutDashboard className="project_nav-icon" />
@@ -171,12 +192,26 @@ export function ProjectNav() {
               </div>
             ))}
           </nav>
+          </div>
+          )}
         </>
       ) : (
         <>
           <div className="project_nav-bar">
             <Button onClick={() => navigate('/space')} className="project_nav-label">Projects</Button>
             <div className="project_nav-tools">
+              <Button title="All files" aria-label="All files" onClick={() => { selectProject(null); navigate('/documents') }} className={classNames('project_nav-tool', location.pathname === '/documents' && 'project_nav-tool--active')}>
+                <FileText className="project_nav-icon" />
+              </Button>
+              <Button
+                title={showArchived ? 'Show projects' : 'Show archived'}
+                aria-label={showArchived ? 'Show projects' : 'Show archived'}
+                aria-pressed={showArchived}
+                onClick={() => setShowArchived((on) => !on)}
+                className={classNames('project_nav-tool', showArchived && 'project_nav-tool--active')}
+              >
+                <Archive className="project_nav-icon" />
+              </Button>
               <Button title="Project requests" aria-label="Project requests" onClick={() => navigate('/project-requests')} className={classNames('project_nav-tool', location.pathname === '/project-requests' && 'project_nav-tool--active')}>
                 <ClipboardList className="project_nav-icon" />
               </Button>
@@ -206,6 +241,20 @@ export function ProjectNav() {
             <p className="project_nav-note">No projects yet.</p>
           )}
 
+          {showArchived ? (
+            <div className="sidebar-archived">
+              {archivedFolders.length === 0 && <p className="project_nav-note">Nothing archived.</p>}
+              {archivedFolders.map((folder) => (
+                <div key={folder.id} className="sidebar-archived_row">
+                  {folder.kind === 'project' ? <ProjectIcon project={folder} /> : <FolderIcon className="project_nav-icon" />}
+                  <Button onClick={() => navigate(`/folders/${folder.id}`)} className="sidebar-archived_open">{folder.name}</Button>
+                  <Button onClick={() => updateFolder.mutate({ id: folder.id, archived: false })} title="Unarchive" aria-label={`Unarchive ${folder.name}`} className="sidebar-unarchive">
+                    <ArchiveRestore className="project_nav-icon" />
+                  </Button>
+                </div>
+              ))}
+            </div>
+          ) : (
           <ul className="project_nav-list">
             {projects.map((project) => (
               <li key={project.id} className="project_nav-row">
@@ -217,6 +266,7 @@ export function ProjectNav() {
               </li>
             ))}
           </ul>
+          )}
         </>
       )}
 

@@ -156,6 +156,40 @@
     }
   }
 
+  .project_nav-tabs {
+    display: flex;
+    gap: space(1);
+    margin: 0 space(1) space(2);
+    padding: space(0.5);
+    border-radius: radius('md');
+    background: color(muted);
+  }
+
+  .project_nav-tab {
+    flex: 1 1 0%;
+    min-height: space(8);
+    border-radius: radius();
+    color: color(muted-foreground);
+    font-weight: 500;
+    user-select: none;
+    @include text('sm');
+    @include transition(background-color, color);
+
+    &:hover {
+      color: color(foreground);
+    }
+
+    &--active {
+      background: color(background);
+      color: color(foreground);
+      box-shadow: 0 1px 2px rgb(0 0 0 / 0.08);
+    }
+
+    @include up(md) {
+      min-height: space(7);
+    }
+  }
+
   .project_nav-files {
     padding-bottom: space(3);
   }

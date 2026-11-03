@@ -6,7 +6,11 @@ import { ProjectNav } from './ProjectNav'
 
 jest.mock('./FolderItem', () => ({ FolderItem: ({ folder }: { folder: { name: string } }) => <p>Files of {folder.name}</p> }))
 jest.mock('@/components/project/ProjectIconDialog', () => function DialogMock() { return null })
-jest.mock('@/api/folders', () => ({ useCreateFolder: () => ({ mutateAsync: jest.fn() }) }))
+jest.mock('@/api/folders', () => ({
+  useCreateFolder: () => ({ mutateAsync: jest.fn() }),
+  useUpdateFolder: () => ({ mutate: jest.fn() }),
+  useArchivedFolders: () => ({ data: [] }),
+}))
 
 const mockReset = jest.fn()
 jest.mock('@tanstack/react-query', () => ({ useQueryClient: () => ({ resetQueries: mockReset }) }))
@@ -50,19 +54,24 @@ test('the projects list is flat: projects only, no pages or files', () => {
   expect(screen.queryByRole('button', { name: 'Messages' })).not.toHaveAttribute('aria-expanded')
 })
 
-test('selecting a project shows its pages and files in place of the list, with a project dropdown', () => {
+test('selecting a project shows it in place of the list, with Files and Pages tabs and a project dropdown', () => {
   renderAt('/space')
   fireEvent.click(screen.getByRole('button', { name: 'Messages' }))
   expect(useProjectStore.getState().activeProjectId).toBe(2)
   expect(mockReset).toHaveBeenCalled()
   expect(screen.getByTestId('where')).toHaveTextContent('/folders/2')
+  expect(screen.queryByRole('button', { name: 'Billing' })).not.toBeInTheDocument()
+
+  // The Overview is a page, so Pages is the open tab there.
+  expect(screen.getByRole('tab', { name: 'Pages' })).toHaveAttribute('aria-selected', 'true')
   const pages = screen.getByRole('navigation', { name: 'Messages pages' })
   expect(pages).toHaveTextContent('Overview')
   expect(screen.getByRole('group', { name: 'Goals' })).toHaveTextContent('OKRs')
-  // Its files come first, before its pages.
-  const files = screen.getByText('Files of Messages')
-  expect(files.compareDocumentPosition(pages) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
-  expect(screen.queryByRole('button', { name: 'Billing' })).not.toBeInTheDocument()
+  expect(screen.queryByText('Files of Messages')).not.toBeInTheDocument()
+
+  fireEvent.click(screen.getByRole('tab', { name: 'Files' }))
+  expect(screen.getByText('Files of Messages')).toBeInTheDocument()
+  expect(screen.queryByRole('navigation', { name: 'Messages pages' })).not.toBeInTheDocument()
 
   // The open project's dropdown switches projects or goes back to them all.
   fireEvent.click(screen.getByRole('button', { name: 'Project: Messages. Switch project' }))
@@ -80,11 +89,22 @@ test('selecting a project shows its pages and files in place of the list, with a
 test('a project with no files says so', () => {
   useProjectStore.setState({ activeProjectId: 3 })
   renderAt('/folders/3')
+  fireEvent.click(screen.getByRole('tab', { name: 'Files' }))
   expect(screen.getByText('No files yet.')).toBeInTheDocument()
 })
 
-test('opening a document inside a project opens that project', () => {
+test('opening a document inside a project opens that project on its Files tab', () => {
   renderAt('/documents/9')
   expect(useProjectStore.getState().activeProjectId).toBe(2)
-  expect(screen.getByRole('navigation', { name: 'Messages pages' })).toBeInTheDocument()
+  expect(screen.getByRole('tab', { name: 'Files' })).toHaveAttribute('aria-selected', 'true')
+  expect(screen.getByText('Files of Messages')).toBeInTheDocument()
+})
+
+test('the projects list leads to all files and to archived items, not other files', () => {
+  renderAt('/space')
+  expect(screen.queryByText('Other files')).not.toBeInTheDocument()
+  fireEvent.click(screen.getByRole('button', { name: 'Show archived' }))
+  expect(screen.getByText('Nothing archived.')).toBeInTheDocument()
+  fireEvent.click(screen.getByRole('button', { name: 'All files' }))
+  expect(screen.getByTestId('where')).toHaveTextContent('/documents')
 })

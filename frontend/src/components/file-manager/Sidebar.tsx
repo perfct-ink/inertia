@@ -3,19 +3,18 @@ import { WorkspaceSwitcher } from '@/components/workspace/WorkspaceSwitcher'
 import { TransferHost } from '@/components/workspace/TransferDialog'
 import { Button, Input, Select, DatePicker, Menu } from '@/components/ui'
 import './Sidebar.scss'
-import { Database } from 'lucide-react'
 import { useState, useRef, useEffect } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useSidebarStore } from '@/store/sidebar'
 import { useActiveOnboarding, useOnboardingStore } from '@/store/onboarding'
 import AppearanceDialog from '@/components/AppearanceDialog'
 import {
-  FolderPlus, CheckSquare, FilePlus, FileText,
+  CheckSquare, FileText, Database,
   Table as TableIcon, Pin, Folder, Loader2, CalendarDays,
-  Plus, Archive, ArchiveRestore, Keyboard, Download, Palette, Sparkles, LogOut, ChevronsUpDown,
+  Plus, Keyboard, Download, Palette, Sparkles, LogOut, ChevronsUpDown,
 } from 'lucide-react'
 import { useWorkspace } from '@/api/workspace'
-import { useArchivedFolders, useCreateFolder, usePinFolder, useUpdateFolder } from '@/api/folders'
+import { usePinFolder } from '@/api/folders'
 import { useCreateDocument, usePinDocument } from '@/api/documents'
 import { useCreateTask } from '@/api/tasks'
 import { useCreateEvent } from '@/api/events'
@@ -25,10 +24,8 @@ import { useStartQuipImport, useQuipImport } from '@/api/quipImports'
 import { useQueryClient } from '@tanstack/react-query'
 import { useAuthStore } from '@/store/auth'
 import { useTabsStore } from '@/store/tabs'
-import { FolderItem } from './FolderItem'
 import { ProjectNav } from './ProjectNav'
 import { useProjectStore } from '@/store/projects'
-import { useOpenProject } from '@/hooks/useOpenProject'
 import api from '@/lib/api'
 import logoMark from '@/assets/logo-mark.svg'
 import { todayISO } from '@/util/date'
@@ -55,12 +52,10 @@ const isElectron = navigator.userAgent.toLowerCase().includes('electron')
 export default function Sidebar() {
   const navigate = useNavigate()
   const location = useLocation()
-  const { data: workspace, isLoading } = useWorkspace()
-  const createFolder = useCreateFolder()
+  const { data: workspace } = useWorkspace()
   const createDocument = useCreateDocument()
   const pinDocument = usePinDocument()
   const pinFolder = usePinFolder()
-  const updateFolder = useUpdateFolder()
   const { user, logout } = useAuthStore()
   const drawerOpen = useSidebarStore((s) => s.open)
   const closeDrawer = useSidebarStore((s) => s.close)
@@ -68,9 +63,6 @@ export default function Sidebar() {
   const createEvent = useCreateEvent()
   const { data: epics = [] } = useEpics()
   const [creationError, setCreationError] = useState('')
-  const [addingFolder, setAddingFolder] = useState(false)
-  const [showArchived, setShowArchived] = useState(false)
-  const { data: archivedFolders = [] } = useArchivedFolders()
   const onboardingVisible = useActiveOnboarding(user?.id) !== null
   const [appearanceOpen, setAppearanceOpen] = useState(false)
   const [shortcutsOpen, setShortcutsOpen] = useState(false)
@@ -81,14 +73,12 @@ export default function Sidebar() {
   const startQuipImport = useStartQuipImport()
   const { data: quipImport } = useQuipImport(startedQuipImportId)
   const qc = useQueryClient()
-  const openProject = useOpenProject()
   const [quickAddOpen, setQuickAddOpen] = useState(false)
   const [quickAddType, setQuickAddType] = useState<'task' | 'event'>('task')
   const [quickAddTitle, setQuickAddTitle] = useState('')
   const [quickAddDate, setQuickAddDate] = useState('')
   const [quickAddEpicId, setQuickAddEpicId] = useState('')
   const creatingRef = useRef(false)
-  const folderInputRef = useRef<HTMLInputElement>(null)
   const quickAddInputRef = useRef<HTMLInputElement>(null)
   const createNewDocumentRef = useRef(createNewDocument)
   createNewDocumentRef.current = createNewDocument
@@ -114,7 +104,6 @@ export default function Sidebar() {
   // open over the page you just picked, which reads as broken on a phone.
   useEffect(() => { closeDrawer() }, [location.pathname])
 
-  useEffect(() => { if (addingFolder) folderInputRef.current?.focus() }, [addingFolder])
   useEffect(() => { if (quickAddOpen) quickAddInputRef.current?.focus() }, [quickAddOpen])
   // Refreshes the folder tree once imported content actually exists to
   // show — polling every 1.5s in between would just re-render the same
@@ -249,8 +238,8 @@ export default function Sidebar() {
       <div
         className={`view-sidebar${drawerOpen ? ' view-sidebar--open' : ''}`}
       >
-      {/* The panel: the Space switcher, pinned items, the projects (the open
-          one lists its pages and files), then files outside any project. */}
+      {/* The panel: the Space switcher, pinned items and the projects (the
+          open one lists its files and pages). */}
       <aside
         className="sidebar-panel"
       >
@@ -323,122 +312,6 @@ export default function Sidebar() {
           <ProjectNav />
 
           {creationError && <p role="alert" className="sidebar-error">{creationError}</p>}
-          {/* Files outside any project, beside the projects list */}
-          {!openProject && <div>
-            <div className="sidebar-section_bar sidebar-section_bar--documents">
-              <Button
-                onClick={() => navigate('/documents')}
-                className="sidebar-section_label sidebar-section_link"
-              >
-                Other files
-              </Button>
-              <div className="sidebar-tools">
-                <Button
-                  title={showArchived ? 'Show active folders' : 'Show archived folders'}
-                  onClick={() => setShowArchived((s) => !s)}
-                  aria-label={showArchived ? 'Show active folders' : 'Show archived folders'}
-                  className={`sidebar-tool${showArchived ? ' sidebar-tool--active' : ''}`}
-                >
-                  <Archive className="sidebar-icon--sm" />
-                </Button>
-                <Button
-                  title="New document (⌘N)"
-                  aria-label="New document (⌘N)"
-                  onClick={() => createNewDocument()}
-                  className="sidebar-tool"
-                >
-                  <FilePlus className="sidebar-icon--sm" />
-                </Button>
-                <Button
-                  title="New Sheet"
-                  aria-label="New Sheet"
-                  onClick={() => createNewSpreadsheet()}
-                  className="sidebar-tool"
-                >
-                  <TableIcon className="sidebar-icon--sm" />
-                </Button>
-                <Button
-                  title="New Collection"
-                  aria-label="New Collection"
-                  onClick={() => createNewSpreadsheet('table')}
-                  className="sidebar-tool"
-                >
-                  <Database className="sidebar-icon--sm" />
-                </Button>
-                <Button
-                  title="New folder"
-                  aria-label="New folder"
-                  onClick={() => setAddingFolder(true)}
-                  className="sidebar-tool"
-                >
-                  <FolderPlus className="sidebar-icon--sm" />
-                </Button>
-              </div>
-            </div>
-
-            {showArchived ? (
-              <div className="sidebar-archived">
-                {archivedFolders.length === 0 && (
-                  <p className="sidebar-note">No archived folders</p>
-                )}
-                {archivedFolders.map((folder) => (
-                  <div key={folder.id} className="sidebar-archived_row">
-                    <Folder className="sidebar-icon--sm sidebar-icon--muted sidebar-icon--shrink" />
-                    <Button
-                      onClick={() => navigate(`/folders/${folder.id}`)}
-                      className="sidebar-archived_open"
-                    >
-                      {folder.name}
-                    </Button>
-                    <Button
-                      onClick={() => updateFolder.mutate({ id: folder.id, archived: false })}
-                      title="Unarchive"
-                      aria-label="Unarchive"
-                      className="sidebar-unarchive"
-                    >
-                      <ArchiveRestore className="sidebar-icon--sm" />
-                    </Button>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <>
-                {addingFolder && (
-                  <div className="sidebar-new_folder">
-                    <Input
-                      ref={folderInputRef}
-                      placeholder="Folder name"
-                      className="sidebar-folder_input"
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter' && e.currentTarget.value.trim()) {
-                          createFolder.mutate({ name: e.currentTarget.value.trim() })
-                          setAddingFolder(false)
-                        }
-                        if (e.key === 'Escape') setAddingFolder(false)
-                      }}
-                      onBlur={() => setAddingFolder(false)}
-                    />
-                  </div>
-                )}
-
-                {isLoading && (
-                  <div className="sidebar-loading">
-                    <Loader2 className="sidebar-icon--md sidebar-icon--muted sidebar-icon--spin" />
-                  </div>
-                )}
-
-                {!isLoading && workspace?.folders?.every((f) => f.root && !f.children?.some((c) => c.kind !== 'project') && !f.documents?.length) && !addingFolder && (
-                  <div className="sidebar-empty">
-                    <FilePlus className="sidebar-icon--lg sidebar-icon--faint" />
-                  </div>
-                )}
-
-                {workspace?.folders?.map((folder) => (
-                  <FolderItem key={folder.id} folder={folder} hideProjects />
-                ))}
-              </>
-            )}
-          </div>}
         </div>
 
         {/* The signed-in person, with the account menu */}
