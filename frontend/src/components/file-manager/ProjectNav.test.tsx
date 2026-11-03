@@ -59,7 +59,9 @@ test('selecting a project shows its pages and files in place of the list, with a
   const pages = screen.getByRole('navigation', { name: 'Messages pages' })
   expect(pages).toHaveTextContent('Overview')
   expect(screen.getByRole('group', { name: 'Goals' })).toHaveTextContent('OKRs')
-  expect(screen.getByText('Files of Messages')).toBeInTheDocument()
+  // Its files come first, before its pages.
+  const files = screen.getByText('Files of Messages')
+  expect(files.compareDocumentPosition(pages) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
   expect(screen.queryByRole('button', { name: 'Billing' })).not.toBeInTheDocument()
 
   // The open project's dropdown switches projects or goes back to them all.
@@ -73,6 +75,12 @@ test('selecting a project shows its pages and files in place of the list, with a
   fireEvent.click(screen.getByRole('menuitem', { name: /All projects/ }))
   expect(screen.getByTestId('where')).toHaveTextContent('/space')
   expect(screen.getByRole('button', { name: 'Billing' })).toBeInTheDocument()
+})
+
+test('a project with no files says so', () => {
+  useProjectStore.setState({ activeProjectId: 3 })
+  renderAt('/folders/3')
+  expect(screen.getByText('No files yet.')).toBeInTheDocument()
 })
 
 test('opening a document inside a project opens that project', () => {

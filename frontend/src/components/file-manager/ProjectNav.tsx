@@ -11,7 +11,7 @@ import ProjectIconDialog from '@/components/project/ProjectIconDialog'
 import { useWorkspace } from '@/api/workspace'
 import { useCreateFolder } from '@/api/folders'
 import { errorMessage } from '@/api/tables'
-import { folderOfDocument, projectOf, projectsOf } from '@/data/folder'
+import { documentsIn, folderOfDocument, projectOf, projectsOf } from '@/data/folder'
 import { useSelectProject } from '@/hooks/useSelectProject'
 import { useOpenProject } from '@/hooks/useOpenProject'
 import { useProjectStore } from '@/store/projects'
@@ -141,6 +141,19 @@ export function ProjectNav() {
               <ChevronsUpDown className="workspace_switcher-icon" aria-hidden="true" />
             </Menu>
           </div>
+          {/* The project's documents, sheets, Collections and files, subfolders
+              included, before its pages. */}
+          <div className="project_nav-bar">
+            <span className="project_nav-label">Files</span>
+          </div>
+          <div className="project_nav-files">
+            {documentsIn(openProject).length === 0 && !openProject.children?.length
+              ? <p className="project_nav-note">No files yet.</p>
+              : <FolderItem folder={openProject} bare />}
+          </div>
+          <div className="project_nav-bar">
+            <span className="project_nav-label">Pages</span>
+          </div>
           <nav aria-label={`${openProject.name} pages`} className="project_nav-links">
             <Link to={`/folders/${openProject.id}`} className={classNames('project_nav-link', location.pathname === `/folders/${openProject.id}` && 'project_nav-link--active')}>
               <LayoutDashboard className="project_nav-icon" />
@@ -158,12 +171,6 @@ export function ProjectNav() {
               </div>
             ))}
           </nav>
-          <div className="project_nav-bar">
-            <span className="project_nav-label">Files</span>
-          </div>
-          <div className="project_nav-files">
-            <FolderItem folder={openProject} bare />
-          </div>
         </>
       ) : (
         <>

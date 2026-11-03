@@ -4,7 +4,7 @@
 Inside a Space are projects. A project is a folder (`folders.kind: project`) that holds the documents, files, collections, tasks, events and planning records for one piece of work, including those in its subfolders.
 - **Space home** (`/space`): the Projects page. `/projects` redirects there. While a new user's getting-started steps are active, `/space` shows those instead.
 - **Projects page**: one card per active project, sorted by name, with its icon (click it to change it), file count, last update, a link to the project page, the files inside (subfolders included) and a create menu that adds items to the project. "New project" asks for a name and creates a folder with `kind: project`.
-- **Sidebar** (`file-manager/ProjectNav.tsx`): a flat list of the Space's projects, which never expands or collapses, with "New project" and "Project requests" buttons. Files outside any project are listed below it under "Other files". Selecting a project replaces the list with that project: a dropdown like the Space switcher (the project's icon and name; it lists the projects to switch to, with New project, Change icon and All projects), its pages, then its files. The pages are not indented and are grouped under headings that don't collapse:
+- **Sidebar** (`file-manager/ProjectNav.tsx`): a flat list of the Space's projects, which never expands or collapses, with "New project" and "Project requests" buttons. Files outside any project are listed below it under "Other files". Selecting a project replaces the list with that project: a dropdown like the Space switcher (the project's icon and name; it lists the projects to switch to, with New project, Change icon and All projects), its files (documents, sheets, Collections and uploaded files, subfolders included, or "No files yet."), then its pages. The pages are not indented and are grouped under headings that don't collapse:
   - Overview, All files, My work
   - **Tasks**: Tasks, Task table, Pivot, Calendar, Events
   - **Planning**: Roadmap, Timeline, Milestones, Initiatives, Epics, Sprints, Hierarchy
@@ -36,6 +36,7 @@ Scoped to the current Space; writes need the member role, like the rest of the S
 - `frontend/src/lib/api.test.ts` (the header, and sign-out forgets the project), `frontend/src/data/project.test.ts`, `frontend/src/data/folder.test.ts`, `frontend/src/view/projects/ProjectsScreen.test.tsx`, `frontend/src/view/workspace/WorkspaceScreen.test.tsx`.
 
 ## Known limits
+- Every page shows under every project; choosing which features a project uses is `docs/backlog/choose-which-features-a-project-uses.md`.
 - Records made before projects existed, or with no project open, have no folder and show only when no project is open. Nothing in the sidebar closes the open project, so after choosing one there is no way back to Space-wide lists except signing out or switching Space.
 - Project requests are Space-wide by nature (a request is for a new project), so they sit beside the projects list, not under a project.
 - Nested projects are listed flat, and a subfolder project's records also show in its parent project.
