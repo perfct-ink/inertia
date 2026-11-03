@@ -41,8 +41,7 @@ dev: deps ## Rebuild all services, start detached, and open browser
 	$(COMPOSE) down --remove-orphans
 	$(COMPOSE) build
 	$(COMPOSE) up -d
-	@sleep 3
-	open http://localhost:5174
+	@bash scripts/open-app.sh
 
 .PHONY: dev-live dev-live-readonly dev-live-down
 dev-live: deps ## Like dev, but against the LIVE database over an SSH tunnel (writes are real)
@@ -127,8 +126,8 @@ down: ## Stop and remove containers
 restart: ## Restart all services
 	$(COMPOSE) restart
 
-open: ## Open the app in the default browser
-	open http://localhost:5174
+open: ## Open the app in the default browser once the frontend answers
+	@bash scripts/open-app.sh
 
 # ── Logs ──────────────────────────────────────────────────────────────────────
 

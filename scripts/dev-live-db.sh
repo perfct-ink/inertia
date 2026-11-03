@@ -69,9 +69,8 @@ trap 'close_tunnel; echo "Startup failed; tunnel closed." >&2' ERR
 "${COMPOSE[@]}" down --remove-orphans
 "${COMPOSE[@]}" build
 "${COMPOSE[@]}" up -d
-sleep 3
 
 echo
 echo "⚠ Local dev is using the LIVE database${LIVE_DB_READONLY:+ (read-only)}. Changes you make are real."
 echo "  Stop with: make dev-live-down"
-open http://localhost:5174
+bash scripts/open-app.sh
