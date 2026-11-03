@@ -5,6 +5,8 @@ import { Loader2 } from 'lucide-react'
 import WorkspaceLayout from '@/components/WorkspaceLayout'
 import { useDocument, useUpdateDocument } from '@/api/documents'
 import { useTabsStore } from '@/store/tabs'
+import { TransferMenu } from '@/components/workspace/TransferMenu'
+import { documentTransfer } from '@/data/transfer'
 import type { Sheet } from '@fortune-sheet/core'
 
 const EMPTY_SHEETS: Sheet[] = [
@@ -71,6 +73,7 @@ export default function SpreadsheetEditor({ docId }: { docId: number }) {
             {saveStatus === 'saving' && <Loader2 className="spreadsheet-status_spinner" />}
             {saveStatus === 'unsaved' && <div className="spreadsheet-status_dot" />}
           </div>
+          {doc && <TransferMenu item={documentTransfer(doc)} compact />}
         </div>
         <div className="spreadsheet-body">
           <Workbook

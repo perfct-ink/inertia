@@ -67,6 +67,8 @@ import { useWorkspace } from '@/api/workspace'
 import { uploadFile } from '@/api/uploads'
 import FileViewer from '@/components/FileViewer'
 import Breadcrumb from '@/components/Breadcrumb'
+import { TransferMenu } from '@/components/workspace/TransferMenu'
+import { documentTransfer } from '@/data/transfer'
 import DocumentOutline from '@/components/DocumentOutline'
 import TableEditor from '@/components/editors/TableEditor'
 import SpreadsheetEditor from '@/components/editors/SpreadsheetEditor'
@@ -526,7 +528,7 @@ export default function DocumentScreen() {
   return (
     <WorkspaceLayout>
       <div className="view-document">
-        <Breadcrumb folderId={doc.folder_id} title={doc.title} />
+        <Breadcrumb folderId={doc.folder_id} title={doc.title} actions={<TransferMenu item={documentTransfer(doc)} />} />
 
         {/* Toolbar */}
         <div className="document-toolbar">

@@ -1,7 +1,7 @@
 # Document breadcrumb
 
 ## What it does
-Above a document's toolbar a breadcrumb shows where it lives: Space name › folder › sub-folder › document. The Space name links to the Space home (`/space`), each folder to its page (`/folders/:id`), and the document is the current page (`aria-current="page"`). The Root folder is left out, so a document directly in Root shows only the Space and the document. Folder names truncate when long and the trail wraps on narrow screens.
+Above a document's toolbar a breadcrumb shows where it lives: Space name › folder › sub-folder › document. The Space name links to the Space home (`/space`), each folder to its page (`/folders/:id`), and the document is the current page (`aria-current="page"`). The Root folder is left out, so a document directly in Root shows only the Space and the document. Folder names truncate when long and the trail wraps on narrow screens. An optional `actions` slot puts page actions at the right of the same row, outside the navigation landmark; the document page puts its "Move or copy" menu there (see [space_transfer.md](space_transfer.md)).
 
 ## API and models
 No endpoint. The trail is computed in the browser from the Space payload (`useWorkspace`) by `folderTrail` in `frontend/src/data/folder.ts`, from the document's `folder_id`. Component: `frontend/src/components/Breadcrumb.tsx`, used in `view/document/DocumentScreen.tsx`.

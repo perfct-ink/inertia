@@ -8,11 +8,13 @@ import CreateItem from '@/components/CreateItem'
 import DocTypeIcon from '@/components/DocTypeIcon'
 import ProjectIcon from '@/components/project/ProjectIcon'
 import ProjectIconDialog from '@/components/project/ProjectIconDialog'
+import { TransferMenu } from '@/components/workspace/TransferMenu'
 import type { Folder } from '@/types'
 import { useWorkspace } from '@/api/workspace'
 import { useCreateFolder } from '@/api/folders'
 import { errorMessage } from '@/api/tables'
 import { documentsIn, projectLastModified, projectsOf } from '@/data/folder'
+import { folderTransfer } from '@/data/transfer'
 import { usePageTitle } from '@/hooks/usePageTitle'
 import './ProjectsScreen.scss'
 
@@ -92,6 +94,7 @@ export default function ProjectsScreen() {
                       {docs.length} {docs.length === 1 ? 'file' : 'files'}
                       {modified && ` · updated ${format(parseISO(modified), 'MMM d, yyyy')}`}
                     </span>
+                    <TransferMenu item={folderTransfer(project)} compact />
                   </div>
 
                   {docs.length > 0 && (

@@ -104,9 +104,18 @@
       text-decoration: underline;
     }
 
+    // On a phone the count and date drop to their own line, leaving the title
+    // and the Move or copy menu room on the first.
     @at-root .projects-card-meta {
+      flex-basis: 100%;
+      order: 1;
       color: color(muted-foreground);
       @include text('xs');
+
+      @include up('sm') {
+        flex-basis: auto;
+        order: 0;
+      }
     }
 
     @at-root .projects-docs {

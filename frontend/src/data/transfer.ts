@@ -2,6 +2,10 @@
 // dialog uses and where the result lives. The server rules are in
 // backend/app/services/space_transfer.rb.
 
+import type { Document, Folder, WorkspaceSummary } from '@/types'
+import { documentsIn } from './folder'
+import { canWriteWorkspace, transferTargets } from './workspace'
+
 export type TransferMode = 'move' | 'copy'
 export type TransferKind = 'document' | 'folder'
 
@@ -14,12 +18,37 @@ export interface TransferRequest {
   documentIds: number[]
 }
 
+// What a menu or page offers to move or copy: a TransferRequest without the mode.
+export type TransferItem = Omit<TransferRequest, 'mode'>
+
 const VERBS: Record<TransferMode, { present: string; past: string }> = {
   move: { present: 'Move', past: 'Moved' },
   copy: { present: 'Copy', past: 'Copied' },
 }
 
 export const transferVerb = (mode: TransferMode) => VERBS[mode].present
+
+// The modes in the order every menu lists them.
+export const TRANSFER_MODES: TransferMode[] = ['move', 'copy']
+
+export const transferMenuLabel = (mode: TransferMode) => `${VERBS[mode].present} to Space…`
+
+export const documentTransfer = ({ id, title }: Pick<Document, 'id' | 'title'>): TransferItem =>
+  ({ kind: 'document', id, name: title, documentIds: [id] })
+
+// A folder or project goes with every document in it and its subfolders
+// (the folder tree has them; the folder page's contents list them too).
+export const folderTransfer = (folder: Folder, documents: Pick<Document, 'id'>[] = documentsIn(folder)): TransferItem =>
+  ({ kind: 'folder', id: folder.id, name: folder.name, documentIds: documents.map((d) => d.id) })
+
+// The Spaces something can go to from the current one: none when the user can
+// only read the current Space (taking things out of it needs the same role as
+// editing it). Every menu and page hides its action when this is empty.
+export function transferDestinations(current: Pick<WorkspaceSummary, 'id' | 'role'> | undefined, spaces: WorkspaceSummary[]): WorkspaceSummary[] {
+  return current && canWriteWorkspace(current.role) ? transferTargets(spaces, current.id) : []
+}
+
+export const canTransfer = (destinations: WorkspaceSummary[]) => destinations.length > 0
 
 export const transferTitle = (mode: TransferMode) => `${VERBS[mode].present} to another Space`
 

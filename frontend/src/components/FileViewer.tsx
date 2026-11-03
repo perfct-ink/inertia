@@ -10,6 +10,8 @@ import api from '@/lib/api'
 import { filePreview, formatBytes } from '@/data/document'
 import { useTabsStore } from '@/store/tabs'
 import { usePageTitle } from '@/hooks/usePageTitle'
+import { TransferMenu } from '@/components/workspace/TransferMenu'
+import { documentTransfer } from '@/data/transfer'
 import type { Document } from '@/types'
 import './FileViewer.scss'
 
@@ -66,6 +68,7 @@ export default function FileViewer({ doc }: { doc: Document }) {
             </Select>
           </label>
           <Button variant="secondary" disabled={replaceFile.isPending} onClick={() => replaceInput.current?.click()}>Replace with a new version</Button>
+          <TransferMenu item={documentTransfer(doc)} />
           <Input
             ref={replaceInput}
             type="file"

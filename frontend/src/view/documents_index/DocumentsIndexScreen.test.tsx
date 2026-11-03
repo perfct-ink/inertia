@@ -1,6 +1,10 @@
 import '@testing-library/jest-dom'
 import { fireEvent, render, screen } from '@testing-library/react'
 import DocumentsIndexScreen from './DocumentsIndexScreen'
+import { useTransferStore } from '@/store/transfer'
+
+let mockCanTransfer = true
+jest.mock('@/hooks/useTransferTargets', () => ({ useTransferTargets: () => ({ targets: [], canTransfer: mockCanTransfer, isLoading: false }) }))
 
 jest.mock('@/components/WorkspaceLayout', () => function LayoutMock({ children }: { children: React.ReactNode }) { return <div>{children}</div> })
 jest.mock('@/components/CreateItem', () => function CreateItemMock() { return null })
@@ -40,4 +44,26 @@ test('lists every file, then narrows by project, type and owner', () => {
 
   fireEvent.change(screen.getByLabelText('Filter by project'), { target: { value: '0' } })
   expect(screen.getByText('No files match your search.')).toBeInTheDocument()
+})
+
+describe('moving or copying to another Space', () => {
+  beforeEach(() => {
+    mockCanTransfer = true
+    useTransferStore.setState({ request: null })
+  })
+
+  test('every row has a visible menu that opens the shared dialog for that file', () => {
+    render(<DocumentsIndexScreen />)
+    expect(screen.getAllByRole('button', { name: /^More actions for / })).toHaveLength(3)
+    fireEvent.click(screen.getByRole('button', { name: 'More actions for Budget' }))
+    fireEvent.click(screen.getByRole('menuitem', { name: 'Copy to Space…' }))
+    expect(useTransferStore.getState().request).toEqual({ mode: 'copy', kind: 'document', id: 2, name: 'Budget', documentIds: [2] })
+  })
+
+  test('there is no menu, and no empty column, when there is no other Space to write in', () => {
+    mockCanTransfer = false
+    const { container } = render(<DocumentsIndexScreen />)
+    expect(screen.queryByRole('button', { name: /^More actions for / })).not.toBeInTheDocument()
+    expect(container.querySelector('.documents_index-actions')).toBeNull()
+  })
 })

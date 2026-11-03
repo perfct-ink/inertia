@@ -15,6 +15,8 @@ import { usePageTitle } from '@/hooks/usePageTitle'
 import { flattenFolders } from '@/data/folder'
 import { checkFormula, computeFormulas, formatResult, isFormulaField, type FormulaResult } from '@/data/formula'
 import CollectionMap from './CollectionMap'
+import { TransferMenu } from '@/components/workspace/TransferMenu'
+import { documentTransfer } from '@/data/transfer'
 
 const types: FieldDataType[] = ['text', 'integer', 'number', 'boolean', 'date', 'datetime', 'relation', 'file', 'files', 'formula']
 const inputClass = 'table_editor-input'
@@ -143,6 +145,7 @@ export default function TableEditor({ doc }: { doc: Document }) {
         <Database className="table_editor-header_icon" />
         <Input aria-label="Collection title" className="table_editor-title" value={title} onChange={e => setTitle(e.target.value)} onBlur={rename} onKeyDown={e => { if (e.key === 'Enter') e.currentTarget.blur() }} />
         <Button variant="secondary" disabled={busy} onClick={() => fieldForm()} className="table_editor-add_field_button">Add field</Button>
+        <TransferMenu item={documentTransfer(doc)} compact />
       </div>
       {data && data.fields.length > 0 && <div className="table_editor-modes" role="group" aria-label="Collection view">
         {([['grid', 'Grid', TableIcon], ['map', 'Map', MapIcon]] as const).map(([key, label, Icon]) => <Button key={key} aria-pressed={mode === key} onClick={() => setMode(key)}

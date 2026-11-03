@@ -66,3 +66,12 @@ test('ArrowDown on the closed trigger opens the menu', () => {
   fireEvent.keyDown(trigger, { key: 'ArrowDown' })
   expect(screen.getByRole('menu')).toBeInTheDocument()
 })
+
+test('the trigger can be a styled button variant and the list can line up with its right edge', () => {
+  render(<Menu label="Actions" items={items} triggerVariant="ghost" alignEnd>Actions</Menu>)
+  const trigger = screen.getByRole('button', { name: 'Actions' })
+  expect(trigger).toHaveClass('ui-button--ghost')
+  expect(trigger).not.toHaveClass('ui-button--unstyled')
+  fireEvent.click(trigger)
+  expect(screen.getByRole('menu')).toHaveClass('ui-menu-list--end')
+})

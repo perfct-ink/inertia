@@ -1,6 +1,10 @@
 import '@testing-library/jest-dom'
 import { fireEvent, render, screen } from '@testing-library/react'
 import ProjectsScreen from './ProjectsScreen'
+import { useTransferStore } from '@/store/transfer'
+
+let mockCanTransfer = true
+jest.mock('@/hooks/useTransferTargets', () => ({ useTransferTargets: () => ({ targets: [], canTransfer: mockCanTransfer, isLoading: false }) }))
 
 jest.mock('@/components/WorkspaceLayout', () => function LayoutMock({ children }: { children: React.ReactNode }) { return <div>{children}</div> })
 jest.mock('react-router-dom', () => ({
@@ -42,4 +46,24 @@ test('creates a project from the name typed in', () => {
   fireEvent.change(input, { target: { value: 'Billing' } })
   fireEvent.keyDown(input, { key: 'Enter' })
   expect(mockCreateFolder.mutate).toHaveBeenCalledWith({ name: 'Billing', kind: 'project' }, expect.anything())
+})
+
+describe('moving or copying a project to another Space', () => {
+  beforeEach(() => {
+    mockCanTransfer = true
+    useTransferStore.setState({ request: null })
+  })
+
+  test('each project card has a menu that opens the shared dialog with every document in the project', () => {
+    render(<ProjectsScreen />)
+    fireEvent.click(screen.getByRole('button', { name: 'More actions for Messages' }))
+    fireEvent.click(screen.getByRole('menuitem', { name: 'Move to Space…' }))
+    expect(useTransferStore.getState().request).toEqual({ mode: 'move', kind: 'folder', id: 2, name: 'Messages', documentIds: [2, 3] })
+  })
+
+  test('the menu is hidden when there is no other Space to write in', () => {
+    mockCanTransfer = false
+    render(<ProjectsScreen />)
+    expect(screen.queryByRole('button', { name: 'More actions for Messages' })).not.toBeInTheDocument()
+  })
 })

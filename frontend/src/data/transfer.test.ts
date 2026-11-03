@@ -1,4 +1,8 @@
-import { isMovedPage, transferDone, transferPath, transferSummary, transferTitle, transferVerb, type TransferRequest } from './transfer'
+import type { Document, Folder, WorkspaceSummary } from '@/types'
+import {
+  TRANSFER_MODES, canTransfer, documentTransfer, folderTransfer, isMovedPage, transferDestinations, transferDone, transferMenuLabel,
+  transferPath, transferSummary, transferTitle, transferVerb, type TransferRequest,
+} from './transfer'
 
 const request = (overrides: Partial<TransferRequest> = {}): TransferRequest =>
   ({ mode: 'move', kind: 'document', id: 7, name: 'Plan', documentIds: [7], ...overrides })
@@ -38,4 +42,33 @@ test('a moved item, or any document that went with it, is no longer a page of th
   expect(isMovedPage(folder, '/documents/9')).toBe(false)
   expect(isMovedPage(request(), '/documents/7')).toBe(true)
   expect(isMovedPage(request(), '/tasks')).toBe(false)
+})
+
+const doc = (id: number, title = `Doc ${id}`) => ({ id, title }) as Document
+const folder = (id: number, name: string, documents: Document[] = [], children: Folder[] = []) => ({ id, name, documents, children }) as Folder
+const space = (id: number, role: WorkspaceSummary['role']): WorkspaceSummary => ({ id, name: `Space ${id}`, personal: false, role })
+
+test('menus list move first, then copy, worded the same everywhere', () => {
+  expect(TRANSFER_MODES.map(transferMenuLabel)).toEqual(['Move to Space…', 'Copy to Space…'])
+})
+
+test('a document is offered by its id and title', () => {
+  expect(documentTransfer(doc(7, 'Plan'))).toEqual({ kind: 'document', id: 7, name: 'Plan', documentIds: [7] })
+})
+
+test('a folder is offered with the documents in it and in its subfolders', () => {
+  const plans = folder(3, 'Plans', [doc(1)], [folder(4, 'Old', [doc(2), doc(5)])])
+  expect(folderTransfer(plans)).toEqual({ kind: 'folder', id: 3, name: 'Plans', documentIds: [1, 2, 5] })
+  // The folder page already has the whole list.
+  expect(folderTransfer(plans, [doc(9)]).documentIds).toEqual([9])
+})
+
+test('a transfer is only offered when the user can write here and in another Space', () => {
+  const spaces = [space(1, 'owner'), space(2, 'member'), space(3, 'viewer'), space(4, 'admin')]
+  expect(transferDestinations({ id: 1, role: 'owner' }, spaces).map((s) => s.id)).toEqual([2, 4])
+  expect(transferDestinations({ id: 1, role: 'viewer' }, spaces)).toEqual([])
+  expect(transferDestinations(undefined, spaces)).toEqual([])
+  expect(transferDestinations({ id: 1, role: 'owner' }, [space(1, 'owner'), space(3, 'viewer')])).toEqual([])
+  expect(canTransfer(transferDestinations({ id: 1, role: 'member' }, spaces))).toBe(true)
+  expect(canTransfer([])).toBe(false)
 })

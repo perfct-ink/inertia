@@ -3,6 +3,10 @@ import { fireEvent, render, screen, within } from '@testing-library/react'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import FolderDetailScreen from './FolderDetailScreen'
 import type { TaskStatusSetting } from '@/types'
+import { useTransferStore } from '@/store/transfer'
+
+let mockCanTransfer = true
+jest.mock('@/hooks/useTransferTargets', () => ({ useTransferTargets: () => ({ targets: [], canTransfer: mockCanTransfer, isLoading: false }) }))
 
 jest.mock('@/components/WorkspaceLayout', () => function LayoutMock({ children }: { children: React.ReactNode }) { return <div>{children}</div> })
 jest.mock('@/components/CreateItem', () => function CreateItemMock() { return null })
@@ -16,8 +20,8 @@ const mockWorkspace = {
 }
 const task = (id: number, title: string, status: string) => ({ id, title, status, parent_id: null, due_date: null, document_id: 1 })
 const mockContents = {
-  folder: { id: 2, name: 'Messages', archived: false, dependency_mode: 'none' },
-  documents: [],
+  folder: { id: 2, name: 'Messages', archived: false, dependency_mode: 'none', root: false },
+  documents: [{ id: 5, title: 'Spec', doc_type: 'document' }, { id: 6, title: 'Notes', doc_type: 'document' }],
   tasks: [task(1, 'Write copy', 'todo'), task(2, 'Ship it', 'in_progress')],
   events: [],
   epics: [],
@@ -51,6 +55,9 @@ function renderScreen(view: string) {
 beforeEach(() => {
   mockRole = 'member'
   mockSettings = []
+  mockCanTransfer = true
+  mockContents.folder.root = false
+  useTransferStore.setState({ request: null })
 })
 
 test('the board names its columns and the move arrow with the built-in statuses by default', () => {
@@ -94,4 +101,25 @@ test('members can open the status editor from the board; viewers and other views
   mockRole = 'member'
   renderScreen('gantt')
   expect(screen.queryByRole('button', { name: 'Statuses' })).not.toBeInTheDocument()
+})
+
+describe('moving or copying the folder to another Space', () => {
+  test('the header has a Move or copy menu that opens the shared dialog with every document in the folder', () => {
+    renderScreen('overview')
+    fireEvent.click(screen.getByRole('button', { name: 'Move or copy to another Space' }))
+    fireEvent.click(screen.getByRole('menuitem', { name: 'Copy to Space…' }))
+    expect(useTransferStore.getState().request).toEqual({ mode: 'copy', kind: 'folder', id: 2, name: 'Messages', documentIds: [5, 6] })
+  })
+
+  test('it is hidden when there is no other Space to write in, and for the Space root', () => {
+    mockCanTransfer = false
+    const { unmount } = renderScreen('overview')
+    expect(screen.queryByRole('button', { name: 'Move or copy to another Space' })).not.toBeInTheDocument()
+    unmount()
+
+    mockCanTransfer = true
+    mockContents.folder.root = true
+    renderScreen('overview')
+    expect(screen.queryByRole('button', { name: 'Move or copy to another Space' })).not.toBeInTheDocument()
+  })
 })

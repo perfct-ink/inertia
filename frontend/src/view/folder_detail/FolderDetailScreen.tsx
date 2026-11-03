@@ -26,7 +26,9 @@ import './FolderDetailScreen.scss'
 import { usePageTitle } from '@/hooks/usePageTitle'
 import { useBoardStatuses } from '@/hooks/useBoardStatuses'
 import { StatusSettings } from '@/components/workspace/StatusSettings'
+import { TransferMenu } from '@/components/workspace/TransferMenu'
 import { donePercent, milestoneMarkers } from '@/data/schedule'
+import { folderTransfer } from '@/data/transfer'
 import { BOARD_STATUSES, NEXT_STATUS, nextStatusLabel, type BoardStatuses } from '@/data/task_status'
 import GanttPane from './GanttPane'
 import CardsView from './CardsView'
@@ -434,6 +436,13 @@ export default function FolderDetailScreen() {
                 <Palette className="folder_detail-icon--sm" />
                 Statuses
               </Button>
+            )}
+            {!folder.root && (
+              <TransferMenu
+                item={folderTransfer(folder, documents)}
+                variant="unstyled"
+                triggerClassName="folder_detail-subtle folder_detail-action"
+              />
             )}
             <Button
               onClick={() => updateFolder.mutate({ id: folderId, archived: !folder.archived })}

@@ -7,8 +7,7 @@ import { useCreateFolder, useDeleteFolder, usePinFolder, useUpdateFolder } from 
 import { useCreateDocument, useDeleteDocument, usePinDocument, useUpdateDocument } from '@/api/documents'
 import { useUploadFiles } from '@/api/workspace'
 import { errorMessage } from '@/api/tables'
-import { documentsIn } from '@/data/folder'
-import type { TransferRequest } from '@/data/transfer'
+import { TRANSFER_MODES, documentTransfer, folderTransfer, transferMenuLabel, type TransferItem } from '@/data/transfer'
 import { useTransferTargets } from '@/hooks/useTransferTargets'
 import { useTransferStore } from '@/store/transfer'
 import type { Folder as FolderType, Document } from '@/types'
@@ -119,7 +118,7 @@ export function FolderItem({ folder, depth = 0, bare = false, hideProjects = fal
   const updateDocument = useUpdateDocument()
   const openTransfer = useTransferStore((s) => s.open)
   // Moving or copying needs another Space to put things in.
-  const canTransfer = useTransferTargets().targets.length > 0
+  const { canTransfer } = useTransferTargets()
   const uploadFiles = useUploadFiles()
   const [dropTarget, setDropTarget] = useState(false)
 
@@ -131,10 +130,10 @@ export function FolderItem({ folder, depth = 0, bare = false, hideProjects = fal
   const isFeature = folder.kind === 'feature'
   const FolderIcon = isProject ? FolderKanban : isFeature ? Layers : Folder
 
-  const transferItems = (describe: () => Omit<TransferRequest, 'mode'>): MenuItem[] => canTransfer ? [
-    { label: 'Move to Space…', action: () => openTransfer({ mode: 'move', ...describe() }) },
-    { label: 'Copy to Space…', action: () => openTransfer({ mode: 'copy', ...describe() }) },
-  ] : []
+  // `describe` runs on click, so a folder's documents aren't collected on every render.
+  const transferItems = (describe: () => TransferItem): MenuItem[] => canTransfer
+    ? TRANSFER_MODES.map((mode) => ({ label: transferMenuLabel(mode), action: () => openTransfer({ mode, ...describe() }) }))
+    : []
 
   async function createItem(type: Document['doc_type']) {
     setOpen(true)
@@ -153,7 +152,7 @@ export function FolderItem({ folder, depth = 0, bare = false, hideProjects = fal
     { label: folder.pinned ? 'Unpin' : 'Pin', action: () => pinFolder.mutate({ id: folder.id, pinned: !folder.pinned }) },
     { label: 'Rename', action: () => setRenamingFolder(true) },
     ...(folder.root ? [] : [
-      ...transferItems(() => ({ kind: 'folder', id: folder.id, name: folder.name, documentIds: documentsIn(folder).map((d) => d.id) })),
+      ...transferItems(() => folderTransfer(folder)),
       { label: isProject ? 'Make Folder' : 'Make Project', action: () => updateFolder.mutate({ id: folder.id, kind: isProject ? 'folder' : 'project' }) },
       { label: isFeature ? 'Make Folder' : 'Make Feature Folder', action: () => updateFolder.mutate({ id: folder.id, kind: isFeature ? 'folder' : 'feature' }) },
       { label: 'Archive', action: () => updateFolder.mutate({ id: folder.id, archived: true }) },
@@ -270,7 +269,7 @@ export function FolderItem({ folder, depth = 0, bare = false, hideProjects = fal
           items={[
             { label: 'Rename', action: () => setRenamingDocId(docCtx.doc.id) },
             { label: docCtx.doc.pinned ? 'Unpin' : 'Pin', action: () => pinDocument.mutate({ id: docCtx.doc.id, pinned: !docCtx.doc.pinned }) },
-            ...transferItems(() => ({ kind: 'document', id: docCtx.doc.id, name: docCtx.doc.title, documentIds: [docCtx.doc.id] })),
+            ...transferItems(() => documentTransfer(docCtx.doc)),
             { label: 'Delete', action: () => deleteDocument.mutate(docCtx.doc.id, { onError: e => setActionError(errorMessage(e)) }), danger: true },
           ]}
           onClose={() => setDocCtx(null)}

@@ -28,6 +28,11 @@
         bottom: 100%;
         margin: 0 0 space(1);
       }
+
+      &--end {
+        right: 0;
+        left: auto;
+      }
     }
 
     &-separator {

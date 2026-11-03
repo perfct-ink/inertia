@@ -8,6 +8,9 @@ import { useWorkspace } from '@/api/workspace'
 import WorkspaceLayout from '@/components/WorkspaceLayout'
 import CreateItem from '@/components/CreateItem'
 import FilesGallery from '@/components/FilesGallery'
+import { TransferMenu } from '@/components/workspace/TransferMenu'
+import { useTransferTargets } from '@/hooks/useTransferTargets'
+import { documentTransfer } from '@/data/transfer'
 import { spaceFiles, searchSpaceFiles, filterSpaceFiles, projectsOf, type SpaceFileFilters } from '@/data/folder'
 import { useWorkspaceMembers } from '@/api/workspaceMembers'
 import { useWorkspaceStore } from '@/store/workspaces'
@@ -27,6 +30,8 @@ export default function DocumentsIndexScreen() {
   usePageTitle('All files')
   const navigate = useNavigate()
   const { data: workspace, isLoading } = useWorkspace()
+  // The Move or copy column only exists when there is another Space to send files to.
+  const { canTransfer } = useTransferTargets()
   const [sortKey, setSortKey] = useState<SortKey>('name')
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc')
   const [query, setQuery] = useState('')
@@ -143,6 +148,7 @@ export default function DocumentsIndexScreen() {
                 <SortHeader sortKeyName="name" label="Name" className="documents_index-col--name" />
                 <SortHeader sortKeyName="location" label="Location" className="documents_index-col--location" />
                 <SortHeader sortKeyName="modified" label="Last Modified" className="documents_index-col--modified" />
+                {canTransfer && <span className="documents_index-actions" />}
               </div>
               <div className="documents_index-rows">
                 {sortedDocs.map((doc) => (
@@ -165,6 +171,11 @@ export default function DocumentsIndexScreen() {
                     <span className="documents_index-modified">
                       {format(parseISO(lastModified(doc)), 'MMM d, yyyy h:mm a')}
                     </span>
+                    {canTransfer && (
+                      <span className="documents_index-actions">
+                        <TransferMenu item={documentTransfer(doc)} compact />
+                      </span>
+                    )}
                   </div>
                 ))}
               </div>

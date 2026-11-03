@@ -1,0 +1,36 @@
+@use 'tokens' as *;
+
+@layer app.components {
+  .transfer_menu {
+    // A phone gets a trigger big enough to tap; a pointer doesn't need it.
+    &-trigger {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: space(1.5);
+      min-width: space(10);
+      min-height: space(10);
+      color: color(muted-foreground);
+      user-select: none;
+
+      &:hover:not(:disabled) {
+        color: color(foreground);
+      }
+
+      @include up('md') {
+        min-width: 0;
+        min-height: 0;
+      }
+    }
+
+    &-icon {
+      flex-shrink: 0;
+      width: space(4);
+      height: space(4);
+    }
+
+    &-text {
+      @include text('sm');
+    }
+  }
+}

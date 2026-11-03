@@ -143,9 +143,26 @@
       }
     }
 
+    // A phone has room for a narrower date column; the full width returns at sm.
     @at-root .documents_index-col--modified {
       flex-shrink: 0;
-      width: space(36);
+      width: space(28);
+
+      @include up('sm') {
+        width: space(36);
+      }
+    }
+
+    // The Move or copy menu's column, as wide as its button.
+    @at-root .documents_index-actions {
+      display: flex;
+      flex-shrink: 0;
+      justify-content: flex-end;
+      width: space(10);
+
+      @include up('md') {
+        width: space(8);
+      }
     }
 
     .documents_index-link {
@@ -186,9 +203,13 @@
 
     @at-root .documents_index-modified {
       flex-shrink: 0;
-      width: space(36);
+      width: space(28);
       color: color(muted-foreground);
       @include text('xs');
+
+      @include up('sm') {
+        width: space(36);
+      }
     }
   }
 }

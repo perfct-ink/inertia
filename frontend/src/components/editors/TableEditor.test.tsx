@@ -3,6 +3,10 @@ import '@testing-library/jest-dom'
 import TableEditor from './TableEditor'
 import type { Document } from '@/types'
 import type { TableData } from '@/api/tables'
+import { useTransferStore } from '@/store/transfer'
+
+let mockCanTransfer = true
+jest.mock('@/hooks/useTransferTargets', () => ({ useTransferTargets: () => ({ targets: [], canTransfer: mockCanTransfer, isLoading: false }) }))
 
 let mockData: TableData
 const mockEdit = jest.fn()
@@ -157,4 +161,18 @@ test('the view switch only appears once the collection has fields', () => {
   mockData = { fields: [], records: [] }
   render(<TableEditor doc={doc} />)
   expect(screen.queryByRole('button', { name: 'Map' })).not.toBeInTheDocument()
+})
+
+test('the Collection page can be moved or copied to another Space, unless there is none to write in', () => {
+  mockCanTransfer = true
+  useTransferStore.setState({ request: null })
+  const { unmount } = render(<TableEditor doc={doc} />)
+  fireEvent.click(screen.getByRole('button', { name: 'More actions for Contacts' }))
+  fireEvent.click(screen.getByRole('menuitem', { name: 'Move to Space…' }))
+  expect(useTransferStore.getState().request).toEqual({ mode: 'move', kind: 'document', id: 1, name: 'Contacts', documentIds: [1] })
+  unmount()
+
+  mockCanTransfer = false
+  render(<TableEditor doc={doc} />)
+  expect(screen.queryByRole('button', { name: 'More actions for Contacts' })).not.toBeInTheDocument()
 })

@@ -27,3 +27,15 @@ test('a document directly in Root shows only the Space and the document', () => 
   render(<Breadcrumb folderId={1} title="Notes" />)
   expect(screen.getAllByRole('listitem')).toHaveLength(2)
 })
+
+test('puts the page actions (the Move or copy menu) on the same row, outside the navigation', () => {
+  render(<Breadcrumb folderId={3} title="Mockups" actions={<button>Move or copy</button>} />)
+  const action = screen.getByRole('button', { name: 'Move or copy' })
+  expect(action).toBeInTheDocument()
+  expect(screen.getByRole('navigation', { name: 'Breadcrumb' })).not.toContainElement(action)
+})
+
+test('has no actions area when none are given', () => {
+  const { container } = render(<Breadcrumb folderId={3} title="Mockups" />)
+  expect(container.querySelector('.ui-breadcrumb-actions')).toBeNull()
+})
