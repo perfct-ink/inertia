@@ -1,8 +1,10 @@
 import { useState, type ReactNode } from 'react'
-import { ChevronsUpDown, Plus, Users, UsersRound } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
+import { ChevronsUpDown, Plus, Users, UsersRound, Zap } from 'lucide-react'
 import { Menu, PromptDialog, type MenuItem } from '@/components/ui'
 import { useWorkspace } from '@/api/workspace'
 import { useCreateWorkspace, useWorkspaces } from '@/api/workspaces'
+import { canWriteWorkspace } from '@/data/workspace'
 import { useSwitchWorkspace } from '@/hooks/useSwitchWorkspace'
 import type { WorkspaceSummary } from '@/types'
 import { WorkspaceMembers } from './WorkspaceMembers'
@@ -10,11 +12,13 @@ import { WorkspaceTeams } from './WorkspaceTeams'
 import './WorkspaceSwitcher.scss'
 
 // The sidebar header's Space name, which opens a dropdown menu to switch
-// between Spaces (projects with their own people), create one, or manage members
-// and teams. children (a logo) lead the button, so the whole block is one
-// click target. The open project's switcher (ProjectNav) shares its styles.
+// between Spaces (projects with their own people), create one, open its
+// automations, or manage members and teams. children (a logo) lead the button,
+// so the whole block is one click target. The open project's switcher
+// (ProjectNav) shares its styles.
 export function WorkspaceSwitcher({ children }: { children?: ReactNode }) {
   const switchWorkspace = useSwitchWorkspace()
+  const navigate = useNavigate()
   const { data: current } = useWorkspace()
   const { data: workspaces = [] } = useWorkspaces()
   const createWorkspace = useCreateWorkspace()
@@ -41,6 +45,7 @@ export function WorkspaceSwitcher({ children }: { children?: ReactNode }) {
     })),
     { key: 'new', label: 'New Space...', icon: <Plus className="workspace_switcher-icon" aria-hidden="true" />, separatorBefore: true, onSelect: () => setCreating(true) },
     ...(current ? [{ key: 'members', label: 'Members...', icon: <Users className="workspace_switcher-icon" aria-hidden="true" />, onSelect: () => setMembersOpen(true) }] : []),
+    ...(current && canWriteWorkspace(current.role) ? [{ key: 'automations', label: 'Automations', icon: <Zap className="workspace_switcher-icon" aria-hidden="true" />, onSelect: () => navigate('/automations') }] : []),
     ...(current && !current.personal ? [{ key: 'teams', label: 'Teams...', icon: <UsersRound className="workspace_switcher-icon" aria-hidden="true" />, onSelect: () => setTeamsOpen(true) }] : []),
   ]
 

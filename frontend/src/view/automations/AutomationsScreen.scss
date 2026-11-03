@@ -1,0 +1,221 @@
+@use 'tokens' as *;
+
+/* Automations reuse the Planning screen's header, list, cards and empty state. */
+
+@layer view {
+  .view-automations {
+    @at-root .automations-note {
+      color: color(muted-foreground);
+      @include text('sm');
+    }
+
+    @at-root .automations-card {
+      display: flex;
+      flex-direction: column;
+      gap: space(2);
+      padding: space(4);
+      border-width: 1px;
+      border-radius: radius('lg');
+      background: color(card);
+
+      &--off .automations-summary dd {
+        color: color(muted-foreground);
+      }
+
+      &-top {
+        display: flex;
+        align-items: center;
+        gap: space(2);
+      }
+
+      &-title {
+        flex: 1 1 0%;
+        min-width: 0;
+        font-weight: 600;
+        overflow-wrap: anywhere;
+      }
+    }
+
+    @at-root .automations-status {
+      flex-shrink: 0;
+      padding: space(0.5) space(2);
+      border-radius: radius('full');
+      font-weight: 500;
+      white-space: nowrap;
+      @include text('xs');
+
+      &--on {
+        background: palette('green-500', 0.15);
+        color: palette('green-500');
+      }
+
+      &--off {
+        background: color(muted);
+        color: color(muted-foreground);
+      }
+    }
+
+    /* When / If / Then: a narrow label column that stacks above its text on a phone. */
+    @at-root .automations-summary {
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr);
+      gap: space(1) space(3);
+      @include text('sm');
+
+      dt {
+        color: color(muted-foreground);
+        font-weight: 500;
+      }
+
+      dd {
+        overflow-wrap: anywhere;
+      }
+
+      @media (width <= 30rem) {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 0;
+
+        dd {
+          margin-bottom: space(2);
+        }
+      }
+    }
+
+    @at-root .automations-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: space(2);
+      margin-top: space(1);
+    }
+
+    @at-root .automations-form {
+      display: flex;
+      flex-direction: column;
+      gap: space(4);
+
+      &-actions {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+        gap: space(2);
+      }
+    }
+
+    @at-root .automations-field {
+      display: flex;
+      flex-direction: column;
+      gap: space(1);
+      min-width: 0;
+      color: color(muted-foreground);
+      @include text('sm');
+    }
+
+    @at-root .automations-step {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: space(2);
+      padding: space(3);
+      border-width: 1px;
+      border-radius: radius('md');
+
+      &-title {
+        color: color(muted-foreground);
+        font-weight: 600;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        @include text('xs');
+      }
+    }
+
+    @at-root .automations-trigger {
+      flex: 1 1 100%;
+      @include text('sm');
+    }
+
+    @at-root .automations-hint {
+      color: color(muted-foreground);
+      @include text('sm');
+    }
+
+    @at-root .automations-rows {
+      display: flex;
+      flex-direction: column;
+      gap: space(3);
+      width: 100%;
+    }
+
+    /* A condition or action: its dropdowns share the line and wrap on a phone. */
+    @at-root .automations-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: space(2);
+      width: 100%;
+      min-width: 0;
+
+      > .ui-select {
+        flex: 1 1 10rem;
+        min-width: 0;
+      }
+    }
+
+    @at-root .automations-checks {
+      display: flex;
+      flex: 2 1 14rem;
+      flex-wrap: wrap;
+      gap: space(1) space(4);
+      min-width: 0;
+      margin: 0;
+      padding: 0;
+      border-width: 0;
+    }
+
+    @at-root .automations-check {
+      display: inline-flex;
+      align-items: center;
+      gap: space(2);
+      min-height: space(10);
+      cursor: pointer;
+      @include text('sm');
+    }
+
+    @at-root .automations-remove {
+      display: inline-flex;
+      flex: 0 0 auto;
+      align-items: center;
+      justify-content: center;
+      min-width: space(10);
+      min-height: space(10);
+      color: color(muted-foreground);
+
+      &:hover:not(:disabled) {
+        color: palette('red-500');
+      }
+    }
+
+    @at-root .automations-icon {
+      flex-shrink: 0;
+      width: space(4);
+      height: space(4);
+    }
+
+    @at-root .automations-add {
+      display: inline-flex;
+      align-items: center;
+      gap: space(1.5);
+    }
+
+    @at-root .automations-visually_hidden {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      margin: -1px;
+      padding: 0;
+      border: 0;
+      overflow: hidden;
+      white-space: nowrap;
+      clip-path: inset(50%);
+    }
+  }
+}

@@ -6,7 +6,7 @@ import type { Folder } from '@/types'
 
 // Pages about the Space's projects as a whole: the sidebar lists the projects
 // there instead of the open project's pages.
-const SPACE_PAGES = ['/space', '/project-requests']
+const SPACE_PAGES = ['/space', '/project-requests', '/automations']
 
 // The project the sidebar shows, or null when it shows the projects list.
 export function useOpenProject(): Folder | null {
