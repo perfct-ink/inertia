@@ -145,6 +145,16 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_03_120001) do
     t.index ["workspace_id"], name: "index_folders_on_workspace_id"
   end
 
+  create_table "holidays", force: :cascade do |t|
+    t.bigint "workspace_id", null: false
+    t.string "name", null: false
+    t.date "start_date", null: false
+    t.date "end_date", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["workspace_id"], name: "index_holidays_on_workspace_id"
+  end
+
   create_table "ideas", force: :cascade do |t|
     t.bigint "workspace_id", null: false
     t.bigint "submitted_by_id"
@@ -518,6 +528,18 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_03_120001) do
     t.index ["workspace_id"], name: "index_teams_on_workspace_id"
   end
 
+  create_table "time_offs", force: :cascade do |t|
+    t.bigint "workspace_id", null: false
+    t.bigint "user_id", null: false
+    t.date "start_date", null: false
+    t.date "end_date", null: false
+    t.string "note"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["user_id"], name: "index_time_offs_on_user_id"
+    t.index ["workspace_id"], name: "index_time_offs_on_workspace_id"
+  end
+
   create_table "users", force: :cascade do |t|
     t.string "name", null: false
     t.string "email", default: "", null: false
@@ -573,6 +595,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_03_120001) do
   add_foreign_key "events", "workspaces"
   add_foreign_key "folders", "folders", column: "parent_id"
   add_foreign_key "folders", "workspaces"
+  add_foreign_key "holidays", "workspaces"
   add_foreign_key "ideas", "folders", on_delete: :nullify
   add_foreign_key "ideas", "users", column: "submitted_by_id", on_delete: :nullify
   add_foreign_key "ideas", "workspaces"
@@ -637,6 +660,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_03_120001) do
   add_foreign_key "team_memberships", "teams"
   add_foreign_key "team_memberships", "users"
   add_foreign_key "teams", "workspaces"
+  add_foreign_key "time_offs", "users"
+  add_foreign_key "time_offs", "workspaces"
   add_foreign_key "workspace_memberships", "users"
   add_foreign_key "workspace_memberships", "workspaces"
   add_foreign_key "workspaces", "folders", column: "root_folder_id"

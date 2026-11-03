@@ -83,6 +83,28 @@ export interface ResourceAllocation {
   updated_at: string
 }
 
+// A person's leave: whole days from start to end, both included. The note is
+// only sent to admins and owners.
+export interface TimeOff {
+  id: number
+  user_id: number
+  start_date: string
+  end_date: string
+  note: string | null
+  created_at: string
+  updated_at: string
+}
+
+// A day off for everyone in the Space: whole days from start to end, both included.
+export interface Holiday {
+  id: number
+  name: string
+  start_date: string
+  end_date: string
+  created_at: string
+  updated_at: string
+}
+
 // The fixed set every task is in. A board can call each one something else
 // and colour it (see TaskStatusSetting), but a task is always one of these.
 export type TaskStatus = 'todo' | 'in_progress' | 'in_review' | 'done' | 'backlog'

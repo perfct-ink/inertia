@@ -47,6 +47,12 @@ en:
       resource_allocation:
         one: "Allocation"
         other: "Allocations"
+      time_off:
+        one: "Time off"
+        other: "Time off"
+      holiday:
+        one: "Holiday"
+        other: "Holidays"
       project_request:
         one: "Project request"
         other: "Project requests"
@@ -78,6 +84,11 @@ en:
         user: "Person"
         folder: "Project"
         hours_per_week: "Hours per week"
+      time_off:
+        workspace: "Space"
+        user: "Person"
+      holiday:
+        workspace: "Space"
       project_request:
         workspace: "Space"
         decision_note: "Reason"

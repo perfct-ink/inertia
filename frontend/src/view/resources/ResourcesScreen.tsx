@@ -3,7 +3,9 @@ import { Link } from 'react-router-dom'
 import { ChevronLeft, ChevronRight, Loader2, TriangleAlert, Users } from 'lucide-react'
 import { Button } from '@/components/ui'
 import WorkspaceLayout from '@/components/WorkspaceLayout'
+import { useHolidays } from '@/api/holidays'
 import { useResourceAllocations } from '@/api/resourceAllocations'
+import { useTimeOffs } from '@/api/timeOffs'
 import { useWorkspace } from '@/api/workspace'
 import { canManageWorkspace } from '@/api/workspaces'
 import { useWorkspaceMembers } from '@/api/workspaceMembers'
@@ -12,19 +14,23 @@ import { overAllocated, personLoads, projectLoads, weekEnd, weekLabel, weekRange
 import { usePageTitle } from '@/hooks/usePageTitle'
 import { useAuthStore } from '@/store/auth'
 import { todayISO } from '@/util/date'
-import type { ResourceAllocation, WorkspaceMember } from '@/types'
+import type { Holiday, ResourceAllocation, TimeOff, WorkspaceMember } from '@/types'
 import PersonCard from './PersonCard'
 import ProjectCard from './ProjectCard'
+import TimeOffTab from './TimeOffTab'
 import './ResourcesScreen.scss'
 
-type Tab = 'people' | 'projects'
+type Tab = 'people' | 'projects' | 'timeOff'
 
 // Stable while a query has no data yet, so the memos below don't rerun.
 const NO_MEMBERS: WorkspaceMember[] = []
 const NO_ALLOCATIONS: ResourceAllocation[] = []
+const NO_TIME_OFFS: TimeOff[] = []
+const NO_HOLIDAYS: Holiday[] = []
 
 // Resource management: each person's weekly capacity and how many hours a week
 // they are allocated to projects, with a warning for any week over capacity.
+// Time off and holidays lower the capacity of the weeks they fall in.
 // Everyone in the Space can read the plan; admins and owners change it.
 export default function ResourcesScreen() {
   usePageTitle('Resources')
@@ -32,20 +38,22 @@ export default function ResourcesScreen() {
   const { data: workspace, isLoading: loadingWorkspace } = useWorkspace()
   const { data: members = NO_MEMBERS, isLoading: loadingMembers } = useWorkspaceMembers(workspace?.id ?? 0)
   const { data: allocations = NO_ALLOCATIONS, isLoading: loadingAllocations } = useResourceAllocations()
+  const { data: timeOffs = NO_TIME_OFFS, isLoading: loadingTimeOffs } = useTimeOffs()
+  const { data: holidays = NO_HOLIDAYS, isLoading: loadingHolidays } = useHolidays()
   const [tab, setTab] = useState<Tab>('people')
   // How many weeks the window has been moved from the current week.
   const [offset, setOffset] = useState(0)
   const today = todayISO()
 
   const weeks = useMemo(() => weekRange(today, WEEKS_SHOWN, offset), [today, offset])
-  const people = useMemo(() => personLoads(members, allocations, weeks), [members, allocations, weeks])
+  const people = useMemo(() => personLoads(members, allocations, weeks, { timeOffs, holidays }), [members, allocations, weeks, timeOffs, holidays])
   const projects = useMemo(() => projectLoads(allocations, weeks), [allocations, weeks])
   const tree = workspace?.folders
   const names = useMemo(() => new Map(flattenFolders(tree ?? []).map((f): [number, string] => [f.id, f.name])), [tree])
   const projectChoices = useMemo(() => projectsOf(tree ?? []), [tree])
   const canManage = canManageWorkspace(workspace?.role)
   const over = overAllocated(people)
-  const isLoading = loadingWorkspace || loadingMembers || loadingAllocations
+  const isLoading = loadingWorkspace || loadingMembers || loadingAllocations || loadingTimeOffs || loadingHolidays
   const projectName = (folderId: number) => names.get(folderId) ?? 'Archived project'
   const byName = [...projects].sort((a, b) => projectName(a.folderId).localeCompare(projectName(b.folderId)))
 
@@ -54,8 +62,8 @@ export default function ResourcesScreen() {
       <div className="view-resources">
         <div className="resources-header">
           <h1 className="resources-title">Resources</h1>
-          <div className="resources-tabs" role="group" aria-label="Group by">
-            {([['people', 'People'], ['projects', 'Projects']] as const).map(([value, label]) => (
+          <div className="resources-tabs" role="group" aria-label="View">
+            {([['people', 'People'], ['projects', 'Projects'], ['timeOff', 'Time off']] as const).map(([value, label]) => (
               <Button
                 key={value}
                 aria-pressed={tab === value}
@@ -89,7 +97,7 @@ export default function ResourcesScreen() {
               </p>
             )}
 
-            {canManage && !isLoading && projectChoices.length === 0 && (
+            {canManage && !isLoading && tab !== 'timeOff' && projectChoices.length === 0 && (
               <p className="resources-hint">
                 Allocating people needs a project. Create one on the <Link to="/space" className="resources-link">Projects page</Link> or make a folder a project from the sidebar.
               </p>
@@ -113,6 +121,10 @@ export default function ResourcesScreen() {
             {!isLoading && tab === 'projects' && byName.map((project) => (
               <ProjectCard key={project.folderId} project={project} name={projectName(project.folderId)} people={people} />
             ))}
+
+            {!isLoading && tab === 'timeOff' && (
+              <TimeOffTab people={people} timeOffs={timeOffs} holidays={holidays} firstWeek={weeks[0]} canManage={canManage} today={today} />
+            )}
 
             {!isLoading && tab === 'projects' && byName.length === 0 && (
               <div className="resources-empty">

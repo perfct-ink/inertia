@@ -1,8 +1,8 @@
 import { useState } from 'react'
-import { TriangleAlert } from 'lucide-react'
+import { CalendarOff, TriangleAlert } from 'lucide-react'
 import { FormError, Input } from '@/components/ui'
 import { useUpdateMemberCapacity } from '@/api/workspaceMembers'
-import { CAPACITY_ERROR, formatHours, loadPercent, MAX_WEEKLY_HOURS, parseHours, weekLabel, weekNote } from '@/data/resource'
+import { CAPACITY_ERROR, daysOffLabel, daysOffReason, formatHours, loadPercent, MAX_WEEKLY_HOURS, parseHours, weekLabel, weekNote } from '@/data/resource'
 import type { PersonLoad, WeekLoad } from '@/data/resource'
 import type { Folder } from '@/types'
 import AllocateForm from './AllocateForm'
@@ -32,7 +32,7 @@ export default function PersonCard({ load, workspaceId, projects, projectName, c
       </div>
 
       <ul className="resources-weeks" aria-label={`Hours per week for ${load.name}, by week starting Monday`}>
-        {load.weeks.map((week) => <WeekCell key={week.week} week={week} capacity={load.capacity} />)}
+        {load.weeks.map((week) => <WeekCell key={week.week} week={week} />)}
       </ul>
 
       {load.allocations.length > 0 && (
@@ -54,21 +54,32 @@ export default function PersonCard({ load, workspaceId, projects, projectName, c
   )
 }
 
-// A week's hours against capacity. Over-allocation is said in words and an
+// A week's hours against that week's capacity (the weekly capacity less days
+// off, said in words under the note). Over-allocation is said in words and an
 // icon as well as the red bar, so it doesn't rely on colour.
-function WeekCell({ week, capacity }: { week: WeekLoad; capacity: number }) {
+function WeekCell({ week }: { week: WeekLoad }) {
   const over = week.over > 0
+  const daysOff = daysOffLabel(week.off)
   return (
     <li className={`resources-week${over ? ' resources-week--over' : ''}`}>
       <span className="resources-week-label">{weekLabel(week.week)}</span>
-      <span className="resources-week-hours">{formatHours(week.allocated)} / {formatHours(capacity)} h</span>
+      <span className="resources-week-hours">{formatHours(week.allocated)} / {formatHours(week.capacity)} h</span>
       <span className="resources-week-bar" aria-hidden="true">
-        <span className="resources-week-bar_fill" style={{ width: `${Math.min(100, loadPercent(week.allocated, capacity))}%` }} />
+        <span className="resources-week-bar_fill" style={{ width: `${Math.min(100, loadPercent(week.allocated, week.capacity))}%` }} />
       </span>
       <span className="resources-week-note">
         {over && <TriangleAlert className="resources-icon" aria-hidden="true" />}
         {weekNote(week)}
       </span>
+      {daysOff && (
+        <span className="resources-week-off">
+          <CalendarOff className="resources-icon" aria-hidden="true" />
+          <span>
+            {daysOff}
+            <span className="resources-week-reason">{daysOffReason(week.off)}</span>
+          </span>
+        </span>
+      )}
     </li>
   )
 }

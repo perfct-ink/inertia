@@ -229,6 +229,23 @@
         color: color(muted-foreground);
       }
 
+      // Days off say why the week's capacity is lower; they are not a warning.
+      &-off {
+        display: flex;
+        align-items: flex-start;
+        gap: space(1);
+        color: color(muted-foreground);
+
+        .resources-icon {
+          margin-top: 1px;
+        }
+      }
+
+      &-reason {
+        display: block;
+        overflow-wrap: anywhere;
+      }
+
       &--over &-bar_fill {
         background: color(danger);
       }
@@ -239,7 +256,8 @@
       }
     }
 
-    @at-root .resources-allocations {
+    @at-root .resources-allocations,
+    .resources-spans {
       display: flex;
       flex-direction: column;
       gap: space(3);
@@ -247,13 +265,17 @@
       border-top: 1px solid color(border);
     }
 
-    @at-root .resources-allocation {
+    // A person's allocation, a holiday and a person's leave are the same row:
+    // what it is, editable fields and a summary.
+    @at-root .resources-allocation,
+    .resources-span {
       display: flex;
       flex-wrap: wrap;
       align-items: center;
       gap: space(2) space(4);
 
-      &-project {
+      &-project,
+      &-heading {
         flex: 1 1 10rem;
         min-width: 0;
         font-weight: 500;
@@ -271,6 +293,16 @@
         color: color(muted-foreground);
         @include text('sm');
       }
+
+      &-name {
+        display: flex;
+        flex-direction: column;
+        gap: space(1);
+      }
+
+      &-error {
+        flex-basis: 100%;
+      }
     }
 
     @at-root .resources-field {
@@ -279,6 +311,10 @@
       gap: space(1);
       color: color(muted-foreground);
       @include text('xs');
+    }
+
+    .resources-field--note {
+      flex: 1 1 12rem;
     }
 
     @at-root .resources-form {

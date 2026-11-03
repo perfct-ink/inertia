@@ -16,7 +16,7 @@ class WorkspaceMembership < ApplicationRecord
   validate :personal_workspace_is_not_shared, on: :create
   before_destroy :keep_an_owner, unless: :destroyed_by_association
   before_update :keep_an_owner_on_demotion
-  after_destroy :remove_resource_allocations
+  after_destroy :remove_resource_plan
 
   private
 
@@ -25,9 +25,11 @@ class WorkspaceMembership < ApplicationRecord
     errors.add(:base, "A personal space cannot be shared") unless user_id == workspace.user_id
   end
 
-  # Someone who leaves a space is no longer planned onto its projects.
-  def remove_resource_allocations
+  # Someone who leaves a space is no longer planned onto its projects and
+  # their time off there goes with them.
+  def remove_resource_plan
     workspace.resource_allocations.where(user_id: user_id).delete_all
+    workspace.time_offs.where(user_id: user_id).delete_all
   end
 
   def last_owner?

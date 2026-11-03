@@ -1,13 +1,16 @@
-import type { ResourceAllocation, WorkspaceMember } from '@/types'
+import type { Holiday, ResourceAllocation, TimeOff, WorkspaceMember } from '@/types'
 import {
-  allocationError, allocationPeriod, currentAllocations, formatHours, HOURS_ERROR, isActiveInWeek, loadPercent,
-  overAllocated, parseHours, personLoads, projectLoads, weekEnd, weekNote, weekRange, weekStart,
+  allocationError, allocationPeriod, currentAllocations, currentSpans, daysOffLabel, daysOffReason, formatHours, HOURS_ERROR, holidayError, isActiveInWeek,
+  loadPercent, overAllocated, parseHours, personLoads, projectLoads, spanError, spanPeriod, timeOffError, weekCapacity, weekEnd, weekNote, weekOff,
+  weekRange, weekStart, workingDayCount, workingDays,
 } from './resource'
 
 const member = (userId: number, name: string, capacity = 40) =>
   ({ id: userId + 100, user_id: userId, role: 'member', weekly_capacity_hours: capacity, user: { id: userId, name, email: `${name}@example.com` } }) as WorkspaceMember
 const alloc = (id: number, userId: number, folderId: number, hours: number, start: string | null = null, end: string | null = null) =>
   ({ id, user_id: userId, folder_id: folderId, hours_per_week: hours, start_date: start, end_date: end }) as ResourceAllocation
+const timeOff = (id: number, userId: number, start: string, end: string) => ({ id, user_id: userId, start_date: start, end_date: end, note: null }) as TimeOff
+const holiday = (id: number, name: string, start: string, end: string) => ({ id, name, start_date: start, end_date: end }) as Holiday
 
 // 2026-11-02 is a Monday.
 const weeks = weekRange('2026-11-04', 3)
@@ -175,5 +178,169 @@ describe('parseHours', () => {
   test('zero is only for a capacity', () => {
     expect(parseHours('0')).toBe(null)
     expect(parseHours('0', { allowZero: true })).toBe(0)
+  })
+})
+
+describe('working days', () => {
+  test('a week has five working days, Monday to Friday', () => {
+    expect(workingDays('2026-11-02')).toEqual(['2026-11-02', '2026-11-03', '2026-11-04', '2026-11-05', '2026-11-06'])
+  })
+
+  test('counts Monday to Friday days between two dates, both included', () => {
+    expect(workingDayCount('2026-11-02', '2026-11-06')).toBe(5)
+    expect(workingDayCount('2026-11-09', '2026-11-09')).toBe(1)
+    expect(workingDayCount('2026-11-06', '2026-11-09')).toBe(2)
+    expect(workingDayCount('2026-11-07', '2026-11-08')).toBe(0)
+    expect(workingDayCount('2026-11-02', '2026-11-15')).toBe(10)
+    expect(workingDayCount('2026-11-04', '2026-11-10')).toBe(5)
+    expect(workingDayCount('2026-11-05', '2026-11-12')).toBe(6)
+  })
+
+  test('an end before the start has none', () => {
+    expect(workingDayCount('2026-11-10', '2026-11-09')).toBe(0)
+  })
+})
+
+describe('weekOff', () => {
+  const week = '2026-11-02'
+
+  test('leave takes the working days it covers in the week, weekends do not count', () => {
+    expect(weekOff(week, [timeOff(1, 1, '2026-11-04', '2026-11-05')], [])).toEqual({ days: 2, holiday: 0, leave: 2, holidays: [] })
+    expect(weekOff(week, [timeOff(1, 1, '2026-11-06', '2026-11-10')], []).days).toBe(1)
+    expect(weekOff('2026-11-09', [timeOff(1, 1, '2026-11-06', '2026-11-10')], []).days).toBe(2)
+    expect(weekOff(week, [timeOff(1, 1, '2026-11-07', '2026-11-08')], []).days).toBe(0)
+  })
+
+  test('leave that spans the whole week takes all five days', () => {
+    expect(weekOff(week, [timeOff(1, 1, '2026-10-26', '2026-11-20')], []).days).toBe(5)
+  })
+
+  test('a holiday names itself and takes its working days', () => {
+    expect(weekOff(week, [], [holiday(1, 'Fall break', '2026-11-05', '2026-11-06')])).toEqual({ days: 2, holiday: 2, leave: 0, holidays: ['Fall break'] })
+  })
+
+  test('a holiday on a weekend takes nothing and is not named', () => {
+    expect(weekOff(week, [], [holiday(1, 'Weekend fair', '2026-11-07', '2026-11-08')])).toEqual({ days: 0, holiday: 0, leave: 0, holidays: [] })
+  })
+
+  test('a day that is both a holiday and leave counts once', () => {
+    const off = weekOff(week, [timeOff(1, 1, '2026-11-04', '2026-11-05')], [holiday(1, 'Fall break', '2026-11-05', '2026-11-05')])
+    expect(off).toEqual({ days: 2, holiday: 1, leave: 1, holidays: ['Fall break'] })
+  })
+
+  test('overlapping leave does not count a day twice', () => {
+    const off = weekOff(week, [timeOff(1, 1, '2026-11-03', '2026-11-04'), timeOff(2, 1, '2026-11-04', '2026-11-05')], [])
+    expect(off.days).toBe(3)
+  })
+
+  test('no leave and no holidays is no days off', () => {
+    expect(weekOff(week, [], [])).toEqual({ days: 0, holiday: 0, leave: 0, holidays: [] })
+  })
+})
+
+describe('weekCapacity', () => {
+  test('each day off takes a fifth of the weekly capacity', () => {
+    expect(weekCapacity(40, { days: 0 })).toBe(40)
+    expect(weekCapacity(40, { days: 2 })).toBe(24)
+    expect(weekCapacity(20, { days: 1 })).toBe(16)
+    expect(weekCapacity(33, { days: 1 })).toBe(26.4)
+    expect(weekCapacity(40, { days: 5 })).toBe(0)
+  })
+})
+
+describe('days off text', () => {
+  test('says how many days are off, and nothing for a full week', () => {
+    expect(daysOffLabel({ days: 0 })).toBe('')
+    expect(daysOffLabel({ days: 1 })).toBe('1 day off')
+    expect(daysOffLabel({ days: 2 })).toBe('2 days off')
+  })
+
+  test('says why: holidays by name, then leave', () => {
+    expect(daysOffReason({ leave: 2, holidays: [] })).toBe('leave')
+    expect(daysOffReason({ leave: 0, holidays: ['Fall break'] })).toBe('Fall break')
+    expect(daysOffReason({ leave: 1, holidays: ['Fall break', 'Founders day'] })).toBe('Fall break, Founders day, leave')
+    expect(daysOffReason({ leave: 0, holidays: [] })).toBe('')
+  })
+})
+
+describe('personLoads with time off and holidays', () => {
+  const members = [member(2, 'Ben', 20), member(1, 'Ada')]
+  // Ada is off Wednesday and Thursday of the first week; the Space has a holiday on Wednesday 18 November.
+  const absences = {
+    timeOffs: [timeOff(1, 1, '2026-11-04', '2026-11-05'), timeOff(2, 2, '2026-11-25', '2026-11-27')],
+    holidays: [holiday(1, 'Founders day', '2026-11-18', '2026-11-18')],
+  }
+
+  test('leave and holidays lower the capacity of that week only', () => {
+    const [ada, ben] = personLoads(members, [alloc(1, 1, 10, 30)], weeks, absences)
+    expect(ada.capacity).toBe(40)
+    expect(ada.weeks.map((w) => w.capacity)).toEqual([24, 40, 32])
+    expect(ada.weeks[0].off).toEqual({ days: 2, holiday: 0, leave: 2, holidays: [] })
+    expect(ada.weeks[2].off).toEqual({ days: 1, holiday: 1, leave: 0, holidays: ['Founders day'] })
+    expect(ben.weeks.map((w) => w.capacity)).toEqual([20, 20, 16])
+  })
+
+  test('hours above the reduced capacity are over, and the week warns', () => {
+    const [ada, ben] = personLoads(members, [alloc(1, 1, 10, 30)], weeks, absences)
+    expect(ada.weeks.map((w) => w.free)).toEqual([-6, 10, 2])
+    expect(ada.weeks.map((w) => w.over)).toEqual([6, 0, 0])
+    expect(ada.overWeeks).toBe(1)
+    expect(ada.weeks.map(weekNote)).toEqual(['Over by 6 h', '10 h free', '2 h free'])
+    expect(overAllocated([ada, ben]).map((l) => l.name)).toEqual(['Ada'])
+  })
+
+  test('someone else\'s leave does not lower my capacity', () => {
+    const [ada] = personLoads([member(1, 'Ada')], [], weeks, { timeOffs: [timeOff(1, 2, '2026-11-02', '2026-11-06')], holidays: [] })
+    expect(ada.weeks.map((w) => w.capacity)).toEqual([40, 40, 40])
+  })
+
+  test('a week off entirely has no capacity: free when nothing is planned, over when something is', () => {
+    const wholeWeek = { timeOffs: [timeOff(1, 1, '2026-11-02', '2026-11-06')], holidays: [] }
+    const [free] = personLoads([member(1, 'Ada')], [], weeks, wholeWeek)
+    expect(free.weeks[0].capacity).toBe(0)
+    expect(weekNote(free.weeks[0])).toBe('No capacity')
+    const [busy] = personLoads([member(1, 'Ada')], [alloc(1, 1, 10, 10)], weeks, wholeWeek)
+    expect(busy.weeks[0].over).toBe(10)
+    expect(weekNote(busy.weeks[0])).toBe('Over by 10 h')
+  })
+
+  test('without time off or holidays capacity is the weekly capacity, as before', () => {
+    const [ada] = personLoads([member(1, 'Ada')], [], weeks)
+    expect(ada.weeks.map((w) => w.capacity)).toEqual([40, 40, 40])
+    expect(ada.weeks[0].off.days).toBe(0)
+  })
+})
+
+describe('currentSpans', () => {
+  test('drops ones that finished before the first week and lists the rest earliest first', () => {
+    const list = [timeOff(1, 1, '2026-11-16', '2026-11-17'), timeOff(2, 1, '2026-10-26', '2026-10-30'), timeOff(3, 1, '2026-10-30', '2026-11-02'), timeOff(4, 1, '2026-11-04', '2026-11-04')]
+    expect(currentSpans(list, '2026-11-02').map((s) => s.id)).toEqual([3, 4, 1])
+  })
+})
+
+test('spanPeriod says when leave or a holiday runs', () => {
+  expect(spanPeriod({ start_date: '2026-11-09', end_date: '2026-11-09' })).toBe('Nov 9, 2026')
+  expect(spanPeriod({ start_date: '2026-11-09', end_date: '2026-11-13' })).toBe('Nov 9 to Nov 13, 2026')
+  expect(spanPeriod({ start_date: '2026-12-30', end_date: '2027-01-02' })).toBe('Dec 30, 2026 to Jan 2, 2027')
+})
+
+describe('time off and holiday forms', () => {
+  test('a date range needs a start, and an end is optional but not before it', () => {
+    expect(spanError({ start: '2026-11-09', end: '' })).toBe(null)
+    expect(spanError({ start: '2026-11-09', end: '2026-11-09' })).toBe(null)
+    expect(spanError({ start: '', end: '' })).toBe('Choose a start date.')
+    expect(spanError({ start: '2026-11-09', end: '2026-11-08' })).toBe("The end date can't be before the start date.")
+  })
+
+  test('time off needs a person', () => {
+    expect(timeOffError({ userId: '1', start: '2026-11-09', end: '' })).toBe(null)
+    expect(timeOffError({ userId: '', start: '2026-11-09', end: '' })).toBe('Choose a person.')
+    expect(timeOffError({ userId: '1', start: '', end: '' })).toBe('Choose a start date.')
+  })
+
+  test('a holiday needs a name', () => {
+    expect(holidayError({ name: 'Founders day', start: '2026-11-18', end: '' })).toBe(null)
+    expect(holidayError({ name: '  ', start: '2026-11-18', end: '' })).toBe('Enter a name for the holiday.')
+    expect(holidayError({ name: 'Founders day', start: '2026-11-18', end: '2026-11-17' })).toBe("The end date can't be before the start date.")
   })
 })
