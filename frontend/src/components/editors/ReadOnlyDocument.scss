@@ -1,0 +1,17 @@
+@use 'tokens' as *;
+
+// In the same layer as ProseMirror.scss (which it follows), so these win by
+// being later and more specific.
+@layer view {
+  .read_only_document {
+    // A task line is plain text here (no checkbox or status), so it reads as a list item.
+    & .ProseMirror ul[data-type='workspaceTaskList'] {
+      padding-left: space(5);
+      list-style: disc;
+    }
+
+    &-empty {
+      color: color(muted-foreground);
+    }
+  }
+}

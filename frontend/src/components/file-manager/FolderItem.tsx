@@ -5,11 +5,14 @@ import { useNavigate, useLocation, Link } from 'react-router-dom'
 import { ChevronRight, Folder, FolderKanban, FileText, TableIcon, Pin, CheckSquare, CalendarDays, MoreVertical, Layers } from 'lucide-react'
 import { useCreateFolder, useDeleteFolder, usePinFolder, useUpdateFolder } from '@/api/folders'
 import { useCreateDocument, useDeleteDocument, usePinDocument, useUpdateDocument } from '@/api/documents'
-import { useUploadFiles } from '@/api/workspace'
+import { useUploadFiles, useWorkspace } from '@/api/workspace'
+import { canWriteWorkspace } from '@/data/workspace'
 import { errorMessage } from '@/api/tables'
 import { documentsIn } from '@/data/folder'
+import { canShareDocType } from '@/data/share'
 import type { TransferRequest } from '@/data/transfer'
 import { useTransferTargets } from '@/hooks/useTransferTargets'
+import { useShareStore } from '@/store/share'
 import { useTransferStore } from '@/store/transfer'
 import type { Folder as FolderType, Document } from '@/types'
 import './FolderItem.scss'
@@ -118,8 +121,12 @@ export function FolderItem({ folder, depth = 0, bare = false, hideProjects = fal
   const updateFolder = useUpdateFolder()
   const updateDocument = useUpdateDocument()
   const openTransfer = useTransferStore((s) => s.open)
+  const openShare = useShareStore((s) => s.open)
   // Moving or copying needs another Space to put things in.
   const canTransfer = useTransferTargets().targets.length > 0
+  // Only people who can change content make share links.
+  const { data: workspace } = useWorkspace()
+  const canShare = canWriteWorkspace(workspace?.role)
   const uploadFiles = useUploadFiles()
   const [dropTarget, setDropTarget] = useState(false)
 
@@ -153,6 +160,7 @@ export function FolderItem({ folder, depth = 0, bare = false, hideProjects = fal
     { label: folder.pinned ? 'Unpin' : 'Pin', action: () => pinFolder.mutate({ id: folder.id, pinned: !folder.pinned }) },
     { label: 'Rename', action: () => setRenamingFolder(true) },
     ...(folder.root ? [] : [
+      ...(canShare ? [{ label: 'Share link…', action: () => openShare({ kind: 'folder' as const, id: folder.id, name: folder.name }) }] : []),
       ...transferItems(() => ({ kind: 'folder', id: folder.id, name: folder.name, documentIds: documentsIn(folder).map((d) => d.id) })),
       { label: isProject ? 'Make Folder' : 'Make Project', action: () => updateFolder.mutate({ id: folder.id, kind: isProject ? 'folder' : 'project' }) },
       { label: isFeature ? 'Make Folder' : 'Make Feature Folder', action: () => updateFolder.mutate({ id: folder.id, kind: isFeature ? 'folder' : 'feature' }) },
@@ -270,6 +278,7 @@ export function FolderItem({ folder, depth = 0, bare = false, hideProjects = fal
           items={[
             { label: 'Rename', action: () => setRenamingDocId(docCtx.doc.id) },
             { label: docCtx.doc.pinned ? 'Unpin' : 'Pin', action: () => pinDocument.mutate({ id: docCtx.doc.id, pinned: !docCtx.doc.pinned }) },
+            ...(canShare && canShareDocType(docCtx.doc.doc_type) ? [{ label: 'Share link…', action: () => openShare({ kind: 'document' as const, id: docCtx.doc.id, name: docCtx.doc.title }) }] : []),
             ...transferItems(() => ({ kind: 'document', id: docCtx.doc.id, name: docCtx.doc.title, documentIds: [docCtx.doc.id] })),
             { label: 'Delete', action: () => deleteDocument.mutate(docCtx.doc.id, { onError: e => setActionError(errorMessage(e)) }), danger: true },
           ]}

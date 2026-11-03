@@ -56,6 +56,7 @@ export default function App() {
         <Route path="/login" element={<LoginScreen />} />
         <Route path="/signup" element={<SignupScreen />} />
         <Route path="/shared/:token" element={<SharedScreen />} />
+        <Route path="/shared/:token/documents/:documentId" element={<SharedScreen />} />
         {/* Rails owns "/" in production for the marketing homepage (see
             backend/app/controllers/marketing_controller.rb and the nginx vhost
             under deploy/) — this route only matters for local dev (no Rails

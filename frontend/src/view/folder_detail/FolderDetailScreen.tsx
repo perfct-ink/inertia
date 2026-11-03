@@ -5,7 +5,7 @@ import { useParams, useNavigate, useSearchParams, Link } from 'react-router-dom'
 import {
   Loader2, ArrowLeft, ArrowRight, Archive, ArchiveRestore,
   LayoutList, Kanban as KanbanIcon, Calendar as CalendarIcon, GanttChart,
-  ChevronLeft, ChevronRight, FileText, Table as TableIcon, LayoutDashboard, Palette, LayoutGrid,
+  ChevronLeft, ChevronRight, FileText, Table as TableIcon, LayoutDashboard, Palette, LayoutGrid, Link2,
 } from 'lucide-react'
 import {
   format, parseISO, startOfMonth, endOfMonth, startOfWeek, endOfWeek,
@@ -24,6 +24,7 @@ import { useInitiatives } from '@/api/initiatives'
 import type { Document, Task, WorkspaceEvent, Epic } from '@/types'
 import './FolderDetailScreen.scss'
 import { usePageTitle } from '@/hooks/usePageTitle'
+import { useShareStore } from '@/store/share'
 import { useBoardStatuses } from '@/hooks/useBoardStatuses'
 import { StatusSettings } from '@/components/workspace/StatusSettings'
 import { donePercent, milestoneMarkers } from '@/data/schedule'
@@ -385,6 +386,7 @@ export default function FolderDetailScreen() {
   const { data: workspace } = useWorkspace()
   const { statuses } = useBoardStatuses(folderId)
   const [showStatuses, setShowStatuses] = useState(false)
+  const openShare = useShareStore((s) => s.open)
   const updateFolder = useUpdateFolder()
   const updateTask = useUpdateTask()
   const { data: allMilestones = [] } = useMilestones()
@@ -433,6 +435,16 @@ export default function FolderDetailScreen() {
               >
                 <Palette className="folder_detail-icon--sm" />
                 Statuses
+              </Button>
+            )}
+            {canWriteWorkspace(workspace?.role) && !folder.root && (
+              <Button
+                onClick={() => openShare({ kind: 'folder', id: folderId, name: folder.name })}
+                className="folder_detail-subtle folder_detail-action"
+                title="Make a link anyone can read, view only"
+              >
+                <Link2 className="folder_detail-icon--sm" />
+                Share
               </Button>
             )}
             <Button

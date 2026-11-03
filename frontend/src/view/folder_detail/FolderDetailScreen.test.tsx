@@ -2,6 +2,7 @@ import '@testing-library/jest-dom'
 import { fireEvent, render, screen, within } from '@testing-library/react'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import FolderDetailScreen from './FolderDetailScreen'
+import { useShareStore } from '@/store/share'
 import type { TaskStatusSetting } from '@/types'
 
 jest.mock('@/components/WorkspaceLayout', () => function LayoutMock({ children }: { children: React.ReactNode }) { return <div>{children}</div> })
@@ -94,4 +95,16 @@ test('members can open the status editor from the board; viewers and other views
   mockRole = 'member'
   renderScreen('gantt')
   expect(screen.queryByRole('button', { name: 'Statuses' })).not.toBeInTheDocument()
+})
+
+test('members can share the folder as a link; viewers cannot', () => {
+  const { unmount } = renderScreen('board')
+  fireEvent.click(screen.getByRole('button', { name: 'Share' }))
+  expect(useShareStore.getState().target).toEqual({ kind: 'folder', id: 2, name: 'Messages' })
+  useShareStore.getState().close()
+  unmount()
+
+  mockRole = 'viewer'
+  renderScreen('board')
+  expect(screen.queryByRole('button', { name: 'Share' })).not.toBeInTheDocument()
 })

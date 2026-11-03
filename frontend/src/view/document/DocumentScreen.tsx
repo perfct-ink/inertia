@@ -6,27 +6,6 @@ import { HocuspocusProvider } from '@hocuspocus/provider'
 import { useEditor, EditorContent } from '@tiptap/react'
 import Collaboration from '@tiptap/extension-collaboration'
 import CollaborationCursor from '@tiptap/extension-collaboration-cursor'
-import TiptapDocument from '@tiptap/extension-document'
-import Paragraph from '@tiptap/extension-paragraph'
-import Text from '@tiptap/extension-text'
-import Bold from '@tiptap/extension-bold'
-import Italic from '@tiptap/extension-italic'
-import Underline from '@tiptap/extension-underline'
-import Strike from '@tiptap/extension-strike'
-import Code from '@tiptap/extension-code'
-import BulletList from '@tiptap/extension-bullet-list'
-import OrderedList from '@tiptap/extension-ordered-list'
-import ListItem from '@tiptap/extension-list-item'
-import CodeBlock from '@tiptap/extension-code-block'
-import HorizontalRule from '@tiptap/extension-horizontal-rule'
-import { TextSelection } from '@tiptap/pm/state'
-import TiptapImage from '@tiptap/extension-image'
-import Link from '@tiptap/extension-link'
-import Table from '@tiptap/extension-table'
-import TableRow from '@tiptap/extension-table-row'
-import TableCell from '@tiptap/extension-table-cell'
-import TableHeader from '@tiptap/extension-table-header'
-import HardBreak from '@tiptap/extension-hard-break'
 import History from '@tiptap/extension-history'
 import Placeholder from '@tiptap/extension-placeholder'
 import Dropcursor from '@tiptap/extension-dropcursor'
@@ -57,6 +36,7 @@ import {
   Loader2,
   FileX,
   Paperclip,
+  Link2,
 } from 'lucide-react'
 import WorkspaceLayout from '@/components/WorkspaceLayout'
 import { useDocument, useUpdateDocument } from '@/api/documents'
@@ -71,24 +51,20 @@ import DocumentOutline from '@/components/DocumentOutline'
 import TableEditor from '@/components/editors/TableEditor'
 import SpreadsheetEditor from '@/components/editors/SpreadsheetEditor'
 import HeadingLinkPicker from '@/components/HeadingLinkPicker'
-import { HeadingAnchor, assignHeadingIds, linkToHeading } from '@/extensions/HeadingAnchor'
-import Video from '@/extensions/Video'
-import { AudioAttachment, FileAttachment } from '@/extensions/Attachment'
-import { WorkspaceTaskList } from '@/extensions/WorkspaceTaskList'
-import { WorkspaceTaskItem } from '@/extensions/WorkspaceTaskItem'
-import './ProseMirror.scss'
+import { assignHeadingIds, linkToHeading } from '@/extensions/HeadingAnchor'
+import { documentSchema } from '@/extensions/documentSchema'
+import '../../components/editors/ProseMirror.scss'
 import './DocumentScreen.scss'
 import { useTabsStore } from '@/store/tabs'
 import { useAuthStore } from '@/store/auth'
 import { useNotificationStore } from '@/store/notifications'
+import { useShareStore } from '@/store/share'
+import { canWriteWorkspace } from '@/data/workspace'
 import { usePageTitle } from '@/hooks/usePageTitle'
 import { useFollowDocumentLinks, useScrollToHeading } from '@/hooks/useHeadingLinks'
 import { extractTitle, buildInitialContent, selectionTaskTitle, taskListContent } from '@/data/document'
 import { attachmentContent, pastedFiles, uploadProblem } from '@/data/attachment'
 import { colorForUserId } from '@/util/color'
-
-// Enforce: document always starts with a heading followed by body content
-const CustomDocument = TiptapDocument.extend({ content: 'heading block*' })
 
 function ToolbarBtn({
   icon,
@@ -135,6 +111,7 @@ export default function DocumentScreen() {
   const { data: docTasks = [], isSuccess: docTasksLoaded } = useTasks({ document_id: docId })
   const { data: workspace } = useWorkspace()
   const user = useAuthStore((s) => s.user)
+  const openShare = useShareStore((s) => s.open)
   const [linkDialogOpen, setLinkDialogOpen] = useState(false)
   const [tasksOnly, setTasksOnly] = useState(false)
   // The document's content while the "Link to a heading" dialog is open (null when closed).
@@ -195,49 +172,7 @@ export default function DocumentScreen() {
 
   const editor = useEditor({
     extensions: [
-      CustomDocument,
-      Paragraph,
-      Text,
-      HardBreak,
-      Bold,
-      Italic,
-      Underline,
-      Strike,
-      Code,
-      HeadingAnchor.configure({ levels: [1, 2, 3, 4, 5] as (1 | 2 | 3 | 4 | 5 | 6)[] }),
-      BulletList,
-      OrderedList,
-      ListItem,
-      WorkspaceTaskList,
-      WorkspaceTaskItem,
-      CodeBlock,
-      HorizontalRule.extend({
-        addCommands() {
-          return {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            setHorizontalRule: () => ({ state, dispatch }: any) => {
-              const { tr, selection: { $from } } = state
-              const hr = state.schema.nodes.horizontalRule.create()
-              const para = state.schema.nodes.paragraph.create()
-              tr.replaceSelectionWith(hr)
-              const pos = tr.mapping.map($from.pos) + hr.nodeSize
-              tr.insert(pos, para)
-              tr.setSelection(TextSelection.near(tr.doc.resolve(pos)))
-              if (dispatch) dispatch(tr)
-              return true
-            },
-          }
-        },
-      }),
-      TiptapImage,
-      Link.configure({ openOnClick: false }),
-      Video,
-      AudioAttachment,
-      FileAttachment,
-      Table.configure({ resizable: false }),
-      TableRow,
-      TableCell,
-      TableHeader,
+      ...documentSchema(),
       // Exactly one undo mechanism must always be present — Collaboration
       // and History conflict if both are active, but the toolbar's undo/redo
       // buttons call editor.can().undo()/.redo() unconditionally, so a
@@ -692,6 +627,16 @@ export default function DocumentScreen() {
             hidden
             onChange={handleFileInputChange}
           />
+          {canWriteWorkspace(workspace?.role) && (
+            <>
+              <Divider />
+              <ToolbarBtn
+                icon={<Link2 className="document-toolbar_icon" />}
+                onClick={() => openShare({ kind: 'document', id: doc.id, name: doc.title })}
+                title="Share link"
+              />
+            </>
+          )}
           <div className="document-status">
             {saveStatus === 'saving' && <Loader2 className="document-status_spinner" />}
             {saveStatus === 'unsaved' && <div className="document-status_dot" />}

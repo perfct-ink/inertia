@@ -1,7 +1,7 @@
 import { Link2 } from 'lucide-react'
 import { Button, Input } from '@/components/ui'
 import { useCreateRoadmapShare, useDeleteRoadmapShare, useRoadmapShare } from '@/api/roadmapShare'
-import { sharedRoadmapUrl } from '@/data/share'
+import { sharedUrl } from '@/data/share'
 
 // Makes, shows and revokes the Space's public read-only roadmap link.
 export default function RoadmapShare() {
@@ -21,7 +21,7 @@ export default function RoadmapShare() {
       <Input
         readOnly
         aria-label="Public roadmap link"
-        value={sharedRoadmapUrl(window.location.origin, share.token)}
+        value={sharedUrl(window.location.origin, share.token)}
         onFocus={(e) => e.currentTarget.select()}
       />
       <Button onClick={() => revoke.mutate()} disabled={revoke.isPending}>Stop sharing</Button>

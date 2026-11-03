@@ -2,10 +2,61 @@
 
 @layer view {
   .view-shared {
-    display: block;
-    padding: space(6);
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+
+    @at-root .shared-banner {
+      position: sticky;
+      z-index: 10;
+      top: 0;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: space(1) space(3);
+      padding: space(2) space(4);
+      border-bottom-width: 1px;
+      background: color(muted);
+      @include text('sm');
+    }
+
+    @at-root .shared-banner_icon {
+      flex-shrink: 0;
+      width: space(4);
+      height: space(4);
+      color: color(muted-foreground);
+    }
+
+    @at-root .shared-banner_text {
+      font-weight: 500;
+    }
+
+    @at-root .shared-banner_meta {
+      color: color(muted-foreground);
+    }
+
+    @at-root .shared-banner_link {
+      margin-left: auto;
+      color: palette('blue-500');
+      text-decoration: underline;
+      @include transition(color);
+
+      &:hover {
+        color: color(foreground);
+      }
+    }
+
+    @at-root .shared-body {
+      flex: 1 1 0%;
+      padding: space(4);
+
+      @include up('md') {
+        padding: space(8);
+      }
+    }
 
     @at-root .shared-title {
+      margin-bottom: space(4);
       @include text('2xl');
 
       font-weight: 600;
@@ -15,9 +66,125 @@
       color: color(muted-foreground);
     }
 
+    @at-root .shared-problem {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: space(3);
+    }
+
     @at-root .shared-spinner {
       width: space(5);
       height: space(5);
+      @include spin;
+    }
+
+    @at-root .shared-document {
+      max-width: 48rem;
+      margin: 0 auto;
+    }
+
+    // A folder link: on a phone the list and the document take turns; from md up they sit side by side.
+    @at-root .shared-folder {
+      display: grid;
+      gap: space(6);
+
+      @include up('md') {
+        grid-template-columns: 16rem minmax(0, 1fr);
+        align-items: start;
+      }
+    }
+
+    @at-root .shared-folder--reading .shared-nav {
+      display: none;
+
+      @include up('md') {
+        display: block;
+      }
+    }
+
+    @at-root .shared-folder:not(.shared-folder--reading) .shared-pane {
+      display: none;
+
+      @include up('md') {
+        display: block;
+      }
+    }
+
+    @at-root .shared-nav_title {
+      margin-bottom: space(3);
+      @include text('xl');
+
+      font-weight: 600;
+      overflow-wrap: anywhere;
+    }
+
+    @at-root .shared-nav_list {
+      display: flex;
+      flex-direction: column;
+      gap: space(0.5);
+    }
+
+    @at-root .shared-nav_group {
+      margin-top: space(4);
+    }
+
+    @at-root .shared-nav_folder {
+      margin-bottom: space(1);
+      color: color(muted-foreground);
+      font-weight: 600;
+      overflow-wrap: anywhere;
+      @include text('sm');
+    }
+
+    @at-root .shared-nav_item {
+      display: flex;
+      align-items: center;
+      gap: space(2);
+      min-height: space(10);
+      padding: space(1) space(2);
+      border-radius: radius('md');
+      @include transition(background-color);
+
+      &:hover,
+      &--current {
+        background: color(accent);
+      }
+    }
+
+    @at-root .shared-nav_icon {
+      flex-shrink: 0;
+      width: space(4);
+      height: space(4);
+    }
+
+    @at-root .shared-nav_text {
+      min-width: 0;
+      overflow-wrap: anywhere;
+    }
+
+    @at-root .shared-pane {
+      min-width: 0;
+      max-width: 48rem;
+    }
+
+    // Back to the list: only where the list is hidden while reading.
+    @at-root .shared-back {
+      display: inline-flex;
+      align-items: center;
+      gap: space(1);
+      min-height: space(10);
+      margin-bottom: space(3);
+      color: palette('blue-500');
+      @include transition(color);
+
+      &:hover {
+        color: color(foreground);
+      }
+
+      @include up('md') {
+        display: none;
+      }
     }
   }
 }

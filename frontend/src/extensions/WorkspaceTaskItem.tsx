@@ -2,7 +2,10 @@ import { Node, mergeAttributes } from '@tiptap/core'
 import { ReactNodeViewRenderer } from '@tiptap/react'
 import WorkspaceTaskItemView from '@/components/editors/WorkspaceTaskItemView'
 
-export const WorkspaceTaskItem = Node.create({
+// The task line as plain markup: its schema, with no controls and no calls to
+// the API. A read-only page that anyone can open (a share link) uses this one,
+// since the controls below talk to the signed-in person's tasks.
+export const StaticWorkspaceTaskItem = Node.create({
   name: 'workspaceTaskItem',
   content: 'paragraph',
   defining: true,
@@ -20,7 +23,9 @@ export const WorkspaceTaskItem = Node.create({
   renderHTML({ HTMLAttributes }) {
     return ['li', mergeAttributes({ 'data-type': 'workspaceTaskItem' }, HTMLAttributes), 0]
   },
+})
 
+export const WorkspaceTaskItem = StaticWorkspaceTaskItem.extend({
   addNodeView() {
     return ReactNodeViewRenderer(WorkspaceTaskItemView)
   },

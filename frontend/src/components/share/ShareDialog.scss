@@ -1,0 +1,74 @@
+@use 'tokens' as *;
+
+@layer app.components {
+  .share_dialog {
+    &-create {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: flex-end;
+      gap: space(3);
+      margin-top: space(4);
+    }
+
+    &-field {
+      display: flex;
+      flex: 1 1 12rem;
+      flex-direction: column;
+      gap: space(1);
+      min-width: 0;
+    }
+
+    &-label {
+      font-weight: 500;
+      @include text('sm');
+    }
+
+    &-note {
+      display: flex;
+      align-items: center;
+      gap: space(2);
+      margin-top: space(3);
+      color: color(muted-foreground);
+      @include text('sm');
+    }
+
+    &-links {
+      display: flex;
+      flex-direction: column;
+      gap: space(3);
+      max-height: 40vh;
+      margin-top: space(4);
+      overflow-y: auto;
+    }
+
+    &-link_row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: space(2);
+    }
+
+    &-url {
+      flex: 1 1 14rem;
+      min-width: 0;
+    }
+
+    &-meta {
+      margin-top: space(1);
+      color: color(muted-foreground);
+      @include text('xs');
+    }
+
+    &-icon {
+      flex-shrink: 0;
+      width: space(4);
+      height: space(4);
+    }
+
+    &-spinner {
+      width: space(4);
+      height: space(4);
+      @include spin;
+    }
+  }
+}
