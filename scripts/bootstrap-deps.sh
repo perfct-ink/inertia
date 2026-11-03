@@ -15,19 +15,18 @@ if ! command -v brew >/dev/null 2>&1; then
   exit 1
 fi
 
-INSTALLED_DOCKER_VIA_COLIMA=0
-
 if ! command -v docker >/dev/null 2>&1; then
   echo "==> docker not found, installing colima (Docker without Docker Desktop) via Homebrew..."
   brew install colima docker docker-compose docker-buildx
-  INSTALLED_DOCKER_VIA_COLIMA=1
 fi
 
 if command -v colima >/dev/null 2>&1; then
-  if [ "$INSTALLED_DOCKER_VIA_COLIMA" = "1" ]; then
+  if ! docker compose version >/dev/null 2>&1 && [ -d /opt/homebrew/lib/docker/cli-plugins ]; then
     # docker-compose/docker-buildx are Homebrew formulae, not Docker
     # Desktop's bundled plugins — the docker CLI won't find `docker compose`
     # or `docker buildx` as subcommands unless it's told where they live.
+    # Checked on every run, not only right after installing colima, since an
+    # existing Homebrew install can be missing the setting too.
     echo "==> registering docker-compose/docker-buildx as CLI plugins..."
     mkdir -p ~/.docker
     python3 - <<'PY'

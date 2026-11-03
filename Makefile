@@ -37,7 +37,7 @@ setup: deps ## Install host dependencies (Homebrew, Docker, Node), then build im
 	$(MAKE) hooks
 	@echo "✓ Setup complete"
 
-dev: ## Rebuild all services, start detached, and open browser
+dev: deps ## Rebuild all services, start detached, and open browser
 	$(COMPOSE) down --remove-orphans
 	$(COMPOSE) build
 	$(COMPOSE) up -d
@@ -45,10 +45,10 @@ dev: ## Rebuild all services, start detached, and open browser
 	open http://localhost:5174
 
 .PHONY: dev-live dev-live-readonly dev-live-down
-dev-live: ## Like dev, but against the LIVE database over an SSH tunnel (writes are real)
+dev-live: deps ## Like dev, but against the LIVE database over an SSH tunnel (writes are real)
 	HTTP_PROXY=$(HOST_PROXY) HTTPS_PROXY=$(HOST_PROXY) bash scripts/dev-live-db.sh
 
-dev-live-readonly: ## Like dev-live, but every database transaction is read-only
+dev-live-readonly: deps ## Like dev-live, but every database transaction is read-only
 	HTTP_PROXY=$(HOST_PROXY) HTTPS_PROXY=$(HOST_PROXY) LIVE_DB_READONLY=1 bash scripts/dev-live-db.sh
 
 dev-live-down: ## Stop the dev-live stack and close its SSH tunnel
@@ -112,13 +112,13 @@ help: ## Show this help message
 
 # ── Run ───────────────────────────────────────────────────────────────────────
 
-up: ## Start all services (foreground, streaming logs)
+up: deps ## Start all services (foreground, streaming logs)
 	$(COMPOSE) up
 
-up-d: ## Start all services in the background
+up-d: deps ## Start all services in the background
 	$(COMPOSE) up -d
 
-up-build: ## Rebuild images then start all services
+up-build: deps ## Rebuild images then start all services
 	$(COMPOSE) up --build
 
 down: ## Stop and remove containers

@@ -22,7 +22,14 @@ LOCAL_PORT="${LIVE_DB_PORT:-15432}"
 DB_CONTAINER="ueatxx7exko0js1mqgkcs0wn"    # shared-postgres
 APP_UUID="smu9zcyqqxhwhd7fybqqmn7j"        # the inertia Coolify resource
 SOCKET="/tmp/inertia-live-db.sock"
-COMPOSE=(docker compose -f docker-compose.yml -f docker-compose.live-db.yml)
+# Homebrew's docker CLI doesn't always find the compose plugin; fall back to
+# the standalone docker-compose binary.
+if docker compose version >/dev/null 2>&1; then
+  COMPOSE=(docker compose)
+else
+  COMPOSE=(docker-compose)
+fi
+COMPOSE+=(-f docker-compose.yml -f docker-compose.live-db.yml)
 
 close_tunnel() {
   if [ -S "$SOCKET" ]; then
@@ -57,6 +64,7 @@ close_tunnel
 ssh -f -N -M -S "$SOCKET" -o ExitOnForwardFailure=yes \
   -L "127.0.0.1:$LOCAL_PORT:$DB_IP:5432" "$SSH_HOST"
 echo "✓ Tunnel open: localhost:$LOCAL_PORT → $DB_CONTAINER ($DB_IP)"
+trap 'close_tunnel; echo "Startup failed; tunnel closed." >&2' ERR
 
 "${COMPOSE[@]}" down --remove-orphans
 "${COMPOSE[@]}" build
