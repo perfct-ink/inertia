@@ -31,7 +31,7 @@ jest.mock('@/api/keyResults', () => ({
 }))
 jest.mock('@/api/workspace', () => ({ useWorkspace: () => ({ data: { id: 1 } }) }))
 jest.mock('@/api/workspaceMembers', () => ({
-  useWorkspaceMembers: () => ({ data: [{ user_id: 7, user: { name: 'Ada' } }, { user_id: 8, user: { name: 'Bo' } }] }),
+  useWorkspaceMembers: () => ({ data: [{ id: 1, user_id: 7, user: { name: 'Ada' } }, { id: 2, user_id: 8, user: { name: 'Bo' } }, { id: null, user_id: 9, user: { name: 'Cy' }, teams: [{ id: 1, name: 'Design' }] }] }),
 }))
 jest.mock('@/api/initiatives', () => ({
   useInitiatives: () => ({ data: [{ id: 5, title: 'Onboarding', tasks_count: 4, done_tasks_count: 2 }] }),
@@ -63,6 +63,10 @@ test('changes an objective\'s owner and status, and saves an edited title and de
   render(<OkrsScreen />)
   fireEvent.change(screen.getByLabelText('Owner'), { target: { value: '8' } })
   expect(mockUpdateObjective.mutate).toHaveBeenCalledWith({ id: 1, owner_id: 8 })
+  // Someone who is only on a team can own it too, and is labelled with the team.
+  expect(screen.getByRole('option', { name: 'Cy (via Design)' })).toBeInTheDocument()
+  fireEvent.change(screen.getByLabelText('Owner'), { target: { value: '9' } })
+  expect(mockUpdateObjective.mutate).toHaveBeenCalledWith({ id: 1, owner_id: 9 })
   fireEvent.change(screen.getByLabelText('Status'), { target: { value: 'done' } })
   expect(mockUpdateObjective.mutate).toHaveBeenCalledWith({ id: 1, status: 'done' })
 

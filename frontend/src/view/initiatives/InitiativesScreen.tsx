@@ -13,6 +13,7 @@ import PlanningTimeline from '@/components/PlanningTimeline'
 import { usePageTitle } from '@/hooks/usePageTitle'
 import { donePercent } from '@/data/schedule'
 import { PLANNING_STATUS_LABEL } from '@/data/planning'
+import { personLabel } from '@/data/workspaceMember'
 import type { PlanningStatus } from '@/types'
 
 export default function InitiativesScreen() {
@@ -148,7 +149,7 @@ export default function InitiativesScreen() {
                     >
                       <option value="">No owner</option>
                       {members.map((member) => (
-                        <option key={member.user_id} value={member.user_id}>{member.user.name}</option>
+                        <option key={member.user_id} value={member.user_id}>{personLabel(member)}</option>
                       ))}
                     </Select>
                   )}

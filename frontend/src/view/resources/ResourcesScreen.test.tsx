@@ -26,7 +26,9 @@ const member = (userId: number, name: string, capacity: number) =>
 const allocation = (id: number, userId: number, folderId: number, hours: number, start: string | null = null) =>
   ({ id, user_id: userId, folder_id: folderId, hours_per_week: hours, start_date: start, end_date: null })
 
-const mockMembers = [member(2, 'Ben', 20), member(1, 'Ada', 40)]
+// Cy is only on a team: no membership, so no capacity to plan against.
+const teamOnly = { id: null, user_id: 3, role: 'member', weekly_capacity_hours: 0, user: { id: 3, name: 'Cy', email: 'Cy@example.com' }, teams: [{ id: 1, name: 'Design' }] }
+const mockMembers = [member(2, 'Ben', 20), teamOnly, member(1, 'Ada', 40)]
 const mockAllocations = [allocation(1, 1, 2, 30), allocation(2, 1, 3, 20, '2026-11-09'), allocation(3, 2, 2, 10)]
 
 jest.mock('@/api/workspace', () => ({
@@ -71,6 +73,13 @@ test('shows each person\'s hours against their capacity and warns about any week
 
   expect(screen.getByRole('status')).toHaveTextContent('Over capacity: Ada (7 weeks)')
   expect(screen.getByText('Ada (you)')).toBeInTheDocument()
+})
+
+test('people who are only on a team are not planned, since capacity and allocations need a membership', () => {
+  render(<ResourcesScreen />)
+  expect(screen.queryByText('Cy')).not.toBeInTheDocument()
+  expect(screen.queryByRole('list', { name: /Hours per week for Cy/ })).not.toBeInTheDocument()
+  expect(screen.getAllByRole('list', { name: /Hours per week for/ })).toHaveLength(2)
 })
 
 test('an admin changes a person\'s weekly capacity, and a value outside a week is refused', () => {

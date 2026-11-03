@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import type { WorkspaceMember, WorkspaceRole } from '@/types'
+import type { WorkspaceMember, WorkspacePerson, WorkspaceRole } from '@/types'
 import { ApiResource, useApiMutation } from './base'
 
 // The members of one workspace; the API sends the fields as the body itself.
@@ -9,8 +9,10 @@ export class WorkspaceMemberApi extends ApiResource<WorkspaceMember, { email: st
   }
 }
 
+// The Space's people: its members, then those who are in only through a team
+// (no membership id; see data/workspaceMember.ts).
 export function useWorkspaceMembers(workspaceId: number) {
-  return useQuery<WorkspaceMember[]>({
+  return useQuery<WorkspacePerson[]>({
     queryKey: ['workspace-members', workspaceId],
     queryFn: () => new WorkspaceMemberApi(workspaceId).list(),
     enabled: !!workspaceId,

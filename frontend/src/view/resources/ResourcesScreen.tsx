@@ -8,11 +8,12 @@ import { useWorkspace } from '@/api/workspace'
 import { canManageWorkspace } from '@/api/workspaces'
 import { useWorkspaceMembers } from '@/api/workspaceMembers'
 import { flattenFolders, projectsOf } from '@/data/folder'
+import { directMembers } from '@/data/workspaceMember'
 import { overAllocated, personLoads, projectLoads, weekEnd, weekLabel, weekRange, WEEKS_SHOWN } from '@/data/resource'
 import { usePageTitle } from '@/hooks/usePageTitle'
 import { useAuthStore } from '@/store/auth'
 import { todayISO } from '@/util/date'
-import type { ResourceAllocation, WorkspaceMember } from '@/types'
+import type { ResourceAllocation, WorkspacePerson } from '@/types'
 import PersonCard from './PersonCard'
 import ProjectCard from './ProjectCard'
 import './ResourcesScreen.scss'
@@ -20,7 +21,7 @@ import './ResourcesScreen.scss'
 type Tab = 'people' | 'projects'
 
 // Stable while a query has no data yet, so the memos below don't rerun.
-const NO_MEMBERS: WorkspaceMember[] = []
+const NO_MEMBERS: WorkspacePerson[] = []
 const NO_ALLOCATIONS: ResourceAllocation[] = []
 
 // Resource management: each person's weekly capacity and how many hours a week
@@ -38,7 +39,8 @@ export default function ResourcesScreen() {
   const today = todayISO()
 
   const weeks = useMemo(() => weekRange(today, WEEKS_SHOWN, offset), [today, offset])
-  const people = useMemo(() => personLoads(members, allocations, weeks), [members, allocations, weeks])
+  // Capacity and allocations belong to a membership, so people who are only on a team are left out.
+  const people = useMemo(() => personLoads(directMembers(members), allocations, weeks), [members, allocations, weeks])
   const projects = useMemo(() => projectLoads(allocations, weeks), [allocations, weeks])
   const tree = workspace?.folders
   const names = useMemo(() => new Map(flattenFolders(tree ?? []).map((f): [number, string] => [f.id, f.name])), [tree])

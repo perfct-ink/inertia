@@ -55,7 +55,14 @@ export function WorkspaceSwitcher({ children }: { children?: ReactNode }) {
       </Menu>
 
       <PromptDialog open={creating} title="New Space" label="Space name" placeholder="e.g. Website relaunch" submitLabel="Create" onSubmit={create} onClose={() => setCreating(false)} />
-      {current && <WorkspaceMembers workspace={current} open={membersOpen} onClose={() => setMembersOpen(false)} />}
+      {current && (
+        <WorkspaceMembers
+          workspace={current}
+          open={membersOpen}
+          onClose={() => setMembersOpen(false)}
+          onOpenTeams={current.personal ? undefined : () => { setMembersOpen(false); setTeamsOpen(true) }}
+        />
+      )}
       {current && !current.personal && <WorkspaceTeams workspace={current} open={teamsOpen} onClose={() => setTeamsOpen(false)} />}
     </>
   )

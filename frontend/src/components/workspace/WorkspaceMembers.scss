@@ -34,6 +34,31 @@
       color: color(muted-foreground);
     }
 
+    // Who gives a team-only person their access. As a button it opens the Teams
+    // dialog; its padding is pulled back so the text lines up with the email.
+    &-via {
+      @include text('xs');
+      @include truncate;
+
+      color: color(muted-foreground);
+
+      &--link {
+        display: block;
+        max-width: 100%;
+        margin-inline-start: calc(-1 * #{space(2)});
+        text-align: start;
+        user-select: none;
+
+        &:hover:not(:disabled) {
+          color: color(foreground);
+        }
+
+        @media (pointer: coarse) {
+          min-height: space(10);
+        }
+      }
+    }
+
     &-role {
       @include text('xs');
 

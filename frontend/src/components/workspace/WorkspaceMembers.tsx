@@ -1,15 +1,41 @@
-import { useState, type FormEvent } from 'react'
+import { useState, type FormEvent, type ReactNode } from 'react'
 import { X } from 'lucide-react'
 import { Button, Input, Select, Modal } from '@/components/ui'
 import { useAuthStore } from '@/store/auth'
 import { canManageWorkspace, WORKSPACE_ROLES } from '@/api/workspaces'
 import { useAddMember, useRemoveMember, useUpdateMemberRole, useWorkspaceMembers } from '@/api/workspaceMembers'
-import type { WorkspaceRole, WorkspaceSummary } from '@/types'
+import { isTeamOnly, viaTeamsLabel } from '@/data/workspaceMember'
+import type { TeamOnlyMember, WorkspaceRole, WorkspaceSummary } from '@/types'
 import './WorkspaceMembers.scss'
 
+// A person's name and email, and what follows them (who gives them access).
+function Person({ name, email, children }: { name: string; email: string; children?: ReactNode }) {
+  return (
+    <div className="workspace_members-person">
+      <p className="workspace_members-name">{name}</p>
+      <p className="workspace_members-email">{email}</p>
+      {children}
+    </div>
+  )
+}
+
+// The teams that give a team-only person their access. A button that opens
+// the Teams dialog when the caller can show it, plain text otherwise.
+function ViaTeams({ person, onOpenTeams }: { person: TeamOnlyMember; onOpenTeams?: () => void }) {
+  const label = viaTeamsLabel(person)
+  if (!onOpenTeams) return <p className="workspace_members-via">{label}</p>
+  return (
+    <Button variant="ghost" className="workspace_members-via workspace_members-via--link" title="Open Teams" aria-haspopup="dialog" onClick={onOpenTeams}>
+      {label}
+    </Button>
+  )
+}
+
 // People in a space and their roles. Admins and owners add (by the email
-// of an existing user), change roles and remove; anyone can leave.
-export function WorkspaceMembers({ workspace, open, onClose }: { workspace: WorkspaceSummary; open: boolean; onClose: () => void }) {
+// of an existing user), change roles and remove; anyone can leave. People
+// who are only on a team come last, read-only with the teams that give them
+// access (change them in the Teams dialog, opened by onOpenTeams).
+export function WorkspaceMembers({ workspace, open, onClose, onOpenTeams }: { workspace: WorkspaceSummary; open: boolean; onClose: () => void; onOpenTeams?: () => void }) {
   const me = useAuthStore((s) => s.user)
   const { data: members = [] } = useWorkspaceMembers(workspace.id)
   const addMember = useAddMember(workspace.id)
@@ -32,13 +58,21 @@ export function WorkspaceMembers({ workspace, open, onClose }: { workspace: Work
       <ul className="workspace_members-list">
         {members.map((m) => {
           const isMe = m.user_id === me?.id
+          const name = `${m.user.name}${isMe ? ' (you)' : ''}`
+          if (isTeamOnly(m)) {
+            return (
+              <li key={`team-${m.user_id}`} className="workspace_members-row">
+                <Person name={name} email={m.user.email}>
+                  <ViaTeams person={m} onOpenTeams={onOpenTeams} />
+                </Person>
+                <span className="workspace_members-role">{m.role}</span>
+              </li>
+            )
+          }
           const locked = !canManage || (m.role === 'owner' && workspace.role !== 'owner')
           return (
             <li key={m.id} className="workspace_members-row">
-              <div className="workspace_members-person">
-                <p className="workspace_members-name">{m.user.name}{isMe ? ' (you)' : ''}</p>
-                <p className="workspace_members-email">{m.user.email}</p>
-              </div>
+              <Person name={name} email={m.user.email} />
               {locked ? (
                 <span className="workspace_members-role">{m.role}</span>
               ) : (

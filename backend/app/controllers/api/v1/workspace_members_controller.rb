@@ -8,8 +8,11 @@ module Api
       skip_before_action :require_current_workspace_write!
       before_action :set_workspace
 
+      # The direct memberships, then the people who are on the workspace only
+      # through a team (no id, with the teams that give them their role).
       def index
-        render json: WorkspaceMembershipBlueprint.render(@workspace.memberships.includes(:user).order(:created_at))
+        direct = WorkspaceMembershipBlueprint.render_as_hash(@workspace.memberships.includes(:user).order(:created_at))
+        render json: direct + TeamOnlyMemberBlueprint.render_as_hash(TeamOnlyMember.in(@workspace))
       end
 
       # Adds an existing user by email.

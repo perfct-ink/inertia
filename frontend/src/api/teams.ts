@@ -21,6 +21,8 @@ function useTeamMutation<T>(workspaceId: number, request: (vars: T) => Promise<u
     mutationFn: request,
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['teams', workspaceId] })
+      // People who are only on a team are listed with the Space's members.
+      qc.invalidateQueries({ queryKey: ['workspace-members', workspaceId] })
       // Changing a team can raise or lower the signed-in user's own role.
       qc.invalidateQueries({ queryKey: ['workspaces'] })
       qc.invalidateQueries({ queryKey: ['workspace'] })

@@ -10,6 +10,7 @@ import { useWorkspace } from '@/api/workspace'
 import { useWorkspaceMembers } from '@/api/workspaceMembers'
 import { formatScore, keyResultMeasure } from '@/data/okr'
 import { PLANNING_STATUS_LABEL } from '@/data/planning'
+import { personLabel } from '@/data/workspaceMember'
 import { usePageTitle } from '@/hooks/usePageTitle'
 import { errorMessage } from '@/util/errorMessage'
 import type { Initiative, KeyResult, Objective, PlanningStatus } from '@/types'
@@ -139,7 +140,7 @@ function ObjectiveCard({ objective, initiatives }: { objective: Objective; initi
             className="okrs-select"
           >
             <option value="">No owner</option>
-            {members.map((m) => <option key={m.user_id} value={m.user_id}>{m.user.name}</option>)}
+            {members.map((m) => <option key={m.user_id} value={m.user_id}>{personLabel(m)}</option>)}
           </Select>
         )}
       </div>

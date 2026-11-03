@@ -96,6 +96,42 @@ class WorkspaceMembersControllerTest < ActionDispatch::IntegrationTest
     assert_response :forbidden
   end
 
+  test "a person who is only on a team is listed with their combined role and teams, and no membership id" do
+    ada = User.create!(name: "Ada", email: "ada-team@example.com", password: "password123")
+    design = @team.teams.create!(name: "Design", role: :viewer)
+    writers = @team.teams.create!(name: "Writers", role: :admin)
+    design.memberships.create!(user: ada)
+    writers.memberships.create!(user: ada)
+    design.memberships.create!(user: @member) # already a direct member: not listed twice
+
+    get members_path, headers: headers_for(@member)
+    assert_response :success
+    rows = response.parsed_body
+    assert_equal 4, rows.size
+    assert_equal 1, rows.count { |m| m["user_id"] == @member.id }
+    direct = rows.first(3)
+    assert direct.all? { |m| m["id"].present? && m["teams"] == [] }
+
+    team_only = rows.last
+    assert_nil team_only["id"]
+    assert_equal ada.id, team_only["user_id"]
+    assert_equal "admin", team_only["role"]
+    assert_equal({ "id" => ada.id, "name" => "Ada", "email" => "ada-team@example.com" }, team_only["user"])
+    assert_equal %w[Design Writers], team_only["teams"].map { |t| t["name"] }
+    assert_equal 0.0, team_only["weekly_capacity_hours"]
+  end
+
+  test "a person on a team can list the members, and a team in another space adds no one" do
+    ada = User.create!(name: "Ada", email: "ada-team@example.com", password: "password123")
+    @team.teams.create!(name: "Design").memberships.create!(user: ada)
+    other = Workspace.create!(name: "Other", user: @owner)
+    other.teams.create!(name: "Elsewhere").memberships.create!(user: @newcomer)
+
+    get members_path, headers: headers_for(ada)
+    assert_response :success
+    assert_equal %w[ada-team@example.com admin@example.com member@example.com owner@example.com], response.parsed_body.map { |m| m["user"]["email"] }.sort
+  end
+
   test "the member list shows each person's weekly capacity, 40 hours by default" do
     get members_path, headers: headers_for(@member)
     assert_equal [ 40.0 ], response.parsed_body.map { |m| m["weekly_capacity_hours"] }.uniq

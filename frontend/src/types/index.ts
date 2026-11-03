@@ -70,6 +70,16 @@ export interface WorkspaceMember {
   user: { id: number; name: string; email: string }
 }
 
+// Someone who is in a Space only through teams: they have no membership, so no
+// id to change or remove, and their role is the highest of those teams' roles.
+export interface TeamOnlyMember extends Omit<WorkspaceMember, 'id'> {
+  id: null
+  teams: { id: number; name: string }[]
+}
+
+// What the members API lists: memberships, then the team-only people.
+export type WorkspacePerson = WorkspaceMember | TeamOnlyMember
+
 // A person's planned time on a project (a folder with kind "project"). No
 // start means already under way; no end means ongoing.
 export interface ResourceAllocation {
