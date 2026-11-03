@@ -130,6 +130,47 @@ class TablesControllerTest < ActionDispatch::IntegrationTest
     assert_equal "{Years} * 2", response.parsed_body["fields"].last["formula"]
   end
 
+  test "records carry the saved result of each formula field" do
+    double = @table.table_fields.create!(name: "Double", data_type: "formula", formula: "{Age} * 2")
+    share = @table.table_fields.create!(name: "Share", data_type: "formula", formula: "10 / {Age}")
+    post "/api/v1/tables/#{@table.id}/records", params: { record: { values: { @field.id.to_s => 4 } } }, as: :json
+    assert_response :success
+    row = response.parsed_body["records"].first
+    assert_equal({ double.id.to_s => { "value" => 8 }, share.id.to_s => { "value" => 2.5 } }, row["formula_results"])
+
+    patch "/api/v1/tables/#{@table.id}/records/#{row['id']}", params: { record: { values: { @field.id.to_s => 0 } } }, as: :json
+    assert_response :success
+    expected = { double.id.to_s => { "value" => 0 }, share.id.to_s => { "error" => "#DIV/0!", "message" => "Cannot divide by zero" } }
+    assert_equal expected, response.parsed_body["records"].first["formula_results"]
+
+    get "/api/v1/tables/#{@table.id}"
+    assert_response :success
+    assert_equal expected, response.parsed_body["records"].first["formula_results"]
+  end
+
+  test "a record with no values still gets its formula results, and a table with no formulas gets none" do
+    post "/api/v1/tables/#{@table.id}/records", params: { record: { values: {} } }, as: :json
+    assert_equal({}, response.parsed_body["records"].first["formula_results"])
+    double = @table.table_fields.create!(name: "Double", data_type: "formula", formula: "{Age} * 2")
+    get "/api/v1/tables/#{@table.id}"
+    assert_equal({ double.id.to_s => { "value" => 0 } }, response.parsed_body["records"].first["formula_results"])
+  end
+
+  test "formula results show a deleted field as #REF! and a loop as #CIRC!" do
+    broken = @table.table_fields.create!(name: "Broken", data_type: "formula", formula: "{Age} + 1")
+    first = @table.table_fields.create!(name: "First", data_type: "formula", formula: "{Second}")
+    second = @table.table_fields.create!(name: "Second", data_type: "formula", formula: "{First}")
+    post "/api/v1/tables/#{@table.id}/records", params: { record: { values: { @field.id.to_s => 1 } } }, as: :json
+    assert_equal 2, response.parsed_body["records"].first["formula_results"][broken.id.to_s]["value"]
+
+    delete "/api/v1/tables/#{@table.id}/fields/#{@field.id}"
+    assert_response :success
+    results = response.parsed_body["records"].first["formula_results"]
+    assert_equal({ "error" => "#REF!", "message" => "There is no field named {Age}" }, results[broken.id.to_s])
+    assert_equal "#CIRC!", results[first.id.to_s]["error"]
+    assert_equal "#CIRC!", results[second.id.to_s]["error"]
+  end
+
   test "folder deletion reports referenced tables and preserves the folder" do
     folder = @user.workspace.folders.create!(name: "Companies")
     target = folder.documents.create!(title: "Companies", doc_type: :table, created_by: @user)

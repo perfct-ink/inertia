@@ -1,12 +1,15 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import api from '@/lib/api'
+import type { FormulaResult } from '@/data/formula'
 import { ApiResource } from './base'
 
 export type DataType = 'text' | 'integer' | 'number' | 'boolean' | 'date' | 'datetime' | 'relation' | 'file' | 'files'
 // A formula field holds no values of its own: the editor works it out from the record's other fields.
 export type FieldDataType = DataType | 'formula'
 export interface TableField { id: number; name: string; data_type: FieldDataType; relation_table_id: number | null; formula?: string | null }
-export interface TableRecord { id: number; values: Record<string, string | number | boolean | number[] | null> }
+// formula_results is the saved result of each formula field, by field id, worked out by the server the same way as data/formula.ts does.
+// The editor shows its own live result so a row being edited updates before it is saved.
+export interface TableRecord { id: number; values: Record<string, string | number | boolean | number[] | null>; formula_results?: Record<string, FormulaResult> }
 export interface TableData { fields: TableField[]; records: TableRecord[] }
 
 export class TableApi extends ApiResource<TableData> {

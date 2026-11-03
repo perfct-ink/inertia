@@ -12,8 +12,9 @@ export interface FormulaField {
   formula?: string | null
 }
 
-// A record's values by field id, as the API sends them.
-export type RecordValues = Record<string, Value | undefined>
+// A record's values by field id, as the API sends them. A File field holds a
+// list of file ids, which formulas can't use, so it counts as blank.
+export type RecordValues = Record<string, Value | number[] | undefined>
 
 export type FormulaResult = { value: Value } | { error: string; message: string }
 
@@ -45,7 +46,10 @@ export function computeFormulas(fields: FormulaField[], values: RecordValues, no
   const running = new Set<number>()
 
   function valueOf(field: FormulaField): Value {
-    if (!isFormulaField(field)) return values[String(field.id)] ?? null
+    if (!isFormulaField(field)) {
+      const value = values[String(field.id)]
+      return Array.isArray(value) ? null : value ?? null
+    }
     const result = compute(field)
     if ('error' in result) throw new FormulaError(result.error, result.message)
     return result.value

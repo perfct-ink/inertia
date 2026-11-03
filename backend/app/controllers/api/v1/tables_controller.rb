@@ -13,9 +13,11 @@ module Api
       end
 
       def show
+        fields = @table.table_fields.order(:id)
+        formulas = Formula::Results.new(fields)
         render json: {
-          fields: @table.table_fields.order(:id).as_json(only: [ :id, :name, :data_type, :relation_table_id, :formula ]),
-          records: @table.table_records.order(:id).includes(:table_cells).map(&:as_table_json)
+          fields: fields.as_json(only: [ :id, :name, :data_type, :relation_table_id, :formula ]),
+          records: @table.table_records.order(:id).includes(:table_cells).map { |record| record.as_table_json(formulas) }
         }
       end
 

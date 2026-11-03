@@ -39,8 +39,8 @@ function RecordRow({ record, fields, relations, files, busy, onSave, onDelete }:
   const savedValues = JSON.stringify(record?.values ?? {})
   useEffect(() => { setValues(JSON.parse(savedValues)) }, [savedValues])
   const dirty = JSON.stringify(values) !== JSON.stringify(record?.values ?? {})
-  // File fields hold lists of file ids, which formulas can't use, so they count as empty.
-  const formulas = useMemo(() => computeFormulas(fields, Object.fromEntries(Object.entries(values).map(([id, v]) => [id, Array.isArray(v) ? null : v]))), [fields, values])
+  // Worked out live from the row as it is being edited; the server works out the saved row the same way (record.formula_results).
+  const formulas = useMemo(() => computeFormulas(fields, values), [fields, values])
   async function save() {
     setError('')
     const liveValues = Object.fromEntries(Object.entries(values).filter(([id]) => fields.some(field => String(field.id) === id && !isFormulaField(field))))

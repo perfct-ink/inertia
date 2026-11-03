@@ -4,8 +4,9 @@ class TableField < ApplicationRecord
   belongs_to :relation_table, class_name: "Document", optional: true
   has_many :table_cells, dependent: :destroy
 
-  # Worked out from the record's other values by the web app (see
-  # frontend/src/data/formula.ts); never stored in table_cells.
+  # Worked out from the record's other values, live by the web app (see
+  # frontend/src/data/formula.ts) and for the saved record by Formula::Results;
+  # never stored in table_cells.
   COMPUTED_TYPES = %w[formula].freeze
   MAX_FORMULA_LENGTH = 1000
 

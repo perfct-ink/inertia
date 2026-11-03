@@ -42,6 +42,10 @@ export interface Context {
 
 const MS_PER_DAY = 86400000
 
+// The first and last day a date can be (0000-01-01 and 9999-12-31), as days since 1970-01-01.
+const MIN_DAY = Date.parse('0000-01-01') / MS_PER_DAY
+const MAX_DAY = Date.parse('9999-12-31') / MS_PER_DAY
+
 // ---------------------------------------------------------------------------
 // Values
 
@@ -59,13 +63,19 @@ export function formatValue(value: Value): string {
   return typeof value === 'number' ? String(cleanNumber(value)) : value
 }
 
+// Text such as "1e999" reads as a number too large to use.
+function finiteNumber(n: number, text: string): number {
+  if (!Number.isFinite(n)) throw new FormulaError('#NUM!', `${quoted(text)} is too large to be a number`)
+  return n
+}
+
 const NUMERIC_TEXT = /^\s*[-+]?(\d+\.?\d*|\.\d+)(e[-+]?\d+)?\s*$/i
 
 function toNumber(value: Value): number {
   if (value === null) return 0
   if (typeof value === 'number') return value
   if (typeof value === 'boolean') return value ? 1 : 0
-  if (NUMERIC_TEXT.test(value)) return Number(value)
+  if (NUMERIC_TEXT.test(value)) return finiteNumber(Number(value), value)
   throw new FormulaError('#VALUE!', `${quoted(value)} is not a number`)
 }
 
@@ -108,9 +118,10 @@ function compareValues(left: Value, right: Value): number {
 function toDays(value: Value): number {
   const match = typeof value === 'string' ? /^(\d{4})-(\d{2})-(\d{2})/.exec(value) : null
   if (match) {
-    const ms = Date.UTC(Number(match[1]), Number(match[2]) - 1, Number(match[3]))
-    const date = new Date(ms)
-    if (date.getUTCMonth() === Number(match[2]) - 1 && date.getUTCDate() === Number(match[3])) return Math.round(ms / MS_PER_DAY)
+    // setUTCFullYear, unlike Date.UTC, keeps years 0 to 99 as they are written.
+    const date = new Date(0)
+    date.setUTCFullYear(Number(match[1]), Number(match[2]) - 1, Number(match[3]))
+    if (date.getUTCMonth() === Number(match[2]) - 1 && date.getUTCDate() === Number(match[3])) return Math.round(date.getTime() / MS_PER_DAY)
   }
   throw new FormulaError('#VALUE!', `${quoted(value)} is not a date (use YYYY-MM-DD)`)
 }
@@ -203,13 +214,23 @@ const FUNCTIONS = new Map<string, FunctionSpec>(Object.entries<FunctionSpec>({
   },
   TODAY: { min: 0, max: 0, run: (_args, ctx) => fromDays(Math.floor(ctx.now.getTime() / MS_PER_DAY)).toISOString().slice(0, 10) },
   DAYS: { min: 2, max: 2, run: ([end, start]) => toDays(end) - toDays(start) },
-  DATEADD: { min: 2, max: 2, run: ([date, days]) => fromDays(toDays(date) + Math.trunc(toNumber(days))).toISOString().slice(0, 10) },
+  DATEADD: {
+    min: 2, max: 2,
+    run: ([date, days]) => {
+      const day = toDays(date) + Math.trunc(toNumber(days))
+      if (day < MIN_DAY || day > MAX_DAY) throw new FormulaError('#NUM!', 'The date is out of range')
+      return fromDays(day).toISOString().slice(0, 10)
+    },
+  },
   YEAR: { min: 1, max: 1, run: ([date]) => fromDays(toDays(date)).getUTCFullYear() },
   MONTH: { min: 1, max: 1, run: ([date]) => fromDays(toDays(date)).getUTCMonth() + 1 },
   DAY: { min: 1, max: 1, run: ([date]) => fromDays(toDays(date)).getUTCDate() },
 }))
 
 export const FUNCTION_NAMES: string[] = [...FUNCTIONS.keys()]
+
+// How many values each function takes (max is Infinity for any number), checked against the server's table by the shared test cases.
+export const FUNCTION_ARITY: { name: string; min: number; max: number }[] = [...FUNCTIONS].map(([name, { min, max }]) => ({ name, min, max }))
 
 // ---------------------------------------------------------------------------
 // Parsing
@@ -235,6 +256,7 @@ function tokenize(source: string): Token[] {
     } else if (/[0-9.]/.test(ch)) {
       const match = /^(\d+\.?\d*|\.\d+)(e[-+]?\d+)?/i.exec(rest)
       if (!match) throw parseError(`Unexpected "${ch}"`, i)
+      if (!Number.isFinite(Number(match[0]))) throw new FormulaError('#NUM!', `The number ${match[0]} is too large (at character ${i + 1})`)
       tokens.push({ kind: 'number', text: match[0], pos: i })
       i += match[0].length
     } else if (ch === '"') {
