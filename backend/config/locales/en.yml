@@ -83,4 +83,8 @@ en:
         decision_note: "Reason"
       task_status_setting:
         workspace: "Space"
+      table_field:
+        geocode: "Place lookup"
+      geocoded_place:
+        workspace: "Space"
 

@@ -141,6 +141,33 @@
       color: color(muted-foreground);
     }
 
+    /* "Look up addresses" in the field form: the whole line is the tap target. */
+    @at-root .table_editor-field_form_check {
+      display: flex;
+      align-items: center;
+      gap: space(2);
+      min-height: space(10);
+      @include text('sm');
+    }
+
+    /* What the place search made of an address, under its input: not clickable, so it does not react to the cursor. */
+    @at-root .table_editor-place {
+      display: block;
+      max-width: space(56);
+      margin-top: space(1);
+      overflow-wrap: anywhere;
+      @include text('xs');
+
+      color: color(muted-foreground);
+    }
+
+    & .table_editor-place_problem {
+      max-width: space(56);
+      margin-top: space(1);
+      overflow-wrap: anywhere;
+      @include text('xs');
+    }
+
     @at-root .table_editor-spinner {
       @include icon(space(5));
 

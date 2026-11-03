@@ -29,7 +29,7 @@ One file per implemented feature, written from the code (see `docs/rules/feature
 | Resource management: weekly capacity per person, allocation to projects, over-capacity warnings | [resource_management.md](resource_management.md) |
 | Task fields: tags, dropdown, checkbox, rating and vote on tasks | [task_fields.md](task_fields.md) |
 | Move or copy documents and folders between Spaces | [space_transfer.md](space_transfer.md) |
-| Collection map view: records with coordinates as pins on a map | [collection_map_view.md](collection_map_view.md) |
+| Collection map view: records with coordinates (or looked-up addresses, once a geocoding provider is configured) as pins on a map | [collection_map_view.md](collection_map_view.md) |
 | Project intake: request a project, an admin approves or declines | [project_intake.md](project_intake.md) |
 | Links to headings: stable heading ids, a toolbar picker and in-app jumps | [heading_links.md](heading_links.md) |
 | Configurable statuses: rename and recolor the task statuses per Space or folder | [configurable_statuses.md](configurable_statuses.md) |

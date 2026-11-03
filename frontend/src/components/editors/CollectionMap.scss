@@ -212,7 +212,8 @@ $tile-size: 256px;
       height: space(4);
     }
 
-    @at-root .collection_map-callout_place {
+    @at-root .collection_map-callout_place,
+    .collection_map-callout_matched {
       color: color(muted-foreground);
       @include text('xs');
     }
@@ -341,6 +342,12 @@ $tile-size: 256px;
     @at-root .collection_map-unplaced_text,
     .collection_map-unplaced_value {
       color: color(muted-foreground);
+      @include text('xs');
+    }
+
+    // Why an address has no place: the one thing in the list worth noticing.
+    @at-root .collection_map-unplaced_problem {
+      color: palette('red-500');
       @include text('xs');
     }
 

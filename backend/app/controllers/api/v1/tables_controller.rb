@@ -14,7 +14,8 @@ module Api
 
       def show
         render json: {
-          fields: @table.table_fields.order(:id).as_json(only: [ :id, :name, :data_type, :relation_table_id, :formula ]),
+          fields: @table.table_fields.order(:id).as_json(only: [ :id, :name, :data_type, :relation_table_id, :formula, :geocode ]),
+          geocoding: Geocoding.enabled?,
           records: @table.table_records.order(:id).includes(:table_cells).map(&:as_table_json)
         }
       end
@@ -53,15 +54,18 @@ module Api
       # Serialize schema/record edits on the parent table so a field cannot
       # change type between a value's validation and persistence.
       def mutate
+        @geocodable = []
         @table.with_lock do
           yield
           @table.update!(content_updated_at: Time.current)
         end
+        # The lookup is a slow call to another service: outside the table lock.
+        Geocoding::Locator.new.call(@geocodable)
         show
       end
 
       def field_params
-        params.require(:field).permit(:name, :data_type, :relation_table_id, :formula)
+        params.require(:field).permit(:name, :data_type, :relation_table_id, :formula, :geocode)
       end
 
       def write_values(record)
@@ -76,6 +80,7 @@ module Api
             cell.value = field.data_type == "relation" ? nil : value
             cell.related_record = field.data_type == "relation" ? field.relation_table.table_records.find(value) : nil
             cell.save!
+            @geocodable << cell if field.geocode?
           end
         end
       end

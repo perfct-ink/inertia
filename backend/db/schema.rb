@@ -145,6 +145,19 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_03_120001) do
     t.index ["workspace_id"], name: "index_folders_on_workspace_id"
   end
 
+  create_table "geocoded_places", force: :cascade do |t|
+    t.bigint "workspace_id", null: false
+    t.string "provider", null: false
+    t.string "query", null: false
+    t.float "latitude"
+    t.float "longitude"
+    t.string "display_name"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["workspace_id", "provider", "query"], name: "index_geocoded_places_on_space_provider_and_query", unique: true
+    t.index ["workspace_id"], name: "index_geocoded_places_on_workspace_id"
+  end
+
   create_table "ideas", force: :cascade do |t|
     t.bigint "workspace_id", null: false
     t.bigint "submitted_by_id"
@@ -391,6 +404,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_03_120001) do
     t.bigint "related_record_id"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.json "geocode"
     t.index ["related_record_id"], name: "index_table_cells_on_related_record_id"
     t.index ["table_field_id"], name: "index_table_cells_on_table_field_id"
     t.index ["table_record_id", "table_field_id"], name: "index_table_cells_on_table_record_id_and_table_field_id", unique: true
@@ -405,6 +419,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_03_120001) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.text "formula"
+    t.boolean "geocode", default: false, null: false
     t.index ["document_id", "name"], name: "index_table_fields_on_document_id_and_name", unique: true
     t.index ["document_id"], name: "index_table_fields_on_document_id"
     t.index ["relation_table_id"], name: "index_table_fields_on_relation_table_id"
@@ -573,6 +588,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_03_120001) do
   add_foreign_key "events", "workspaces"
   add_foreign_key "folders", "folders", column: "parent_id"
   add_foreign_key "folders", "workspaces"
+  add_foreign_key "geocoded_places", "workspaces"
   add_foreign_key "ideas", "folders", on_delete: :nullify
   add_foreign_key "ideas", "users", column: "submitted_by_id", on_delete: :nullify
   add_foreign_key "ideas", "workspaces"

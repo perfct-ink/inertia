@@ -6,7 +6,7 @@ import WorkspaceLayout from '@/components/WorkspaceLayout'
 import FormulaInput from '@/components/editors/FormulaInput'
 import { useWorkspace } from '@/api/workspace'
 import { useUpdateDocument } from '@/api/documents'
-import { useTable, useEditTable, tableQuery, errorMessage, type TableData, type TableField, type TableRecord, type FieldDataType } from '@/api/tables'
+import { useTable, useEditTable, tableQuery, errorMessage, type TableData, type TableField, type TableRecord, type FieldDataType, type PlaceResult } from '@/api/tables'
 import type { Document } from '@/types'
 import FileCell from './FileCell'
 import { useTabsStore } from '@/store/tabs'
@@ -14,11 +14,20 @@ import './TableEditor.scss'
 import { usePageTitle } from '@/hooks/usePageTitle'
 import { flattenFolders } from '@/data/folder'
 import { checkFormula, computeFormulas, formatResult, isFormulaField, type FormulaResult } from '@/data/formula'
+import { placeProblem } from '@/data/location'
 import CollectionMap from './CollectionMap'
 
 const types: FieldDataType[] = ['text', 'integer', 'number', 'boolean', 'date', 'datetime', 'relation', 'file', 'files', 'formula']
 const inputClass = 'table_editor-input'
 const fieldInputClass = `${inputClass} table_editor-input--field`
+
+// What the place search made of a typed address, under its input: the place it
+// matched, or why it found none. Shown only for the text that was looked up.
+function PlaceNote({ place }: { place: PlaceResult | undefined }) {
+  const problem = placeProblem(place)
+  if (problem) return <FormError message={problem} className="table_editor-place_problem" />
+  return place?.status === 'found' && place.name ? <span className="table_editor-place">{place.name}</span> : null
+}
 
 // A formula field's value for one record: worked out live from the row's other
 // fields (including edits not saved yet), never typed in.
@@ -71,6 +80,7 @@ function RecordRow({ record, fields, relations, files, busy, onSave, onDelete }:
             const raw = e.target.value
             set(field, !raw ? null : field.data_type === 'number' || field.data_type === 'integer' ? Number(raw) : field.data_type === 'datetime' ? `${raw}:00Z` : raw)
           }} />}
+        {field.geocode && record && value === record.values[field.id] && <PlaceNote place={record.places?.[field.id]} />}
       </td>
     })}
     <td className="table_editor-cell table_editor-cell--actions">
@@ -100,6 +110,7 @@ export default function TableEditor({ doc }: { doc: Document }) {
   const [relationTable, setRelationTable] = useState('')
   const [formula, setFormula] = useState('')
   const [formulaTouched, setFormulaTouched] = useState(false)
+  const [geocode, setGeocode] = useState(false)
   const otherFields = (data?.fields ?? []).filter(f => f.id !== editingField?.id)
   const formulaProblem = type === 'formula' && formula.trim() ? checkFormula(name.trim(), formula.trim(), otherFields) : null
   const tables = flattenFolders(workspace?.folders ?? []).flatMap(f => f.documents ?? []).filter(d => d.doc_type === 'table')
@@ -122,13 +133,15 @@ export default function TableEditor({ doc }: { doc: Document }) {
   function fieldForm(field?: TableField) {
     setEditingField(field ?? null); setName(field?.name ?? ''); setType(field?.data_type ?? 'text')
     setRelationTable(field?.relation_table_id ? String(field.relation_table_id) : ''); setShowForm(true); setError('')
-    setFormula(field?.formula ?? ''); setFormulaTouched(false)
+    setFormula(field?.formula ?? ''); setFormulaTouched(false); setGeocode(!!field?.geocode)
   }
+  // Looking up addresses is offered while the server has a place search, and kept visible on a field that already uses it so it can be turned off.
+  const geocodeOffered = type === 'text' && (!!data?.geocoding || !!editingField?.geocode)
   async function saveField(e: React.FormEvent) {
     e.preventDefault()
     if (formulaProblem) { setFormulaTouched(true); return }
     try {
-      await action(editingField ? `fields/${editingField.id}` : 'fields', editingField ? 'patch' : 'post', { field: { name: name.trim(), data_type: type, relation_table_id: type === 'relation' ? Number(relationTable) : null, ...(type === 'formula' && { formula: formula.trim() }) } })
+      await action(editingField ? `fields/${editingField.id}` : 'fields', editingField ? 'patch' : 'post', { field: { name: name.trim(), data_type: type, relation_table_id: type === 'relation' ? Number(relationTable) : null, ...(type === 'formula' && { formula: formula.trim() }), ...((geocode || editingField?.geocode) && { geocode: type === 'text' && geocode }) } })
       setShowForm(false)
     } catch (e) { setError(errorMessage(e)) }
   }
@@ -155,6 +168,10 @@ export default function TableEditor({ doc }: { doc: Document }) {
         <label className="table_editor-field_form_label">Data type<Select className={`${fieldInputClass}`} value={type} onChange={e => setType(e.target.value as FieldDataType)}>{types.map(t => <option key={t} value={t}>{t[0].toUpperCase() + t.slice(1)}</option>)}</Select></label>
         {type === 'relation' && <label className="table_editor-field_form_label">Related collection<Select required className={`${fieldInputClass}`} value={relationTable} onChange={e => setRelationTable(e.target.value)}><option value="">Choose a collection</option>{tables.map(t => <option key={t.id} value={t.id}>{t.title}</option>)}</Select></label>}
         {type === 'formula' && <FormulaInput value={formula} onChange={setFormula} onBlur={() => setFormulaTouched(true)} fields={otherFields} problem={formulaProblem} showProblem={formulaTouched} inputClassName={fieldInputClass} />}
+        {geocodeOffered && <label className="table_editor-field_form_check"><Input type="checkbox" checked={geocode} onChange={e => setGeocode(e.target.checked)} />Look up addresses for the Map view</label>}
+        {geocodeOffered && <p className="table_editor-field_form_hint">{data?.geocoding
+          ? 'When a record is saved, the text in this field is sent to the place search service to find its position. Coordinates like 48.8584, 2.2945 are never sent.'
+          : 'This server has no place search set up, so nothing is looked up.'}</p>}
         <Button variant="primary" disabled={busy || !name.trim()} className="table_editor-field_form_button">{editingField ? 'Save field' : 'Create field'}</Button>
         <Button type="button" onClick={() => setShowForm(false)} className="table_editor-cancel_button">Cancel</Button>
         {editingField && <p className="table_editor-field_form_hint">Clear this field’s values before changing its data type or related collection.</p>}

@@ -4,10 +4,17 @@ class TableCell < ApplicationRecord
   belongs_to :related_record, class_name: "TableRecord", optional: true
   validates :table_field_id, uniqueness: { scope: :table_record_id }
   validate :valid_value
+  before_save :forget_stale_geocode
 
   MAX_FILES = 50
 
   private
+
+  # The place found for the old text says nothing about the new text. The
+  # geocoder (Geocoding::Locator) stores a new one after the save.
+  def forget_stale_geocode
+    self.geocode = nil if persisted? && will_save_change_to_value? && !will_save_change_to_geocode?
+  end
 
   # Every id is an uploaded file item in the same Space as the collection.
   def files_in_space?(ids)

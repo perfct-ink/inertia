@@ -166,7 +166,7 @@ class SpaceTransfer
       table = Document.find(doc_ids.fetch(source.id))
       source.table_fields.order(:id).each do |field|
         relation_id = linked_id(field.relation_table_id, doc_ids, same_space)
-        fields[field.id] = table.table_fields.create!(name: field.name, data_type: field.data_type, relation_table_id: relation_id).id
+        fields[field.id] = table.table_fields.create!(name: field.name, data_type: field.data_type, relation_table_id: relation_id, geocode: field.geocode).id
       end
       source.table_records.order(:id).each { |record| records[record.id] = table.table_records.create!.id }
     end
@@ -175,6 +175,7 @@ class SpaceTransfer
         table_record_id: records.fetch(cell.table_record_id),
         table_field_id: fields.fetch(cell.table_field_id),
         value: cell.value,
+        geocode: cell.geocode,
         related_record_id: linked_id(cell.related_record_id, records, same_space)
       )
     end

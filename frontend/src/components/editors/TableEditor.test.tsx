@@ -158,3 +158,78 @@ test('the view switch only appears once the collection has fields', () => {
   render(<TableEditor doc={doc} />)
   expect(screen.queryByRole('button', { name: 'Map' })).not.toBeInTheDocument()
 })
+
+describe('looking up addresses', () => {
+  const address: TableData['fields'][number] = { id: 1, name: 'Address', data_type: 'text', relation_table_id: null, geocode: true }
+
+  test('the choice is not offered when the server has no place search', () => {
+    mockData = { fields: [], records: [] }
+    render(<TableEditor doc={doc} />)
+    fireEvent.click(screen.getByRole('button', { name: 'Add field' }))
+    expect(screen.queryByLabelText('Look up addresses for the Map view')).not.toBeInTheDocument()
+  })
+
+  test('a text field can opt in, with a note that its text is sent to the search service', async () => {
+    mockData = { fields: [], records: [], geocoding: true }
+    render(<TableEditor doc={doc} />)
+    fireEvent.click(screen.getByRole('button', { name: 'Add field' }))
+    fireEvent.change(screen.getByLabelText('Field name'), { target: { value: 'Address' } })
+    fireEvent.click(screen.getByLabelText('Look up addresses for the Map view'))
+    expect(screen.getByText(/is sent to the place search service/)).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Create field' }))
+    await waitFor(() => expect(mockEdit).toHaveBeenCalledWith({
+      path: 'fields', method: 'post', data: { field: { name: 'Address', data_type: 'text', relation_table_id: null, geocode: true } },
+    }))
+  })
+
+  test('only text fields are offered it', () => {
+    mockData = { fields: [], records: [], geocoding: true }
+    render(<TableEditor doc={doc} />)
+    fireEvent.click(screen.getByRole('button', { name: 'Add field' }))
+    fireEvent.change(screen.getByLabelText('Data type'), { target: { value: 'integer' } })
+    expect(screen.queryByLabelText('Look up addresses for the Map view')).not.toBeInTheDocument()
+  })
+
+  test('a field that looks addresses up can be switched off even if the server lost its place search', async () => {
+    mockData = { fields: [address], records: [] }
+    render(<TableEditor doc={doc} />)
+    fireEvent.click(screen.getByRole('button', { name: 'Address' }))
+    expect(screen.getByLabelText('Look up addresses for the Map view')).toBeChecked()
+    expect(screen.getByText(/no place search set up/)).toBeInTheDocument()
+    fireEvent.click(screen.getByLabelText('Look up addresses for the Map view'))
+    fireEvent.click(screen.getByRole('button', { name: 'Save field' }))
+    await waitFor(() => expect(mockEdit).toHaveBeenCalledWith({
+      path: 'fields/1', method: 'patch', data: { field: { name: 'Address', data_type: 'text', relation_table_id: null, geocode: false } },
+    }))
+  })
+
+  test('each record shows the place its address matched, or the error on it, and keeps the text', () => {
+    mockData = {
+      geocoding: true,
+      fields: [address],
+      records: [
+        { id: 10, values: { 1: 'Eiffel Tower' }, places: { 1: { status: 'found', latitude: 48.8, longitude: 2.3, name: 'Eiffel Tower, Paris' } } },
+        { id: 11, values: { 1: 'Nowhereville' }, places: { 1: { status: 'not_found' } } },
+        { id: 12, values: { 1: 'Louvre' }, places: { 1: { status: 'failed', error: 'The place search is not available right now.' } } },
+      ],
+    }
+    render(<TableEditor doc={doc} />)
+    expect(screen.getByText('Eiffel Tower, Paris')).toBeInTheDocument()
+    expect(screen.getAllByRole('alert')).toHaveLength(2)
+    expect(screen.getByText('No place found for this text.')).toBeInTheDocument()
+    expect(screen.getByText('The place search is not available right now.')).toBeInTheDocument()
+    const inputs = screen.getAllByLabelText('Address')
+    expect(inputs.slice(0, 3).map((input) => (input as HTMLInputElement).value)).toEqual(['Eiffel Tower', 'Nowhereville', 'Louvre'])
+  })
+
+  test('a result is hidden while the text is being edited, because it is for the old text', () => {
+    mockData = {
+      fields: [address],
+      records: [{ id: 11, values: { 1: 'Nowhereville' }, places: { 1: { status: 'not_found' } } }],
+    }
+    render(<TableEditor doc={doc} />)
+    expect(screen.getByText('No place found for this text.')).toBeInTheDocument()
+    fireEvent.change(screen.getAllByLabelText('Address')[0], { target: { value: 'Paris' } })
+    expect(screen.queryByText('No place found for this text.')).not.toBeInTheDocument()
+  })
+})

@@ -109,8 +109,10 @@ export default function CollectionMap({ data, tileTemplate = process.env.MAP_TIL
 
   return <div className="view-collection_map">
     <div className="collection_map-main">
-      {pins.length === 0 ? <Empty title="No record has coordinates yet">
-        Type latitude and longitude into “{location.name}” in the Grid view, like 48.8584, 2.2945, and the record appears here.
+      {pins.length === 0 ? <Empty title={location.geocode ? 'No record is on the map yet' : 'No record has coordinates yet'}>
+        {location.geocode
+          ? <>Type an address or latitude and longitude into “{location.name}” in the Grid view, and the record appears here once its place is found.</>
+          : <>Type latitude and longitude into “{location.name}” in the Grid view, like 48.8584, 2.2945, and the record appears here.</>}
       </Empty> : <>
         <div ref={canvasRef} className="collection_map-canvas" tabIndex={0} role="group" aria-label={`Map of ${location.name}`} aria-describedby={helpId}
           onPointerDown={startDrag} onPointerMove={dragMap} onPointerUp={() => { drag.current = null }} onPointerCancel={() => { drag.current = null }} onKeyDown={pressKey}>
@@ -133,6 +135,7 @@ export default function CollectionMap({ data, tileTemplate = process.env.MAP_TIL
               <Button aria-label="Close details" title="Close details" onClick={() => setSelectedId(null)} className="collection_map-callout_close"><X className="collection_map-callout_close_icon" /></Button>
             </div>
             <p className="collection_map-callout_place">{formatCoordinates(selected.position)}</p>
+            {selected.matched && <p className="collection_map-callout_matched">{selected.matched}</p>}
             <dl className="collection_map-fields">
               {pinDetails(selected.record, data.fields, location).map((detail) => <div key={detail.name} className="collection_map-fields_row">
                 <dt className="collection_map-fields_name">{detail.name}</dt>
@@ -172,10 +175,13 @@ export default function CollectionMap({ data, tileTemplate = process.env.MAP_TIL
       </ul>}
       {unplotted.length > 0 && <section className="collection_map-unplaced" aria-label="Records not on the map">
         <h2 className="collection_map-unplaced_title">Not on the map ({unplotted.length})</h2>
-        <p className="collection_map-unplaced_text">“{location.name}” is empty or is not latitude and longitude, like 48.8584, 2.2945. Fix them in the Grid view.</p>
+        <p className="collection_map-unplaced_text">{location.geocode
+          ? <>“{location.name}” is empty, or no place could be found for it. Fix them in the Grid view.</>
+          : <>“{location.name}” is empty or is not latitude and longitude, like 48.8584, 2.2945. Fix them in the Grid view.</>}</p>
         <ul className="collection_map-unplaced_list">
           {unplotted.slice(0, UNPLACED_SHOWN).map((record) => <li key={record.id} className="collection_map-unplaced_item">
             {record.label}{record.value && <span className="collection_map-unplaced_value"> · “{record.value}”</span>}
+            {record.problem && <span className="collection_map-unplaced_problem"> · {record.problem}</span>}
           </li>)}
         </ul>
         {unplotted.length > UNPLACED_SHOWN && <p className="collection_map-unplaced_text">and {unplotted.length - UNPLACED_SHOWN} more</p>}

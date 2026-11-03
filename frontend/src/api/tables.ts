@@ -5,9 +5,13 @@ import { ApiResource } from './base'
 export type DataType = 'text' | 'integer' | 'number' | 'boolean' | 'date' | 'datetime' | 'relation' | 'file' | 'files'
 // A formula field holds no values of its own: the editor works it out from the record's other fields.
 export type FieldDataType = DataType | 'formula'
-export interface TableField { id: number; name: string; data_type: FieldDataType; relation_table_id: number | null; formula?: string | null }
-export interface TableRecord { id: number; values: Record<string, string | number | boolean | number[] | null> }
-export interface TableData { fields: TableField[]; records: TableRecord[] }
+// `geocode` marks a text field whose addresses the server turns into places (see docs/features/collection_map_view.md).
+export interface TableField { id: number; name: string; data_type: FieldDataType; relation_table_id: number | null; formula?: string | null; geocode?: boolean }
+// What the server's place search made of a cell's text: a place, no match, or an error. The text itself is never changed.
+export interface PlaceResult { status: 'found' | 'not_found' | 'failed'; latitude?: number; longitude?: number; name?: string | null; error?: string }
+// `places` is by field id; `geocoding` says whether the server has a place search to use at all.
+export interface TableRecord { id: number; values: Record<string, string | number | boolean | number[] | null>; places?: Record<string, PlaceResult> }
+export interface TableData { fields: TableField[]; records: TableRecord[]; geocoding?: boolean }
 
 export class TableApi extends ApiResource<TableData> {
   constructor() {

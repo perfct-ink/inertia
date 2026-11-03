@@ -105,6 +105,42 @@ test('explains how to start when the collection has no text field', () => {
   expect(screen.queryByRole('group', { name: /Map of/ })).not.toBeInTheDocument()
 })
 
+describe('addresses the server looked up', () => {
+  const addresses: TableData = {
+    geocoding: true,
+    fields: [
+      { id: 1, name: 'Name', data_type: 'text', relation_table_id: null },
+      { id: 2, name: 'Address', data_type: 'text', relation_table_id: null, geocode: true },
+    ],
+    records: [
+      { id: 10, values: { 1: 'Eiffel', 2: 'Eiffel Tower, Paris' }, places: { 2: { status: 'found', latitude: 48.8583, longitude: 2.2945, name: 'Eiffel Tower, Paris, France' } } },
+      { id: 11, values: { 1: 'Ghost', 2: 'Nowhereville' }, places: { 2: { status: 'not_found' } } },
+      { id: 12, values: { 1: 'Offline', 2: 'Louvre' }, places: { 2: { status: 'failed', error: 'The place search is not available right now.' } } },
+    ],
+  }
+
+  test('plots a found address, shows the matched name, and says why the others are missing', () => {
+    render(<CollectionMap data={addresses} />)
+    const addressMap = screen.getByRole('group', { name: 'Map of Address' })
+    expect(screen.getByText('1 of 3 records on the map')).toBeInTheDocument()
+    fireEvent.click(within(addressMap).getByRole('button', { name: 'Eiffel' }))
+    const details = screen.getByRole('region', { name: 'Details for Eiffel' })
+    expect(within(details).getByText('48.8583, 2.2945')).toBeInTheDocument()
+    expect(within(details).getByText('Eiffel Tower, Paris, France')).toBeInTheDocument()
+    const unplaced = screen.getByRole('region', { name: 'Records not on the map' })
+    expect(within(unplaced).getByText(/No place found for this text\./)).toBeInTheDocument()
+    expect(within(unplaced).getByText(/The place search is not available right now\./)).toBeInTheDocument()
+    expect(within(unplaced).getByText(/Nowhereville/)).toBeInTheDocument()
+    expect(within(unplaced).getByText(/no place could be found/)).toBeInTheDocument()
+  })
+
+  test('invites an address, not only coordinates, when nothing is on the map yet', () => {
+    render(<CollectionMap data={{ ...addresses, records: [addresses.records[1]] }} />)
+    expect(screen.getByText('No record is on the map yet')).toBeInTheDocument()
+    expect(screen.getByText(/Type an address or latitude and longitude/)).toBeInTheDocument()
+  })
+})
+
 describe('base map', () => {
   test('without a tile server it draws a grid and requests nothing from any map server', () => {
     const { container } = render(<CollectionMap data={data} />)

@@ -15,8 +15,10 @@ class TableField < ApplicationRecord
   validate :valid_table
   validate :compatible_schema_change
   validate :formula_does_not_use_itself, if: :computed?
+  validate :geocode_only_on_text, if: :geocode?
   before_validation { self.formula = nil unless computed? }
   after_update :follow_rename_in_formulas, if: :saved_change_to_name?
+  after_update :forget_places, if: -> { saved_change_to_geocode? && !geocode? }
 
   def computed?
     COMPUTED_TYPES.include?(data_type)
@@ -39,6 +41,16 @@ class TableField < ApplicationRecord
     if persisted? && (data_type_changed? || relation_table_id_changed?) && table_cells.exists?
       errors.add(:data_type, "cannot change while this field has values; clear its values first")
     end
+  end
+
+  # Only text can hold an address to look up (see Geocoding).
+  def geocode_only_on_text
+    errors.add(:geocode, "is only available on text fields") unless data_type == "text"
+  end
+
+  # Turning the lookup off removes the places it found; the text stays as typed.
+  def forget_places
+    table_cells.update_all(geocode: nil)
   end
 
   # Formulas name fields as {Field name}.
