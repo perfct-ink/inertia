@@ -333,6 +333,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_03_120001) do
     t.bigint "created_by_id", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.datetime "expires_at"
     t.index ["created_by_id"], name: "index_shares_on_created_by_id"
     t.index ["shareable_type", "shareable_id"], name: "index_shares_on_shareable"
     t.index ["token"], name: "index_shares_on_token", unique: true

@@ -45,6 +45,18 @@ class Folder < ApplicationRecord
     archived_at.present?
   end
 
+  # Archived itself, or inside a folder that is (an archived folder takes
+  # everything under it out of sight).
+  def archived_in_tree?
+    folder = self
+    seen = Set.new
+    while folder && seen.add?(folder.id)
+      return true if folder.archived?
+      folder = folder.parent
+    end
+    false
+  end
+
   def archive!
     update!(archived_at: Time.current)
   end
