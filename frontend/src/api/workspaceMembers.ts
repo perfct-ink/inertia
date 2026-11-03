@@ -23,6 +23,6 @@ export const useUpdateMemberRole = (workspaceId: number) =>
   useApiMutation(({ id, role }: { id: number; role: WorkspaceRole }) => new WorkspaceMemberApi(workspaceId).update(id, { role }), [['workspace-members', workspaceId]])
 export const useUpdateMemberCapacity = (workspaceId: number) =>
   useApiMutation(({ id, hours }: { id: number; hours: number }) => new WorkspaceMemberApi(workspaceId).update(id, { weekly_capacity_hours: hours }), [['workspace-members', workspaceId]])
-// Someone who leaves loses their project allocations.
+// Someone who leaves loses their project allocations and time off.
 export const useRemoveMember = (workspaceId: number) =>
-  useApiMutation((id: number) => new WorkspaceMemberApi(workspaceId).destroy(id), [['workspace-members', workspaceId], 'resource-allocations'])
+  useApiMutation((id: number) => new WorkspaceMemberApi(workspaceId).destroy(id), [['workspace-members', workspaceId], 'resource-allocations', 'time-offs'])

@@ -26,7 +26,7 @@ One file per implemented feature, written from the code (see `docs/rules/feature
 | Formula field: Collection columns worked out from other fields | [formula_field.md](formula_field.md) |
 | Teams: groups of people that hold one role in a Space | [teams.md](teams.md) |
 | API layer: base class and one class per model in `frontend/src/api/` | [api_layer.md](api_layer.md) |
-| Resource management: weekly capacity per person, allocation to projects, over-capacity warnings | [resource_management.md](resource_management.md) |
+| Resource management: weekly capacity per person, allocation to projects, time off and holidays, over-capacity warnings | [resource_management.md](resource_management.md) |
 | Task fields: tags, dropdown, checkbox, rating and vote on tasks | [task_fields.md](task_fields.md) |
 | Move or copy documents and folders between Spaces | [space_transfer.md](space_transfer.md) |
 | Collection map view: records with coordinates as pins on a map | [collection_map_view.md](collection_map_view.md) |

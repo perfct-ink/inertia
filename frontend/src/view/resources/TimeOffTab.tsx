@@ -44,7 +44,7 @@ export default function TimeOffTab({ people, timeOffs, holidays, firstWeek, canM
       <section className="resources-card" aria-labelledby="resources-time-off">
         <div className="resources-card-top">
           <h2 id="resources-time-off" className="resources-card-title">Time off</h2>
-          <span className="resources-card-meta">Leave lowers that person's capacity</span>
+          <span className="resources-card-meta">Leave lowers capacity for that person</span>
         </div>
         {upcomingTimeOffs.length > 0 ? (
           <ul className="resources-spans" aria-label="Time off">
