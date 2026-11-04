@@ -142,7 +142,7 @@ export default function DocumentScreen() {
   const [saveStatus, setSaveStatus] = useState<'saved' | 'saving' | 'unsaved'>('saved')
   const pendingRef = useRef<{ title?: string; content?: Record<string, unknown> }>({})
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
-  const { openTab, updateTitle } = useTabsStore()
+  const { openTab } = useTabsStore()
 
   // Real-time collaboration (doc_type 'document' only — spreadsheets have
   // their own independent save path in SpreadsheetEditor.tsx). The Y.Doc and
@@ -447,7 +447,6 @@ export default function DocumentScreen() {
       try {
         await updateDocument.mutateAsync({ id: docId, ...toSave })
         setSaveStatus('saved')
-        if (toSave.title) updateTitle(String(docId), toSave.title)
         await syncTaskNodes(currentEditor)
         reconcileTaskLines(currentEditor, true)
         syncHeadingIds(currentEditor)

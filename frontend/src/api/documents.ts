@@ -2,6 +2,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import api from '@/lib/api'
 import type { Document } from '@/types'
 import { ApiResource, useApiMutation, useResourceFind } from './base'
+import { useTabsStore } from '@/store/tabs'
 
 export interface DocumentFields {
   title?: string
@@ -32,6 +33,8 @@ export function useUpdateDocument() {
     onSuccess: (doc) => {
       qc.setQueryData(['document', doc.id], doc)
       qc.invalidateQueries({ queryKey: ['workspace'] })
+      // A rename from anywhere (the sidebar, an editor's title) renames its open tab.
+      useTabsStore.getState().updateTitle(String(doc.id), doc.title)
     },
   })
 }

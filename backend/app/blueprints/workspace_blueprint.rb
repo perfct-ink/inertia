@@ -8,6 +8,10 @@ class WorkspaceBlueprint < Blueprinter::Base
   end
 
   view :with_folders do
+    # True when more than one person can open the Space (members or teams);
+    # the sidebar shows "My work" only then.
+    field :shared?, name: :shared
+
     association :folders, blueprint: FolderBlueprint, view: :with_children do |workspace, _options|
       workspace.folders.where(parent_id: nil).order(:position, :name)
     end

@@ -5,6 +5,9 @@ Users see table documents as **Collections**, never "Tables" (see `docs/rules/pr
 
 User-visible text now says Collection in: the new-item buttons and menus (`DOC_TYPE_LABELS` in `data/document.ts`, the sidebar button and "Untitled Collection" default title, the folder context menu), the folder overview heading ("Documents, Sheets & Collections"), the Projects empty state, the collection editor (title field, "Related collection", field-form hints), API error and validation messages for collections, and the public marketing pages and meta description.
 
+## Editor layout
+A Collection always opens as a table (`components/editors/TableEditor.tsx`), even before it has fields: the header row has Record ID, a **+** column button ("New field") and Actions, and the body says "Add a field to start" until the first field exists. The add-record row appears once there is a field. "Add field" in the header, the **+** column button and clicking a column's name all open the same field form in a modal (the shared `Modal`): Field name, Data type, the related Collection or formula when needed, Cancel and Create field (Save field when editing). Errors from saving a field show inside the modal. Covered by `TableEditor.test.tsx`; browser-checked 2026-11-03.
+
 "Table" is kept where it means a table inside a rich-text document ("Insert table", the Quip table converter) because that is a different thing.
 
 ## Who can view and change
@@ -17,6 +20,7 @@ Naming only; permissions are unchanged.
 Field types, one-to-many relationships, multiple images and YAML or JSON import are separate backlog tasks (`docs/backlog/collection-*.md`, `import-yaml-or-json-into-collection.md`). Rails model names are not yet translated in `backend/config/locales/en.yml`. A search found no remaining user-facing "Table" text in `frontend/src`, `backend/app` or the marketing views, but screens built later could reintroduce it.
 
 ## History
+- 2026-11-03: a Collection always shows its table, and adding or editing a field opens a modal instead of an inline form.
 - Implemented 2026-10-19.
 - Not verified: lint, type-check, the Jest and Rails tests and the screens were not run (no dependencies installed, no network). Only Ruby syntax was checked.
 

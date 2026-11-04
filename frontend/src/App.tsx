@@ -22,11 +22,9 @@ import MyWorkScreen from '@/view/my_work/MyWorkScreen'
 import TimelineScreen from '@/view/timeline/TimelineScreen'
 import IdeasScreen from '@/view/ideas/IdeasScreen'
 import IoMapScreen from '@/view/io_map/IoMapScreen'
-import ReleasesScreen from '@/view/releases/ReleasesScreen'
 import CalendarScreen from '@/view/calendar/CalendarScreen'
 import PivotScreen from '@/view/pivot/PivotScreen'
 import TaskTableScreen from '@/view/task_table/TaskTableScreen'
-import ProjectRequestsScreen from '@/view/project_requests/ProjectRequestsScreen'
 import FolderDetailScreen from '@/view/folder_detail/FolderDetailScreen'
 import SharedScreen from '@/view/shared/SharedScreen'
 import AppearanceEffect from '@/components/AppearanceEffect'
@@ -208,14 +206,8 @@ export default function App() {
             </PrivateRoute>
           }
         />
-        <Route
-          path="/releases"
-          element={
-            <PrivateRoute>
-              <ReleasesScreen />
-            </PrivateRoute>
-          }
-        />
+        {/* Releases was removed from the app (docs/features/releases.md). */}
+        <Route path="/releases" element={<Navigate to="/space" replace />} />
         <Route
           path="/calendar"
           element={
@@ -250,14 +242,9 @@ export default function App() {
         />
         {/* Projects are the Space's home page. */}
         <Route path="/projects" element={<Navigate to="/space" replace />} />
-        <Route
-          path="/project-requests"
-          element={
-            <PrivateRoute>
-              <ProjectRequestsScreen />
-            </PrivateRoute>
-          }
-        />
+        {/* Project requests is turned off for now; its screen and API stay
+            (docs/features/project_intake.md). */}
+        <Route path="/project-requests" element={<Navigate to="/space" replace />} />
         <Route
           path="/folders/:id"
           element={

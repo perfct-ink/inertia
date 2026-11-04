@@ -158,3 +158,27 @@ test('the view switch only appears once the collection has fields', () => {
   render(<TableEditor doc={doc} />)
   expect(screen.queryByRole('button', { name: 'Map' })).not.toBeInTheDocument()
 })
+
+test('a Collection with no fields still shows its table, with a prompt and a column button to add one', () => {
+  mockData = { fields: [], records: [] }
+  render(<TableEditor doc={doc} />)
+  expect(screen.getByRole('table')).toBeInTheDocument()
+  expect(screen.getByText(/Add a field to start/)).toBeInTheDocument()
+  expect(screen.queryByRole('button', { name: 'Add record' })).not.toBeInTheDocument()
+  fireEvent.click(screen.getByRole('button', { name: 'New field' }))
+  expect(screen.getByRole('dialog', { name: 'Add field' })).toBeInTheDocument()
+})
+
+test('adding or editing a field opens it in a modal, which Cancel closes', () => {
+  render(<TableEditor doc={doc} />)
+  expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+  fireEvent.click(screen.getByRole('button', { name: 'Add field' }))
+  const dialog = screen.getByRole('dialog', { name: 'Add field' })
+  expect(within(dialog).getByLabelText('Field name')).toHaveFocus()
+  fireEvent.click(within(dialog).getByRole('button', { name: 'Cancel' }))
+  expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+
+  fireEvent.click(screen.getByRole('button', { name: 'Age' }))
+  expect(screen.getByRole('dialog', { name: 'Edit Age' })).toBeInTheDocument()
+  expect(screen.getByLabelText('Field name')).toHaveValue('Age')
+})

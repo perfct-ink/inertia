@@ -8,7 +8,6 @@ import { errorMessage } from '@/util/errorMessage'
 import { flattenFolders } from '@/data/folder'
 import api from '@/lib/api'
 import { filePreview, formatBytes } from '@/data/document'
-import { useTabsStore } from '@/store/tabs'
 import { usePageTitle } from '@/hooks/usePageTitle'
 import type { Document } from '@/types'
 import './FileViewer.scss'
@@ -18,7 +17,6 @@ import './FileViewer.scss'
 export default function FileViewer({ doc }: { doc: Document }) {
   usePageTitle(doc.title)
   const updateDocument = useUpdateDocument()
-  const { updateTitle } = useTabsStore()
   const [title, setTitle] = useState(doc.title)
   const { data: workspace } = useWorkspace()
   const moveDocument = useMoveDocument()
@@ -33,7 +31,7 @@ export default function FileViewer({ doc }: { doc: Document }) {
   function rename() {
     const next = title.trim()
     if (!next || next === doc.title) { setTitle(doc.title); return }
-    updateDocument.mutate({ id: doc.id, title: next }, { onSuccess: (saved) => updateTitle(String(doc.id), saved.title) })
+    updateDocument.mutate({ id: doc.id, title: next })
   }
 
   return (

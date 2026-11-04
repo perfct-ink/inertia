@@ -25,8 +25,8 @@ export const useTabsStore = create<TabsStore>((set, get) => ({
 
   openTab(tab) {
     set((s) => {
-      const exists = s.tabs.find((t) => t.id === tab.id)
-      if (exists) return { activeId: tab.id }
+      // Reopening a tab takes its latest title, so a rename shows.
+      if (s.tabs.some((t) => t.id === tab.id)) return { tabs: s.tabs.map((t) => (t.id === tab.id ? { ...t, title: tab.title } : t)), activeId: tab.id }
       return { tabs: [...s.tabs, tab], activeId: tab.id }
     })
   },

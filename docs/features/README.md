@@ -40,7 +40,7 @@ One file per implemented feature, written from the code (see `docs/rules/feature
 | Task timeline: bars without dependencies | [task_timeline.md](task_timeline.md) |
 | Ideas: intake list, promote to an epic or initiative | [ideas.md](ideas.md) |
 | Objectives map: goal, critical success factors, necessary conditions | [objectives_map.md](objectives_map.md) |
-| Releases: a release with a date, its songs and their tasks | [releases.md](releases.md) |
+| Releases (removed from the web app; backend and data remain) | [releases.md](releases.md) |
 | Calendar of tasks and events | [task_calendar.md](task_calendar.md) |
 | Document outline: headings minimap with jump | [document_outline.md](document_outline.md) |
 | Pivot: task counts by two fields | [pivot.md](pivot.md) |

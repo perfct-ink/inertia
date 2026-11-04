@@ -4,6 +4,10 @@ import { MemoryRouter } from 'react-router-dom'
 import { SidebarRail } from './SidebarRail'
 import { SECTION_GROUPS } from './projectSections'
 
+let mockShared = true
+jest.mock('@/api/workspace', () => ({ useWorkspace: () => ({ data: { shared: mockShared } }) }))
+beforeEach(() => { mockShared = true })
+
 function renderAt(path: string, handlers = { onQuickAdd: jest.fn(), onShortcuts: jest.fn() }) {
   render(
     <MemoryRouter initialEntries={[path]}>
@@ -18,11 +22,23 @@ test('has a link for the Space pages and every page of a project, and no buttons
   const nav = screen.getByRole('navigation', { name: 'Pages' })
   const labels = within(nav).getAllByRole('link').map((a) => a.getAttribute('aria-label'))
   expect(labels).toEqual([
-    'Projects', 'Project requests',
+    'Projects',
     ...SECTION_GROUPS.flatMap((g) => g.sections.map((s) => s.label)),
   ])
   expect(within(nav).getByRole('link', { name: 'Tasks' })).toHaveAttribute('href', '/tasks?view=backlog')
   expect(within(nav).getByRole('link', { name: 'Roadmap' })).toHaveAttribute('href', '/roadmap')
+})
+
+test('My work shows only when the Space is shared with others', () => {
+  renderAt('/space')
+  expect(screen.getByRole('link', { name: 'My work' })).toBeInTheDocument()
+})
+
+test('My work is hidden when only you can open the Space', () => {
+  mockShared = false
+  renderAt('/space')
+  expect(screen.queryByRole('link', { name: 'My work' })).not.toBeInTheDocument()
+  expect(screen.getByRole('link', { name: 'All files' })).toBeInTheDocument()
 })
 
 test('marks the page you are on as current', () => {

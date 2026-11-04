@@ -1,7 +1,9 @@
 # Project intake
 
 ## What it does
-`/project-requests` (sidebar rail "Project requests") is an intake form with an approval step for new projects.
+**Turned off** (2026-11-03): nothing in the app links here and `/project-requests` redirects to `/space`. The screen, API, models and existing requests are unchanged; to turn it back on, restore the route in `App.tsx` (it rendered `ProjectRequestsScreen`) and add a Project requests link to `SPACE_SECTIONS` in `components/file-manager/SidebarRail.tsx`.
+
+`/project-requests` is an intake form with an approval step for new projects.
 
 - **Submit**: "New request" opens the intake form: project name (required), what it is, why it matters, start date, target date and priority (low, medium, high; default medium). A target date before the start date is rejected in the form and on the server.
 - **Review**: the list has Pending, Approved and Declined tabs, each with a count (the tabs only show once a request exists). Each card shows the name, a status badge, who asked and when, the priority, the dates, the description and the reason it matters. Every member of the Space can read every request.
@@ -23,7 +25,7 @@
 - Approve, decline, reopen: admins and owners only.
 
 ## Web entry points
-`frontend/src/view/project_requests/` (`ProjectRequestsScreen.tsx`, `ProjectRequestForm.tsx`, `ProjectRequestDecisionDialog.tsx`), route `/project-requests` in `App.tsx`, rail button in `components/file-manager/Sidebar.tsx`. The page reuses the Planning screens' stylesheet for its header, tabs and list. Failed calls show the error notice raised by the shared API client; form mistakes show next to the form.
+`frontend/src/view/project_requests/` (`ProjectRequestsScreen.tsx`, `ProjectRequestForm.tsx`, `ProjectRequestDecisionDialog.tsx`), route `/project-requests` in `App.tsx` (now a redirect to `/space`), no link while turned off. The page reuses the Planning screens' stylesheet for its header, tabs and list. Failed calls show the error notice raised by the shared API client; form mistakes show next to the form.
 
 ## Tests
 - `backend/test/models/project_request_test.rb` (defaults, validations, approve creates the project under the root, no double approval, decline needs a reason, reopen, project deletion keeps the request)
@@ -39,6 +41,7 @@
 - Project requests are not in quick add (Cmd+K) or the keyboard shortcut list.
 
 ## History
+- 2026-11-03: turned off in the web app (route redirects, links removed); the API still answers.
 - Implemented 2026-11-01 (not deployed; on branch `backlog/project-intake-form-with-approval-workflow`).
 - Conservative choices for Alex: only admins and owners approve; every member can read all requests; a decline needs a written reason; nothing is copied into the project beyond its name.
 - Not implemented: brief document, notifications, multi-step approval, project templates.

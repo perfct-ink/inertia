@@ -1,7 +1,7 @@
 # My work
 
 ## What it does
-`/my-work` (sidebar rail "My work") lists the tasks assigned to you in the current Space that are not done, grouped by due date: Overdue, Today, This week (the next six days), Later and No date. Within a group tasks are ordered by due date, then title. Each row shows the title, due date, the document it came from (a link) and a status picker that updates the task. Empty groups are hidden; with nothing assigned the page says so.
+`/my-work` (sidebar rail "My work", shown only when the Space is shared with someone else, see `projects.md`) lists the tasks assigned to you in the current Space that are not done, grouped by due date: Overdue, Today, This week (the next six days), Later and No date. Within a group tasks are ordered by due date, then title. Each row shows the title, due date, the document it came from (a link) and a status picker that updates the task. Empty groups are hidden; with nothing assigned the page says so.
 
 ## API and models
 No endpoint of its own: it reads `GET /api/v1/tasks` and filters by `assignee_id` in the browser (`myWork`, `dueBucket` in `frontend/src/data/task.ts`). Status changes use the normal task update call.

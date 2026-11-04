@@ -4,24 +4,26 @@
 
 ## Global (web + Electron)
 
-Bound in one place: the `onKey` handler in `frontend/src/components/file-manager/Sidebar.tsx`. The in-app cheat sheet (`⌘/`) is rendered from `KEYBOARD_SHORTCUTS` in the same file, which is kept in sync by hand. Update both when adding a shortcut.
+Bound in one place: the `onKey` handler in `frontend/src/components/file-manager/Sidebar.tsx`, using `isShortcut` from `frontend/src/util/shortcuts.ts` (which reads the physical key, so `⌥N` still counts as N). The in-app cheat sheet (`⌘/`) is rendered from `KEYBOARD_SHORTCUTS` in the same file, which is kept in sync by hand. Update both when adding a shortcut.
 
-| Keys | Action |
-|------|--------|
-| `⌘K` | Quick-add a task or event |
-| `⌘N` | New document in the current folder |
-| `⌘⇧N` | New sheet in the current folder |
-| `⌘T` | New task in the current folder (opens the backlog filtered to it, with the new-task form) |
-| `⌘E` | New event |
-| `⌘W` | Close the active tab |
-| `⌘/` or `⌘?` | Show or hide the shortcuts list |
-| `Esc` | Close the topmost open overlay (shortcuts, account, quick-add, Quip import, drawer) |
+Browsers (Safari, Chrome, Firefox) keep `⌘N`, `⇧⌘N` and `⌘T` for their own windows and tabs and never pass them to the page, so in a browser those three also take `⌥`. The Electron app and the Mac shell pass them on, so there `⌘` alone works. `shortcutLabel` shows the right form in the cheat sheet and tooltips.
+
+| Keys (Electron, Mac app) | Keys (browser) | Action |
+|------|------|--------|
+| `⌘K` | `⌘K` | Quick-add a task or event |
+| `⌘N` | `⌥⌘N` | New document in the current folder |
+| `⌘⇧N` | `⌥⌘⇧N` | New sheet in the current folder |
+| `⌘T` | `⌥⌘T` | New task in the current folder (opens the backlog filtered to it, with the new-task form) |
+| `⌘E` | `⌘E` | New event |
+| `⌘W` | (none) | Close the active tab |
+| `⌘/` or `⌘?` | `⌘/` or `⌘?` | Show or hide the shortcuts list |
+| `Esc` | `Esc` | Close the topmost open overlay (shortcuts, quick-add, Quip import, drawer) |
 
 Notes:
 
 - "Current folder" is the open folder page (`/folders/:id`) or the folder containing the open document. Elsewhere, new documents and sheets go to the first folder, and `⌘T` creates an unscoped task.
-- In a plain browser, `⌘⇧N` is usually reserved (new incognito window), so it only works in the Electron app.
-- `⌘W` is always `preventDefault`ed. In the packaged Electron app the native Window menu's `role: 'close'` accelerator still wins; see `frontend/electron/main.cjs`.
+- In a browser `⌘W` closes the browser tab and `⌥⌘W` closes all the other tabs in Safari, so there is no in-app close-tab shortcut there; the cheat sheet leaves it out (`shortcutAvailable`). In the packaged Electron app the native Window menu's `role: 'close'` accelerator still wins; see `frontend/electron/main.cjs`. The Mac app's menu routes `⌘N` and `⌘⇧N` to the page (`macos/Sources/Inertia/InertiaApp.swift`).
+- The browser `⌥⌘T` (new task) is the key the editor comparison below proposes for inserting a table, which isn't bound yet; pick one before binding it.
 - `Esc` also closes the event dialog on the Events page (`EventsPage.tsx`).
 
 ## Inline inputs

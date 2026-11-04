@@ -1,19 +1,25 @@
 import type { ComponentType } from 'react'
 import {
-  CalendarDays, CalendarRange, CheckSquare, Disc3, FileText, Flag, GanttChart, Goal, Lightbulb, ListTree, Map as MapIcon,
+  CalendarDays, CalendarRange, CheckSquare, FileText, Flag, GanttChart, Goal, Lightbulb, ListTree, Map as MapIcon,
   Milestone, Network, Rocket, Rows3, Table2, Target, UserCheck, Users,
 } from 'lucide-react'
 
-export type Section = { label: string; path: string; icon: ComponentType<{ className?: string }> }
+export type Section = {
+  label: string
+  path: string
+  icon: ComponentType<{ className?: string }>
+  // Only useful when other people can open the Space, so hidden until then.
+  sharedOnly?: boolean
+}
 
 // The pages under an open project, grouped by what they're for. Each lists
 // only that project's records (the API reads X-Project-Id, see backend
-// ProjectScoped). The first group has no heading. Shared by the sidebar's
-// Pages tab (ProjectNav) and the icon rail (SidebarRail).
+// ProjectScoped). The first group has no heading. Shown on the icon rail
+// (SidebarRail).
 export const SECTION_GROUPS: { heading: string | null; sections: Section[] }[] = [
   { heading: null, sections: [
     { label: 'All files', path: '/documents', icon: FileText },
-    { label: 'My work', path: '/my-work', icon: UserCheck },
+    { label: 'My work', path: '/my-work', icon: UserCheck, sharedOnly: true },
   ] },
   { heading: 'Tasks', sections: [
     { label: 'Tasks', path: '/tasks?view=backlog', icon: CheckSquare },
@@ -37,7 +43,6 @@ export const SECTION_GROUPS: { heading: string | null; sections: Section[] }[] =
     { label: 'Ideas', path: '/ideas', icon: Lightbulb },
   ] },
   { heading: 'Delivery', sections: [
-    { label: 'Releases', path: '/releases', icon: Disc3 },
     { label: 'Resources', path: '/resources', icon: Users },
   ] },
 ]

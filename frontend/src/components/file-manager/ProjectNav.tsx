@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
-import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import {
-  Archive, ArchiveRestore, Database, FilePlus, FolderPlus, Table as SheetIcon, ChevronsUpDown, Folder as FolderIcon, FolderKanban, ClipboardList, FileText,
+  Archive, ArchiveRestore, Database, FilePlus, FolderPlus, Table as SheetIcon, ChevronsUpDown, Folder as FolderIcon, FolderKanban, FileText,
   LayoutDashboard, Plus, Smile,
 } from 'lucide-react'
 import { Button, FormError, Input, Menu, PromptDialog, classNames } from '@/components/ui'
@@ -11,19 +11,19 @@ import { useWorkspace } from '@/api/workspace'
 import { useArchivedFolders, useCreateFolder, useUpdateFolder } from '@/api/folders'
 import { errorMessage } from '@/api/tables'
 import { documentsIn, folderOfDocument, projectOf, projectsOf } from '@/data/folder'
-import { isActivePath } from '@/data/project'
 import { useSelectProject } from '@/hooks/useSelectProject'
 import { useOpenProject } from '@/hooks/useOpenProject'
 import { useNewDocument } from '@/hooks/useNewDocument'
+import { shortcutLabel } from '@/util/shortcuts'
 import type { Document } from '@/types'
 import { useProjectStore } from '@/store/projects'
 import type { Folder } from '@/types'
 import { FolderItem } from './FolderItem'
-import { SECTION_GROUPS } from './projectSections'
 import './ProjectNav.scss'
 
 // The Space's projects as a flat list; selecting one switches the sidebar to
-// that project's pages and files, with a way back to the list.
+// that project's files, with a way back to the list. Its pages are on the
+// icon rail (SidebarRail).
 export function ProjectNav() {
   const navigate = useNavigate()
   const location = useLocation()
@@ -74,12 +74,6 @@ export function ProjectNav() {
     }
   }
 
-  const isActive = (path: string) => isActivePath(location.pathname, path)
-  const onPage = !!openProject && (location.pathname === `/folders/${openProject.id}` || SECTION_GROUPS.some((g) => g.sections.some((sec) => isActive(sec.path))))
-  // Files or Pages: whichever holds the page you're on, until one is chosen.
-  const [chosenTab, setTab] = useState<'files' | 'pages' | null>(null)
-  const tab = chosenTab ?? (onPage ? 'pages' : 'files')
-
   async function createIn(project: Folder, type: Document['doc_type']) {
     setError('')
     try {
@@ -107,7 +101,8 @@ export function ProjectNav() {
       {openProject ? (
         <>
           {/* Like the Space switcher: the open project opens a menu to switch
-              projects, start one, change its icon or see them all. */}
+              projects, open its overview, start one, change its icon or see
+              them all. */}
           <div className="project_nav-switcher">
             <Menu
               label={`Project: ${openProject.name}. Switch project`}
@@ -120,7 +115,8 @@ export function ProjectNav() {
                   checked: project.id === openProject.id,
                   onSelect: () => open(project),
                 })),
-                { key: 'new', label: 'New project...', icon: <Plus className="project_nav-icon" />, separatorBefore: true, onSelect: () => setNaming(true) },
+                { key: 'overview', label: 'Overview', icon: <LayoutDashboard className="project_nav-icon" />, separatorBefore: true, onSelect: () => navigate(`/folders/${openProject.id}`) },
+                { key: 'new', label: 'New project...', icon: <Plus className="project_nav-icon" />, onSelect: () => setNaming(true) },
                 { key: 'icon', label: 'Change icon...', icon: <Smile className="project_nav-icon" />, onSelect: () => setIconFor(openProject) },
                 { key: 'all', label: 'All projects', icon: <FolderKanban className="project_nav-icon" />, onSelect: () => navigate('/space') },
               ]}
@@ -132,30 +128,15 @@ export function ProjectNav() {
               <ChevronsUpDown className="workspace_switcher-icon" aria-hidden="true" />
             </Menu>
           </div>
-          <div role="tablist" aria-label={`${openProject.name} sections`} className="project_nav-tabs">
-            {(['files', 'pages'] as const).map((key) => (
-              <Button
-                key={key}
-                role="tab"
-                id={`project_nav-tab-${key}`}
-                aria-selected={tab === key}
-                aria-controls={`project_nav-panel-${key}`}
-                onClick={() => setTab(key)}
-                className={classNames('project_nav-tab', tab === key && 'project_nav-tab--active')}
-              >
-                {key === 'files' ? 'Files' : 'Pages'}
-              </Button>
-            ))}
-          </div>
-
           {/* The project's documents, sheets, Collections and files, subfolders included. */}
-          {tab === 'files' && (
-            <div role="tabpanel" id="project_nav-panel-files" aria-labelledby="project_nav-tab-files" className="project_nav-files">
-              <div className="project_nav-file_tools">
-                <Button title="New document (⌘N)" aria-label="New document" onClick={() => createIn(openProject, 'document')} className="project_nav-tool">
+          <div className="project_nav-files">
+            <div className="project_nav-bar">
+              <span className="project_nav-label">Files</span>
+              <div className="project_nav-tools">
+                <Button title={`New document (${shortcutLabel('⌘N')})`} aria-label="New document" onClick={() => createIn(openProject, 'document')} className="project_nav-tool">
                   <FilePlus className="project_nav-icon" />
                 </Button>
-                <Button title="New sheet (⌘⇧N)" aria-label="New sheet" onClick={() => createIn(openProject, 'spreadsheet')} className="project_nav-tool">
+                <Button title={`New sheet (${shortcutLabel('⌘⇧N')})`} aria-label="New sheet" onClick={() => createIn(openProject, 'spreadsheet')} className="project_nav-tool">
                   <SheetIcon className="project_nav-icon" />
                 </Button>
                 <Button title="New Collection" aria-label="New Collection" onClick={() => createIn(openProject, 'table')} className="project_nav-tool">
@@ -165,48 +146,26 @@ export function ProjectNav() {
                   <FolderPlus className="project_nav-icon" />
                 </Button>
               </div>
-              <FormError message={error} />
-              {addingFolder && (
-                <div className="project_nav-new">
-                  <Input
-                    autoFocus
-                    aria-label="Folder name"
-                    placeholder="Folder name"
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') addFolder(openProject, e.currentTarget.value.trim())
-                      if (e.key === 'Escape') setAddingFolder(false)
-                    }}
-                    onBlur={(e) => addFolder(openProject, e.currentTarget.value.trim())}
-                  />
-                </div>
-              )}
-              {documentsIn(openProject).length === 0 && !openProject.children?.length
-                ? <p className="project_nav-note">No files yet.</p>
-                : <FolderItem folder={openProject} bare />}
             </div>
-          )}
-
-          {tab === 'pages' && (
-          <div role="tabpanel" id="project_nav-panel-pages" aria-labelledby="project_nav-tab-pages">
-          <nav aria-label={`${openProject.name} pages`} className="project_nav-links">
-            <Link to={`/folders/${openProject.id}`} className={classNames('project_nav-link', location.pathname === `/folders/${openProject.id}` && 'project_nav-link--active')}>
-              <LayoutDashboard className="project_nav-icon" />
-              Overview
-            </Link>
-            {SECTION_GROUPS.map(({ heading, sections }) => (
-              <div key={heading ?? 'main'} role="group" aria-label={heading ?? undefined} className="project_nav-group">
-                {heading && <p className="project_nav-heading" aria-hidden="true">{heading}</p>}
-                {sections.map(({ label, path, icon: Icon }) => (
-                  <Link key={label} to={path} className={classNames('project_nav-link', isActive(path) && 'project_nav-link--active')}>
-                    <Icon className="project_nav-icon" />
-                    {label}
-                  </Link>
-                ))}
+            <FormError message={error} />
+            {addingFolder && (
+              <div className="project_nav-new">
+                <Input
+                  autoFocus
+                  aria-label="Folder name"
+                  placeholder="Folder name"
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') addFolder(openProject, e.currentTarget.value.trim())
+                    if (e.key === 'Escape') setAddingFolder(false)
+                  }}
+                  onBlur={(e) => addFolder(openProject, e.currentTarget.value.trim())}
+                />
               </div>
-            ))}
-          </nav>
+            )}
+            {documentsIn(openProject).length === 0 && !openProject.children?.length
+              ? <p className="project_nav-note">No files yet.</p>
+              : <FolderItem folder={openProject} bare />}
           </div>
-          )}
         </>
       ) : (
         <>
@@ -224,9 +183,6 @@ export function ProjectNav() {
                 className={classNames('project_nav-tool', showArchived && 'project_nav-tool--active')}
               >
                 <Archive className="project_nav-icon" />
-              </Button>
-              <Button title="Project requests" aria-label="Project requests" onClick={() => navigate('/project-requests')} className={classNames('project_nav-tool', location.pathname === '/project-requests' && 'project_nav-tool--active')}>
-                <ClipboardList className="project_nav-icon" />
               </Button>
               <Button title="New project" aria-label="New project" onClick={() => setAdding(true)} className="project_nav-tool">
                 <Plus className="project_nav-icon" />

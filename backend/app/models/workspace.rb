@@ -57,6 +57,17 @@ class Workspace < ApplicationRecord
     shares.first
   end
 
+
+  # Everyone who can open the Space: its members and the people on its teams.
+  def person_ids
+    (memberships.pluck(:user_id) + TeamMembership.joins(:team).where(teams: { workspace_id: id }).pluck(:user_id)).uniq
+  end
+
+  # Whether anyone besides one person can open the Space, and so its projects.
+  def shared?
+    person_ids.size > 1
+  end
+
   private
 
   def prepare_destroy

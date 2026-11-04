@@ -1,4 +1,5 @@
 import './TitleBarDragRegion.scss'
+import { isElectron } from '@/util/platform'
 
 // Thin drag region for the macOS traffic light area only. Must stay
 // narrow: -webkit-app-region hit-testing happens at the Chromium/OS layer,
@@ -7,7 +8,6 @@ import './TitleBarDragRegion.scss'
 // beneath it — e.g. most of the tab bar, which sits flush with the top of
 // the window with no title-bar spacer above it.
 export default function TitleBarDragRegion() {
-  const isElectron = navigator.userAgent.toLowerCase().includes('electron')
   if (!isElectron) return null
   return <div className="view-title_bar_drag_region" />
 }

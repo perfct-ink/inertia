@@ -99,39 +99,20 @@
       &.ui-select {
         padding-right: $select-chevron-room;
       }
-
-      &--field {
-        margin-top: space(1);
-      }
     }
 
+    /* The add/edit field form, in a modal (rendered outside the view). */
     @at-root .table_editor-field_form {
       display: flex;
-      flex-wrap: wrap;
-      align-items: flex-end;
+      flex-direction: column;
       gap: space(3);
-      margin: 0 space(6) space(4);
-      padding: space(4);
-      border-width: 1px;
-      border-radius: radius('lg');
     }
 
     @at-root .table_editor-field_form_label {
+      display: flex;
+      flex-direction: column;
+      gap: space(1.5);
       @include text('sm');
-    }
-
-    & .table_editor-field_form_button {
-      padding-top: space(1.5);
-      padding-bottom: space(1.5);
-    }
-
-    & .table_editor-cancel_button {
-      padding: space(1.5) space(2);
-      @include text('sm');
-
-      &:hover:not(:disabled) {
-        background: color(accent);
-      }
     }
 
     @at-root .table_editor-field_form_hint {
@@ -147,37 +128,6 @@
       display: block;
       margin: space(8) auto 0;
       @include spin;
-    }
-
-    @at-root .table_editor-empty {
-      margin: space(6);
-      padding: space(12);
-      border-width: 1px;
-      border-radius: radius('lg');
-      text-align: center;
-    }
-
-    @at-root .table_editor-empty_icon {
-      @include icon(space(8));
-
-      display: block;
-      margin: 0 auto space(3);
-      color: color(muted-foreground);
-    }
-
-    @at-root .table_editor-empty_title {
-      font-weight: 500;
-    }
-
-    @at-root .table_editor-empty_text {
-      margin-top: space(2);
-      @include text('sm');
-
-      color: color(muted-foreground);
-    }
-
-    & .table_editor-empty_button {
-      margin-top: space(4);
     }
 
     @at-root .table_editor-grid {
@@ -212,6 +162,12 @@
 
         color: color(muted-foreground);
         font-weight: 500;
+      }
+
+      &--add {
+        width: space(12);
+        min-width: space(12);
+        vertical-align: top;
       }
 
       &--actions {
@@ -257,6 +213,18 @@
 
       &--row {
         padding: space(1.5);
+      }
+
+      // Adds a field; not destructive, so it takes the accent on hover.
+      &--add {
+        display: flex;
+        padding: space(1.5);
+        border-radius: radius();
+
+        &:hover:not(:disabled) {
+          background: color(accent);
+          color: color(foreground);
+        }
       }
     }
 
@@ -316,6 +284,14 @@
     @at-root .table_editor-cell {
       padding: space(2);
       vertical-align: top;
+
+      // The prompt in a Collection with no fields yet.
+      &--empty {
+        padding: space(6) space(3);
+        color: color(muted-foreground);
+        text-align: center;
+        @include text('sm');
+      }
 
       &--id {
         padding: space(2) space(3);

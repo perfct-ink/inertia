@@ -58,6 +58,8 @@ export interface WorkspaceSummary {
 
 export interface Workspace extends WorkspaceSummary {
   root_folder_id?: number
+  // More than one person can open it (members or teams), so its projects are shared.
+  shared?: boolean
   folders: Folder[]
 }
 

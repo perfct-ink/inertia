@@ -30,6 +30,8 @@ import { useProjectStore } from '@/store/projects'
 import api from '@/lib/api'
 import logoMark from '@/assets/logo-mark.svg'
 import { todayISO } from '@/util/date'
+import { isElectron } from '@/util/platform'
+import { isShortcut, shortcutAvailable, shortcutKey, shortcutLabel } from '@/util/shortcuts'
 
 // Kept in sync by hand with the onKey handler below — there's only one
 // place global shortcuts are bound, so this is just their display copy.
@@ -48,7 +50,6 @@ const KEYBOARD_SHORTCUTS: { keys: string; label: string }[] = [
 // lights, which only exist in the packaged Electron app's frameless
 // window — in a normal browser tab there's nothing to reserve space for,
 // so it just reads as unwanted empty padding.
-const isElectron = navigator.userAgent.toLowerCase().includes('electron')
 
 export default function Sidebar() {
   const navigate = useNavigate()
@@ -147,25 +148,24 @@ export default function Sidebar() {
         else if (drawerOpenRef.current) closeDrawer()
         return
       }
-      if (!(e.metaKey || e.ctrlKey)) return
-      if (e.key === 'n' || e.key === 'N') {
+      if (isShortcut(e, 'n')) {
         e.preventDefault()
         if (e.shiftKey) createNewSpreadsheetRef.current()
         else createNewDocumentRef.current()
-      } else if (e.key === 't') {
+      } else if (isShortcut(e, 't')) {
         e.preventDefault()
         const fid = scopeFolderIdRef.current
         navigate(`/tasks?view=backlog&new=1${fid ? `&folder_id=${fid}` : ''}`)
-      } else if (e.key === 'e') {
+      } else if (isShortcut(e, 'e')) {
         e.preventDefault()
         navigate('/events?new=1')
-      } else if (e.key === 'k') {
+      } else if (isShortcut(e, 'k')) {
         e.preventDefault()
         openQuickAddRef.current()
-      } else if (e.key === '/' || e.key === '?') {
+      } else if (isShortcut(e, '/')) {
         e.preventDefault()
         setShortcutsOpen((open) => !open)
-      } else if (e.key === 'w') {
+      } else if ((e.metaKey || e.ctrlKey) && shortcutKey(e) === 'w') {
         // Always prevented, even with no tab open: Electron's default macOS
         // menu binds Cmd+W to closing the whole window (see main.cjs), and
         // that's a native accelerator a renderer preventDefault() can't
@@ -453,10 +453,10 @@ export default function Sidebar() {
               <h2 className="sidebar-dialog_heading">Keyboard shortcuts</h2>
             </div>
             <div className="sidebar-shortcuts">
-              {KEYBOARD_SHORTCUTS.map(({ keys, label }) => (
+              {KEYBOARD_SHORTCUTS.filter(({ keys }) => shortcutAvailable(keys)).map(({ keys, label }) => (
                 <div key={keys} className="sidebar-shortcut">
                   <span>{label}</span>
-                  <kbd className="sidebar-kbd">{keys}</kbd>
+                  <kbd className="sidebar-kbd">{shortcutLabel(keys)}</kbd>
                 </div>
               ))}
             </div>

@@ -7,10 +7,9 @@ import { BrowserRouter, HashRouter } from 'react-router-dom'
 import App from './App'
 import TitleBarDragRegion from '@/components/TitleBarDragRegion'
 import { cleanPath, usesHashRouter } from '@/util/router'
+import { isMacShell } from '@/util/platform'
 
-// The native Mac shell registers this message handler before the page loads.
-const macShell = Boolean((window as { webkit?: { messageHandlers?: { inertiaSession?: unknown } } }).webkit?.messageHandlers?.inertiaSession)
-const hashRouter = usesHashRouter(window.location, macShell)
+const hashRouter = usesHashRouter(window.location, isMacShell)
 if (!hashRouter) {
   // Old `/#/...` and `/index.html` links land on their clean path once.
   const path = cleanPath(window.location)

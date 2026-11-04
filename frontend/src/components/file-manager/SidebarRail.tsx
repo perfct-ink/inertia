@@ -1,23 +1,25 @@
 import { Link, useLocation } from 'react-router-dom'
-import { ClipboardList, FolderKanban, Keyboard, Plus } from 'lucide-react'
+import { FolderKanban, Keyboard, Plus } from 'lucide-react'
 import { Button, classNames } from '@/components/ui'
 import { isActivePath } from '@/data/project'
+import { useWorkspace } from '@/api/workspace'
 import { SECTION_GROUPS, type Section } from './projectSections'
 import './SidebarRail.scss'
 
-// Pages about the Space's projects as a whole, ahead of the open project's pages.
+// Pages about the Space's projects as a whole, ahead of the open project's
+// pages. Project requests is turned off (docs/features/project_intake.md).
 const SPACE_SECTIONS: Section[] = [
   { label: 'Projects', path: '/space', icon: FolderKanban },
-  { label: 'Project requests', path: '/project-requests', icon: ClipboardList },
 ]
 
-// The icon rail beside the sidebar panel: one button per page, the same pages
-// as a project's Pages tab, so any of them is one click away without opening
-// the panel's tabs. The quick actions sit at the bottom. The middle scrolls
+// The icon rail beside the sidebar panel: one button per page of the open
+// project (or the whole Space), so any of them is one click away. The quick actions sit at the bottom. The middle scrolls
 // when the window is too short for every button.
 export function SidebarRail({ onQuickAdd, onShortcuts }: { onQuickAdd: () => void; onShortcuts: () => void }) {
   const { pathname } = useLocation()
-  const groups = [SPACE_SECTIONS, ...SECTION_GROUPS.map((g) => g.sections)]
+  const shared = useWorkspace().data?.shared ?? false
+  const groups = [SPACE_SECTIONS, ...SECTION_GROUPS.map((g) => g.sections.filter((s) => shared || !s.sharedOnly))]
+    .filter((sections) => sections.length > 0)
 
   return (
     <nav aria-label="Pages" className="sidebar-rail">

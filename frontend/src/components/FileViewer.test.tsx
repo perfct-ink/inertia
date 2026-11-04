@@ -36,7 +36,7 @@ test('renames on leaving the field, moves to another folder, and replaces with a
   const name = screen.getByLabelText('File name')
   fireEvent.change(name, { target: { value: 'cover.png' } })
   fireEvent.blur(name)
-  expect(mockUpdate.mutate).toHaveBeenCalledWith({ id: 5, title: 'cover.png' }, expect.anything())
+  expect(mockUpdate.mutate).toHaveBeenCalledWith({ id: 5, title: 'cover.png' })
 
   fireEvent.change(screen.getByLabelText('Folder'), { target: { value: '2' } })
   expect(mockMove.mutate).toHaveBeenCalledWith({ id: 5, folderId: 2 }, expect.anything())

@@ -22,6 +22,19 @@ class WorkspacesControllerTest < ActionDispatch::IntegrationTest
     headers
   end
 
+  test "a Space is shared once a second person can open it, through a membership or a team" do
+    get "/api/v1/workspace", headers: headers_for(@outsider)
+    assert_equal false, response.parsed_body["shared"], "a personal Space with only its owner"
+
+    get "/api/v1/workspace", headers: headers_for(@member, workspace: @team)
+    assert_equal true, response.parsed_body["shared"]
+
+    solo = Workspace.create!(name: "Solo", user: @owner)
+    refute solo.shared?
+    solo.teams.create!(name: "Design", role: :member).memberships.create!(user: @viewer)
+    assert solo.shared?
+  end
+
   test "index lists every workspace the user belongs to with their role" do
     get "/api/v1/workspaces", headers: headers_for(@member)
     assert_response :success
