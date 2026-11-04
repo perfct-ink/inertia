@@ -26,7 +26,7 @@ docker compose up --build
 | Service | URL |
 |---------|-----|
 | Frontend | http://localhost:5174 |
-| API | http://localhost:3000 |
+| API | http://localhost:3847 (set `API_PORT`, e.g. `API_PORT=3001 make dev`, to use another host port) |
 | PostgreSQL | localhost:5432 |
 | Redis | localhost:6379 |
 

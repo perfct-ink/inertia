@@ -10,7 +10,7 @@ services:
         HTTPS_PROXY: ${HTTPS_PROXY:-}
         NO_PROXY: ${NO_PROXY:-}
     ports:
-      - "3000:3000"
+      - "${API_PORT:-3847}:3000"
     depends_on:
       postgres:
         condition: service_healthy
@@ -29,9 +29,9 @@ services:
       # explicit CORS allow same as any other cross-origin API caller.
       CORS_ORIGINS: http://localhost:5174,capacitor://localhost
       BYPASS_AUTH: ${BYPASS_AUTH:-false}
-      APP_URL: http://localhost:3000
+      APP_URL: http://localhost:${API_PORT:-3847}
       WEB_URL: http://localhost:5174
-      OAUTH_CALLBACK_BASE_URL: ${OAUTH_CALLBACK_BASE_URL:-http://localhost:3000}
+      OAUTH_CALLBACK_BASE_URL: ${OAUTH_CALLBACK_BASE_URL:-http://localhost:${API_PORT:-3847}}
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
       GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
       APPLE_CLIENT_ID: ${APPLE_CLIENT_ID:-}
@@ -82,7 +82,7 @@ services:
     ports:
       - "5174:5174"
     environment:
-      API_URL: http://localhost:3000
+      API_URL: http://localhost:${API_PORT:-3847}
       COLLAB_URL: ws://localhost:1234
       BYPASS_AUTH: ${BYPASS_AUTH:-false}
     volumes:

@@ -29,10 +29,10 @@ you're doing:
   API_URL=https://inertia.it.com COLLAB_URL=wss://inertia.it.com/collab npm run build
   ```
 - **Against your local dev stack** (`docker compose up` running):
-  - iOS **Simulator** shares the host's network, so `http://localhost:3000`
+  - iOS **Simulator** shares the host's network, so `http://localhost:3847`
     works directly:
     ```bash
-    API_URL=http://localhost:3000 COLLAB_URL=ws://localhost:1234 npm run build
+    API_URL=http://localhost:3847 COLLAB_URL=ws://localhost:1234 npm run build
     ```
   - A **real device** can't reach `localhost` (that's the phone's own
     loopback) — use your Mac's LAN IP instead, and make sure your phone is

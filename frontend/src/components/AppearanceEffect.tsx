@@ -16,6 +16,8 @@ export default function AppearanceEffect() {
     const media = window.matchMedia?.('(prefers-color-scheme: dark)')
 
     function apply() {
+      // The early script in index.html sets this inline to avoid a flash; the stylesheet owns it now.
+      root.style.removeProperty('color-scheme')
       const attribute = themeAttribute(theme)
       if (attribute) root.setAttribute('data-theme', attribute)
       else root.removeAttribute('data-theme')

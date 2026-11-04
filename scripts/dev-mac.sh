@@ -30,7 +30,7 @@ wait_for_service() {
   return 1
 }
 
-wait_for_service backend http://localhost:3000/up
+wait_for_service backend http://localhost:${API_PORT:-3847}/up
 docker compose exec -T backend bundle exec rails db:migrate
 wait_for_service frontend http://localhost:5174
 
@@ -43,6 +43,6 @@ trap 'exit 143' TERM
 # LaunchServices needs explicit environment overrides. A fresh instance ensures
 # an already-open production app cannot absorb this development launch.
 open -n -W \
-  --env INERTIA_API_URL=http://localhost:3000 \
+  --env INERTIA_API_URL=http://localhost:${API_PORT:-3847} \
   --env INERTIA_WEB_URL=http://localhost:5174 \
   macos/dist/Inertia.app

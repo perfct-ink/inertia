@@ -15,7 +15,8 @@ import {
 } from 'lucide-react'
 import { useWorkspace } from '@/api/workspace'
 import { usePinFolder } from '@/api/folders'
-import { useCreateDocument, usePinDocument } from '@/api/documents'
+import { usePinDocument } from '@/api/documents'
+import { useNewDocument } from '@/hooks/useNewDocument'
 import { useCreateTask } from '@/api/tasks'
 import { useCreateEvent } from '@/api/events'
 import { useEpics } from '@/api/epics'
@@ -55,7 +56,7 @@ export default function Sidebar() {
   const navigate = useNavigate()
   const location = useLocation()
   const { data: workspace } = useWorkspace()
-  const createDocument = useCreateDocument()
+  const newDocument = useNewDocument()
   const pinDocument = usePinDocument()
   const pinFolder = usePinFolder()
   const { user, logout } = useAuthStore()
@@ -208,12 +209,7 @@ export default function Sidebar() {
     creatingRef.current = true
     setCreationError('')
     try {
-      const current = workspace ?? (await api.get('/api/v1/workspace')).data
-      const folderId = scopeFolderId() ?? current.root_folder_id ?? current.folders?.[0]?.id
-      if (!folderId) throw new Error('The space root is unavailable. Please try again.')
-      const title = type === 'document' ? 'Untitled' : type === 'table' ? 'Untitled Collection' : 'Untitled Sheet'
-      const doc = await createDocument.mutateAsync({ folderId, title, doc_type: type })
-      navigate(`/documents/${doc.id}`)
+      await newDocument(type, scopeFolderId())
     } catch (error) {
       setCreationError(errorMessage(error))
     } finally {

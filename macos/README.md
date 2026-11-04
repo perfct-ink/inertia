@@ -3,7 +3,7 @@
 First stage of the gradual SwiftUI migration, requiring macOS 14+ and Xcode's Swift toolchain.
 
 - `make dev-mac` builds and starts the local API and web services, builds and opens `macos/dist/Inertia.app` with local endpoints, and streams service logs until the app closes.
-- `make mac-build` stops all running instances of this checkout's `macos/dist/Inertia.app` and rebuilds it. API and web services keep running. The app gets five seconds to quit normally before being force-stopped. Reopen the app to use the new binary; for local endpoints, use `open -n --env INERTIA_API_URL=http://localhost:3000 --env INERTIA_WEB_URL=http://localhost:5174 macos/dist/Inertia.app`.
+- `make mac-build` stops all running instances of this checkout's `macos/dist/Inertia.app` and rebuilds it. API and web services keep running. The app gets five seconds to quit normally before being force-stopped. Reopen the app to use the new binary; for local endpoints, use `open -n --env INERTIA_API_URL=http://localhost:3847 --env INERTIA_WEB_URL=http://localhost:5174 macos/dist/Inertia.app`.
 - `make dev-native-mac` builds and opens the native app with its default production endpoints.
 - `make test-native-mac` runs the native regression tests.
 - Open `macos/Package.swift` in Xcode to debug, or `swift run --package-path macos`.
@@ -17,7 +17,7 @@ For the local development API, use `admin` / `admin` as a shortcut to the seeded
 Production endpoints default to https://inertia.it.com. For development run:
 
 ```
-INERTIA_API_URL=http://localhost:3000 INERTIA_WEB_URL=http://localhost:5174 swift run --package-path macos
+INERTIA_API_URL=http://localhost:3847 INERTIA_WEB_URL=http://localhost:5174 swift run --package-path macos
 ```
 
 Credentials are never saved to disk by the native app. Sessions are held in memory, with an ephemeral WebView data store; sign-in is required after relaunch. The bearer token is injected only into the configured web origin, never placed in a URL. External web links open in the default browser. The online workspace needs a network connection. Local task files work offline; automatic cloud synchronization and conflict resolution are not implemented.

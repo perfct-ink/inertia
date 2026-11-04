@@ -1,6 +1,6 @@
 import { Button, Input, Modal, PromptDialog } from '@/components/ui'
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { useLocation, useParams } from 'react-router-dom'
 import * as Y from 'yjs'
 import { HocuspocusProvider } from '@hocuspocus/provider'
 import { useEditor, EditorContent } from '@tiptap/react'
@@ -303,6 +303,25 @@ export default function DocumentScreen() {
     }
     setSaveStatus('saved')
   }, [editor, doc?.id, provider])
+
+  // A document just created from the sidebar: once the collaborative content
+  // has synced, select the title so typing replaces "Untitled".
+  const location = useLocation()
+  const focusTitle = Boolean((location.state as { focusTitle?: boolean } | null)?.focusTitle)
+  useEffect(() => {
+    if (!editor || !provider || !focusTitle || doc?.doc_type !== 'document') return
+    let done = false
+    function focusHeading() {
+      if (done || !editor) return
+      done = true
+      const first = editor.state.doc.firstChild
+      if (first?.type.name === 'heading') editor.commands.setTextSelection({ from: 1, to: first.nodeSize - 1 })
+      editor.commands.focus()
+    }
+    if (provider.isSynced) focusHeading()
+    else provider.on('synced', focusHeading)
+    return () => { provider.off('synced', focusHeading) }
+  }, [editor, provider, focusTitle, doc?.doc_type])
 
   useEffect(() => {
     return () => { if (saveTimerRef.current) clearTimeout(saveTimerRef.current) }

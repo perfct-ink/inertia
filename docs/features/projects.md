@@ -16,6 +16,7 @@ Inside a Space are projects. A project is a folder (`folders.kind: project`) tha
 - **Icon**: pick one of 24 emojis, type any emoji, or upload an image (it goes through `POST /api/v1/uploads`). An image wins over an emoji; with neither, the default project icon shows (`components/project/`).
 - **Project page** (`/folders/:id`): the folder page, whose Overview lists the project's documents, files and collections and its tasks, epics and upcoming events, subfolders included (`GET /api/v1/folders/:id/contents`).
 - **Sidebar tree**: right-click menu on any folder shows "Make Project", or "Make Folder" on a project (`file-manager/FolderItem.tsx`).
+- **Personal Project.** A new document, sheet or Collection made with no folder chosen (no project open, from Cmd+N or the sidebar's create buttons) goes in a project named "Personal Project". It's created the first time and reused after, and it becomes the open project (`hooks/useNewDocument.ts`). The new document opens with the cursor in its title. Create Item's folder picker still files into the Root when you choose it.
 - **All files** opens filtered to the open project (see `all_files.md`).
 
 ## API and models
@@ -50,6 +51,7 @@ Scoped to the current Space; writes need the member role, like the rest of the S
 - The "Make Project" menu entry has no test.
 
 ## History
+- 2026-11-04: new documents with no project context go to a "Personal Project". Ran `tsc -b`, `npm run lint` (warnings only) and Jest (675, including `useNewDocument.test.tsx`). Not run: Rails tests, the browser. The project is found by name in the browser, so a Space where someone renamed it gets another one.
 - 2026-11-03: My work shows only in shared Spaces; the Files heading came back with the create buttons on it.
 - 2026-11-03: the Files and Pages tabs were removed; an open project shows just its files, its pages are on the icon rail, and Overview moved into the project dropdown. Project requests was turned off.
 - 2026-11-03: the icon rail came back, to the right of the sidebar panel (it had been removed when projects moved into the sidebar). Ran: the data tests and the rail, ProjectNav, WorkspaceLayout and GettingStarted component tests in a Jest stand-in, plus a static parse of the changed files. Not run: `npm run lint`, `tsc -b`, the real Jest suite, or the sidebar in a browser (desktop, phone width, light and dark, tinted theme, Electron).

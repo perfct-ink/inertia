@@ -53,7 +53,7 @@ See [Mac social sign-in](mac-social-sign-in.md) for provider setup steps.
 | `LIVE_DB_SSH_HOST`, `LIVE_DB_PORT`, `LIVE_DB_READONLY` | `make dev-live`: SSH host for the tunnel to the live database, the local tunnel port, and `1` for read-only transactions (see [README.md](README.md#against-the-live-database)). | Defaults: `general`, `15432`, off. |
 | `RAILS_MAX_THREADS`, `PORT`, `RAILS_LOG_LEVEL` | Puma/Rails runtime tuning. | Optional. |
 | `CORS_ORIGINS` | Comma-separated origins allowed to call the API. | Dev: `http://localhost:5174,capacitor://localhost` (the iOS WKWebView origin). |
-| `APP_URL` | Public base URL of the API. | Dev: `http://localhost:3000`. |
+| `APP_URL` | Public base URL of the API. | Dev: `http://localhost:$API_PORT` (default 3847). |
 | `BYPASS_AUTH` | `true` makes every request run as the first seeded user. Never enable in production. | Dev compose defaults to `false`, so the app requires sign up or login. Set `BYPASS_AUTH=true` to skip it. |
 | `WEB_URL` | Origin of the SPA, prefixed to the marketing pages' Login and Sign up links. | Dev compose: `http://localhost:5174`. Empty in production (same origin). |
 | `OAUTH_CALLBACK_BASE_URL` | Public origin that receives OAuth provider callbacks. | Required for social sign-in. |

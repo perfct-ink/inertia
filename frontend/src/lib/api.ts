@@ -16,7 +16,7 @@ declare module 'axios' {
 }
 
 const api = axios.create({
-  baseURL: process.env.API_URL ?? 'http://localhost:3000',
+  baseURL: process.env.API_URL ?? 'http://localhost:3847',
 })
 
 api.interceptors.request.use((config) => {

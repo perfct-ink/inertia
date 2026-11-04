@@ -12,7 +12,24 @@
          bundle. Belt-and-suspenders: robots.txt already disallows the app's
          own routes. -->
     <meta name="robots" content="noindex, nofollow" />
+    <!-- Lets the browser paint its default page background dark when the OS is
+         dark, so a refresh doesn't flash white before the stylesheet loads. -->
+    <meta name="color-scheme" content="light dark" />
     <title>Inertia</title>
+    <script>
+      // Apply a saved Light/Dark choice before first paint, so a refresh
+      // doesn't flash the wrong colours until React mounts (AppearanceEffect
+      // then takes over). "System" keeps following the OS through the meta tag
+      // above and the stylesheet's prefers-color-scheme rules.
+      try {
+        var saved = JSON.parse(localStorage.getItem('inertia-appearance') || '{}')
+        var theme = saved.state && saved.state.theme
+        if (theme === 'light' || theme === 'dark') {
+          document.documentElement.setAttribute('data-theme', theme)
+          document.documentElement.style.colorScheme = theme
+        }
+      } catch (e) {}
+    </script>
     <script>
       // A crash before React ever mounts (e.g. a ReferenceError thrown while
       // evaluating the bundle) otherwise leaves a silent blank white page —

@@ -13,6 +13,8 @@ const mockWorkspace = {
 
 jest.mock('@/api/workspace', () => ({ useWorkspace: () => ({ data: mockWorkspace }), useUploadFiles: () => ({ mutateAsync: mockUpload }) }))
 jest.mock('@/api/documents', () => ({ useCreateDocument: () => ({ mutateAsync: mockCreate }) }))
+jest.mock('@/api/folders', () => ({ useCreateFolder: () => ({ mutateAsync: jest.fn() }) }))
+jest.mock('@/hooks/useSelectProject', () => ({ useSelectProject: () => jest.fn() }))
 jest.mock('react-router-dom', () => ({
   useNavigate: () => mockNavigate,
 }))
@@ -23,7 +25,7 @@ test('new items default to root and open the resulting document', async () => {
   render(<CreateItem />)
   fireEvent.click(screen.getByRole('button', { name: 'New Document' }))
   await waitFor(() => expect(mockCreate).toHaveBeenCalledWith({ folderId: 101, title: 'Untitled Document', doc_type: 'document' }))
-  await waitFor(() => expect(mockNavigate).toHaveBeenCalledWith('/documents/9'))
+  await waitFor(() => expect(mockNavigate).toHaveBeenCalledWith('/documents/9', { state: { focusTitle: true } }))
   expect(screen.getAllByRole('option', { name: 'Root' })).toHaveLength(1)
 })
 

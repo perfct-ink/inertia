@@ -50,7 +50,7 @@ wait_for_service() {
   return 1
 }
 
-wait_for_service backend http://localhost:3000/up
+wait_for_service backend http://localhost:${API_PORT:-3847}/up
 wait_for_service frontend http://localhost:5174
 
 docker compose logs --tail=20 -f &

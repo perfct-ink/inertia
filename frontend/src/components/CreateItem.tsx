@@ -22,7 +22,7 @@ export default function CreateItem({ folderId }: { folderId?: number }) {
   async function make(type: Document['doc_type']) {
     setBusy(true); setError('')
     try {
-      await newDocument(type, folderId ?? (Number(destination) || undefined))
+      await newDocument(type, folderId ?? (Number(destination) || rootId))
     } catch (e) { setError(errorMessage(e)) } finally { setBusy(false) }
   }
   return <div className="view-create_item">

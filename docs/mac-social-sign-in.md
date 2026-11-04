@@ -8,7 +8,7 @@ For local Docker development, set these in the repository's ignored `.env` file.
 
 | Variable | Value |
 | --- | --- |
-| `OAUTH_CALLBACK_BASE_URL` | Public origin of the API that handles provider callbacks, for example `https://inertia.it.com`. For Google-only local development, `http://localhost:3000` works. |
+| `OAUTH_CALLBACK_BASE_URL` | Public origin of the API that handles provider callbacks, for example `https://inertia.it.com`. For Google-only local development, `http://localhost:3847` works. |
 | `GOOGLE_CLIENT_ID` | Google OAuth **Web application** client ID. |
 | `GOOGLE_CLIENT_SECRET` | Secret for that Google client. |
 | `APPLE_CLIENT_ID` | Apple **Services ID** configured for Sign in with Apple. |
@@ -26,7 +26,7 @@ The Mac binary needs only `INERTIA_API_URL` and `INERTIA_WEB_URL`, which `make d
 3. Add this exact authorized redirect URI, replacing the origin with `OAUTH_CALLBACK_BASE_URL`:
    `https://inertia.it.com/api/v1/auth/social/google/callback`
 4. For local Google-only development, you can instead register:
-   `http://localhost:3000/api/v1/auth/social/google/callback`
+   `http://localhost:3847/api/v1/auth/social/google/callback`
 5. Put the client ID and secret in the backend environment.
 
 ## Apple setup
@@ -53,7 +53,7 @@ make dev-mac
 `make dev-mac` also applies pending migrations. To rebuild only the Mac binary while services are running, use `make mac-build`, then quit Inertia and reopen the native bundle with local endpoints:
 
 ```sh
-open -n --env INERTIA_API_URL=http://localhost:3000 --env INERTIA_WEB_URL=http://localhost:5174 macos/dist/Inertia.app
+open -n --env INERTIA_API_URL=http://localhost:3847 --env INERTIA_WEB_URL=http://localhost:5174 macos/dist/Inertia.app
 ```
 
 Try signing in, canceling the provider browser, and signing in again after a relaunch. Successful sign-in opens Documents, Sheets & Tables. Sessions remain memory-only, as with password sign-in.

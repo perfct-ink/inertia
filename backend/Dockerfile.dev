@@ -24,4 +24,4 @@ RUN bundle install
 COPY . .
 
 EXPOSE 3000
-CMD ["bash", "-c", "rm -f tmp/pids/server.pid && bundle exec rails db:prepare && bundle exec rails runner db/dev_user.rb && bundle exec rails server -b 0.0.0.0"]
+CMD ["bash", "-c", "rm -f tmp/pids/server.pid && bundle exec rails db:prepare && (bundle exec rails runner db/dev_user.rb || echo dev user not created) && bundle exec rails server -b 0.0.0.0"]
