@@ -29,6 +29,10 @@
     }
   }
 
+  .project_nav-label--active {
+    color: color(foreground);
+  }
+
   .project_nav-tools {
     display: flex;
     align-items: center;
@@ -68,13 +72,33 @@
 
   }
 
+  // The switcher, the task pages and the files are separated by one even gap.
+  .project_nav-tasks,
+  .project_nav-files {
+    margin-top: space(3);
+  }
+
+  .project_nav-tasks {
+    display: flex;
+    flex-direction: column;
+
+    .project_nav-label {
+      padding: 0 space(3);
+      margin-bottom: space(1);
+    }
+  }
+
+  .project_nav-row--active {
+    background: color(accent);
+  }
+
   .project_nav-list {
     display: flex;
     flex-direction: column;
   }
 
   .project_nav-switcher {
-    padding: 0 space(1) space(1);
+    padding: 0 space(1);
   }
 
   .project_nav-open {

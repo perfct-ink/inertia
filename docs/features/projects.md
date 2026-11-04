@@ -4,8 +4,8 @@
 Inside a Space are projects. A project is a folder (`folders.kind: project`) that holds the documents, files, collections, tasks, events and planning records for one piece of work, including those in its subfolders.
 - **Space home** (`/space`): the Projects page. `/projects` redirects there. While a new user's getting-started steps are active, `/space` shows those instead.
 - **Projects page**: one card per active project, sorted by name, with its icon (click it to change it), file count, last update, a link to the project page, the files inside (subfolders included) and a create menu that adds items to the project. "New project" asks for a name and creates a folder with `kind: project`.
-- **Sidebar** (`file-manager/ProjectNav.tsx`): a flat list of the Space's projects, which never expands or collapses, with buttons for All files (which closes the open project, so it lists the whole Space), archived folders and projects (with Unarchive) and New project. Nothing but projects shows there; files outside any project are reached through All files. Selecting a project replaces the list with that project: a dropdown like the Space switcher (the project's icon and name; it lists the projects to switch to, with Overview, New project, Change icon and All projects), then just its files under a Files heading whose buttons (New document, New sheet, New Collection, New folder) create in the project and open the new item, then its documents, sheets, Collections and uploaded files, subfolders included (or "No files yet."). Its pages are on the icon rail, in these groups (`file-manager/projectSections.ts`):
-  - All files, My work (only when the Space is shared, see below)
+- **Sidebar** (`file-manager/ProjectNav.tsx`): a flat list of the Space's projects, which never expands or collapses, with buttons for All files (an icon in the header; it closes the open project, so it lists the whole Space), for archived folders and projects (with Unarchive) and New project. Nothing but projects shows there; files outside any project are reached through All files. Selecting a project replaces the list with that project: a dropdown like the Space switcher (the project's icon and name; it lists the projects to switch to, with Overview, New project, Change icon and All projects), then the task pages (Tasks, Task table, Pivot, Calendar, Events) as labelled links under a Tasks heading (they also stay on the icon rail), then just its files under an "All files" heading (a link to the All files page, filtered to the open project) whose buttons (New document, New sheet, New Collection, New folder) create in the project and open the new item, then its documents, sheets, Collections and uploaded files, subfolders included (or "No files yet."). Its pages are on the icon rail, in these groups (`file-manager/projectSections.ts`):
+  - My work (only when the Space is shared, see below)
   - **Tasks**: Tasks, Task table, Pivot, Calendar, Events
   - **Planning**: Roadmap, Timeline, Milestones, Initiatives, Epics, Sprints, Hierarchy
   - **Goals**: OKRs, Objectives map, Ideas
@@ -17,6 +17,7 @@ Inside a Space are projects. A project is a folder (`folders.kind: project`) tha
 - **Project page** (`/folders/:id`): the folder page, whose Overview lists the project's documents, files and collections and its tasks, epics and upcoming events, subfolders included (`GET /api/v1/folders/:id/contents`).
 - **Sidebar tree**: right-click menu on any folder shows "Make Project", or "Make Folder" on a project (`file-manager/FolderItem.tsx`).
 - **Personal Project.** A new document, sheet or Collection made with no folder chosen (no project open, from Cmd+N or the sidebar's create buttons) goes in a project named "Personal Project". It's created the first time and reused after, and it becomes the open project (`hooks/useNewDocument.ts`). The new document opens with the cursor in its title. Create Item's folder picker still files into the Root when you choose it.
+- **Unchanged new documents aren't kept.** A document made with "new document" is deleted when its tab is closed (tab button or Cmd+W) if nobody typed in it or renamed it (`store/untouchedDocuments.ts`, `lib/closeTab.ts`). Only documents, not sheets or Collections, and only until the page is reloaded; after a reload it's kept like any other. Content that arrives from the collaboration server doesn't count as a change. Leaving the page without closing the tab keeps it.
 - **All files** opens filtered to the open project (see `all_files.md`).
 
 ## API and models
@@ -42,7 +43,7 @@ Scoped to the current Space; writes need the member role, like the rest of the S
 
 ## Known limits
 - Every page shows under every project; choosing which features a project uses is `docs/backlog/choose-which-features-a-project-uses.md`.
-- Records made before projects existed, or with no project open, have no folder and show only when no project is open. All files on the projects list closes the open project; nothing else in the sidebar does.
+- Records made before projects existed, or with no project open, have no folder and show only when no project is open. The All files icon on the projects list closes the open project; nothing else in the sidebar does.
 - Project requests is turned off (see `project_intake.md`).
 - Nested projects are listed flat, and a subfolder project's records also show in its parent project.
 - My work's capacity and Resources' people are Space-wide; only their allocations are filtered.
@@ -51,6 +52,9 @@ Scoped to the current Space; writes need the member role, like the rest of the S
 - The "Make Project" menu entry has no test.
 
 ## History
+- 2026-11-04: the task pages are listed with their names inside an open project (not on the projects list); even gaps between the project dropdown, the task pages and the files; less space between the Space switcher and the Projects heading. Ran `tsc -b`, lint (warnings only) and Jest. Not run: the browser.
+- 2026-11-04: closing the tab of an unchanged new document deletes it (`closeTab.test.ts`). Not run: the browser, so the typing-versus-collaboration-sync check in `DocumentScreen.tsx` is untested in practice.
+- 2026-11-04: All files moved off the icon rail. The icon stays in the projects list header, and with a project open an "All files" heading replaces Files under the project name (the project stays open). Ran `tsc -b`, lint (warnings only) and Jest (679). Not run: the browser.
 - 2026-11-04: new documents with no project context go to a "Personal Project". Ran `tsc -b`, `npm run lint` (warnings only) and Jest (675, including `useNewDocument.test.tsx`). Not run: Rails tests, the browser. The project is found by name in the browser, so a Space where someone renamed it gets another one.
 - 2026-11-03: My work shows only in shared Spaces; the Files heading came back with the create buttons on it.
 - 2026-11-03: the Files and Pages tabs were removed; an open project shows just its files, its pages are on the icon rail, and Overview moved into the project dropdown. Project requests was turned off.

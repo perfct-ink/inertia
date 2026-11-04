@@ -20,6 +20,7 @@ Anyone with write access to the Space (the usual `WorkspaceScoped` rule); no sep
 - No owner, priority or tags on an idea.
 
 ## History
+- 2026-11-04: `⌘J` opens `/ideas?new=1` and focuses the idea field (`Sidebar.tsx`, `IdeasScreen.tsx`; listed in the shortcuts sheet and `docs/keyboard-shortcuts.md`). Ran `tsc -b`, lint (warnings only) and Jest. Not run: the browser. `⌘J` opens downloads in Chrome, which the page's handler overrides while the app has focus.
 - Implemented 2026-10-19 on branch `backlog/idea-intake-promoted-to-epic-or-initiative`. Not merged or deployed.
 - Not verified: migration, Rails tests, lint, type-check, frontend tests and the browser did not run (no database, no node_modules); `schema.rb` edited by hand. Only `ruby -c` passed.
 

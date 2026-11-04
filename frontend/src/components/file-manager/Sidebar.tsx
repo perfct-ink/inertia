@@ -25,6 +25,7 @@ import { useStartQuipImport, useQuipImport } from '@/api/quipImports'
 import { useQueryClient } from '@tanstack/react-query'
 import { useAuthStore } from '@/store/auth'
 import { useTabsStore } from '@/store/tabs'
+import { closeTab } from '@/lib/closeTab'
 import { ProjectNav } from './ProjectNav'
 import { SidebarRail } from './SidebarRail'
 import { useProjectStore } from '@/store/projects'
@@ -42,6 +43,7 @@ const KEYBOARD_SHORTCUTS: { keys: string; label: string }[] = [
   { keys: '⌘⇧N', label: 'New sheet in this folder' },
   { keys: '⌘T', label: 'New task in this folder' },
   { keys: '⌘E', label: 'New event' },
+  { keys: '⌘J', label: 'New idea' },
   { keys: '⌘W', label: 'Close the active tab' },
   { keys: '⌘/', label: 'Show or hide this list' },
   { keys: 'Esc', label: 'Close a dialog or panel' },
@@ -76,6 +78,8 @@ export default function Sidebar() {
   const startQuipImport = useStartQuipImport()
   const { data: quipImport } = useQuipImport(startedQuipImportId)
   const qc = useQueryClient()
+  const qcRef = useRef(qc)
+  qcRef.current = qc
   const [quickAddOpen, setQuickAddOpen] = useState(false)
   const [quickAddType, setQuickAddType] = useState<'task' | 'event'>('task')
   const [quickAddTitle, setQuickAddTitle] = useState('')
@@ -134,7 +138,7 @@ export default function Sidebar() {
     setQuickAddOpen(false)
   }
 
-  // Cmd+N → new document, Cmd+Shift+N → new sheet, Cmd+T → new task, Cmd+E → new event, Cmd+W → close
+  // Cmd+N → new document, Cmd+Shift+N → new sheet, Cmd+T → new task, Cmd+E → new event, Cmd+J → new idea, Cmd+W → close
   // tab, Cmd+K → quick-add a task or event without leaving the current page,
   // Cmd+/ (or Cmd+? — Shift+/ on a US layout) → toggle the shortcuts cheat
   // sheet. Keep KEYBOARD_SHORTCUTS below in sync with this list.
@@ -160,6 +164,9 @@ export default function Sidebar() {
       } else if (isShortcut(e, 'e')) {
         e.preventDefault()
         navigate('/events?new=1')
+      } else if (isShortcut(e, 'j')) {
+        e.preventDefault()
+        navigate('/ideas?new=1')
       } else if (isShortcut(e, 'k')) {
         e.preventDefault()
         openQuickAddRef.current()
@@ -172,9 +179,9 @@ export default function Sidebar() {
         // that's a native accelerator a renderer preventDefault() can't
         // reach — this only matters for the in-page fallback/web build.
         e.preventDefault()
-        const { activeId, closeTab } = useTabsStore.getState()
+        const { activeId } = useTabsStore.getState()
         if (!activeId) return
-        const next = closeTab(activeId)
+        const next = closeTab(activeId, qcRef.current)
         navigate(next ? next.path : '/space')
       }
     }

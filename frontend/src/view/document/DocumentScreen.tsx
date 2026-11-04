@@ -60,6 +60,7 @@ import {
 } from 'lucide-react'
 import WorkspaceLayout from '@/components/WorkspaceLayout'
 import { useDocument, useUpdateDocument } from '@/api/documents'
+import { markTouched } from '@/store/untouchedDocuments'
 import { useCreateTask, useDeleteTask, useTasks, useUpdateTask } from '@/api/tasks'
 import { reconcileTitle, removedLineTaskIds } from '@/data/taskLine'
 import type { Task } from '@/types'
@@ -258,7 +259,9 @@ export default function DocumentScreen() {
       Dropcursor,
       Gapcursor,
     ],
-    onUpdate: ({ editor }) => {
+    onUpdate: ({ editor, transaction }) => {
+      // Typing counts; content arriving from the collaboration server doesn't.
+      if (!transaction.getMeta('y-sync$')) markTouched(docId)
       const content = editor.getJSON() as Record<string, unknown>
       const title = extractTitle(content)
       // Under collaboration, Hocuspocus's onStoreDocument (collab-server/src/

@@ -6,6 +6,7 @@ import { untitledTitle } from '@/data/document'
 import { projectsOf } from '@/data/folder'
 import { PERSONAL_PROJECT_NAME } from '@/data/project'
 import { useSelectProject } from '@/hooks/useSelectProject'
+import { markUntouched } from '@/store/untouchedDocuments'
 import type { Document } from '@/types'
 
 // Creates an untitled document of a type in a folder and opens it, with the
@@ -28,6 +29,7 @@ export function useNewDocument() {
       target = personal.id
     }
     const doc = await create.mutateAsync({ folderId: target, title: untitledTitle(type), doc_type: type })
+    if (type === 'document') markUntouched(doc.id)
     navigate(`/documents/${doc.id}`, { state: { focusTitle: true } })
   }
 }

@@ -1,6 +1,6 @@
 import type { ComponentType } from 'react'
 import {
-  CalendarDays, CalendarRange, CheckSquare, FileText, Flag, GanttChart, Goal, Lightbulb, ListTree, Map as MapIcon,
+  CalendarDays, CalendarRange, CheckSquare, Flag, GanttChart, Goal, Lightbulb, ListTree, Map as MapIcon,
   Milestone, Network, Rocket, Rows3, Table2, Target, UserCheck, Users,
 } from 'lucide-react'
 
@@ -12,16 +12,17 @@ export type Section = {
   sharedOnly?: boolean
 }
 
+export const TASKS_HEADING = 'Tasks'
+
 // The pages under an open project, grouped by what they're for. Each lists
 // only that project's records (the API reads X-Project-Id, see backend
 // ProjectScoped). The first group has no heading. Shown on the icon rail
 // (SidebarRail).
 export const SECTION_GROUPS: { heading: string | null; sections: Section[] }[] = [
   { heading: null, sections: [
-    { label: 'All files', path: '/documents', icon: FileText },
     { label: 'My work', path: '/my-work', icon: UserCheck, sharedOnly: true },
   ] },
-  { heading: 'Tasks', sections: [
+  { heading: TASKS_HEADING, sections: [
     { label: 'Tasks', path: '/tasks?view=backlog', icon: CheckSquare },
     { label: 'Task table', path: '/task-table', icon: Rows3 },
     { label: 'Pivot', path: '/pivot', icon: Table2 },
@@ -46,3 +47,6 @@ export const SECTION_GROUPS: { heading: string | null; sections: Section[] }[] =
     { label: 'Resources', path: '/resources', icon: Users },
   ] },
 ]
+
+// The task pages, which the sidebar also lists with their names.
+export const TASK_SECTIONS = SECTION_GROUPS.find((g) => g.heading === TASKS_HEADING)?.sections ?? []

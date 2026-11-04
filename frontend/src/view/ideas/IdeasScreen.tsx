@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { useEffect, useRef, useState } from 'react'
+import { Link, useLocation } from 'react-router-dom'
 import { Lightbulb, Loader2, X } from 'lucide-react'
 import { Button, Input, Textarea } from '@/components/ui'
 import WorkspaceLayout from '@/components/WorkspaceLayout'
@@ -18,6 +18,12 @@ export default function IdeasScreen() {
   const deleteIdea = useDeleteIdea()
   const promote = usePromoteIdea()
   const [title, setTitle] = useState('')
+  // The new-idea shortcut (⌘J) opens /ideas?new=1: put the cursor in the idea field.
+  const location = useLocation()
+  const ideaInputRef = useRef<HTMLInputElement>(null)
+  useEffect(() => {
+    if (new URLSearchParams(location.search).get('new') === '1') ideaInputRef.current?.focus()
+  }, [location.key, location.search])
   const [description, setDescription] = useState('')
 
   function submit() {
@@ -37,7 +43,7 @@ export default function IdeasScreen() {
         <div className="planning-body">
           <div className="planning-list">
             <div className="planning-new_card">
-              <Input aria-label="Idea" placeholder="An idea or feature request" value={title} onChange={(e) => setTitle(e.target.value)} />
+              <Input ref={ideaInputRef} aria-label="Idea" placeholder="An idea or feature request" value={title} onChange={(e) => setTitle(e.target.value)} />
               <Textarea aria-label="Details" placeholder="Details (optional)" value={description} onChange={(e) => setDescription(e.target.value)} rows={3} />
               <Button variant="primary" onClick={submit} disabled={!title.trim() || createIdea.isPending}>Submit idea</Button>
             </div>

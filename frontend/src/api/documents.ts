@@ -1,4 +1,5 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { markTouched } from '@/store/untouchedDocuments'
 import api from '@/lib/api'
 import type { Document } from '@/types'
 import { ApiResource, useApiMutation, useResourceFind } from './base'
@@ -34,6 +35,7 @@ export function useUpdateDocument() {
       qc.setQueryData(['document', doc.id], doc)
       qc.invalidateQueries({ queryKey: ['workspace'] })
       // A rename from anywhere (the sidebar, an editor's title) renames its open tab.
+      markTouched(doc.id)
       useTabsStore.getState().updateTitle(String(doc.id), doc.title)
     },
   })

@@ -38,7 +38,7 @@ test('My work is hidden when only you can open the Space', () => {
   mockShared = false
   renderAt('/space')
   expect(screen.queryByRole('link', { name: 'My work' })).not.toBeInTheDocument()
-  expect(screen.getByRole('link', { name: 'All files' })).toBeInTheDocument()
+  expect(screen.queryByRole('link', { name: 'All files' })).not.toBeInTheDocument()
 })
 
 test('marks the page you are on as current', () => {

@@ -2,18 +2,21 @@ import { Button, classNames } from '@/components/ui'
 import { Database } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { X, FileText, Table as TableIcon } from 'lucide-react'
+import { useQueryClient } from '@tanstack/react-query'
 import { useTabsStore } from '@/store/tabs'
+import { closeTab } from '@/lib/closeTab'
 import './TabBar.scss'
 
 export default function TabBar() {
   const navigate = useNavigate()
-  const { tabs, activeId, setActive, closeTab } = useTabsStore()
+  const { tabs, activeId, setActive } = useTabsStore()
+  const queryClient = useQueryClient()
 
   if (tabs.length === 0) return null
 
   function handleClose(e: React.MouseEvent, id: string) {
     e.stopPropagation()
-    const next = closeTab(id)
+    const next = closeTab(id, queryClient)
     if (next) navigate(next.path)
     else navigate('/space')
   }

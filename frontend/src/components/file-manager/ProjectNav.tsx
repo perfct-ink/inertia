@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useLocation, useNavigate } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import {
   Archive, ArchiveRestore, Database, FilePlus, FolderPlus, Table as SheetIcon, ChevronsUpDown, Folder as FolderIcon, FolderKanban, FileText,
   LayoutDashboard, Plus, Smile,
@@ -13,6 +13,8 @@ import { errorMessage } from '@/api/tables'
 import { documentsIn, folderOfDocument, projectOf, projectsOf } from '@/data/folder'
 import { useSelectProject } from '@/hooks/useSelectProject'
 import { useOpenProject } from '@/hooks/useOpenProject'
+import { TASKS_HEADING, TASK_SECTIONS } from './projectSections'
+import { isActivePath } from '@/data/project'
 import { useNewDocument } from '@/hooks/useNewDocument'
 import { shortcutLabel } from '@/util/shortcuts'
 import type { Document } from '@/types'
@@ -128,10 +130,30 @@ export function ProjectNav() {
               <ChevronsUpDown className="workspace_switcher-icon" aria-hidden="true" />
             </Menu>
           </div>
+          {/* The task pages, only inside a project. */}
+          <nav aria-label="Tasks" className="project_nav-tasks">
+            <span className="project_nav-label">{TASKS_HEADING}</span>
+            {TASK_SECTIONS.map(({ label, path, icon: Icon }) => {
+              const active = isActivePath(location.pathname, path)
+              return (
+                <Link key={path} to={path} aria-current={active ? 'page' : undefined} className={classNames('project_nav-row', 'project_nav-open', active && 'project_nav-row--active')}>
+                  <Icon className="project_nav-icon" />
+                  <span className="project_nav-name">{label}</span>
+                </Link>
+              )
+            })}
+          </nav>
           {/* The project's documents, sheets, Collections and files, subfolders included. */}
           <div className="project_nav-files">
             <div className="project_nav-bar">
-              <span className="project_nav-label">Files</span>
+              {/* The project's files, filtered to it; the page lists them all. */}
+              <Button
+                onClick={() => navigate('/documents')}
+                aria-current={location.pathname === '/documents' ? 'page' : undefined}
+                className={classNames('project_nav-label', location.pathname === '/documents' && 'project_nav-label--active')}
+              >
+                All files
+              </Button>
               <div className="project_nav-tools">
                 <Button title={`New document (${shortcutLabel('⌘N')})`} aria-label="New document" onClick={() => createIn(openProject, 'document')} className="project_nav-tool">
                   <FilePlus className="project_nav-icon" />

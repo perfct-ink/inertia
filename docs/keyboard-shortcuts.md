@@ -15,6 +15,7 @@ Browsers (Safari, Chrome, Firefox) keep `⌘N`, `⇧⌘N` and `⌘T` for their o
 | `⌘⇧N` | `⌥⌘⇧N` | New sheet in the current folder |
 | `⌘T` | `⌥⌘T` | New task in the current folder (opens the backlog filtered to it, with the new-task form) |
 | `⌘E` | `⌘E` | New event |
+| `⌘J` | `⌘J` | New idea (opens Ideas with the cursor in the idea field) |
 | `⌘W` | (none) | Close the active tab |
 | `⌘/` or `⌘?` | `⌘/` or `⌘?` | Show or hide the shortcuts list |
 | `Esc` | `Esc` | Close the topmost open overlay (shortcuts, quick-add, Quip import, drawer) |

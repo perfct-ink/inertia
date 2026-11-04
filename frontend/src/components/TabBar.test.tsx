@@ -1,5 +1,6 @@
 import '@testing-library/jest-dom'
 import { fireEvent, render, screen } from '@testing-library/react'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import TabBar from './TabBar'
 import { useTabsStore } from '@/store/tabs'
 
@@ -14,7 +15,7 @@ beforeEach(() => {
 })
 
 function renderBar() {
-  render(<TabBar />)
+  render(<QueryClientProvider client={new QueryClient()}><TabBar /></QueryClientProvider>)
 }
 
 test('each tab has a labelled select button and a separate close button', () => {

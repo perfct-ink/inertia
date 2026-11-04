@@ -1,5 +1,5 @@
 import '@testing-library/jest-dom'
-import { fireEvent, render, screen } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen, within } from '@testing-library/react'
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom'
 import { useProjectStore } from '@/store/projects'
 import { ProjectNav } from './ProjectNav'
@@ -16,7 +16,9 @@ jest.mock('@/api/folders', () => ({
 }))
 
 const mockReset = jest.fn()
-jest.mock('@tanstack/react-query', () => ({ useQueryClient: () => ({ resetQueries: mockReset }) }))
+// One client object, as in the app: a new one per render would make selectProject change every render.
+const mockClient = { resetQueries: mockReset }
+jest.mock('@tanstack/react-query', () => ({ useQueryClient: () => mockClient }))
 
 const doc = { id: 9, title: 'Brief', doc_type: 'document' }
 const mockWorkspace = {
@@ -53,7 +55,7 @@ test('the projects list is flat: projects only, no pages or files', () => {
   expect(screen.getByRole('button', { name: 'Messages' })).toBeInTheDocument()
   expect(screen.getByRole('button', { name: 'Billing' })).toBeInTheDocument()
   expect(screen.queryByText('Loose')).not.toBeInTheDocument()
-  expect(screen.queryByRole('link', { name: 'Tasks' })).not.toBeInTheDocument()
+  expect(screen.queryByRole('link', { name: 'Roadmap' })).not.toBeInTheDocument()
   expect(screen.queryByRole('button', { name: 'Messages' })).not.toHaveAttribute('aria-expanded')
 })
 
@@ -66,10 +68,10 @@ test('selecting a project shows its files in place of the list, with a project d
   expect(screen.queryByRole('button', { name: 'Billing' })).not.toBeInTheDocument()
 
   // Just its files: no tabs, and its pages are on the icon rail.
-  expect(screen.getByText('Files')).toBeInTheDocument()
+  expect(screen.getByRole('button', { name: 'All files' })).toBeInTheDocument()
   expect(screen.getByText('Files of Messages')).toBeInTheDocument()
   expect(screen.queryByRole('tab')).not.toBeInTheDocument()
-  expect(screen.queryByRole('link', { name: 'Tasks' })).not.toBeInTheDocument()
+  expect(screen.queryByRole('link', { name: 'Roadmap' })).not.toBeInTheDocument()
 
   // The dropdown opens the project's overview.
   fireEvent.click(screen.getByRole('button', { name: 'Project: Messages. Switch project' }))
@@ -108,6 +110,28 @@ test('the Files tab creates documents, sheets, Collections and folders in the pr
   fireEvent.change(name, { target: { value: 'Drafts' } })
   fireEvent.keyDown(name, { key: 'Enter' })
   expect(mockCreateFolder).toHaveBeenCalledWith({ name: 'Drafts', parent_id: 2 }, expect.anything())
+})
+
+test('with a project open, All files replaces the Files heading and keeps the project open', () => {
+  renderAt('/documents/9')
+  expect(screen.queryByText('Files')).not.toBeInTheDocument()
+  fireEvent.click(screen.getByRole('button', { name: 'All files' }))
+  expect(screen.getByTestId('where')).toHaveTextContent('/documents')
+  expect(useProjectStore.getState().activeProjectId).toBe(2)
+  expect(screen.getByRole('button', { name: 'New document' })).toBeInTheDocument()
+})
+
+test('the task pages are listed with their names inside a project, not on the projects list', () => {
+  renderAt('/space')
+  expect(screen.queryByRole('navigation', { name: 'Tasks' })).not.toBeInTheDocument()
+  cleanup()
+  useProjectStore.setState({ activeProjectId: 2 })
+  renderAt('/task-table')
+  const tasks = screen.getByRole('navigation', { name: 'Tasks' })
+  ;['Tasks', 'Task table', 'Pivot', 'Calendar', 'Events'].forEach((name) => expect(within(tasks).getByRole('link', { name })).toBeInTheDocument())
+  expect(within(tasks).getByRole('link', { name: 'Task table' })).toHaveAttribute('aria-current', 'page')
+  fireEvent.click(within(tasks).getByRole('link', { name: 'Pivot' }))
+  expect(screen.getByTestId('where')).toHaveTextContent('/pivot')
 })
 
 test('opening a document inside a project opens that project', () => {

@@ -4,6 +4,7 @@ import IdeasScreen from './IdeasScreen'
 
 jest.mock('@/components/WorkspaceLayout', () => function LayoutMock({ children }: { children: React.ReactNode }) { return <div>{children}</div> })
 jest.mock('react-router-dom', () => ({
+  useLocation: () => ({ key: 'k', search: '?new=1' }),
   Link: ({ to, children, ...props }: { to: string; children: React.ReactNode }) => <a href={to} {...props}>{children}</a>,
 }))
 const mockCreate = { mutate: jest.fn(), isPending: false }
@@ -50,4 +51,9 @@ test('promoted ideas link to where they went and declined ones can reopen', () =
   fireEvent.click(screen.getByRole('button', { name: 'Reopen' }))
   expect(mockUpdate.mutate).toHaveBeenCalledWith({ id: 3, status: 'open' })
   expect(screen.getAllByRole('button', { name: 'Promote to epic' })).toHaveLength(1)
+})
+
+test('the new-idea shortcut link puts the cursor in the idea field', () => {
+  render(<IdeasScreen />)
+  expect(screen.getByLabelText('Idea')).toHaveFocus()
 })
