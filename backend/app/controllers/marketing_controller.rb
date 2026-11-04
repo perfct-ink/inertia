@@ -9,7 +9,7 @@
 # makes a network request for HTML, so these pages are web-only by construction.
 class MarketingController < ActionController::Base
   layout "marketing"
-  helper_method :canonical_url
+  helper_method :canonical_url, :app_url
 
   PAGES = {
     home: {
@@ -80,6 +80,12 @@ class MarketingController < ActionController::Base
   end
 
   private
+
+  # Login and signup live in the SPA. In production it shares this origin; in
+  # development it runs on its own port, named by WEB_URL.
+  def app_url(path)
+    ENV.fetch("WEB_URL", "") + path
+  end
 
   def canonical_url
     request.base_url + request.path

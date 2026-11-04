@@ -26,6 +26,24 @@ import AuthenticationServices
             token = String(header.dropFirst(7))
         } catch { self.error = error.localizedDescription }
     }
+    /// Creates the account, then signs in with it.
+    func signUp(name: String, email: String, password: String) async {
+        guard !busy else { return }
+        busy = true
+        do {
+            let body = try JSONSerialization.data(withJSONObject: ["user": ["name": name, "email": email, "password": password, "password_confirmation": password]])
+            let (data, response) = try await URLSession.shared.data(for: Requests.make(base: api, path: "api/v1/auth/signup", token: nil, method: "POST", body: body))
+            let status = (response as! HTTPURLResponse).statusCode
+            guard status == 201 else {
+                busy = false
+                let errors = (try? JSONSerialization.jsonObject(with: data) as? [String: Any])?["errors"] as? [String]
+                self.error = errors?.joined(separator: " ") ?? APIError.response(status).localizedDescription
+                return
+            }
+        } catch { busy = false; self.error = error.localizedDescription; return }
+        busy = false
+        await login(email: email, password: password)
+    }
     func login(provider: String) async {
         guard !busy else { return }
         busy = true

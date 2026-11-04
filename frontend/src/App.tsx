@@ -1,5 +1,6 @@
 import { Routes, Route, Navigate, useParams } from 'react-router-dom'
 import { useAuthStore } from '@/store/auth'
+import { usesHashRouter } from '@/util/router'
 import { ToastRegion } from '@/components/ui'
 import LoginScreen from '@/view/login/LoginScreen'
 import SignupScreen from '@/view/signup/SignupScreen'
@@ -36,6 +37,19 @@ function PrivateRoute({ children }: { children: React.ReactNode }) {
   return token ? <>{children}</> : <Navigate to="/login" replace />
 }
 
+// "/": signed-in people go to the app. Signed-out web visitors see the Rails
+// marketing page (a full page load: in production nginx serves it at "/", in
+// development it is on the API origin). Native shells have no marketing site
+// and open at login.
+function RootRoute() {
+  const token = useAuthStore((s) => s.token)
+  const nativeShell = usesHashRouter(window.location, window.location.pathname === '/index.html')
+  if (token || process.env.BYPASS_AUTH === 'true') return <Navigate to="/space" replace />
+  if (nativeShell) return <Navigate to="/login" replace />
+  window.location.replace(`${process.env.API_URL ?? ''}/`)
+  return null
+}
+
 // DocumentScreen owns a per-document Y.Doc/HocuspocusProvider pair for
 // real-time collaboration (see DocumentScreen.tsx) — that binding isn't
 // reactive to a changed id, so navigating between two documents needs a full
@@ -59,7 +73,7 @@ export default function App() {
             under deploy/) — this route only matters for local dev (no Rails
             marketing page competing there) and for in-app client-side nav,
             which never leaves the already-loaded SPA. */}
-        <Route path="/" element={<Navigate to="/space" replace />} />
+        <Route path="/" element={<RootRoute />} />
         {/* Old links from before workspaces were renamed to spaces. */}
         <Route path="/workspace" element={<Navigate to="/space" replace />} />
         <Route

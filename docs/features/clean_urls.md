@@ -5,7 +5,7 @@ Web addresses are plain paths: `/login`, `/signup`, `/space`, `/documents/4`, `/
 
 - **Old links still work.** A `/#/space` or `/index.html#/tasks?view=backlog` link is rewritten once, on load, to `/space` or `/tasks?view=backlog`. `/index.html` on its own goes to `/`. In-page anchors such as `/documents/4#launch-plan` are left alone.
 - **Native apps keep hashes.** Electron (`file://`), the Capacitor iOS app (`capacitor://`) and the native Mac shell use a hash router. The Mac shell is recognised by the `inertiaSession` message handler its WKWebView registers, since it only allows its `/index.html` entry. All of them share the one route list in `frontend/src/App.tsx`.
-- **Marketing root.** `/` is the Rails marketing page for everyone, signed in or not. Its Sign in and Sign up links go to `/login` and `/signup`, and signed-in people reach the app at `/space`. Inside the app, a link to `/` goes to `/space` without a page load.
+- **Marketing root.** `/` is the Rails marketing page for signed-out web visitors; signed-in people go on to `/space`. In production nginx serves it at `/`; in development the SPA's `/` route does a full page load of the API origin, and the marketing links to Login and Sign up use `WEB_URL` to point back at the SPA. Electron, iOS and the Mac shell have no marketing site and open at login (Mac: the native sign-up form first).
 
 ## How it works
 - `frontend/src/main.tsx` picks `BrowserRouter` or `HashRouter` at startup, using `usesHashRouter` and `cleanPath` in `frontend/src/util/router.ts`.
@@ -20,9 +20,9 @@ Not access-controlled; this is routing only. Pages behind sign-in still go throu
 
 ## Known limits
 - `/index.html` is redirected in the browser, not by nginx, because the Mac shell loads that path.
-- The Mac app's "Create an account" link still points at `/index.html#/signup`. It works through the rewrite.
 - `hierarchical-urls.md` in the backlog (folder-tree paths) builds on this.
 
 ## History
 - Implemented 2026-11-03, fixing `/login` and `/signup` from the marketing site, which opened the app home instead because the web used a hash router.
 - Verified in the browser against the local dev server: `/login`, `/signup`, `/#/tasks?view=backlog`, `/index.html`, a direct load of `/documents/1` and sidebar navigation. Not verified: the Electron and iOS builds and the Mac shell were not launched.
+- 2026-11-03: signed-out `/` shows marketing on the web; the Mac login screen opens on a native sign-up form (name, email, password, then signs in). Dev boot creates `test@example.com` / `password123` (`backend/db/dev_user.rb`). `tsc -b`, `npm run lint` (warnings only), Jest (660) and `swift build` passed; Rails tests and the browser/Mac app were not run.
