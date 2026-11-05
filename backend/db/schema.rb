@@ -69,6 +69,28 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_03_120001) do
     t.index ["workspace_id"], name: "index_ai_workers_on_workspace_id"
   end
 
+  create_table "baseline_tasks", force: :cascade do |t|
+    t.bigint "baseline_id", null: false
+    t.bigint "task_id", null: false
+    t.date "start_date"
+    t.date "due_date", null: false
+    t.index ["baseline_id", "task_id"], name: "index_baseline_tasks_on_baseline_id_and_task_id", unique: true
+    t.index ["baseline_id"], name: "index_baseline_tasks_on_baseline_id"
+    t.index ["task_id"], name: "index_baseline_tasks_on_task_id"
+  end
+
+  create_table "baselines", force: :cascade do |t|
+    t.bigint "workspace_id", null: false
+    t.bigint "folder_id", null: false
+    t.bigint "created_by_id"
+    t.string "name", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["created_by_id"], name: "index_baselines_on_created_by_id"
+    t.index ["folder_id"], name: "index_baselines_on_folder_id"
+    t.index ["workspace_id"], name: "index_baselines_on_workspace_id"
+  end
+
   create_table "documents", force: :cascade do |t|
     t.string "title", null: false
     t.json "content"
@@ -634,6 +656,11 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_03_120001) do
   add_foreign_key "ai_runs", "tasks"
   add_foreign_key "ai_runs", "workspaces"
   add_foreign_key "ai_workers", "workspaces"
+  add_foreign_key "baseline_tasks", "baselines"
+  add_foreign_key "baseline_tasks", "tasks"
+  add_foreign_key "baselines", "folders"
+  add_foreign_key "baselines", "users", column: "created_by_id", on_delete: :nullify
+  add_foreign_key "baselines", "workspaces"
   add_foreign_key "documents", "documents", column: "parent_feature_id", on_delete: :nullify
   add_foreign_key "documents", "epics", on_delete: :nullify
   add_foreign_key "documents", "folders"

@@ -431,3 +431,12 @@ export interface FeatureRow {
   status: FeatureStatus
   status_derived: boolean
 }
+
+// A named snapshot of a folder's planned task dates (Gantt planned vs. actual).
+export interface Baseline {
+  id: number
+  name: string
+  folder_id: number
+  created_at: string
+  tasks: { task_id: number; start_date: string | null; due_date: string }[]
+}

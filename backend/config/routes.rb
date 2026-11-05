@@ -62,7 +62,9 @@ Rails.application.routes.draw do
           get :contents
           get :features
         end
+        resources :baselines, only: [ :index, :create ]
       end
+      resources :baselines, only: [ :destroy ]
 
       resources :documents, only: [] do
         resource :file, only: [ :update ], controller: "files"

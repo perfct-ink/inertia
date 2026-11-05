@@ -27,6 +27,8 @@ export interface Scheduled {
   // A milestone or initiative row heading the epics under it (Gantt): drawn
   // bolder and, as its dates are a roll-up, not draggable.
   group?: boolean
+  // Planned dates from a baseline, drawn as a thin bar under the actual one.
+  baseline?: { start_date: string; target_date: string }
 }
 
 // Whole-number percentage of an item's tasks that are done. Narrower than

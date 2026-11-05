@@ -6,6 +6,8 @@ import { Timeline, type TimelineMilestone } from '@/components/Timeline'
 import { useUpdateTask } from '@/api/tasks'
 import { useUpdateEpic } from '@/api/epics'
 import { useUpdateFolder } from '@/api/folders'
+import { useBaselines, useCreateBaseline, useDeleteBaseline } from '@/api/baselines'
+import { withBaseline } from '@/data/baseline'
 import { useCreateTaskDependency, useDeleteTaskDependency, useTaskDependencies } from '@/api/taskDependencies'
 import { GANTT_ZOOMS, GANTT_ZOOM_LABEL, ganttTaskKey, groupGanttRows, type GanttGroups, type GanttZoom, type Scheduled } from '@/data/schedule'
 import { DEPENDENCY_KINDS, DEPENDENCY_LABEL, DEPENDENCY_MODES, DEPENDENCY_MODE_LABEL, drivingPath, kindFromSides, planReschedule, type BarSide } from '@/data/dependency'
@@ -40,6 +42,19 @@ export default function GanttPane({ folderId, dependencyMode, epics, tasks, mile
   const updateFolder = useUpdateFolder()
   const [moveError, setMoveError] = useState<string | null>(null)
   const [exportError, setExportError] = useState<string | null>(null)
+  const { data: baselines = [] } = useBaselines(folderId)
+  const createBaseline = useCreateBaseline(folderId)
+  const deleteBaseline = useDeleteBaseline(folderId)
+  // '' shows no baseline; otherwise the id of the one drawn under the bars.
+  const [baselineId, setBaselineId] = useState('')
+  const [baselineName, setBaselineName] = useState('')
+  const baseline = baselines.find((b) => String(b.id) === baselineId)
+
+  function saveBaseline() {
+    const name = baselineName.trim()
+    if (!name) return
+    createBaseline.mutate(name, { onSuccess: (created) => { setBaselineName(''); setBaselineId(String(created.id)) } })
+  }
 
   // Rows are keyed `task-<id>` / `epic-<id>` (milestone and initiative rows are
   // not draggable); a task's end is due_date, an epic's is target_date.
@@ -127,10 +142,29 @@ export default function GanttPane({ folderId, dependencyMode, epics, tasks, mile
         <Button variant="secondary" onClick={printGantt}>Print or save as PDF</Button>
       </div>
       <FormError message={exportError} />
+      <div className="gantt_pane-toolbar">
+        <Select aria-label="Baseline" value={baselineId} onChange={(e) => setBaselineId(e.target.value)} className="gantt_pane-select">
+          <option value="">No baseline</option>
+          {baselines.map((b) => <option key={b.id} value={b.id}>{b.name}</option>)}
+        </Select>
+        {baseline && (
+          <Button onClick={() => { deleteBaseline.mutate(baseline.id); setBaselineId('') }} aria-label={`Delete baseline ${baseline.name}`}>
+            <X className="gantt_pane-icon" aria-hidden="true" />
+          </Button>
+        )}
+        <Input
+          aria-label="New baseline name"
+          placeholder="Baseline name"
+          value={baselineName}
+          onChange={(e) => setBaselineName(e.target.value)}
+          onKeyDown={(e) => { if (e.key === 'Enter') saveBaseline() }}
+        />
+        <Button variant="secondary" onClick={saveBaseline} disabled={!baselineName.trim() || createBaseline.isPending}>Save baseline</Button>
+      </div>
       <FormError message={moveError} />
       <Timeline
         milestones={milestones}
-        items={rows}
+        items={withBaseline(rows, baseline)}
         links={links}
         onReschedule={reschedule}
         onLink={linkTasks}

@@ -19,6 +19,7 @@ class Folder < ApplicationRecord
   has_many :io_nodes, dependent: :nullify
   has_many :releases, dependent: :nullify
   has_many :objectives, dependent: :nullify
+  has_many :baselines, dependent: :destroy
 
   # A project is a folder of docs shown on the Projects screen; a feature
   # folder holds feature requirement docs. Same table, so nesting, sharing
@@ -48,6 +49,13 @@ class Folder < ApplicationRecord
 
   scope :active, -> { where(archived_at: nil) }
   scope :archived, -> { where.not(archived_at: nil) }
+
+  # Tasks that sit in this folder, its subfolders, or documents inside them:
+  # what the folder's Gantt draws.
+  def scheduled_tasks
+    folder_ids = self_and_descendant_ids
+    workspace.tasks.where("tasks.folder_id IN (?) OR tasks.document_id IN (?)", folder_ids, Document.where(folder_id: folder_ids).select(:id))
+  end
 
   def archived?
     archived_at.present?

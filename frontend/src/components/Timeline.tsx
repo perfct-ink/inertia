@@ -46,6 +46,13 @@ export type TimelineLinkDraw = (from: { key: string; side: BarSide }, to: { key:
 
 type LinkDrag = { key: string; side: BarSide; x1: number; y1: number; x2: number; y2: number }
 
+// Where a baseline's planned dates fall on the track, clamped to the visible range.
+function plannedSpan(baseline: { start_date: string; target_date: string }, rangeStart: Date, totalDays: number) {
+  const start = Math.max(differenceInCalendarDays(parseISO(baseline.start_date), rangeStart), 0)
+  const end = Math.min(differenceInCalendarDays(parseISO(baseline.target_date), rangeStart), totalDays - 1)
+  return { left: (start / totalDays) * 100, width: Math.max(((end - start + 1) / totalDays) * 100, 1.5) }
+}
+
 export type TimelineReschedule = (item: Scheduled, startDate: string, targetDate: string) => void
 
 // One bar. When `onReschedule` is given it can be dragged to move, or by its
@@ -332,6 +339,16 @@ export function Timeline({ items, milestones = [], range, links = [], onReschedu
                 </span>
                 <div className="timeline-track">
                   <TimelineBar item={item} offsetPct={offsetPct} widthPct={widthPct} totalDays={totalDays} onReschedule={item.group ? undefined : onReschedule} onLinkStart={onLink && (!canLink || canLink(item)) ? startLink : undefined} />
+                  {item.baseline && (() => {
+                    const planned = plannedSpan(item.baseline, rangeStart, totalDays)
+                    return (
+                      <div
+                        className="timeline-planned"
+                        style={{ left: `${planned.left}%`, width: `${planned.width}%` }}
+                        title={`Planned ${item.baseline.start_date} → ${item.baseline.target_date}`}
+                      />
+                    )
+                  })()}
                 </div>
                 <span className="timeline-count">
                   {item.done_tasks_count}/{item.tasks_count}

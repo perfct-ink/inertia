@@ -7,6 +7,12 @@ import type { Epic, Task } from '@/types'
 
 const mockCreate = { mutate: jest.fn(), isPending: false, isError: false, error: null }
 const mockDelete = { mutate: jest.fn() }
+const mockCreateBaseline = { mutate: jest.fn(), isPending: false }
+jest.mock('@/api/baselines', () => ({
+  useBaselines: () => ({ data: [{ id: 5, name: 'Kickoff', folder_id: 1, created_at: '', tasks: [{ task_id: 2, start_date: '2026-11-01', due_date: '2026-11-10' }] }] }),
+  useCreateBaseline: () => mockCreateBaseline,
+  useDeleteBaseline: () => ({ mutate: jest.fn() }),
+}))
 jest.mock('@/api/taskDependencies', () => ({
   useTaskDependencies: () => ({
     data: [
@@ -133,4 +139,19 @@ test('nests epics under their initiative and milestone; only epics and tasks can
   expect(titles).toEqual(['Beta', 'Payments', 'Checkout', 'Design'])
   expect(container.querySelectorAll('.timeline-bar--group')).toHaveLength(2)
   expect(container.querySelectorAll('.timeline-bar--editable')).toHaveLength(2)
+})
+
+test('shows planned bars for the chosen baseline and saves a new one', () => {
+  const { container } = render(
+    <QueryClientProvider client={new QueryClient()}>
+      <GanttPane folderId={1} dependencyMode="strict" epics={[]} tasks={tasks} milestones={[]} />
+    </QueryClientProvider>,
+  )
+  expect(container.querySelectorAll('.timeline-planned')).toHaveLength(0)
+  fireEvent.change(screen.getByLabelText('Baseline'), { target: { value: '5' } })
+  expect(container.querySelectorAll('.timeline-planned')).toHaveLength(1)
+
+  fireEvent.change(screen.getByLabelText('New baseline name'), { target: { value: 'Replan' } })
+  fireEvent.click(screen.getByRole('button', { name: 'Save baseline' }))
+  expect(mockCreateBaseline.mutate).toHaveBeenCalledWith('Replan', expect.anything())
 })
