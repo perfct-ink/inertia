@@ -31,6 +31,10 @@ class Task < ApplicationRecord
   # Counted from the due date ("schedule") or from the day it is completed.
   enum :recurrence_from, { schedule: 0, completion: 1 }, prefix: :recurs_from
 
+  # What sort of work item this is. A bug shows up in the bugs queue (the
+  # task list filtered to kind = bug); a story is a user-facing slice of work.
+  enum :kind, { task: 0, bug: 1, story: 2 }, prefix: true, scopes: false, validate: true
+
   validates :title, presence: true
   validates :estimate_hours, numericality: { greater_than_or_equal_to: 0, allow_nil: true }
   validates :story_points, :actual_story_points, numericality: { only_integer: true, greater_than_or_equal_to: 0, allow_nil: true }

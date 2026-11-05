@@ -25,7 +25,7 @@ import {
 import { CSS } from '@dnd-kit/utilities'
 import WorkspaceLayout from '@/components/WorkspaceLayout'
 import SprintHeader from '@/components/SprintHeader'
-import { TASK_PRIORITIES, estimateLabel, pointsLabel, priorityLabel } from '@/data/task'
+import { TASK_PRIORITIES, estimateLabel, pointsLabel, priorityLabel, TASK_KINDS, KIND_LABEL, kindOf } from '@/data/task'
 import { RECURRENCE_OPTIONS, recurrenceLabel } from '@/data/recurrence'
 import { useTasks, useCreateTask, useUpdateTask, useDeleteTask, type TaskFilters } from '@/api/tasks'
 import { useWorkspace } from '@/api/workspace'
@@ -37,7 +37,7 @@ import { useTaskFields } from '@/api/taskFields'
 import { TaskFieldChips } from '@/components/task-fields/TaskFieldChips'
 import { TaskFieldsDialog } from '@/components/task-fields/TaskFieldsDialog'
 import { ManageTaskFieldsDialog } from '@/components/task-fields/ManageTaskFieldsDialog'
-import type { Task, TaskField, Epic, Sprint, Milestone, TaskStatus, TaskStatusColor, TaskPriority } from '@/types'
+import type { Task, TaskField, Epic, Sprint, Milestone, TaskStatus, TaskStatusColor, TaskPriority, TaskKind } from '@/types'
 import './TasksScreen.scss'
 import { usePageTitle } from '@/hooks/usePageTitle'
 import { useBoardStatuses } from '@/hooks/useBoardStatuses'
@@ -73,6 +73,9 @@ function TaskCard({ task, onNext, nextLabel, onNavigate, epicTitle, overlay, fie
     <div className={classNames('tasks-card', overlay && 'tasks-card--overlay')}>
       <div className="tasks-card_title_row">
         <p className="tasks-card_title">{task.title}</p>
+        {kindOf(task) !== 'task' && (
+          <span className={classNames('tasks-kind', `tasks-kind--${kindOf(task)}`)}>{KIND_LABEL[kindOf(task)]}</span>
+        )}
       </div>
       {epicTitle && (
         <div className="tasks-epic tasks-epic--card">
@@ -178,6 +181,7 @@ interface NewTaskFields {
   estimateHours?: number
   storyPoints?: number
   recurrence?: string
+  kind: TaskKind
 }
 
 interface AddTaskInputProps {
@@ -199,6 +203,7 @@ function AddTaskInput({ onAdd, onCancel, epics, sprints, milestones }: AddTaskIn
   const [estimate, setEstimate] = useState('')
   const [points, setPoints] = useState('')
   const [recurrence, setRecurrence] = useState('')
+  const [kind, setKind] = useState<TaskKind>('task')
   const titleRef = useRef('')
   const containerRef = useRef<HTMLDivElement>(null)
 
@@ -215,6 +220,7 @@ function AddTaskInput({ onAdd, onCancel, epics, sprints, milestones }: AddTaskIn
         estimateHours: estimate === '' ? undefined : Number(estimate),
         storyPoints: points === '' ? undefined : Number(points),
         recurrence: recurrence || undefined,
+        kind,
       })
     } else onCancel()
   }
@@ -294,6 +300,17 @@ function AddTaskInput({ onAdd, onCancel, epics, sprints, milestones }: AddTaskIn
         className="tasks-add_field tasks-add_field--select"
       >
         {RECURRENCE_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+      </Select>
+      <Select
+        aria-label="Type"
+        value={kind}
+        onChange={(e) => setKind(e.target.value as TaskKind)}
+        onBlur={handleBlur}
+        className="tasks-add_field tasks-add_field--select"
+      >
+        {TASK_KINDS.map(({ key, label }) => (
+          <option key={key} value={key}>{label}</option>
+        ))}
       </Select>
       {epics.length > 0 && (
         <Select
@@ -383,6 +400,7 @@ export default function TasksScreen() {
     ...(filters.status ? { status: filters.status } : {}),
     ...(filters.epic_id ? { epic_id: filters.epic_id } : {}),
     ...(filters.sprint_id ? { sprint_id: filters.sprint_id } : {}),
+    ...(filters.kind ? { kind: filters.kind } : {}),
     ...(searchQ.trim() ? { q: searchQ.trim() } : {}),
   }
 
@@ -546,11 +564,11 @@ export default function TasksScreen() {
             </Button>
             <Button
               onClick={() => setShowFilters((o) => !o)}
-              className={classNames('tasks-filter_button', !!(showFilters || filters.folder_id || filters.status || filters.epic_id || filters.sprint_id) && 'tasks-filter_button--active')}
+              className={classNames('tasks-filter_button', !!(showFilters || filters.folder_id || filters.status || filters.epic_id || filters.sprint_id || filters.kind) && 'tasks-filter_button--active')}
             >
               <Filter className="tasks-icon" />
               Filter
-              {(filters.folder_id || filters.status || filters.epic_id || filters.sprint_id) && <span className="tasks-filter_dot" />}
+              {(filters.folder_id || filters.status || filters.epic_id || filters.sprint_id || filters.kind) && <span className="tasks-filter_dot" />}
             </Button>
           </div>
         </div>
@@ -579,6 +597,17 @@ export default function TasksScreen() {
                 <option key={status} value={status}>{statuses[status].label}</option>
               ))}
             </Select>
+            <span className="tasks-filter_label">Type</span>
+            <Select
+              className="tasks-filter_select"
+              value={filters.kind ?? ''}
+              onChange={(e) => setFilters((f) => ({ ...f, kind: (e.target.value || undefined) as TaskKind | undefined }))}
+            >
+              <option value="">Any type</option>
+              {TASK_KINDS.map(({ key, label }) => (
+                <option key={key} value={key}>{key === 'bug' ? 'Bugs (queue)' : label}</option>
+              ))}
+            </Select>
             <span className="tasks-filter_label">Epic</span>
             <Select
               className="tasks-filter_select"
@@ -601,7 +630,7 @@ export default function TasksScreen() {
                 <option key={sprint.id} value={sprint.id}>{sprint.title}</option>
               ))}
             </Select>
-            {(filters.folder_id || filters.status || filters.epic_id || filters.sprint_id) && (
+            {(filters.folder_id || filters.status || filters.epic_id || filters.sprint_id || filters.kind) && (
               <Button
                 onClick={() => setFilters({})}
                 className="tasks-clear"

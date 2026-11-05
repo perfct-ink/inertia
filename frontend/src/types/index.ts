@@ -102,11 +102,14 @@ export interface TaskStatusSetting {
 
 export type TaskPriority = 'none' | 'low' | 'medium' | 'high' | 'urgent'
 
+export type TaskKind = 'task' | 'bug' | 'story'
+
 export interface Task {
   id: number
   title: string
   description: string | null
   status: TaskStatus
+  kind?: TaskKind
   start_date?: string | null
   due_date: string | null
   position: number

@@ -489,10 +489,12 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_03_120001) do
     t.decimal "estimate_hours", precision: 7, scale: 2
     t.integer "story_points"
     t.integer "actual_story_points"
+    t.integer "kind", default: 0, null: false
     t.index ["assignee_id"], name: "index_tasks_on_assignee_id"
     t.index ["document_id"], name: "index_tasks_on_document_id"
     t.index ["epic_id"], name: "index_tasks_on_epic_id"
     t.index ["folder_id"], name: "index_tasks_on_folder_id"
+    t.index ["kind"], name: "index_tasks_on_kind"
     t.index ["milestone_id"], name: "index_tasks_on_milestone_id"
     t.index ["parent_id"], name: "index_tasks_on_parent_id"
     t.index ["sprint_id"], name: "index_tasks_on_sprint_id"

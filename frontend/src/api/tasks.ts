@@ -1,5 +1,5 @@
 import api from '@/lib/api'
-import type { Task } from '@/types'
+import type { Task, TaskKind } from '@/types'
 import { ApiResource, useResourceCreate, useResourceDelete, useResourceList, useResourceUpdate } from './base'
 
 export interface TaskFilters {
@@ -9,6 +9,7 @@ export interface TaskFilters {
   document_id?: number
   epic_id?: number
   sprint_id?: number
+  kind?: TaskKind
 }
 
 export interface NewTask {
@@ -26,6 +27,7 @@ export interface NewTask {
   estimate_hours?: number
   story_points?: number
   recurrence?: string
+  kind?: TaskKind
 }
 
 export class TaskApi extends ApiResource<Task, NewTask> {

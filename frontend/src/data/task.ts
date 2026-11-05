@@ -1,4 +1,4 @@
-import type { Task, TaskPriority } from '@/types'
+import type { Task, TaskKind, TaskPriority } from '@/types'
 
 // The task statuses the API accepts, in board order (mirrors Task.statuses in the backend).
 export const TASK_STATUSES: Task['status'][] = ['backlog', 'todo', 'in_progress', 'in_review', 'done']
@@ -9,6 +9,25 @@ export const STATUS_LABEL: Record<Task['status'], string> = {
   in_progress: 'In Progress',
   in_review: 'In Review',
   done: 'Done',
+}
+
+// Item types a task can be. A bug appears in the bugs queue (the task list
+// filtered to kind = bug); mirrors Task.kinds in the backend.
+export const TASK_KINDS: { key: TaskKind; label: string }[] = [
+  { key: 'task', label: 'Task' },
+  { key: 'bug', label: 'Bug' },
+  { key: 'story', label: 'Story' },
+]
+
+export const KIND_LABEL: Record<TaskKind, string> = { task: 'Task', bug: 'Bug', story: 'Story' }
+
+// Tasks written before item types existed come back without a kind.
+export function kindOf(task: Pick<Task, 'kind'>): TaskKind {
+  return task.kind ?? 'task'
+}
+
+export function filterByKind<T extends Pick<Task, 'kind'>>(tasks: T[], kind?: TaskKind): T[] {
+  return kind ? tasks.filter((t) => kindOf(t) === kind) : tasks
 }
 
 export interface TaskNode extends Task { children: TaskNode[] }

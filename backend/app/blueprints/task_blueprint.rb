@@ -1,6 +1,6 @@
 class TaskBlueprint < Blueprinter::Base
   identifier :id
-  fields :title, :description, :status, :start_date, :due_date, :position, :created_at, :updated_at
+  fields :title, :description, :status, :kind, :start_date, :due_date, :position, :created_at, :updated_at
 
   field :document_id
   field :assignee_id

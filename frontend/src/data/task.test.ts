@@ -1,5 +1,5 @@
 import type { Task } from '@/types'
-import { buildTaskTree, taskFolderId, dueBucket, myWork, taskCards, estimateLabel, pointsLabel, priorityLabel } from './task'
+import { buildTaskTree, taskFolderId, dueBucket, myWork, taskCards, estimateLabel, pointsLabel, priorityLabel, filterByKind, kindOf } from './task'
 
 const task = (id: number, parent_id: number | null = null) => ({ id, title: `T${id}`, parent_id }) as unknown as Task
 
@@ -69,4 +69,16 @@ test('priorityLabel hides none, pointsLabel and estimateLabel format what is set
   expect(pointsLabel({ story_points: 0, actual_story_points: null })).toBe('0 pts')
   expect(estimateLabel(6.5)).toBe('6.5 h')
   expect(estimateLabel(null)).toBeNull()
+})
+
+test('a task with no kind is a plain task', () => {
+  expect(kindOf({})).toBe('task')
+  expect(kindOf({ kind: 'bug' })).toBe('bug')
+})
+
+test('filterByKind builds the bugs queue and passes everything through without a kind', () => {
+  const items = [{ id: 1, kind: 'bug' as const }, { id: 2 }, { id: 3, kind: 'story' as const }, { id: 4, kind: 'bug' as const }]
+  expect(filterByKind(items, 'bug').map((t) => t.id)).toEqual([1, 4])
+  expect(filterByKind(items, 'task').map((t) => t.id)).toEqual([2])
+  expect(filterByKind(items)).toHaveLength(4)
 })
