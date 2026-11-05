@@ -192,3 +192,54 @@ const STATUS_NAME: Record<Task['status'], string> = { backlog: 'Backlog', todo: 
 export function statusChangeLabel(change: { from_status: Task['status'] | null; to_status: Task['status'] }): string {
   return change.from_status ? `${STATUS_NAME[change.from_status]} → ${STATUS_NAME[change.to_status]}` : `Created as ${STATUS_NAME[change.to_status]}`
 }
+
+// A task's editable fields as form strings ('' = none).
+export interface TaskDraft {
+  title: string
+  description: string
+  status: Task['status']
+  start_date: string
+  due_date: string
+  epic_id: string
+  sprint_id: string
+  milestone_id: string
+}
+
+export function taskDraft(task: Task): TaskDraft {
+  return {
+    title: task.title,
+    description: task.description ?? '',
+    status: task.status,
+    start_date: task.start_date ?? '',
+    due_date: task.due_date ?? '',
+    epic_id: task.epic_id != null ? String(task.epic_id) : '',
+    sprint_id: task.sprint_id != null ? String(task.sprint_id) : '',
+    milestone_id: task.milestone_id != null ? String(task.milestone_id) : '',
+  }
+}
+
+// Why the draft can't be saved, or null.
+export function taskDraftError(draft: TaskDraft): string | null {
+  if (!draft.title.trim()) return 'A task needs a title.'
+  if (draft.start_date && draft.due_date && draft.due_date < draft.start_date) return 'The due date is before the start date.'
+  return null
+}
+
+// Only the fields that differ from the task, ready for PATCH (empty = cleared).
+// Empty when nothing changed.
+export function taskChanges(task: Task, draft: TaskDraft): Partial<Task> {
+  const before = taskDraft(task)
+  const changes: Partial<Task> = {}
+  const text = (key: 'title' | 'description' | 'status') => {
+    const value = key === 'title' ? draft.title.trim() : draft[key]
+    if (value !== before[key]) Object.assign(changes, { [key]: value })
+  }
+  text('title'); text('description'); text('status')
+  for (const key of ['start_date', 'due_date'] as const) {
+    if (draft[key] !== before[key]) changes[key] = draft[key] || null
+  }
+  for (const key of ['epic_id', 'sprint_id', 'milestone_id'] as const) {
+    if (draft[key] !== before[key]) changes[key] = draft[key] ? Number(draft[key]) : null
+  }
+  return changes
+}

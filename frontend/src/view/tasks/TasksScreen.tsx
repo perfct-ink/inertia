@@ -1,7 +1,7 @@
 import { Button, Input, Select, StatusDot, classNames, DatePicker } from '@/components/ui'
 import { useState, useRef, useEffect, useMemo } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { Plus, X, ArrowRight, Play, Loader2, Search, Filter, Target, SlidersHorizontal, Palette, Repeat, History } from 'lucide-react'
+import { Plus, X, ArrowRight, Play, Loader2, Search, Filter, Target, SlidersHorizontal, Palette, Repeat, History, Pencil } from 'lucide-react'
 import {
   DndContext,
   DragOverlay,
@@ -28,6 +28,7 @@ import SprintHeader from '@/components/SprintHeader'
 import { TASK_PRIORITIES, estimateLabel, pointsLabel, priorityLabel, TASK_KINDS, KIND_LABEL, kindOf } from '@/data/task'
 import { RECURRENCE_OPTIONS, recurrenceLabel } from '@/data/recurrence'
 import TaskHistoryDialog from '@/components/TaskHistoryDialog'
+import { TaskDetail } from '@/components/tasks/TaskDetail'
 import { useTasks, useCreateTask, useUpdateTask, useDeleteTask, type TaskFilters } from '@/api/tasks'
 import { useWorkspace } from '@/api/workspace'
 import { canWriteWorkspace } from '@/api/workspaces'
@@ -67,6 +68,7 @@ interface CardProps {
   // Name of the status onNext moves the task to.
   nextLabel?: string | null
   onNavigate: () => void
+  onEdit?: () => void
   epicTitle?: string
   progress?: Progress
   assignees?: WorkspaceMember[]
@@ -77,13 +79,18 @@ interface CardProps {
   onHistory?: () => void
 }
 
-function TaskCard({ task, onNext, nextLabel, onNavigate, epicTitle, assignees = [], progress, overlay, onHistory, fields = [], onEditFields }: Omit<CardProps, 'onDelete'>) {
+function TaskCard({ task, onNext, nextLabel, onNavigate, onEdit, epicTitle, assignees = [], progress, overlay, onHistory, fields = [], onEditFields }: Omit<CardProps, 'onDelete'>) {
   return (
     <div className={classNames('tasks-card', overlay && 'tasks-card--overlay')}>
       <div className="tasks-card_title_row">
         <p className="tasks-card_title">{task.title}</p>
         {kindOf(task) !== 'task' && (
           <span className={classNames('tasks-kind', `tasks-kind--${kindOf(task)}`)}>{KIND_LABEL[kindOf(task)]}</span>
+        )}
+        {onEdit && !overlay && (
+          <Button onClick={onEdit} className="tasks-next" aria-label={`Edit ${task.title}`} title="Edit task">
+            <Pencil className="tasks-icon" />
+          </Button>
         )}
       </div>
       {epicTitle && (
@@ -462,6 +469,7 @@ export default function TasksScreen() {
   const [fieldsTaskId, setFieldsTaskId] = useState<number | null>(null)
   const fieldsTask = tasks.find((t) => t.id === fieldsTaskId) ?? null
   const [historyTask, setHistoryTask] = useState<Task | null>(null)
+  const [editing, setEditing] = useState<Task | null>(null)
 
   useEffect(() => {
     if (searchParams.get('new') === '1') setAddingTo('backlog')
@@ -732,6 +740,7 @@ export default function TasksScreen() {
                           onNext={NEXT_STATUS[task.status] ? () => updateTask.mutate({ id: task.id, status: NEXT_STATUS[task.status]! }) : null}
                           nextLabel={nextStatusLabel(statuses, task.status)}
                           onNavigate={() => navigate(`/documents/${task.document_id}`)}
+                          onEdit={() => setEditing(task)}
                           epicTitle={task.epic_id ? epicById.get(task.epic_id)?.title : undefined}
                           fields={taskFields}
                           onEditFields={() => setFieldsTaskId(task.id)}
@@ -881,6 +890,7 @@ export default function TasksScreen() {
         />
       </div>
       <TaskHistoryDialog task={historyTask} onClose={() => setHistoryTask(null)} />
+      {editing && <TaskDetail key={editing.id} task={editing} onClose={() => setEditing(null)} />}
     </WorkspaceLayout>
   )
 }
