@@ -10,6 +10,7 @@ export interface DocumentFields {
   content?: Record<string, unknown>
   pinned?: boolean
   folder_id?: number
+  initiative_id?: number | null
 }
 
 export class DocumentApi extends ApiResource<Document, never, DocumentFields> {
@@ -32,6 +33,7 @@ export function useUpdateDocument() {
   return useMutation({
     mutationFn: ({ id, ...data }: DocumentFields & { id: number }) => documentApi.update(id, data),
     onSuccess: (doc) => {
+      qc.invalidateQueries({ queryKey: ['initiatives'] })
       qc.setQueryData(['document', doc.id], doc)
       qc.invalidateQueries({ queryKey: ['workspace'] })
       // A rename from anywhere (the sidebar, an editor's title) renames its open tab.

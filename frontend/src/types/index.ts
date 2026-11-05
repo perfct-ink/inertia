@@ -7,6 +7,7 @@ export interface Document {
   created_by_id?: number
   // For doc_type 'file': the uploaded file.
   file?: { url: string; filename: string; content_type: string; byte_size: number } | null
+  initiative_id?: number | null
   pinned: boolean
   created_at: string
   updated_at: string

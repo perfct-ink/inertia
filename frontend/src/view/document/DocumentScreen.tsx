@@ -69,6 +69,7 @@ import { uploadFile } from '@/api/uploads'
 import FileViewer from '@/components/FileViewer'
 import Breadcrumb from '@/components/Breadcrumb'
 import DocumentOutline from '@/components/DocumentOutline'
+import DocumentInitiativeBar from '@/components/DocumentInitiativeBar'
 import TableEditor from '@/components/editors/TableEditor'
 import SpreadsheetEditor from '@/components/editors/SpreadsheetEditor'
 import HeadingLinkPicker from '@/components/HeadingLinkPicker'
@@ -718,6 +719,8 @@ export default function DocumentScreen() {
             {saveStatus === 'unsaved' && <div className="document-status_dot" />}
           </div>
         </div>
+
+        <DocumentInitiativeBar doc={doc} />
 
         {/* Editor area — clicking anywhere in the whitespace focuses the editor */}
         <div

@@ -11,6 +11,7 @@ class DocumentBlueprint < Blueprinter::Base
     blob = document.file.blob
     { url: Rails.application.routes.url_helpers.rails_blob_path(blob, only_path: true), filename: blob.filename.to_s, content_type: blob.content_type, byte_size: blob.byte_size }
   end
+  field :initiative_id
 
   view :with_content do
     field :content

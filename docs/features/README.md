@@ -56,3 +56,4 @@ One file per implemented feature, written from the code (see `docs/rules/feature
 | Multiple assignees and watchers on tasks | [task_assignees_and_watchers.md](task_assignees_and_watchers.md) |
 | Task status history: every status change, who and when | [task_status_history.md](task_status_history.md) |
 | Editing a task after creation (milestone, dates, epic, sprint) | [task_detail.md](task_detail.md) |
+| Document initiative: pick an initiative and its dates from a document | [document_initiative.md](document_initiative.md) |

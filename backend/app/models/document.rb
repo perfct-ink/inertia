@@ -9,6 +9,7 @@ class Document < ApplicationRecord
   # An uploaded file of any type is a document of its own (doc_type: file).
   has_one_attached :file
   belongs_to :created_by, class_name: "User"
+  belongs_to :initiative, optional: true
   has_many :tasks, dependent: :destroy
   has_many :shares, as: :shareable, dependent: :destroy
   has_many :release_documents, dependent: :destroy
@@ -22,6 +23,7 @@ class Document < ApplicationRecord
   validates :title, presence: true
   validates :doc_type, presence: true
   validate :file_documents_have_a_file
+  validate :initiative_in_same_workspace
 
   before_save :update_content_updated_at, if: :content_changed?
   # A deleted file leaves any collection file fields that held it.
@@ -50,6 +52,11 @@ class Document < ApplicationRecord
     elsif file.blob.byte_size > MAX_FILE_SIZE
       errors.add(:file, "is too large (limit #{MAX_FILE_SIZE / 1.megabyte} MB)")
     end
+  end
+
+  def initiative_in_same_workspace
+    return if initiative.nil? || folder.nil? || initiative.workspace_id == folder.workspace_id
+    errors.add(:initiative, "must belong to the same space")
   end
 
   def update_content_updated_at
