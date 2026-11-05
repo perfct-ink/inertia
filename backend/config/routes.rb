@@ -71,10 +71,15 @@ Rails.application.routes.draw do
       patch "tables/:id/records/:record_id", to: "tables#update_record"
       delete "tables/:id/records/:record_id", to: "tables#destroy_record"
 
-      resources :tasks, only: [ :index, :create, :update, :destroy ]
       resources :task_fields, only: [ :index, :create, :update, :destroy ]
       put "tasks/:task_id/field_values/:task_field_id", to: "task_field_values#update"
       put "tasks/:task_id/field_values/:task_field_id/vote", to: "task_field_values#vote"
+      resources :tasks, only: [ :index, :create, :update, :destroy ] do
+        resources :time_entries, only: [ :index, :create ]
+      end
+      resources :time_entries, only: [ :destroy ] do
+        member { post :stop }
+      end
 
       resources :epics, only: [ :index, :create, :update, :destroy ]
 

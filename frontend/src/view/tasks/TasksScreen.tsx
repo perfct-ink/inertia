@@ -1,5 +1,5 @@
 import { Button, Input, Select, StatusDot, classNames, DatePicker } from '@/components/ui'
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useMemo } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { Plus, X, ArrowRight, Play, Loader2, Search, Filter, Target, SlidersHorizontal, Palette, Repeat } from 'lucide-react'
 import {
@@ -38,6 +38,8 @@ import { TaskFieldChips } from '@/components/task-fields/TaskFieldChips'
 import { TaskFieldsDialog } from '@/components/task-fields/TaskFieldsDialog'
 import { ManageTaskFieldsDialog } from '@/components/task-fields/ManageTaskFieldsDialog'
 import type { Task, TaskField, Epic, Sprint, Milestone, TaskStatus, TaskStatusColor, TaskPriority, TaskKind } from '@/types'
+import { TaskTimer } from './TaskTimer'
+import { progressById, type Progress } from '@/data/task'
 import './TasksScreen.scss'
 import { usePageTitle } from '@/hooks/usePageTitle'
 import { useBoardStatuses } from '@/hooks/useBoardStatuses'
@@ -62,13 +64,14 @@ interface CardProps {
   nextLabel?: string | null
   onNavigate: () => void
   epicTitle?: string
+  progress?: Progress
   overlay?: boolean
   // The Space's custom task fields, shown as chips; the edit button opens them.
   fields?: TaskField[]
   onEditFields?: () => void
 }
 
-function TaskCard({ task, onNext, nextLabel, onNavigate, epicTitle, overlay, fields = [], onEditFields }: Omit<CardProps, 'onDelete'>) {
+function TaskCard({ task, onNext, nextLabel, onNavigate, epicTitle, progress, overlay, fields = [], onEditFields }: Omit<CardProps, 'onDelete'>) {
   return (
     <div className={classNames('tasks-card', overlay && 'tasks-card--overlay')}>
       <div className="tasks-card_title_row">
@@ -84,6 +87,13 @@ function TaskCard({ task, onNext, nextLabel, onNavigate, epicTitle, overlay, fie
         </div>
       )}
       <TaskFieldChips fields={fields} task={task} />
+      {progress && (
+        <div className="tasks-progress" role="progressbar" aria-label="Subtask progress" aria-valuemin={0} aria-valuemax={100} aria-valuenow={progress.percent}>
+          <div className="tasks-progress_bar" style={{ width: `${progress.percent}%` }} />
+          <span className="tasks-progress_text">{progress.done}/{progress.total} subtasks</span>
+        </div>
+      )}
+      {!overlay && <TaskTimer task={task} />}
       <div className="tasks-card_footer">
         {priorityLabel(task.priority) && <span className={`tasks-priority tasks-priority--${task.priority}`}>{priorityLabel(task.priority)}</span>}
         {pointsLabel(task) && <span className="tasks-meta">{pointsLabel(task)}</span>}
@@ -405,6 +415,7 @@ export default function TasksScreen() {
   }
 
   const { data: tasks = NO_TASKS, isLoading } = useTasks(activeFilters)
+  const progressByTask = useMemo(() => progressById(tasks), [tasks])
   const createTask = useCreateTask()
   const updateTask = useUpdateTask()
   const deleteTask = useDeleteTask()
@@ -676,6 +687,7 @@ export default function TasksScreen() {
                           epicTitle={task.epic_id ? epicById.get(task.epic_id)?.title : undefined}
                           fields={taskFields}
                           onEditFields={() => setFieldsTaskId(task.id)}
+                          progress={progressByTask.get(task.id)}
                         />
                       ))}
                       {addingTo === key ? (

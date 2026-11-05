@@ -6,7 +6,7 @@ module Api
       before_action :set_task, only: [ :update, :destroy ]
 
       def index
-        tasks = current_workspace.tasks.includes(:document, :field_values)
+        tasks = current_workspace.tasks.includes(:document, :time_entries, :field_values)
         tasks = tasks.where(document_id: params[:document_id]) if params[:document_id]
         tasks = tasks.where(status: params[:status]) if params[:status]
         tasks = tasks.where(kind: params[:kind]) if params[:kind].present? && Task.kinds.key?(params[:kind])
@@ -25,7 +25,7 @@ module Api
             .where("tasks.folder_id IN (:ids) OR documents.folder_id IN (:ids)", ids: project_folder_ids)
         end
         tasks = tasks.title_matching(params[:q]) if params[:q]
-        render json: TaskBlueprint.render(tasks, view: :with_document_and_field_values)
+        render json: TaskBlueprint.render(tasks, view: :with_document_and_field_values, current_user: current_user)
       end
 
       def create
@@ -33,7 +33,7 @@ module Api
         task.document_id = params[:document_id] if params[:document_id].present?
         file_in_current_project(task) unless task.document_id
         if task.save
-          render json: TaskBlueprint.render(task), status: :created
+          render json: TaskBlueprint.render(task, current_user: current_user), status: :created
         else
           render json: { errors: task.errors.full_messages }, status: :unprocessable_entity
         end
@@ -45,7 +45,7 @@ module Api
       def update
         scheduling = Scheduling::TaskUpdate.new(@task)
         if scheduling.call(task_params)
-          render json: TaskBlueprint.render_as_hash(@task).merge(rescheduled: TaskBlueprint.render_as_hash(scheduling.rescheduled))
+          render json: TaskBlueprint.render_as_hash(@task, current_user: current_user).merge(rescheduled: TaskBlueprint.render_as_hash(scheduling.rescheduled))
         else
           render json: { errors: scheduling.errors }, status: :unprocessable_entity
         end

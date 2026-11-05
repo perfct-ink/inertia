@@ -52,6 +52,7 @@ jest.mock('@/api/epics', () => ({ useEpics: () => ({ data: [] }) }))
 jest.mock('@/api/taskFields', () => ({ useTaskFields: () => ({ data: [] }) }))
 jest.mock('@/components/task-fields/TaskFieldsDialog', () => ({ TaskFieldsDialog: () => null }))
 jest.mock('@/components/task-fields/ManageTaskFieldsDialog', () => ({ ManageTaskFieldsDialog: () => null }))
+jest.mock('./TaskTimer', () => ({ TaskTimer: () => null }))
 jest.mock('@/api/sprints', () => ({ useSprints: () => ({ data: [] }) }))
 jest.mock('@/api/milestones', () => ({ useMilestones: () => ({ data: [] }) }))
 

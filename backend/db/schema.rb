@@ -522,6 +522,18 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_03_120001) do
     t.index ["workspace_id"], name: "index_teams_on_workspace_id"
   end
 
+  create_table "time_entries", force: :cascade do |t|
+    t.bigint "task_id", null: false
+    t.bigint "user_id", null: false
+    t.datetime "started_at", null: false
+    t.datetime "ended_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["task_id"], name: "index_time_entries_on_task_id"
+    t.index ["user_id", "ended_at"], name: "index_time_entries_on_user_id_and_ended_at"
+    t.index ["user_id"], name: "index_time_entries_on_user_id"
+  end
+
   create_table "users", force: :cascade do |t|
     t.string "name", null: false
     t.string "email", default: "", null: false
@@ -641,6 +653,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_03_120001) do
   add_foreign_key "team_memberships", "teams"
   add_foreign_key "team_memberships", "users"
   add_foreign_key "teams", "workspaces"
+  add_foreign_key "time_entries", "tasks"
+  add_foreign_key "time_entries", "users"
   add_foreign_key "workspace_memberships", "users"
   add_foreign_key "workspace_memberships", "workspaces"
   add_foreign_key "workspaces", "folders", column: "root_folder_id"
