@@ -8,6 +8,7 @@ jest.mock('react-router-dom', () => ({
 }))
 jest.mock('@/components/CreateItem', () => function CreateItemMock() { return null })
 jest.mock('@/components/project/ProjectIconDialog', () => function DialogMock() { return null })
+jest.mock('@/components/ProjectDetails', () => function DetailsMock() { return null })
 
 const mockCreateFolder = { mutate: jest.fn() }
 const doc = (id: number, title: string) => ({ id, title, doc_type: 'document', updated_at: '2026-10-05T00:00:00Z', content_updated_at: null })

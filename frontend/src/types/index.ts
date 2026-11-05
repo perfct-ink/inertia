@@ -22,6 +22,7 @@ export interface Document {
 
 export type FolderKind = 'folder' | 'project' | 'feature'
 export type FeatureStatus = 'planned' | 'active' | 'done'
+export type ProjectStatus = 'planned' | 'active' | 'on_hold' | 'done'
 // How a folder's Gantt reacts to dependency links when a task is rescheduled.
 export type DependencyMode = 'none' | 'strict' | 'flexible'
 
@@ -34,6 +35,12 @@ export interface Folder {
   icon?: string | null
   image_url?: string | null
   dependency_mode?: DependencyMode
+  // Project details (kind: project)
+  owner_id?: number | null
+  project_status?: ProjectStatus
+  start_date?: string | null
+  target_date?: string | null
+  description?: string | null
   parent_id: number | null
   // A document in this folder shown when the folder is opened.
   home_document_id?: number | null

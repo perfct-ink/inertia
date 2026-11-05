@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import api from '@/lib/api'
-import type { DependencyMode, Folder, FolderContents, FolderKind } from '@/types'
+import type { DependencyMode, Folder, FolderContents, FolderKind, ProjectStatus } from '@/types'
 import { ApiResource, useApiMutation } from './base'
 
 export interface FolderFields {
@@ -13,6 +13,11 @@ export interface FolderFields {
   icon?: string | null
   image_url?: string | null
   home_document_id?: number | null
+  owner_id?: number | null
+  project_status?: ProjectStatus
+  start_date?: string | null
+  target_date?: string | null
+  description?: string | null
 }
 
 export class FolderApi extends ApiResource<Folder, { name: string; parent_id?: number; kind?: FolderKind }, FolderFields> {

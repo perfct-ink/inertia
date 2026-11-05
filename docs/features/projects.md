@@ -19,6 +19,11 @@ Inside a Space are projects. A project is a folder (`folders.kind: project`) tha
 - **Personal Project.** A new document, sheet or Collection made with no folder chosen (no project open, from Cmd+N or the sidebar's create buttons) goes in a project named "Personal Project". It's created the first time and reused after, and it becomes the open project (`hooks/useNewDocument.ts`). The new document opens with the cursor in its title. Create Item's folder picker still files into the Root when you choose it.
 - **Unchanged new documents aren't kept.** A document made with "new document" is deleted when its tab is closed (tab button or Cmd+W) if nobody typed in it or renamed it (`store/untouchedDocuments.ts`, `lib/closeTab.ts`). Only documents, not sheets or Collections, and only until the page is reloaded; after a reload it's kept like any other. Content that arrives from the collaboration server doesn't count as a change. Leaving the page without closing the tab keeps it.
 - **All files** opens filtered to the open project (see `all_files.md`).
+A folder is either a plain folder or a project (`folders.kind`). A project is a folder that groups the docs, sheets and collections for one piece of work, including those in its subfolders.
+- **Projects page** (`/projects`): one card per active project, sorted by name, with its file count, last update, a link to the folder page, the list of files inside (subfolders included) and a create menu that adds items to that project. "New project" asks for a name and creates a folder with `kind: project`.
+- **Details**: each card has an owner (Space member), status (planned, active, on hold, done), start and end dates and a description, each saved as you change it (`components/ProjectDetails.tsx`). These feed the portfolio view, which is not built (`docs/backlog/portfolio-view.md`).
+- **Sidebar tree**: right-click menu on any folder shows "Make Project", or "Make Folder" on a project (`file-manager/FolderItem.tsx`). Projects show a project icon.
+- **All files** shows a project icon next to files that sit inside a project (see `all_files.md`).
 
 ## API and models
 - `folders.kind` integer, default 0: enum `folder: 0`, `project: 1`, `feature: 2` (`backend/app/models/folder.rb`). The document Root cannot be made a project.
@@ -26,6 +31,8 @@ Inside a Space are projects. A project is a folder (`folders.kind: project`) tha
 - `X-Project-Id` header, read by the `ProjectScoped` controller concern. A folder in another Space is a 404. It narrows `GET` on tasks (through their folder or their document's folder), events, epics, milestones, initiatives, sprints, ideas, io_nodes, releases, objectives and resource_allocations. On `POST` to those, a record that names no folder is filed in the project. Single-record reads and updates ignore it. A promoted idea passes its project to the epic or initiative it becomes.
 - `folder_id` (nullable, the database nullifies it when the folder is deleted) was added to initiatives, sprints, ideas, io_nodes, releases and objectives through the `ProjectItem` model concern, which also rejects a folder from another Space. Epics, events, milestones, tasks and resource allocations already had one. Migration `20261103120001_add_projects_to_planning_items`.
 - Pure helpers `projectsOf`, `projectOf`, `folderOfDocument`, `documentsIn`, `projectLastModified` are in `frontend/src/data/folder.ts`, and `projectIconOf` and the emoji list in `frontend/src/data/project.ts` (also `isActivePath`, which the rail uses to find the current page).
+
+`folders.owner_id` (nullable FK to users, nullified), `project_status` (enum planned/active/on_hold/done, default planned), `start_date`, `target_date`, `description`; permitted on `PATCH /api/v1/folders/:id`. Validations: owner must be a Space member, end date not before start.
 
 ## Who can view and change
 Scoped to the current Space; writes need the member role, like the rest of the Space. I did not check role-based limits on changing `kind` or the icon.
@@ -40,6 +47,7 @@ Scoped to the current Space; writes need the member role, like the rest of the S
 - `frontend/src/components/file-manager/SidebarRail.test.tsx`: the links and their order, My work only in a shared Space, the current page (also when the link carries a query), no current page away from every section, the quick-action handlers.
 - `backend/test/controllers/workspaces_controller_test.rb`: a Space is shared once a second person can open it, through a membership or a team.
 - `frontend/src/lib/api.test.ts` (the header, and sign-out forgets the project), `frontend/src/data/project.test.ts`, `frontend/src/data/folder.test.ts`, `frontend/src/view/projects/ProjectsScreen.test.tsx`, `frontend/src/view/workspace/WorkspaceScreen.test.tsx`.
+`frontend/src/components/ProjectDetails.test.tsx`, `frontend/src/data/project.test.ts`, `backend/test/models/folder_test.rb` (project details and "a folder can be a project, but the document root cannot"), `frontend/src/data/folder.test.ts`, `frontend/src/view/projects/ProjectsScreen.test.tsx` (lists projects with nested docs; creates a project).
 
 ## Known limits
 - Every page shows under every project; choosing which features a project uses is `docs/backlog/choose-which-features-a-project-uses.md`.
@@ -62,3 +70,8 @@ Scoped to the current Space; writes need the member role, like the rest of the S
 - 2026-11-03: projects moved into the sidebar. A flat list replaced the icon rail; selecting a project shows its grouped pages and files. Every page became per-project (`X-Project-Id`, new `folder_id` columns), and projects gained an emoji or image icon. Verified in the browser against the local dev server and database; not deployed.
 - 2026-11-03: Projects became the Space home page; the old welcome screen with Documents/Tasks/Events links was removed.
 - Implemented 2026-10-15 to 2026-10-18.
+- Implemented 2026-10-15 to 2026-10-18. Committed locally; not pushed or deployed.
+- Not verified: lint, type-check, tests, migration and the screens were not run (no dependencies installed, no network).
+- Project details added 2026-10-19 on branch `backlog/project-details-owner-status-dates-and-a-description`, not merged. Not verified: migration, Rails tests, lint, type-check, frontend tests and the browser did not run (no database, no node_modules); `schema.rb` edited by hand.
+
+- Merged to main 2026-11-02 after running, merged with main: `rails db:migrate` (schema diff clean), `rails test`, `npm run lint`, `tsc -b`, Jest, and the collab-server tests, all passing. Not checked in a browser.

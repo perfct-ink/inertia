@@ -5,6 +5,7 @@ import { FolderKanban, Loader2, Plus } from 'lucide-react'
 import { Button, FormError, Input } from '@/components/ui'
 import WorkspaceLayout from '@/components/WorkspaceLayout'
 import CreateItem from '@/components/CreateItem'
+import ProjectDetails from '@/components/ProjectDetails'
 import DocTypeIcon from '@/components/DocTypeIcon'
 import ProjectIcon from '@/components/project/ProjectIcon'
 import ProjectIconDialog from '@/components/project/ProjectIconDialog'
@@ -93,6 +94,8 @@ export default function ProjectsScreen() {
                       {modified && ` · updated ${format(parseISO(modified), 'MMM d, yyyy')}`}
                     </span>
                   </div>
+
+                  <ProjectDetails project={project} />
 
                   {docs.length > 0 && (
                     <ul className="projects-docs">

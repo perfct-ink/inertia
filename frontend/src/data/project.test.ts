@@ -13,3 +13,10 @@ test('a link is the active page when its path matches, whatever its query', () =
   expect(isActivePath('/roadmap/2', '/roadmap')).toBe(false)
   expect(isActivePath('/documents/4', '/documents')).toBe(false)
 })
+import { PROJECT_STATUSES, projectStatusLabel } from './project'
+
+test('labels each status, defaulting to Planned', () => {
+  expect(PROJECT_STATUSES.map((s) => s.value)).toEqual(['planned', 'active', 'on_hold', 'done'])
+  expect(projectStatusLabel('on_hold')).toBe('On hold')
+  expect(projectStatusLabel(undefined)).toBe('Planned')
+})

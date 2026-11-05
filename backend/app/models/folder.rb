@@ -2,6 +2,7 @@ class Folder < ApplicationRecord
   belongs_to :workspace
   belongs_to :parent, class_name: "Folder", optional: true
   belongs_to :home_document, class_name: "Document", optional: true
+  belongs_to :owner, class_name: "User", optional: true
   has_many :children, class_name: "Folder", foreign_key: :parent_id, dependent: :destroy
   has_many :documents, dependent: :destroy
   has_many :tasks, dependent: :nullify
@@ -27,10 +28,15 @@ class Folder < ApplicationRecord
   # How the folder's Gantt reacts to dependency links on reschedule (PM-14).
   enum :dependency_mode, { none: 0, strict: 1, flexible: 2 }, prefix: :dependencies, scopes: false
 
+  # Lifecycle of a project (only meaningful when kind is project).
+  enum :project_status, { planned: 0, active: 1, on_hold: 2, done: 3 }, prefix: :status, scopes: false
+
   validates :name, presence: true
   validates :icon, length: { maximum: 16 }
   validates :image_url, length: { maximum: 2048 }, format: { with: %r{\A(https?://|/)\S*\z}, message: "must be a web address" }, allow_blank: true
   validate :home_document_is_in_this_folder
+  validate :owner_is_a_member
+  validate :target_date_not_before_start_date
   before_validation :attach_to_root
   validate :validate_parent
   validate :protect_root_location
@@ -71,6 +77,16 @@ class Folder < ApplicationRecord
   def home_document_is_in_this_folder
     return if home_document.nil? || home_document.folder_id == id
     errors.add(:home_document, "must be a document in this folder")
+  end
+
+  def owner_is_a_member
+    return if owner_id.blank? || workspace.nil?
+    errors.add(:owner, "must be a member of the space") unless workspace.memberships.exists?(user_id: owner_id)
+  end
+
+  def target_date_not_before_start_date
+    return unless start_date && target_date
+    errors.add(:target_date, "can't be before the start date") if target_date < start_date
   end
 
   def attach_to_root
