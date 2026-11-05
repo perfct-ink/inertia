@@ -5,6 +5,7 @@ import WorkspaceLayout from '@/components/WorkspaceLayout'
 import { ProgressBar } from '@/components/Timeline'
 import { useCreateObjective, useDeleteObjective, useObjectives, useUpdateObjective } from '@/api/objectives'
 import { useCreateKeyResult, useDeleteKeyResult, useUpdateKeyResult } from '@/api/keyResults'
+import { useCreateCheckIn, useKeyResultCheckIns } from '@/api/keyResultCheckIns'
 import { useInitiatives } from '@/api/initiatives'
 import { useWorkspace } from '@/api/workspace'
 import { useWorkspaceMembers } from '@/api/workspaceMembers'
@@ -209,6 +210,7 @@ function KeyResultRow({ kr, initiative, initiatives }: { kr: KeyResult; initiati
             </>
           )}
       </div>
+      {measure !== null && <CheckInHistory kr={kr} />}
     </li>
   )
 }
@@ -250,6 +252,48 @@ function KeyResultEditor({ kr, initiatives, onDone }: { kr: KeyResult; initiativ
         <Button variant="secondary" onClick={onDone}>Cancel</Button>
         <FormError message={updateKeyResult.isError ? errorMessage(updateKeyResult.error) : null} />
       </div>
+    </div>
+  )
+}
+
+// Add a dated check-in (value and note) and review the earlier ones.
+function CheckInHistory({ kr }: { kr: KeyResult }) {
+  const [open, setOpen] = useState(false)
+  const [value, setValue] = useState('')
+  const [note, setNote] = useState('')
+  const { data: checkIns = [] } = useKeyResultCheckIns(kr.id, open)
+  const createCheckIn = useCreateCheckIn(kr.id)
+
+  function add() {
+    if (value === '') return
+    createCheckIn.mutate({ value: Number(value), note: note.trim() || undefined }, {
+      onSuccess: () => { setValue(''); setNote('') },
+    })
+  }
+
+  return (
+    <div className="okrs-checkins">
+      <Button onClick={() => setOpen((v) => !v)} aria-expanded={open}>
+        {open ? 'Hide check-ins' : 'Check-ins'}
+      </Button>
+      {open && (
+        <>
+          <div className="okrs-add-row">
+            <Input type="number" aria-label={`Check-in value for ${kr.title}`} placeholder="Value" value={value} onChange={(e) => setValue(e.target.value)} className="okrs-number" />
+            <Input aria-label={`Check-in note for ${kr.title}`} placeholder="Note (optional)" value={note} onChange={(e) => setNote(e.target.value)} />
+            <Button variant="secondary" onClick={add} disabled={value === '' || createCheckIn.isPending}>Add check-in</Button>
+          </div>
+          <ul className="okrs-checkin_list">
+            {checkIns.length === 0 && <li>No check-ins yet.</li>}
+            {checkIns.map((c) => (
+              <li key={c.id}>
+                {new Date(c.created_at).toLocaleDateString()}: {c.value}{kr.unit ? ` ${kr.unit}` : ''}
+                {c.note ? ` — ${c.note}` : ''}{c.author_name ? ` (${c.author_name})` : ''}
+              </li>
+            ))}
+          </ul>
+        </>
+      )}
     </div>
   )
 }

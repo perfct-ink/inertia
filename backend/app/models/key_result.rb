@@ -5,6 +5,13 @@
 class KeyResult < ApplicationRecord
   belongs_to :objective
   belongs_to :initiative, optional: true
+  has_many :check_ins, -> { order(created_at: :desc, id: :desc) }, class_name: "KeyResultCheckIn", dependent: :destroy
+
+  # Set by the caller so the check-in recorded below knows who and why.
+  attr_accessor :check_in_author, :check_in_note
+
+  # Every change of the number is kept, so progress over a period can be reviewed.
+  after_update :record_check_in, if: :saved_change_to_current_value?
 
   validates :title, presence: true
   validates :target_value, presence: true, unless: :initiative_id?
@@ -16,6 +23,10 @@ class KeyResult < ApplicationRecord
     return 0 if target_value.nil?
     span = target_value - start_value
     ((current_value - start_value) / span * 100).clamp(0, 100).round
+  end
+
+  def record_check_in
+    check_ins.create!(value: current_value, note: check_in_note.presence, author: check_in_author)
   end
 
   private

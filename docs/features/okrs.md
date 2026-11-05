@@ -12,6 +12,9 @@
 - Validations: title required; objective target not before start; owner must be a Space member; target value required unless linked and must differ from start; linked initiative must be in the same Space.
 - `GET/POST /api/v1/objectives`, `PATCH/DELETE /api/v1/objectives/:id` (key results nested in responses, ordered by position), `POST /api/v1/key_results` (with `objective_id`), `PATCH/DELETE /api/v1/key_results/:id`. Frontend: `api/objectives.ts` and `api/keyResults.ts`.
 
+## Check-in history
+Whenever a number key result's `current_value` changes (the inline field, a PATCH, or the check-in form), `KeyResult` records a `key_result_check_ins` row (value, optional note, author, time). `GET /api/v1/key_results/:id/check_ins` lists them newest first; `POST` takes `{ check_in: { value, note } }`, updates the value and records the check-in (an unchanged value is still recorded). Check-ins are deleted with their key result and are 404 across Spaces. UI: a "Check-ins" toggle on each number key result. Code: `KeyResultCheckInsController`, `CheckInHistory` in `OkrsScreen.tsx`. Tests: `key_result_check_in_test.rb`, `key_result_check_ins_controller_test.rb`, `OkrsScreen.test.tsx`.
+
 ## Who can view and change
 Scoped to the current Space; a key result of another Space's objective is 404. I did not check for role-based limits.
 
@@ -24,17 +27,28 @@ Scoped to the current Space; a key result of another Space's objective is 404. I
 - `frontend/src/data/okr.test.ts`, `frontend/src/view/okrs/OkrsScreen.test.tsx`
 
 ## Known limits
+<<<<<<< HEAD
 - A key result's current value is overwritten in place; no history of check-ins (see `docs/backlog/key-result-check-in-history.md`).
+=======
+- The API accepts `owner_id` and `status`, but the page has no owner or status picker, and objective title and description cannot be edited after creation (see `docs/backlog/okr-owner-status-and-editing.md`).
+>>>>>>> origin/backlog/key-result-check-in-history
 - Objectives are not linked to anything but initiatives (via key results). The IO Map does not exist yet, so there is nothing to link to.
 - There is no reordering UI for key results although `position` exists.
 - The client lists all initiatives in the link picker, including finished ones.
 
 ## History
 - Implemented 2026-10-17. Committed locally; not pushed or deployed.
+<<<<<<< HEAD
 - Not implemented: check-in history, IO Map link.
+=======
+- Check-in history added 2026-10-19 on branch `backlog/key-result-check-in-history`, not merged: migration, tests, lint and type-check were not run (no database, no node_modules); `schema.rb` was edited by hand.
+- Not implemented: owner picker, IO Map link.
+>>>>>>> origin/backlog/key-result-check-in-history
 - Not verified: no tests, lint, type-check, migration or browser run (no dependencies installed, no network).
 
 - Merged to main 2026-11-02 after running, merged with main: `rails db:migrate` (schema diff clean), `rails test`, `npm run lint`, `tsc -b`, Jest, and the collab-server tests, all passing. Not checked in a browser.
 - Implemented 2026-10-19: owner and status pickers, editable title and description, and key result editing (title, start, target, unit, linked initiative; pencil button). A failed objective save shows the server error. Frontend tests added in `OkrsScreen.test.tsx`; not run.
 
 - Merged to main 2026-11-02 after running, merged with main: `rails db:migrate` (schema diff clean), `rails test`, `npm run lint`, `tsc -b`, Jest, and the collab-server tests, all passing. Not checked in a browser.
+
+- Merged to main 2026-11-05 after running, merged with main: `rails db:migrate` (schema diff clean), `rails test`, `npm run lint`, `tsc -b`, Jest, and the collab-server tests, all passing. Not checked in a browser.

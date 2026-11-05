@@ -13,5 +13,6 @@ export const keyResultApi = new KeyResultApi()
 
 // Key results are listed inside their objective, so a change refetches the objectives.
 export const useCreateKeyResult = () => useResourceCreate(keyResultApi, ['objectives'])
-export const useUpdateKeyResult = () => useResourceUpdate(keyResultApi, ['objectives'])
+// Changing the current value records a check-in.
+export const useUpdateKeyResult = () => useResourceUpdate(keyResultApi, ['objectives', 'key_result_check_ins'])
 export const useDeleteKeyResult = () => useResourceDelete(keyResultApi, ['objectives'])

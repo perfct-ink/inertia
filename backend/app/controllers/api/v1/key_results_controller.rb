@@ -15,6 +15,8 @@ module Api
       end
 
       def update
+        @key_result.check_in_author = current_user
+        @key_result.check_in_note = params[:key_result][:note]
         if @key_result.update(key_result_params)
           render json: KeyResultBlueprint.render(@key_result)
         else
