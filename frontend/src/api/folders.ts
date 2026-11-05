@@ -12,6 +12,7 @@ export interface FolderFields {
   dependency_mode?: DependencyMode
   icon?: string | null
   image_url?: string | null
+  home_document_id?: number | null
 }
 
 export class FolderApi extends ApiResource<Folder, { name: string; parent_id?: number; kind?: FolderKind }, FolderFields> {

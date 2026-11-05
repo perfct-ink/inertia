@@ -45,6 +45,8 @@ class Document < ApplicationRecord
   def workspace_id
     folder&.workspace_id
   end
+  # Moving a document out of a folder ends its time as that folder's home page.
+  after_update { Folder.where(home_document_id: id).where.not(id: folder_id).update_all(home_document_id: nil) if saved_change_to_folder_id? }
 
   private
 

@@ -150,8 +150,10 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_03_120001) do
     t.datetime "archived_at"
     t.integer "kind", default: 0, null: false
     t.integer "dependency_mode", default: 0, null: false
+    t.bigint "home_document_id"
     t.string "icon"
     t.string "image_url"
+    t.index ["home_document_id"], name: "index_folders_on_home_document_id"
     t.index ["parent_id"], name: "index_folders_on_parent_id"
     t.index ["workspace_id"], name: "index_folders_on_workspace_id"
   end
@@ -640,6 +642,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_03_120001) do
   add_foreign_key "event_tasks", "tasks"
   add_foreign_key "events", "folders"
   add_foreign_key "events", "workspaces"
+  add_foreign_key "folders", "documents", column: "home_document_id", on_delete: :nullify
   add_foreign_key "folders", "folders", column: "parent_id"
   add_foreign_key "folders", "workspaces"
   add_foreign_key "ideas", "folders", on_delete: :nullify

@@ -1,5 +1,5 @@
 import type { Document, Folder, SpaceFolder } from '@/types'
-import { documentsIn, filterSpaceFiles, flattenFolders, folderChoices, projectLastModified, projectsOf, searchSpaceFiles, spaceFiles, folderTrail, featureFoldersOf } from './folder'
+import { documentsIn, filterSpaceFiles, flattenFolders, folderChoices, projectLastModified, projectsOf, searchSpaceFiles, spaceFiles, folderTrail, featureFoldersOf, homeDocumentToOpen } from './folder'
 
 const folder = (id: number, children: Folder[] = []) => ({ id, name: `F${id}`, children }) as unknown as Folder
 
@@ -106,4 +106,11 @@ test('featureFoldersOf lists active feature folders by name', () => {
   const f = (id: number, name: string, kind: Folder['kind'], archived = false, children: Folder[] = []) => ({ id, name, kind, archived, children, documents: [] }) as unknown as Folder
   const tree = [f(1, 'Root', 'folder', false, [f(2, 'Zeta', 'feature'), f(3, 'Alpha', 'feature', false, [f(4, 'Old', 'feature', true)]), f(5, 'Plain', 'folder')])]
   expect(featureFoldersOf(tree).map((x) => x.name)).toEqual(['Alpha', 'Zeta'])
+})
+
+test('a folder opens on its home document unless a specific view was asked for', () => {
+  expect(homeDocumentToOpen({ home_document_id: 9 }, '')).toBe(9)
+  expect(homeDocumentToOpen({ home_document_id: 9 }, '?view=board')).toBeNull()
+  expect(homeDocumentToOpen({ home_document_id: null }, '')).toBeNull()
+  expect(homeDocumentToOpen({}, '')).toBeNull()
 })

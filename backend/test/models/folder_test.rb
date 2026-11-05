@@ -79,4 +79,31 @@ class FolderTest < ActiveSupport::TestCase
     assert_not root.valid?
     assert_includes root.errors[:kind], "cannot make the document root a feature"
   end
+
+  test "a folder's home document must be one of its own documents and is cleared when the document moves" do
+    user = User.create!(name: "Ada", email: "home-ada@example.com", password: "password123")
+    folder = user.workspace.folders.create!(name: "Album")
+    other = user.workspace.folders.create!(name: "Other")
+    inside = Document.create!(title: "Plan", folder: folder, created_by: user)
+    outside = Document.create!(title: "Elsewhere", folder: other, created_by: user)
+
+    folder.home_document = outside
+    assert_not folder.valid?
+    assert_includes folder.errors[:home_document], "must be a document in this folder"
+
+    folder.update!(home_document: inside)
+    assert_equal inside, folder.reload.home_document
+
+    inside.update!(folder: other)
+    assert_nil folder.reload.home_document_id
+  end
+
+  test "deleting the home document clears it" do
+    user = User.create!(name: "Ada", email: "home2-ada@example.com", password: "password123")
+    folder = user.workspace.folders.create!(name: "Album")
+    home = Document.create!(title: "Plan", folder: folder, created_by: user)
+    folder.update!(home_document: home)
+    home.destroy
+    assert_nil folder.reload.home_document_id
+  end
 end

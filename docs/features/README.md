@@ -60,3 +60,4 @@ One file per implemented feature, written from the code (see `docs/rules/feature
 | Feature hierarchy: nested features, status, owner, planning links, folder rollup | [feature_hierarchy.md](feature_hierarchy.md) |
 | Document templates: Requirements Doc and Song | [document_templates.md](document_templates.md) |
 | Invite people to a Space by link, without an account | [space_invitations.md](space_invitations.md) |
+| Folder home document: a folder opens on its home page | [folder_home_document.md](folder_home_document.md) |
