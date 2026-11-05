@@ -42,3 +42,9 @@ test('chosen files are uploaded into the folder, several at once', async () => {
   fireEvent.change(screen.getByLabelText('Choose files to upload'), { target: { files } })
   await waitFor(() => expect(mockUpload).toHaveBeenCalledWith({ folderId: 202, files }))
 })
+
+test('a template button creates a document with the template content', async () => {
+  render(<CreateItem />)
+  fireEvent.click(screen.getByRole('button', { name: 'New Song' }))
+  await waitFor(() => expect(mockCreate).toHaveBeenCalledWith(expect.objectContaining({ folderId: 101, title: 'Untitled Song', doc_type: 'document', content: expect.objectContaining({ type: 'doc' }) })))
+})

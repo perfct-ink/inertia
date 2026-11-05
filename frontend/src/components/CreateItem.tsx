@@ -4,6 +4,7 @@ import { useUploadFiles, useWorkspace } from '@/api/workspace'
 import { errorMessage } from '@/api/tables'
 import { flattenFolders } from '@/data/folder'
 import { DOC_TYPE_LABELS } from '@/data/document'
+import { DOCUMENT_TEMPLATES, type DocumentTemplate } from '@/data/documentTemplate'
 import { useNewDocument } from '@/hooks/useNewDocument'
 import type { Document } from '@/types'
 import './CreateItem.scss'
@@ -19,10 +20,10 @@ export default function CreateItem({ folderId }: { folderId?: number }) {
   const folders = flattenFolders(workspace?.folders ?? []).filter(f => !f.archived)
   const rootId = workspace?.root_folder_id ?? workspace?.folders?.[0]?.id
   const rootName = folders.find(f => f.id === rootId)?.name ?? 'Root'
-  async function make(type: Document['doc_type']) {
+  async function make(type: Document['doc_type'], template?: DocumentTemplate) {
     setBusy(true); setError('')
     try {
-      await newDocument(type, folderId ?? (Number(destination) || rootId))
+      await newDocument(type, folderId ?? (Number(destination) || rootId), template)
     } catch (e) { setError(errorMessage(e)) } finally { setBusy(false) }
   }
   return <div className="view-create_item">
@@ -47,6 +48,7 @@ export default function CreateItem({ folderId }: { folderId?: number }) {
         try { await uploadFiles.mutateAsync({ folderId: target, files }) } catch (err) { setError(errorMessage(err)) } finally { setBusy(false) }
       }}
     />
+    {DOCUMENT_TEMPLATES.map(template => <Button variant="secondary" key={template.id} disabled={busy || !workspace} onClick={() => make('document', template)} className="create_item-button">New {template.label}</Button>)}
     <FormError message={error} />
   </div>
 }

@@ -1,4 +1,5 @@
 ---
+branch: backlog/requirements-template
 priority: p0
 depends_on: []
 ---
@@ -35,3 +36,6 @@ Requested by Alex on 2026-10-18: write product requirement documents that turn i
 - Anything stated in Requirements / notes (including any named default) is implemented or deliberately changed with the reason recorded.
 - Failed API calls show an error to the user.
 - Tests cover the new behaviour; a feature doc in `docs/features/` is written (or the existing one updated) and this file is removed.
+
+## Blocked
+Implemented on branch `backlog/requirements-template` together with the requirements template (they share one mechanism). Lint, type-check, tests and the browser could not run (no node_modules, no network). Verify, then remove this file and merge.

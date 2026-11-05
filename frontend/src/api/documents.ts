@@ -24,7 +24,7 @@ export class DocumentApi extends ApiResource<Document, never, DocumentFields> {
   }
 
   // Documents are created inside a folder.
-  createIn(folderId: number, data: { title: string; doc_type?: Document['doc_type'] }) {
+  createIn(folderId: number, data: { title: string; doc_type?: Document['doc_type']; content?: Record<string, unknown> }) {
     return api.post<Document>(`/api/v1/folders/${folderId}/documents`, this.body(data)).then((r) => r.data)
   }
 }
@@ -50,7 +50,7 @@ export function useUpdateDocument() {
 }
 
 export const useCreateDocument = () =>
-  useApiMutation(({ folderId, ...data }: { folderId: number; title: string; doc_type?: Document['doc_type'] }) => documentApi.createIn(folderId, data), ['workspace', 'folder-contents'])
+  useApiMutation(({ folderId, ...data }: { folderId: number; title: string; doc_type?: Document['doc_type']; content?: Record<string, unknown> }) => documentApi.createIn(folderId, data), ['workspace', 'folder-contents'])
 export const useDeleteDocument = () => useApiMutation((id: number) => documentApi.destroy(id), ['workspace'])
 export const usePinDocument = () =>
   useApiMutation(({ id, pinned }: { id: number; pinned: boolean }) => documentApi.update(id, { pinned }), ['workspace'])
