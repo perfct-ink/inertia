@@ -67,4 +67,28 @@ export const SONG_TEMPLATE: DocumentTemplate = {
   ]),
 }
 
-export const DOCUMENT_TEMPLATES: DocumentTemplate[] = [REQUIREMENTS_TEMPLATE, SONG_TEMPLATE]
+export const PRD_TEMPLATE: DocumentTemplate = {
+  id: 'prd',
+  label: 'PRD',
+  title: 'Untitled PRD',
+  content: doc('Untitled PRD', [
+    heading(2, 'Problem'),
+    paragraph('What is wrong or missing today, and for whom?'),
+    heading(2, 'Goals'),
+    bullets(['']),
+    heading(2, 'Users'),
+    bullets(['Who is this for?']),
+    // Each line here becomes a task in the Space once it has text (see
+    // document_task_lines.md); write one requirement per line.
+    heading(2, 'Requirements'),
+    tasks(['']),
+    heading(2, 'Acceptance criteria'),
+    bullets(['']),
+    heading(2, 'Out of scope'),
+    bullets(['']),
+    heading(2, 'Milestones'),
+    tasks(['']),
+  ]),
+}
+
+export const DOCUMENT_TEMPLATES: DocumentTemplate[] = [REQUIREMENTS_TEMPLATE, PRD_TEMPLATE, SONG_TEMPLATE]
