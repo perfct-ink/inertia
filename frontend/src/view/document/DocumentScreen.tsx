@@ -71,6 +71,7 @@ import Breadcrumb from '@/components/Breadcrumb'
 import DocumentOutline from '@/components/DocumentOutline'
 import DocumentInitiativeBar from '@/components/DocumentInitiativeBar'
 import FeatureBar from '@/components/FeatureBar'
+import DocumentPlanningSummary from '@/components/DocumentPlanningSummary'
 import TableEditor from '@/components/editors/TableEditor'
 import SpreadsheetEditor from '@/components/editors/SpreadsheetEditor'
 import HeadingLinkPicker from '@/components/HeadingLinkPicker'
@@ -722,6 +723,7 @@ export default function DocumentScreen() {
         </div>
 
         <DocumentInitiativeBar doc={doc} />
+        <DocumentPlanningSummary doc={doc} />
 
         <FeatureBar doc={doc} />
 
