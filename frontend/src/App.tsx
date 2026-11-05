@@ -27,6 +27,7 @@ import CalendarScreen from '@/view/calendar/CalendarScreen'
 import PivotScreen from '@/view/pivot/PivotScreen'
 import TaskTableScreen from '@/view/task_table/TaskTableScreen'
 import WorkloadScreen from '@/view/workload/WorkloadScreen'
+import PortfolioScreen from '@/view/portfolio/PortfolioScreen'
 import FolderDetailScreen from '@/view/folder_detail/FolderDetailScreen'
 import SharedScreen from '@/view/shared/SharedScreen'
 import AppearanceEffect from '@/components/AppearanceEffect'
@@ -238,6 +239,14 @@ export default function App() {
           element={
             <PrivateRoute>
               <CalendarScreen />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/portfolio"
+          element={
+            <PrivateRoute>
+              <PortfolioScreen />
             </PrivateRoute>
           }
         />

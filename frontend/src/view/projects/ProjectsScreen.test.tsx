@@ -3,7 +3,9 @@ import { fireEvent, render, screen } from '@testing-library/react'
 import ProjectsScreen from './ProjectsScreen'
 
 jest.mock('@/components/WorkspaceLayout', () => function LayoutMock({ children }: { children: React.ReactNode }) { return <div>{children}</div> })
+const mockNavigate = jest.fn()
 jest.mock('react-router-dom', () => ({
+  useNavigate: () => mockNavigate,
   Link: ({ to, children, ...props }: { to: string; children: React.ReactNode }) => <a href={to} {...props}>{children}</a>,
 }))
 jest.mock('@/components/CreateItem', () => function CreateItemMock() { return null })
@@ -43,4 +45,10 @@ test('creates a project from the name typed in', () => {
   fireEvent.change(input, { target: { value: 'Billing' } })
   fireEvent.keyDown(input, { key: 'Enter' })
   expect(mockCreateFolder.mutate).toHaveBeenCalledWith({ name: 'Billing', kind: 'project' }, expect.anything())
+})
+
+test('the Portfolio button opens the portfolio once there are projects', () => {
+  render(<ProjectsScreen />)
+  fireEvent.click(screen.getByRole('button', { name: /Portfolio/ }))
+  expect(mockNavigate).toHaveBeenCalledWith('/portfolio')
 })

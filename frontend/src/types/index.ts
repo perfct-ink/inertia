@@ -440,3 +440,18 @@ export interface Baseline {
   created_at: string
   tasks: { task_id: number; start_date: string | null; due_date: string }[]
 }
+
+// One project in the portfolio table.
+export interface PortfolioRow {
+  id: number
+  name: string
+  owner_id: number | null
+  owner_name: string | null
+  project_status: ProjectStatus
+  start_date: string | null
+  target_date: string | null
+  tasks_count: number
+  done_tasks_count: number
+  percent: number
+  health: MilestoneHealth
+}

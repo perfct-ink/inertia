@@ -63,3 +63,4 @@ One file per implemented feature, written from the code (see `docs/rules/feature
 | Folder home document: a folder opens on its home page | [folder_home_document.md](folder_home_document.md) |
 | Paragraph styles: Title, Subtitle, Headings, Body, Quote, Caption, Monospace + picker | [paragraph_styles.md](paragraph_styles.md) |
 | Data files: filtering, sorting and API enums live in src/data | [data_files.md](data_files.md) |
+| Portfolio: all projects with owner, status, dates, progress, health | [portfolio.md](portfolio.md) |

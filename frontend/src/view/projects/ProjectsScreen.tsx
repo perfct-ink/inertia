@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { format, parseISO } from 'date-fns'
-import { FolderKanban, Loader2, Plus } from 'lucide-react'
+import { Briefcase, FolderKanban, Loader2, Plus } from 'lucide-react'
 import { Button, FormError, Input } from '@/components/ui'
 import WorkspaceLayout from '@/components/WorkspaceLayout'
 import CreateItem from '@/components/CreateItem'
@@ -27,6 +27,7 @@ export default function ProjectsScreen() {
   const createFolder = useCreateFolder()
   const [adding, setAdding] = useState(false)
   const [error, setError] = useState('')
+  const navigate = useNavigate()
   const nameRef = useRef('')
   const [iconFor, setIconFor] = useState<Folder | null>(null)
   const projects = projectsOf(workspace?.folders ?? [])
@@ -45,6 +46,12 @@ export default function ProjectsScreen() {
       <div className="view-projects">
         <div className="projects-header">
           <h1 className="projects-title">Projects</h1>
+          {projects.length > 0 && (
+            <Button variant="secondary" onClick={() => navigate('/portfolio')} className="projects-new">
+              <Briefcase className="projects-icon" aria-hidden="true" />
+              Portfolio
+            </Button>
+          )}
           <Button variant="primary" onClick={() => setAdding(true)} className="projects-new">
             <Plus className="projects-icon" aria-hidden="true" />
             New project

@@ -122,6 +122,7 @@ Rails.application.routes.draw do
           delete "documents/:document_id", action: :remove_document
         end
       end
+      resource :portfolio, only: [ :show ], controller: "portfolio"
       resources :objectives, only: [ :index, :create, :update, :destroy ]
       resources :key_results, only: [ :create, :update, :destroy ]
       resources :project_requests, only: [ :index, :create, :update, :destroy ] do

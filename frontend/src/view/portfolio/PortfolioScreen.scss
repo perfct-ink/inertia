@@ -1,0 +1,30 @@
+@use 'tokens' as *;
+
+@layer view {
+  .view-portfolio {
+    @at-root .portfolio-table {
+      width: 100%;
+      border-collapse: collapse;
+      @include text('sm');
+
+      th,
+      td {
+        padding: space(2) space(3);
+        border-bottom-width: 1px;
+        text-align: left;
+      }
+    }
+
+    @at-root .portfolio-progress {
+      display: flex;
+      align-items: center;
+      gap: space(2);
+      min-width: space(32);
+    }
+
+    @at-root .portfolio-sort {
+      width: space(3);
+      height: space(3);
+    }
+  }
+}
