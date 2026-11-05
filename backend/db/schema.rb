@@ -288,6 +288,22 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_03_120001) do
     t.index ["workspace_id"], name: "index_milestones_on_workspace_id"
   end
 
+  create_table "notifications", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.bigint "workspace_id", null: false
+    t.string "kind", null: false
+    t.string "title", null: false
+    t.text "body"
+    t.string "subject_type"
+    t.bigint "subject_id"
+    t.datetime "read_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["user_id", "read_at"], name: "index_notifications_on_user_id_and_read_at"
+    t.index ["user_id"], name: "index_notifications_on_user_id"
+    t.index ["workspace_id"], name: "index_notifications_on_workspace_id"
+  end
+
   create_table "objectives", force: :cascade do |t|
     t.string "title", null: false
     t.text "description"
@@ -710,6 +726,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_03_120001) do
   add_foreign_key "milestones", "folders"
   add_foreign_key "milestones", "users", column: "owner_id", on_delete: :nullify
   add_foreign_key "milestones", "workspaces"
+  add_foreign_key "notifications", "users"
+  add_foreign_key "notifications", "workspaces"
   add_foreign_key "objectives", "folders", on_delete: :nullify
   add_foreign_key "objectives", "users", column: "owner_id", on_delete: :nullify
   add_foreign_key "objectives", "workspaces"

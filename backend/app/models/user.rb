@@ -13,6 +13,7 @@ class User < ApplicationRecord
   has_many :time_entries, dependent: :destroy
   has_many :task_participants, dependent: :destroy
   has_many :social_identities, dependent: :destroy
+  has_many :notifications, dependent: :destroy
   has_many :social_login_attempts, dependent: :destroy
   after_create :create_default_workspace
 

@@ -1,8 +1,9 @@
 import { Link, useLocation } from 'react-router-dom'
-import { FolderKanban, Keyboard, Plus } from 'lucide-react'
+import { Bell, FolderKanban, Keyboard, Plus } from 'lucide-react'
 import { Button, classNames } from '@/components/ui'
 import { isActivePath } from '@/data/project'
 import { useWorkspace } from '@/api/workspace'
+import { useNotifications } from '@/api/notifications'
 import { SECTION_GROUPS, type Section } from './projectSections'
 import './SidebarRail.scss'
 
@@ -18,6 +19,9 @@ const SPACE_SECTIONS: Section[] = [
 export function SidebarRail({ onQuickAdd, onShortcuts }: { onQuickAdd: () => void; onShortcuts: () => void }) {
   const { pathname } = useLocation()
   const shared = useWorkspace().data?.shared ?? false
+  const unread = useNotifications().data?.unread_count ?? 0
+  const inboxActive = isActivePath(pathname, '/inbox')
+  const inboxLabel = unread ? `Inbox (${unread} unread)` : 'Inbox'
   const groups = [SPACE_SECTIONS, ...SECTION_GROUPS.map((g) => g.sections.filter((s) => shared || !s.sharedOnly))]
     .filter((sections) => sections.length > 0)
 
@@ -46,6 +50,16 @@ export function SidebarRail({ onQuickAdd, onShortcuts }: { onQuickAdd: () => voi
         ))}
       </div>
       <div className="sidebar-rail_group sidebar-rail_group--actions">
+        <Link
+          to="/inbox"
+          title={inboxLabel}
+          aria-label={inboxLabel}
+          aria-current={inboxActive ? 'page' : undefined}
+          className={classNames('sidebar-rail_button', inboxActive && 'sidebar-rail_button--active')}
+        >
+          <Bell className="sidebar-rail_icon" />
+          {unread > 0 && <span className="sidebar-rail_badge" aria-hidden="true">{unread > 9 ? '9+' : unread}</span>}
+        </Link>
         <Button title="Quick add (⌘K)" aria-label="Quick add" onClick={onQuickAdd} className="sidebar-rail_button">
           <Plus className="sidebar-rail_icon" />
         </Button>

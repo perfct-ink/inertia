@@ -34,6 +34,7 @@ module Api
       def create
         task = current_workspace.tasks.build(task_params)
         task.status_changed_by = current_user
+        task.actor = current_user
         task.document_id = params[:document_id] if params[:document_id].present?
         file_in_current_project(task) unless task.document_id
         if task.save
@@ -48,6 +49,7 @@ module Api
       # lists them as `rescheduled`.
       def update
         @task.status_changed_by = current_user
+        @task.actor = current_user
         scheduling = Scheduling::TaskUpdate.new(@task)
         if scheduling.call(task_params)
           render json: TaskBlueprint.render_as_hash(@task, current_user: current_user).merge(rescheduled: TaskBlueprint.render_as_hash(scheduling.rescheduled))

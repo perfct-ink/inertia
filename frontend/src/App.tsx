@@ -28,6 +28,7 @@ import PivotScreen from '@/view/pivot/PivotScreen'
 import TaskTableScreen from '@/view/task_table/TaskTableScreen'
 import WorkloadScreen from '@/view/workload/WorkloadScreen'
 import PortfolioScreen from '@/view/portfolio/PortfolioScreen'
+import InboxScreen from '@/view/inbox/InboxScreen'
 import FolderDetailScreen from '@/view/folder_detail/FolderDetailScreen'
 import SharedScreen from '@/view/shared/SharedScreen'
 import AppearanceEffect from '@/components/AppearanceEffect'
@@ -247,6 +248,14 @@ export default function App() {
           element={
             <PrivateRoute>
               <PortfolioScreen />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/inbox"
+          element={
+            <PrivateRoute>
+              <InboxScreen />
             </PrivateRoute>
           }
         />

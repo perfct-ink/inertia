@@ -5,6 +5,7 @@ import { SidebarRail } from './SidebarRail'
 import { SECTION_GROUPS } from './projectSections'
 
 let mockShared = true
+jest.mock('@/api/notifications', () => ({ useNotifications: () => ({ data: { unread_count: 0, notifications: [] } }) }))
 jest.mock('@/api/workspace', () => ({ useWorkspace: () => ({ data: { shared: mockShared } }) }))
 beforeEach(() => { mockShared = true })
 
@@ -24,9 +25,15 @@ test('has a link for the Space pages and every page of a project, and no buttons
   expect(labels).toEqual([
     'Projects',
     ...SECTION_GROUPS.flatMap((g) => g.sections.map((s) => s.label)),
+    'Inbox',
   ])
   expect(within(nav).getByRole('link', { name: 'Tasks' })).toHaveAttribute('href', '/tasks?view=backlog')
   expect(within(nav).getByRole('link', { name: 'Roadmap' })).toHaveAttribute('href', '/roadmap')
+})
+
+test('the Inbox link sits with the quick actions', () => {
+  renderAt('/space')
+  expect(screen.getByRole('link', { name: 'Inbox' })).toHaveAttribute('href', '/inbox')
 })
 
 test('My work shows only when the Space is shared with others', () => {

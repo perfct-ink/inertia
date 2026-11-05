@@ -42,6 +42,21 @@
       }
     }
 
+    // Unread count on the Inbox button.
+    &_badge {
+      position: absolute;
+      top: 0;
+      right: 0;
+      min-width: space(4);
+      padding: 0 space(1);
+      border-radius: radius('full');
+      background: color(primary);
+      color: color(primary-foreground);
+      font-size: 0.625rem;
+      line-height: space(4);
+      text-align: center;
+    }
+
     &_divider {
       width: space(6);
       height: 1px;
@@ -50,6 +65,7 @@
     }
 
     &_button {
+      position: relative;
       display: flex;
       align-items: center;
       justify-content: center;

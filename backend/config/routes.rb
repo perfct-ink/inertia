@@ -123,6 +123,9 @@ Rails.application.routes.draw do
         end
       end
       resource :portfolio, only: [ :show ], controller: "portfolio"
+      resources :notifications, only: [ :index, :update ] do
+        post :read_all, on: :collection
+      end
       resources :objectives, only: [ :index, :create, :update, :destroy ]
       resources :key_results, only: [ :create, :update, :destroy ] do
         resources :check_ins, only: [ :index, :create ], controller: "key_result_check_ins"
