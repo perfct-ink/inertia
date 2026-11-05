@@ -452,6 +452,17 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_03_120001) do
     t.index ["workspace_id"], name: "index_task_fields_on_workspace_id"
   end
 
+  create_table "task_participants", force: :cascade do |t|
+    t.bigint "task_id", null: false
+    t.bigint "user_id", null: false
+    t.integer "role", default: 0, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["task_id", "user_id", "role"], name: "index_task_participants_on_task_id_and_user_id_and_role", unique: true
+    t.index ["task_id"], name: "index_task_participants_on_task_id"
+    t.index ["user_id"], name: "index_task_participants_on_user_id"
+  end
+
   create_table "task_status_settings", force: :cascade do |t|
     t.bigint "workspace_id", null: false
     t.bigint "folder_id"
@@ -640,6 +651,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_03_120001) do
   add_foreign_key "task_field_values", "task_fields"
   add_foreign_key "task_field_values", "tasks"
   add_foreign_key "task_fields", "workspaces"
+  add_foreign_key "task_participants", "tasks"
+  add_foreign_key "task_participants", "users"
   add_foreign_key "task_status_settings", "folders"
   add_foreign_key "task_status_settings", "workspaces"
   add_foreign_key "tasks", "documents"

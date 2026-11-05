@@ -53,3 +53,4 @@ One file per implemented feature, written from the code (see `docs/rules/feature
 | Workload: estimated hours per person per week, over-allocation | [workload.md](workload.md) |
 | Task types (task, bug, story) and the bugs queue | [task_kinds.md](task_kinds.md) |
 | Task progress from subtasks and time tracking | [task_progress_and_time_tracking.md](task_progress_and_time_tracking.md) |
+| Multiple assignees and watchers on tasks | [task_assignees_and_watchers.md](task_assignees_and_watchers.md) |

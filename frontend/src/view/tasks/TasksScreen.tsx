@@ -37,9 +37,12 @@ import { useTaskFields } from '@/api/taskFields'
 import { TaskFieldChips } from '@/components/task-fields/TaskFieldChips'
 import { TaskFieldsDialog } from '@/components/task-fields/TaskFieldsDialog'
 import { ManageTaskFieldsDialog } from '@/components/task-fields/ManageTaskFieldsDialog'
-import type { Task, TaskField, Epic, Sprint, Milestone, TaskStatus, TaskStatusColor, TaskPriority, TaskKind } from '@/types'
+import type { Task, TaskField, Epic, Sprint, Milestone, TaskStatus, TaskStatusColor, TaskPriority, TaskKind, WorkspaceMember } from '@/types'
 import { TaskTimer } from './TaskTimer'
 import { progressById, type Progress } from '@/data/task'
+import { PeoplePicker } from '@/components/people/PeoplePicker'
+import { initials } from '@/data/person'
+import { useWorkspaceMembers } from '@/api/workspaceMembers'
 import './TasksScreen.scss'
 import { usePageTitle } from '@/hooks/usePageTitle'
 import { useBoardStatuses } from '@/hooks/useBoardStatuses'
@@ -65,13 +68,14 @@ interface CardProps {
   onNavigate: () => void
   epicTitle?: string
   progress?: Progress
+  assignees?: WorkspaceMember[]
   overlay?: boolean
   // The Space's custom task fields, shown as chips; the edit button opens them.
   fields?: TaskField[]
   onEditFields?: () => void
 }
 
-function TaskCard({ task, onNext, nextLabel, onNavigate, epicTitle, progress, overlay, fields = [], onEditFields }: Omit<CardProps, 'onDelete'>) {
+function TaskCard({ task, onNext, nextLabel, onNavigate, epicTitle, assignees = [], progress, overlay, fields = [], onEditFields }: Omit<CardProps, 'onDelete'>) {
   return (
     <div className={classNames('tasks-card', overlay && 'tasks-card--overlay')}>
       <div className="tasks-card_title_row">
@@ -94,6 +98,13 @@ function TaskCard({ task, onNext, nextLabel, onNavigate, epicTitle, progress, ov
         </div>
       )}
       {!overlay && <TaskTimer task={task} />}
+      {assignees.length > 0 && (
+        <ul className="tasks-people" aria-label="Assignees">
+          {assignees.map((m) => (
+            <li key={m.user_id} className="tasks-avatar" title={m.user.name}>{initials(m.user.name)}</li>
+          ))}
+        </ul>
+      )}
       <div className="tasks-card_footer">
         {priorityLabel(task.priority) && <span className={`tasks-priority tasks-priority--${task.priority}`}>{priorityLabel(task.priority)}</span>}
         {pointsLabel(task) && <span className="tasks-meta">{pointsLabel(task)}</span>}
@@ -192,6 +203,8 @@ interface NewTaskFields {
   storyPoints?: number
   recurrence?: string
   kind: TaskKind
+  assignee_ids: number[]
+  watcher_ids: number[]
 }
 
 interface AddTaskInputProps {
@@ -200,9 +213,10 @@ interface AddTaskInputProps {
   epics: Epic[]
   sprints: Sprint[]
   milestones: Milestone[]
+  members: WorkspaceMember[]
 }
 
-function AddTaskInput({ onAdd, onCancel, epics, sprints, milestones }: AddTaskInputProps) {
+function AddTaskInput({ onAdd, onCancel, epics, sprints, milestones, members }: AddTaskInputProps) {
   const [title, setTitle] = useState('')
   const [startDate, setStartDate] = useState('')
   const [dueDate, setDueDate] = useState('')
@@ -214,6 +228,8 @@ function AddTaskInput({ onAdd, onCancel, epics, sprints, milestones }: AddTaskIn
   const [points, setPoints] = useState('')
   const [recurrence, setRecurrence] = useState('')
   const [kind, setKind] = useState<TaskKind>('task')
+  const [assigneeIds, setAssigneeIds] = useState<number[]>([])
+  const [watcherIds, setWatcherIds] = useState<number[]>([])
   const titleRef = useRef('')
   const containerRef = useRef<HTMLDivElement>(null)
 
@@ -231,6 +247,8 @@ function AddTaskInput({ onAdd, onCancel, epics, sprints, milestones }: AddTaskIn
         storyPoints: points === '' ? undefined : Number(points),
         recurrence: recurrence || undefined,
         kind,
+        assignee_ids: assigneeIds,
+        watcher_ids: watcherIds,
       })
     } else onCancel()
   }
@@ -348,6 +366,12 @@ function AddTaskInput({ onAdd, onCancel, epics, sprints, milestones }: AddTaskIn
           ))}
         </Select>
       )}
+      {members.length > 1 && (
+        <>
+          <PeoplePicker label="Assignees" members={members} value={assigneeIds} onChange={setAssigneeIds} />
+          <PeoplePicker label="Watchers" members={members} value={watcherIds} onChange={setWatcherIds} />
+        </>
+      )}
       {milestones.length > 0 && (
         <Select
           aria-label="Milestone"
@@ -395,6 +419,10 @@ export default function TasksScreen() {
   const { data: sprints = [] } = useSprints()
   const { data: milestones = [] } = useMilestones()
   const epicById = new Map(epics.map((e) => [e.id, e]))
+  const { data: members = [] } = useWorkspaceMembers(workspace?.id ?? 0)
+  const memberByUserId = new Map(members.map((m) => [m.user_id, m]))
+  const assigneesOf = (task: Task) =>
+    (task.assignee_ids ?? []).flatMap((id) => memberByUserId.get(id) ?? [])
 
   useEffect(() => {
     const epicId = searchParams.get('epic_id')
@@ -411,6 +439,7 @@ export default function TasksScreen() {
     ...(filters.epic_id ? { epic_id: filters.epic_id } : {}),
     ...(filters.sprint_id ? { sprint_id: filters.sprint_id } : {}),
     ...(filters.kind ? { kind: filters.kind } : {}),
+    ...(filters.assignee_id ? { assignee_id: filters.assignee_id } : {}),
     ...(searchQ.trim() ? { q: searchQ.trim() } : {}),
   }
 
@@ -575,11 +604,11 @@ export default function TasksScreen() {
             </Button>
             <Button
               onClick={() => setShowFilters((o) => !o)}
-              className={classNames('tasks-filter_button', !!(showFilters || filters.folder_id || filters.status || filters.epic_id || filters.sprint_id || filters.kind) && 'tasks-filter_button--active')}
+              className={classNames('tasks-filter_button', !!(showFilters || filters.folder_id || filters.status || filters.epic_id || filters.sprint_id || filters.assignee_id || filters.kind) && 'tasks-filter_button--active')}
             >
               <Filter className="tasks-icon" />
               Filter
-              {(filters.folder_id || filters.status || filters.epic_id || filters.sprint_id || filters.kind) && <span className="tasks-filter_dot" />}
+              {(filters.folder_id || filters.status || filters.epic_id || filters.sprint_id || filters.assignee_id || filters.kind) && <span className="tasks-filter_dot" />}
             </Button>
           </div>
         </div>
@@ -619,6 +648,17 @@ export default function TasksScreen() {
                 <option key={key} value={key}>{key === 'bug' ? 'Bugs (queue)' : label}</option>
               ))}
             </Select>
+            <span className="tasks-filter_label">Assignee</span>
+            <Select
+              className="tasks-filter_select"
+              value={filters.assignee_id ?? ''}
+              onChange={(e) => setFilters((f) => ({ ...f, assignee_id: e.target.value ? Number(e.target.value) : undefined }))}
+            >
+              <option value="">Anyone</option>
+              {members.map((m) => (
+                <option key={m.user_id} value={m.user_id}>{m.user.name}</option>
+              ))}
+            </Select>
             <span className="tasks-filter_label">Epic</span>
             <Select
               className="tasks-filter_select"
@@ -641,7 +681,7 @@ export default function TasksScreen() {
                 <option key={sprint.id} value={sprint.id}>{sprint.title}</option>
               ))}
             </Select>
-            {(filters.folder_id || filters.status || filters.epic_id || filters.sprint_id || filters.kind) && (
+            {(filters.folder_id || filters.status || filters.epic_id || filters.sprint_id || filters.assignee_id || filters.kind) && (
               <Button
                 onClick={() => setFilters({})}
                 className="tasks-clear"
@@ -688,6 +728,7 @@ export default function TasksScreen() {
                           fields={taskFields}
                           onEditFields={() => setFieldsTaskId(task.id)}
                           progress={progressByTask.get(task.id)}
+                          assignees={assigneesOf(task)}
                         />
                       ))}
                       {addingTo === key ? (
@@ -698,6 +739,7 @@ export default function TasksScreen() {
                             epics={epics}
                             sprints={sprints}
                             milestones={milestones}
+                            members={members}
                           />
                         </div>
                       ) : (
@@ -755,6 +797,7 @@ export default function TasksScreen() {
                     epics={epics}
                     sprints={sprints}
                     milestones={milestones}
+                    members={members}
                   />
                 </div>
               )}

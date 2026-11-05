@@ -10,6 +10,7 @@ export interface TaskFilters {
   epic_id?: number
   sprint_id?: number
   kind?: TaskKind
+  assignee_id?: number
 }
 
 export interface NewTask {
@@ -28,6 +29,8 @@ export interface NewTask {
   story_points?: number
   recurrence?: string
   kind?: TaskKind
+  assignee_ids?: number[]
+  watcher_ids?: number[]
 }
 
 export class TaskApi extends ApiResource<Task, NewTask> {

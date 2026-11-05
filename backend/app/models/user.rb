@@ -11,6 +11,7 @@ class User < ApplicationRecord
   has_many :teams, through: :team_memberships
   has_many :created_workspaces, -> { where(personal: false) }, class_name: "Workspace", dependent: :restrict_with_error
   has_many :time_entries, dependent: :destroy
+  has_many :task_participants, dependent: :destroy
   has_many :social_identities, dependent: :destroy
   has_many :social_login_attempts, dependent: :destroy
   after_create :create_default_workspace

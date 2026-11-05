@@ -118,6 +118,8 @@ export interface Task {
   logged_minutes?: number
   timer_entry_id?: number | null
   timer_started_at?: string | null
+  assignee_ids?: number[]
+  watcher_ids?: number[]
   milestone_id?: number | null
   epic_id: number | null
   sprint_id?: number | null
