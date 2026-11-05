@@ -14,9 +14,9 @@ Anyone who can open the Space sees the list. The page changes nothing itself.
 
 ## Tests
 `frontend/src/data/folder.test.ts` covers `spaceFiles`, `searchSpaceFiles` and `filterSpaceFiles`; `frontend/src/view/documents_index/DocumentsIndexScreen.test.tsx` covers the filters.
+`frontend/src/data/folder.test.ts` covers `spaceFiles`, `searchSpaceFiles` and `sortFileRows`. The screen has no test of its own.
 
 ## Known limits
-- Sorting still happens inside the screen, not in `data/`.
 - Only documents, spreadsheets and collections are listed; uploaded files of other types do not exist yet.
 - Archived folders are not filtered by `spaceFiles`; I did not check whether the Space payload already omits them.
 
@@ -24,5 +24,7 @@ Anyone who can open the Space sees the list. The page changes nothing itself.
 - Implemented 2026-10-15 to 2026-10-18. Committed locally; not pushed or deployed.
 - Not verified: lint, type-check, tests and the screen were not run (no dependencies installed, no network).
 - Filters added 2026-10-19 on branch `backlog/filter-all-files-by-project-type-and-owner`, not merged. "Owner" means creator; there is no separate owner field. Not verified: lint, type-check, tests and the browser did not run (no node_modules).
+
+- Merged to main 2026-11-02 after running, merged with main: `rails db:migrate` (schema diff clean), `rails test`, `npm run lint`, `tsc -b`, Jest, and the collab-server tests, all passing. Not checked in a browser.
 
 - Merged to main 2026-11-02 after running, merged with main: `rails db:migrate` (schema diff clean), `rails test`, `npm run lint`, `tsc -b`, Jest, and the collab-server tests, all passing. Not checked in a browser.

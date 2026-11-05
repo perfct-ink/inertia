@@ -8,18 +8,16 @@ import { useWorkspace } from '@/api/workspace'
 import WorkspaceLayout from '@/components/WorkspaceLayout'
 import CreateItem from '@/components/CreateItem'
 import FilesGallery from '@/components/FilesGallery'
-import { spaceFiles, searchSpaceFiles, filterSpaceFiles, projectsOf, type SpaceFileFilters } from '@/data/folder'
+import { spaceFiles, searchSpaceFiles, filterSpaceFiles, projectsOf, sortFileRows, type FileRow, type FileSortKey, type SpaceFileFilters } from '@/data/folder'
 import { useWorkspaceMembers } from '@/api/workspaceMembers'
 import { useWorkspaceStore } from '@/store/workspaces'
 import { useProjectStore } from '@/store/projects'
 import { DOC_TYPE_LABELS } from '@/data/document'
 import './DocumentsIndexScreen.scss'
-import type { Document } from '@/types'
 import { usePageTitle } from '@/hooks/usePageTitle'
 import { lastModified } from '@/data/document'
 
-type Row = Document & { folderId: number; location: string; inProject: boolean }
-type SortKey = 'name' | 'location' | 'modified'
+type SortKey = FileSortKey
 
 // Every file in the current Space, wherever it is nested: a file manager's
 // list view with search and sortable Name/Location/Last Modified columns.
@@ -52,21 +50,14 @@ export default function DocumentsIndexScreen() {
   const [mode, setMode] = useState<'list' | 'gallery'>('list')
 
   const files = spaceFiles(workspace?.folders ?? [])
-  const allDocs: Row[] = filterSpaceFiles(searchSpaceFiles(files, query), filters).map((f) => ({
+  const allDocs: FileRow[] = filterSpaceFiles(searchSpaceFiles(files, query), filters).map((f) => ({
     ...f.document,
     folderId: f.folder.id,
     location: f.path.length ? f.path.join(' / ') : f.folder.name,
     inProject: f.project != null,
   }))
 
-  const sortedDocs = useMemo(() => {
-    const factor = sortDir === 'asc' ? 1 : -1
-    return [ ...allDocs ].sort((a, b) => {
-      if (sortKey === 'name') return a.title.localeCompare(b.title) * factor
-      if (sortKey === 'location') return a.location.localeCompare(b.location) * factor
-      return (new Date(lastModified(a)).getTime() - new Date(lastModified(b)).getTime()) * factor
-    })
-  }, [allDocs, sortKey, sortDir])
+  const sortedDocs = useMemo(() => sortFileRows(allDocs, sortKey, sortDir), [allDocs, sortKey, sortDir])
 
   function toggleSort(key: SortKey) {
     if (key === sortKey) {
