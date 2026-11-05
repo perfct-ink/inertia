@@ -1,0 +1,25 @@
+@use 'tokens' as *;
+
+@layer view {
+  .invite-body {
+    display: flex;
+    flex-direction: column;
+    gap: space(4);
+
+    @at-root .invite-text {
+      color: color(muted-foreground);
+      @include text('sm');
+    }
+
+    @at-root .invite-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: space(4);
+      @include text('sm');
+
+      a {
+        color: color(primary);
+      }
+    }
+  }
+}

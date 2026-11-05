@@ -581,6 +581,21 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_03_120001) do
     t.index ["reset_password_token"], name: "index_users_on_reset_password_token", unique: true
   end
 
+  create_table "workspace_invitations", force: :cascade do |t|
+    t.bigint "workspace_id", null: false
+    t.bigint "invited_by_id"
+    t.string "email", null: false
+    t.integer "role", default: 1, null: false
+    t.string "token", null: false
+    t.datetime "accepted_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["invited_by_id"], name: "index_workspace_invitations_on_invited_by_id"
+    t.index ["token"], name: "index_workspace_invitations_on_token", unique: true
+    t.index ["workspace_id", "email"], name: "index_workspace_invitations_on_workspace_id_and_email", unique: true
+    t.index ["workspace_id"], name: "index_workspace_invitations_on_workspace_id"
+  end
+
   create_table "workspace_memberships", force: :cascade do |t|
     t.bigint "workspace_id", null: false
     t.bigint "user_id", null: false
@@ -697,6 +712,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_03_120001) do
   add_foreign_key "teams", "workspaces"
   add_foreign_key "time_entries", "tasks"
   add_foreign_key "time_entries", "users"
+  add_foreign_key "workspace_invitations", "users", column: "invited_by_id", on_delete: :nullify
+  add_foreign_key "workspace_invitations", "workspaces"
   add_foreign_key "workspace_memberships", "users"
   add_foreign_key "workspace_memberships", "workspaces"
   add_foreign_key "workspaces", "folders", column: "root_folder_id"

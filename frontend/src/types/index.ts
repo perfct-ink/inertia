@@ -111,6 +111,14 @@ export type TaskPriority = 'none' | 'low' | 'medium' | 'high' | 'urgent'
 
 export type TaskKind = 'task' | 'bug' | 'story'
 
+export interface WorkspaceInvitation {
+  id: number
+  email: string
+  role: WorkspaceRole
+  token: string
+  created_at: string
+}
+
 export interface Task {
   id: number
   title: string

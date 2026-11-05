@@ -4,6 +4,7 @@ class Workspace < ApplicationRecord
   has_many :memberships, class_name: "WorkspaceMembership", dependent: :destroy
   has_many :members, through: :memberships, source: :user
   has_many :teams, dependent: :destroy
+  has_many :invitations, class_name: "WorkspaceInvitation", dependent: :destroy
   belongs_to :root_folder, class_name: "Folder", optional: true
   # Before folders: the settings point at both.
   has_many :task_status_settings, dependent: :delete_all
