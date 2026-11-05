@@ -17,7 +17,7 @@ For local Docker development, set these in the repository's ignored `.env` file.
 | `APPLE_PRIVATE_KEY` | Contents of the `.p8` signing key. Use a quoted multiline value, or literal `\n` between lines. |
 | `BYPASS_AUTH` | Set to `false` for local testing of real user accounts. The default dev bypass selects the seed user regardless of login. |
 
-The Mac binary needs only `INERTIA_API_URL` and `INERTIA_WEB_URL`, which `make dev-mac` sets to localhost. Never put provider secrets in the app or frontend.
+The Mac binary needs only `INERTIA_API_URL` and `INERTIA_WEB_URL`, which `make dev-all` and `make dev-mac` set to localhost. Never put provider secrets in the app or frontend.
 
 ## Google setup
 
@@ -47,10 +47,10 @@ After editing `.env`, recreate the backend and frontend containers to load the e
 ```sh
 docker compose up -d backend frontend
 docker compose exec -T backend bundle exec rails db:migrate
-make dev-mac
+make dev-all
 ```
 
-`make dev-mac` also applies pending migrations. To rebuild only the Mac binary while services are running, use `make mac-build`, then quit Inertia and reopen the native bundle with local endpoints:
+`make dev-all` also applies pending migrations. To rebuild only the Mac binary while services are running, use `make mac-build`, then quit Inertia and reopen the native bundle with local endpoints:
 
 ```sh
 open -n --env INERTIA_API_URL=http://localhost:3847 --env INERTIA_WEB_URL=http://localhost:5174 macos/dist/Inertia.app

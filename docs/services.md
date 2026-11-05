@@ -85,7 +85,7 @@ See [Mac social sign-in](mac-social-sign-in.md) for provider setup steps.
 
 | Variable | Purpose |
 | --- | --- |
-| `INERTIA_API_URL`, `INERTIA_WEB_URL` | API and web origins. `make dev-mac` sets them to localhost. |
+| `INERTIA_API_URL`, `INERTIA_WEB_URL` | API and web origins. `make dev-all` and `make dev-mac` set them to localhost. |
 
 ### Deployment (GitHub Actions secrets and variables)
 

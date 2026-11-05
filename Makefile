@@ -1,6 +1,6 @@
 .DEFAULT_GOAL := all
 
-.PHONY: all setup deps dev dev-backend dev-frontend dev-mac build build-backend build-coolify build-frontend build-mac clean clean-backend clean-frontend clean-mac help \
+.PHONY: all setup deps dev dev-backend dev-frontend dev-mac build build-backend build-coolify build-frontend build-mac dev-all clean clean-backend clean-frontend clean-mac help \
         up up-d up-build down restart open \
         logs logs-backend logs-frontend ps \
         db-migrate db-rollback db-reset db-fake db-seed db-status \
@@ -61,8 +61,11 @@ dev-frontend: ## Rebuild and restart the frontend service only
 	$(COMPOSE) build frontend
 	$(COMPOSE) up -d frontend
 
-dev-mac: ## Build and start the local API and web services, then build and open the native Mac app
-	HTTP_PROXY=$(HOST_PROXY) HTTPS_PROXY=$(HOST_PROXY) bash scripts/dev-mac.sh
+dev-mac: ## Build and open the native Mac app only (no server; see dev-all)
+	bash scripts/dev-mac.sh
+
+dev-all: ## Build and start the local API and web services, stream logs, and open the native Mac app
+	HTTP_PROXY=$(HOST_PROXY) HTTPS_PROXY=$(HOST_PROXY) bash scripts/dev-all.sh
 
 .PHONY: dev-electron
 dev-electron: ## Start services, stream logs, and open the Electron app
