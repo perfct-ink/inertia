@@ -14,6 +14,7 @@ import { usePageTitle } from '@/hooks/usePageTitle'
 import { flattenFolders } from '@/data/folder'
 import { checkFormula, computeFormulas, formatResult, isFormulaField, type FormulaResult } from '@/data/formula'
 import CollectionMap from './CollectionMap'
+import { columnSummary, SUMMARY_LABEL, withUnit, type SummaryKind } from '@/data/tableSummary'
 
 const types: FieldDataType[] = ['text', 'integer', 'number', 'boolean', 'date', 'datetime', 'relation', 'file', 'files', 'formula']
 const inputClass = 'table_editor-input'
@@ -101,6 +102,8 @@ export default function TableEditor({ doc }: { doc: Document }) {
   const [formulaTouched, setFormulaTouched] = useState(false)
   const otherFields = (data?.fields ?? []).filter(f => f.id !== editingField?.id)
   const formulaProblem = type === 'formula' && formula.trim() ? checkFormula(name.trim(), formula.trim(), otherFields) : null
+  const [unit, setUnit] = useState('')
+  const [summaries, setSummaries] = useState<Record<number, SummaryKind>>({})
   const tables = flattenFolders(workspace?.folders ?? []).flatMap(f => f.documents ?? []).filter(d => d.doc_type === 'table')
   const targetIds = [...new Set((data?.fields ?? []).flatMap(f => f.relation_table_id ? [f.relation_table_id] : []))]
   const queries = useQueries({ queries: targetIds.map(tableQuery) })
@@ -120,14 +123,14 @@ export default function TableEditor({ doc }: { doc: Document }) {
   }
   function fieldForm(field?: TableField) {
     setEditingField(field ?? null); setName(field?.name ?? ''); setType(field?.data_type ?? 'text')
-    setRelationTable(field?.relation_table_id ? String(field.relation_table_id) : ''); setShowForm(true); setFieldError('')
+    setRelationTable(field?.relation_table_id ? String(field.relation_table_id) : ''); setUnit(field?.unit ?? ''); setShowForm(true); setFieldError('')
     setFormula(field?.formula ?? ''); setFormulaTouched(false)
   }
   async function saveField(e: React.FormEvent) {
     e.preventDefault()
     if (formulaProblem) { setFormulaTouched(true); return }
     try {
-      await action(editingField ? `fields/${editingField.id}` : 'fields', editingField ? 'patch' : 'post', { field: { name: name.trim(), data_type: type, relation_table_id: type === 'relation' ? Number(relationTable) : null, ...(type === 'formula' && { formula: formula.trim() }) } })
+      await action(editingField ? `fields/${editingField.id}` : 'fields', editingField ? 'patch' : 'post', { field: { name: name.trim(), data_type: type, relation_table_id: type === 'relation' ? Number(relationTable) : null, ...(type === 'integer' || type === 'number' ? { unit: unit.trim() || null } : {}), ...(type === 'formula' && { formula: formula.trim() }) } })
       setShowForm(false)
     } catch (e) { setFieldError(errorMessage(e)) }
   }
@@ -150,9 +153,10 @@ export default function TableEditor({ doc }: { doc: Document }) {
       <div className="table_editor-summary">{data?.records.length ?? 0} records · {data?.fields.length ?? 0} fields · Dates and times use UTC. Save each record after editing.</div>
       <FormError message={error || (loadError ? errorMessage(loadError) : null)} className="table_editor-error" />
       {isLoading ? <Loader2 className="table_editor-spinner" /> : data && mode === 'map' ? <CollectionMap data={data} /> : data && <div className="table_editor-grid">
+        {(type === 'integer' || type === 'number') && <label className="table_editor-field_form_label">Unit (optional)<Input maxLength={20} placeholder="kg, $, %…" value={unit} onChange={e => setUnit(e.target.value)} /></label>}
         <table className="table_editor-table">
           <thead className="table_editor-table_head"><tr><th className="table_editor-column_head table_editor-column_head--id">Record ID</th>
-            {data.fields.map(field => <th key={field.id} className="table_editor-column_head"><div className="table_editor-column_head_main"><Button onClick={() => fieldForm(field)} className="table_editor-column_name_button"><span>{field.name}</span><Pencil className="table_editor-column_edit_icon" /></Button><Button aria-label={`Delete field ${field.name}`} disabled={busy} onClick={() => remove(`fields/${field.id}`, `Delete “${field.name}” and all its values?`)} className="table_editor-icon_button table_editor-icon_button--column"><Trash2 className="table_editor-icon_button_icon table_editor-icon_button_icon--sm" /></Button></div><span className="table_editor-column_type">{field.data_type}{field.relation_table_id ? ` → ${tables.find(t => t.id === field.relation_table_id)?.title ?? 'Table'}` : ''}</span>{field.formula && <code className="table_editor-column_formula" title={field.formula}>= {field.formula}</code>}</th>)}
+            {data.fields.map(field => <th key={field.id} className="table_editor-column_head"><div className="table_editor-column_head_main"><Button onClick={() => fieldForm(field)} className="table_editor-column_name_button"><span>{field.name}</span><Pencil className="table_editor-column_edit_icon" /></Button><Button aria-label={`Delete field ${field.name}`} disabled={busy} onClick={() => remove(`fields/${field.id}`, `Delete “${field.name}” and all its values?`)} className="table_editor-icon_button table_editor-icon_button--column"><Trash2 className="table_editor-icon_button_icon table_editor-icon_button_icon--sm" /></Button></div><span className="table_editor-column_type">{field.data_type}{field.unit ? ` (${field.unit})` : ''}{field.relation_table_id ? ` → ${tables.find(t => t.id === field.relation_table_id)?.title ?? 'Table'}` : ''}</span>{field.formula && <code className="table_editor-column_formula" title={field.formula}>= {field.formula}</code>}</th>)}
             <th className="table_editor-column_head table_editor-column_head--add"><Button aria-label="New field" title="Add field" disabled={busy} onClick={() => fieldForm()} className="table_editor-icon_button table_editor-icon_button--add"><Plus className="table_editor-icon_button_icon" /></Button></th>
             <th className="table_editor-column_head table_editor-column_head--actions">Actions</th>
           </tr></thead>
@@ -160,6 +164,16 @@ export default function TableEditor({ doc }: { doc: Document }) {
             {data.records.map(record => <RecordRow key={record.id} record={record} fields={data.fields} relations={relations} files={uploadedFiles} busy={busy} onSave={values => action(`records/${record.id}`, 'patch', { record: { values } })} onDelete={() => remove(`records/${record.id}`, `Delete record #${record.id}?`)} />)}
             {data.fields.length > 0 && <RecordRow fields={data.fields} relations={relations} files={uploadedFiles} busy={busy} onSave={values => action('records', 'post', { record: { values } })} />}
           </tbody>
+          {data.fields.some(f => f.data_type === 'integer' || f.data_type === 'number') && <tfoot className="table_editor-summary_row"><tr>
+            <th className="table_editor-column_head table_editor-column_head--id">Summary</th>
+            {data.fields.map(field => <td key={field.id} className="table_editor-cell">{field.data_type === 'integer' || field.data_type === 'number' ? <>
+              <Select aria-label={`Summary of ${field.name}`} className={inputClass} value={summaries[field.id] ?? 'none'} onChange={e => setSummaries(current => ({ ...current, [field.id]: e.target.value as SummaryKind }))}>
+                {(Object.keys(SUMMARY_LABEL) as SummaryKind[]).map(kind => <option key={kind} value={kind}>{SUMMARY_LABEL[kind]}</option>)}
+              </Select>
+              <span className="table_editor-summary_value">{withUnit(columnSummary(data.records.map(r => r.values[String(field.id)]), summaries[field.id] ?? 'none'), summaries[field.id] === 'count' ? null : field.unit)}</span>
+            </> : null}</td>)}
+            <td className="table_editor-cell" />
+          </tr></tfoot>}
         </table>
       </div>}
     </div>

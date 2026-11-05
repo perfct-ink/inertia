@@ -5,7 +5,7 @@ import { ApiResource } from './base'
 export type DataType = 'text' | 'integer' | 'number' | 'boolean' | 'date' | 'datetime' | 'relation' | 'file' | 'files'
 // A formula field holds no values of its own: the editor works it out from the record's other fields.
 export type FieldDataType = DataType | 'formula'
-export interface TableField { id: number; name: string; data_type: FieldDataType; relation_table_id: number | null; formula?: string | null }
+export interface TableField { id: number; name: string; data_type: FieldDataType; relation_table_id: number | null; formula?: string | null; unit?: string | null }
 export interface TableRecord { id: number; values: Record<string, string | number | boolean | number[] | null> }
 export interface TableData { fields: TableField[]; records: TableRecord[] }
 
