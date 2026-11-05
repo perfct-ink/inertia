@@ -1,0 +1,23 @@
+@use 'tokens' as *;
+
+@layer app.components {
+  .feature_rollup {
+    width: 100%;
+    border-collapse: collapse;
+    @include text('sm');
+
+    th,
+    td {
+      padding: space(2) space(3);
+      border-bottom-width: 1px;
+      text-align: left;
+    }
+
+    @at-root .feature_rollup-progress {
+      display: flex;
+      align-items: center;
+      gap: space(2);
+      min-width: space(36);
+    }
+  }
+}

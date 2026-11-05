@@ -3,7 +3,7 @@ module Api
     class FoldersController < ApplicationController
       include WorkspaceScoped
       include SpaceTransferable
-      before_action :set_folder, only: [ :show, :update, :destroy, :contents, :copy, :move ]
+      before_action :set_folder, only: [ :show, :update, :destroy, :contents, :features, :copy, :move ]
 
       def index
         if params[:archived] == "1"
@@ -20,6 +20,12 @@ module Api
             .order(:position, :name)
           render json: FolderBlueprint.render(folders, view: :with_children)
         end
+      end
+
+      # The features (documents in feature folders) under this folder, nested,
+      # with task counts that include sub-features and a status for each.
+      def features
+        render json: FeatureRowBlueprint.render(FeatureRollup.for(@folder))
       end
 
       def show

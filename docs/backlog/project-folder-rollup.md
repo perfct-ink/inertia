@@ -1,4 +1,5 @@
 ---
+branch: backlog/feature-hierarchy
 priority: p0
 depends_on: [feature-hierarchy]
 ---
@@ -34,3 +35,6 @@ Today: folders already nest to any depth (`folders.parent_id`, `Folder#self_and_
 - Anything stated in Requirements / notes (including any named default) is implemented or deliberately changed with the reason recorded.
 - Failed API calls show an error to the user.
 - Tests cover the new behaviour; a feature doc in `docs/features/` is written (or the existing one updated) and this file is removed.
+
+## Blocked
+Implemented on `backlog/feature-hierarchy` together with the other feature-folder tasks (one shared migration and rollup), stacked on `backlog/feature-folder-type`; merge that first. To verify: `cd backend && bundle install && rails db:migrate && rails test` (diff `schema.rb`, edited by hand), `cd frontend && npm install && npm run lint && npm test`, then make a feature folder, add nested features with tasks and open the folder overview in a browser. None of that could run here. Then remove this file and merge.

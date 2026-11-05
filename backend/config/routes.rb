@@ -56,6 +56,10 @@ Rails.application.routes.draw do
         resources :documents, shallow: true
         resources :files, only: [ :create ]
         member { get :contents }
+        member do
+          get :contents
+          get :features
+        end
       end
 
       resources :documents, only: [] do

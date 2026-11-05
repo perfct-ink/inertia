@@ -57,3 +57,4 @@ One file per implemented feature, written from the code (see `docs/rules/feature
 | Task status history: every status change, who and when | [task_status_history.md](task_status_history.md) |
 | Editing a task after creation (milestone, dates, epic, sprint) | [task_detail.md](task_detail.md) |
 | Document initiative: pick an initiative and its dates from a document | [document_initiative.md](document_initiative.md) |
+| Feature hierarchy: nested features, status, owner, planning links, folder rollup | [feature_hierarchy.md](feature_hierarchy.md) |

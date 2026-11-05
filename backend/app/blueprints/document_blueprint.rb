@@ -12,6 +12,7 @@ class DocumentBlueprint < Blueprinter::Base
     { url: Rails.application.routes.url_helpers.rails_blob_path(blob, only_path: true), filename: blob.filename.to_s, content_type: blob.content_type, byte_size: blob.byte_size }
   end
   field :initiative_id
+  fields :parent_feature_id, :feature_status, :feature_owner_id, :epic_id, :milestone_id
 
   view :with_content do
     field :content

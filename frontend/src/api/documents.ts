@@ -1,7 +1,7 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query'
 import { markTouched } from '@/store/untouchedDocuments'
 import api from '@/lib/api'
-import type { Document } from '@/types'
+import type { Document, FeatureRow } from '@/types'
 import { ApiResource, useApiMutation, useResourceFind } from './base'
 import { useTabsStore } from '@/store/tabs'
 
@@ -11,6 +11,11 @@ export interface DocumentFields {
   pinned?: boolean
   folder_id?: number
   initiative_id?: number | null
+  parent_feature_id?: number | null
+  feature_status?: Document['feature_status']
+  feature_owner_id?: number | null
+  epic_id?: number | null
+  milestone_id?: number | null
 }
 
 export class DocumentApi extends ApiResource<Document, never, DocumentFields> {
@@ -33,6 +38,7 @@ export function useUpdateDocument() {
   return useMutation({
     mutationFn: ({ id, ...data }: DocumentFields & { id: number }) => documentApi.update(id, data),
     onSuccess: (doc) => {
+      qc.invalidateQueries({ queryKey: ['folder-features'] })
       qc.invalidateQueries({ queryKey: ['initiatives'] })
       qc.setQueryData(['document', doc.id], doc)
       qc.invalidateQueries({ queryKey: ['workspace'] })
@@ -50,3 +56,12 @@ export const usePinDocument = () =>
   useApiMutation(({ id, pinned }: { id: number; pinned: boolean }) => documentApi.update(id, { pinned }), ['workspace'])
 export const useMoveDocument = () =>
   useApiMutation(({ id, folderId }: { id: number; folderId: number }) => documentApi.update(id, { folder_id: folderId }), ['workspace'])
+
+export function useFolderFeatures(folderId: number) {
+  return useQuery<FeatureRow[]>({
+    queryKey: ['folder-features', folderId],
+    queryFn: () => api.get(`/api/v1/folders/${folderId}/features`).then((r) => r.data),
+    enabled: !!folderId,
+    staleTime: 0,
+  })
+}
