@@ -34,4 +34,4 @@ An integer or number field can have a **unit** ("kg", "$", "%", up to 20 charact
 - Limits: summaries cover the records on screen only (all of them, there is no paging yet) and are not saved with the collection; values in cells are not formatted with the unit, only the summary and header are; types added on `backlog/collection-field-types` (money, percent...) are not wired to summaries.
 - Added 2026-10-19 on branch `backlog/number-fields-with-units-and-summaries`, not merged. Not verified: migration, Rails tests, lint, type-check, the component tests and the browser did not run (no database, no node_modules); `schema.rb` edited by hand.
 
-- Merged to main 2026-11-02 after running, merged with main: `rails db:migrate` (schema diff clean), `rails test`, `npm run lint`, `tsc -b`, Jest, and the collab-server tests, all passing. Not checked in a browser.
+- Merged to main 2026-11-05 after running, merged with main: `rails db:migrate` (schema diff clean), `rails test`, `npm run lint`, `tsc -b`, Jest, and the collab-server tests, all passing. Not checked in a browser.

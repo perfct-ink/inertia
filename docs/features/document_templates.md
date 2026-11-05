@@ -27,7 +27,7 @@ Anyone who can create a document in the chosen folder.
 - Implemented 2026-10-19 on branch `backlog/requirements-template` (covers the requirements and song templates). Not merged or deployed.
 - Not verified: lint, type-check, tests and the browser were not run (no node_modules, no network).
 
-- Merged to main 2026-11-02 after running, merged with main: `rails db:migrate` (schema diff clean), `rails test`, `npm run lint`, `tsc -b`, Jest, and the collab-server tests, all passing. Not checked in a browser.
+- Merged to main 2026-11-05 after running, merged with main: `rails db:migrate` (schema diff clean), `rails test`, `npm run lint`, `tsc -b`, Jest, and the collab-server tests, all passing. Not checked in a browser.
 - PRD template added 2026-10-19 on branch `backlog/prd-template-that-creates-tasks`, stacked on `backlog/requirements-template`; its data test passes in a stand-in runner. Not merged. Milestone lines become tasks, not milestone records.
 
-- Merged to main 2026-11-02 after running, merged with main: `rails db:migrate` (schema diff clean), `rails test`, `npm run lint`, `tsc -b`, Jest, and the collab-server tests, all passing. Not checked in a browser.
+- Merged to main 2026-11-05 after running, merged with main: `rails db:migrate` (schema diff clean), `rails test`, `npm run lint`, `tsc -b`, Jest, and the collab-server tests, all passing. Not checked in a browser.

@@ -27,4 +27,4 @@ Same as tasks, scoped to the current Space. Viewers cannot write. I did not chec
 - Implemented 2026-10-21 on branch `backlog/multiple-assignees-and-watchers`. Not merged, not deployed.
 - Not verified: Rails tests and migration (no database), ESLint, tsc, Jest and the browser. Run: `ruby -c`, SCSS compile.
 
-- Merged to main 2026-11-02 after running, merged with main: `rails db:migrate` (schema diff clean), `rails test`, `npm run lint`, `tsc -b`, Jest, and the collab-server tests, all passing. Not checked in a browser.
+- Merged to main 2026-11-05 after running, merged with main: `rails db:migrate` (schema diff clean), `rails test`, `npm run lint`, `tsc -b`, Jest, and the collab-server tests, all passing. Not checked in a browser.

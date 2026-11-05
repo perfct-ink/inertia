@@ -21,4 +21,4 @@ Anyone in the Space can view; nothing here changes data.
 - Implemented 2026-10-19 on branch `backlog/workload-view`. Not merged or deployed.
 - Not verified: lint, type-check, the component test and the browser were not run (no node_modules). The pure functions' tests were run with a stand-in test runner.
 
-- Merged to main 2026-11-02 after running, merged with main: `rails db:migrate` (schema diff clean), `rails test`, `npm run lint`, `tsc -b`, Jest, and the collab-server tests, all passing. Not checked in a browser.
+- Merged to main 2026-11-05 after running, merged with main: `rails db:migrate` (schema diff clean), `rails test`, `npm run lint`, `tsc -b`, Jest, and the collab-server tests, all passing. Not checked in a browser.

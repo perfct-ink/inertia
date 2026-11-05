@@ -22,4 +22,4 @@ Anyone who can edit the document. Styles are shared with everyone who opens it (
 - Implemented 2026-10-19 on branch `backlog/built-in-paragraph-styles` (covers the built-in styles and the style picker). Not merged or deployed.
 - Not verified: lint, type-check, tests, the collab-server schema test and the editor were not run (no frontend node_modules; no vitest in collab-server).
 
-- Merged to main 2026-11-02 after running, merged with main: `rails db:migrate` (schema diff clean), `rails test`, `npm run lint`, `tsc -b`, Jest, and the collab-server tests, all passing. Not checked in a browser.
+- Merged to main 2026-11-05 after running, merged with main: `rails db:migrate` (schema diff clean), `rails test`, `npm run lint`, `tsc -b`, Jest, and the collab-server tests, all passing. Not checked in a browser.

@@ -22,4 +22,4 @@ Only on the Tasks board; folder boards, lists and the Gantt don't open it. Assig
 - Implemented 2026-10-19 on branch `backlog/task-detail-edit-milestone`; not merged or deployed.
 - Not verified: Jest, lint, type-check, the browser. The pure helper tests and a static import/syntax check ran.
 
-- Merged to main 2026-11-02 after running, merged with main: `rails db:migrate` (schema diff clean), `rails test`, `npm run lint`, `tsc -b`, Jest, and the collab-server tests, all passing. Not checked in a browser.
+- Merged to main 2026-11-05 after running, merged with main: `rails db:migrate` (schema diff clean), `rails test`, `npm run lint`, `tsc -b`, Jest, and the collab-server tests, all passing. Not checked in a browser.

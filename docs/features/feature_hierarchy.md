@@ -28,4 +28,4 @@ Anyone who can edit the document sets its feature fields; anyone who can open th
 - Implemented 2026-10-19 on branch `backlog/feature-hierarchy`, stacked on `backlog/feature-folder-type` (covers feature-hierarchy, link-features-to-planning-hierarchy, feature-status-and-owner and project-folder-rollup). Not merged or deployed.
 - Not verified: migration, Rails tests, lint, type-check, component tests and the browser did not run (no database, no node_modules); `schema.rb` edited by hand.
 
-- Merged to main 2026-11-02 after running, merged with main: `rails db:migrate` (schema diff clean), `rails test`, `npm run lint`, `tsc -b`, Jest, and the collab-server tests, all passing. Not checked in a browser.
+- Merged to main 2026-11-05 after running, merged with main: `rails db:migrate` (schema diff clean), `rails test`, `npm run lint`, `tsc -b`, Jest, and the collab-server tests, all passing. Not checked in a browser.

@@ -29,4 +29,4 @@ Admins and owners of a non-personal Space create, list and revoke invitations. T
 - Not verified: Rails tests and migration (no database), ESLint, tsc, Jest and the browser. Run: `ruby -c`, SCSS compile, `data/invitation` test through the shim.
 - 2026-11-05: merged to main. The invite link became a plain path (`/invite/<token>`) to match clean URLs, and the hooks moved to `frontend/src/api/workspaceInvitations.ts` (one class per model).
 
-- Merged to main 2026-11-02 after running, merged with main: `rails db:migrate` (schema diff clean), `rails test`, `npm run lint`, `tsc -b`, Jest, and the collab-server tests, all passing. Not checked in a browser.
+- Merged to main 2026-11-05 after running, merged with main: `rails db:migrate` (schema diff clean), `rails test`, `npm run lint`, `tsc -b`, Jest, and the collab-server tests, all passing. Not checked in a browser.

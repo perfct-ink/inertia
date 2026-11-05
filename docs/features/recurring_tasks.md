@@ -25,4 +25,4 @@ Same as any task in the Space.
 - Implemented 2026-10-19 on branch `backlog/recurring-tasks`. Not merged or deployed.
 - Not verified: the migration, Rails tests, lint, type-check, frontend tests and the browser were not run (no database, no node_modules); `schema.rb` was edited by hand. Only `ruby -c` passed.
 
-- Merged to main 2026-11-02 after running, merged with main: `rails db:migrate` (schema diff clean), `rails test`, `npm run lint`, `tsc -b`, Jest, and the collab-server tests, all passing. Not checked in a browser.
+- Merged to main 2026-11-05 after running, merged with main: `rails db:migrate` (schema diff clean), `rails test`, `npm run lint`, `tsc -b`, Jest, and the collab-server tests, all passing. Not checked in a browser.

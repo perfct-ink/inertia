@@ -26,4 +26,4 @@ Same as tasks: scoped to the current Space. I did not check role limits.
 - Implemented 2026-10-20 on branch `backlog/bugs-queue-item-types-task-bug-story`. Not merged, not deployed.
 - Not verified: Rails tests and the migration (no database here), ESLint, tsc, Jest and the browser. Ruby syntax, the SCSS compile and a hand-run of the `data/task` tests were the only checks.
 
-- Merged to main 2026-11-02 after running, merged with main: `rails db:migrate` (schema diff clean), `rails test`, `npm run lint`, `tsc -b`, Jest, and the collab-server tests, all passing. Not checked in a browser.
+- Merged to main 2026-11-05 after running, merged with main: `rails db:migrate` (schema diff clean), `rails test`, `npm run lint`, `tsc -b`, Jest, and the collab-server tests, all passing. Not checked in a browser.

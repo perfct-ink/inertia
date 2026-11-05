@@ -16,8 +16,7 @@ Behaviour of the screens is meant to be unchanged.
 - `splitEvents` compares `yyyy-MM-dd` strings with today's local date, where the old code compared `Date` objects; the result is the same for the dates the API sends.
 
 ## History
-- Implemented 2026-10-19 on branch `backlog/data-files-filtering-sorting-and-api-enums`. 
+- Implemented 2026-10-19 on branch `backlog/data-files-filtering-sorting-and-api-enums`.
 - Not verified at first: lint, type-check, tests and the screens were not run (no node_modules).
 - 2026-11-05: merged to main with the event helpers and `sortFileRows`, wired into the Events and All files screens. Lint, type-check, Jest and the backend checks passed; the screens were not opened in a browser.
-
-- Merged to main 2026-11-02 after running, merged with main: `rails db:migrate` (schema diff clean), `rails test`, `npm run lint`, `tsc -b`, Jest, and the collab-server tests, all passing. Not checked in a browser.
+- Merged to main 2026-11-05 after running, merged with main: `rails db:migrate` (schema diff clean), `rails test`, `npm run lint`, `tsc -b`, Jest, and the collab-server tests, all passing. Not checked in a browser.

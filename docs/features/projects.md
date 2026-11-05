@@ -74,4 +74,4 @@ Scoped to the current Space; writes need the member role, like the rest of the S
 - Not verified: lint, type-check, tests, migration and the screens were not run (no dependencies installed, no network).
 - Project details added 2026-10-19 on branch `backlog/project-details-owner-status-dates-and-a-description`, not merged. Not verified: migration, Rails tests, lint, type-check, frontend tests and the browser did not run (no database, no node_modules); `schema.rb` edited by hand.
 
-- Merged to main 2026-11-02 after running, merged with main: `rails db:migrate` (schema diff clean), `rails test`, `npm run lint`, `tsc -b`, Jest, and the collab-server tests, all passing. Not checked in a browser.
+- Merged to main 2026-11-05 after running, merged with main: `rails db:migrate` (schema diff clean), `rails test`, `npm run lint`, `tsc -b`, Jest, and the collab-server tests, all passing. Not checked in a browser.

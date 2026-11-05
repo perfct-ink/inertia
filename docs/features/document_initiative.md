@@ -25,7 +25,7 @@ Anyone who can write to the document; initiative edits use the normal initiative
 - Implemented 2026-10-19 on branch `backlog/document-initiative-and-dates`. Not merged or deployed.
 - Not verified: migration, Rails tests, lint, type-check, frontend tests and the browser were not run (no database, no node_modules); `schema.rb` edited by hand. Only `ruby -c` passed.
 
-- Merged to main 2026-11-02 after running, merged with main: `rails db:migrate` (schema diff clean), `rails test`, `npm run lint`, `tsc -b`, Jest, and the collab-server tests, all passing. Not checked in a browser.
+- Merged to main 2026-11-05 after running, merged with main: `rails db:migrate` (schema diff clean), `rails test`, `npm run lint`, `tsc -b`, Jest, and the collab-server tests, all passing. Not checked in a browser.
 - Plan summary added 2026-10-19 on branch `backlog/document-planning-summary`, stacked on `backlog/document-initiative-and-dates`. Not merged. Events are matched by folder (events have no document link until `create-dates-and-events-from-the-document` is built).
 
-- Merged to main 2026-11-02 after running, merged with main: `rails db:migrate` (schema diff clean), `rails test`, `npm run lint`, `tsc -b`, Jest, and the collab-server tests, all passing. Not checked in a browser.
+- Merged to main 2026-11-05 after running, merged with main: `rails db:migrate` (schema diff clean), `rails test`, `npm run lint`, `tsc -b`, Jest, and the collab-server tests, all passing. Not checked in a browser.
