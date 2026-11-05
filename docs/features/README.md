@@ -54,3 +54,4 @@ One file per implemented feature, written from the code (see `docs/rules/feature
 | Task types (task, bug, story) and the bugs queue | [task_kinds.md](task_kinds.md) |
 | Task progress from subtasks and time tracking | [task_progress_and_time_tracking.md](task_progress_and_time_tracking.md) |
 | Multiple assignees and watchers on tasks | [task_assignees_and_watchers.md](task_assignees_and_watchers.md) |
+| Task status history: every status change, who and when | [task_status_history.md](task_status_history.md) |

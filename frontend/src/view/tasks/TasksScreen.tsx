@@ -1,7 +1,7 @@
 import { Button, Input, Select, StatusDot, classNames, DatePicker } from '@/components/ui'
 import { useState, useRef, useEffect, useMemo } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { Plus, X, ArrowRight, Play, Loader2, Search, Filter, Target, SlidersHorizontal, Palette, Repeat } from 'lucide-react'
+import { Plus, X, ArrowRight, Play, Loader2, Search, Filter, Target, SlidersHorizontal, Palette, Repeat, History } from 'lucide-react'
 import {
   DndContext,
   DragOverlay,
@@ -27,6 +27,7 @@ import WorkspaceLayout from '@/components/WorkspaceLayout'
 import SprintHeader from '@/components/SprintHeader'
 import { TASK_PRIORITIES, estimateLabel, pointsLabel, priorityLabel, TASK_KINDS, KIND_LABEL, kindOf } from '@/data/task'
 import { RECURRENCE_OPTIONS, recurrenceLabel } from '@/data/recurrence'
+import TaskHistoryDialog from '@/components/TaskHistoryDialog'
 import { useTasks, useCreateTask, useUpdateTask, useDeleteTask, type TaskFilters } from '@/api/tasks'
 import { useWorkspace } from '@/api/workspace'
 import { canWriteWorkspace } from '@/api/workspaces'
@@ -73,9 +74,10 @@ interface CardProps {
   // The Space's custom task fields, shown as chips; the edit button opens them.
   fields?: TaskField[]
   onEditFields?: () => void
+  onHistory?: () => void
 }
 
-function TaskCard({ task, onNext, nextLabel, onNavigate, epicTitle, assignees = [], progress, overlay, fields = [], onEditFields }: Omit<CardProps, 'onDelete'>) {
+function TaskCard({ task, onNext, nextLabel, onNavigate, epicTitle, assignees = [], progress, overlay, onHistory, fields = [], onEditFields }: Omit<CardProps, 'onDelete'>) {
   return (
     <div className={classNames('tasks-card', overlay && 'tasks-card--overlay')}>
       <div className="tasks-card_title_row">
@@ -132,6 +134,11 @@ function TaskCard({ task, onNext, nextLabel, onNavigate, epicTitle, assignees = 
               aria-label={`Edit fields of ${task.title}`}
             >
               <SlidersHorizontal className="tasks-icon" />
+            </Button>
+          )}
+          {onHistory && !overlay && (
+            <Button onClick={onHistory} className="tasks-next" title="Status history" aria-label={`Status history of ${task.title}`}>
+              <History className="tasks-icon" />
             </Button>
           )}
           {onNext && !overlay && (
@@ -454,6 +461,7 @@ export default function TasksScreen() {
   const [managingFields, setManagingFields] = useState(false)
   const [fieldsTaskId, setFieldsTaskId] = useState<number | null>(null)
   const fieldsTask = tasks.find((t) => t.id === fieldsTaskId) ?? null
+  const [historyTask, setHistoryTask] = useState<Task | null>(null)
 
   useEffect(() => {
     if (searchParams.get('new') === '1') setAddingTo('backlog')
@@ -729,6 +737,7 @@ export default function TasksScreen() {
                           onEditFields={() => setFieldsTaskId(task.id)}
                           progress={progressByTask.get(task.id)}
                           assignees={assigneesOf(task)}
+                          onHistory={() => setHistoryTask(task)}
                         />
                       ))}
                       {addingTo === key ? (
@@ -831,6 +840,9 @@ export default function TasksScreen() {
                           <SlidersHorizontal className="tasks-icon" />
                         </Button>
                       )}
+                      <Button onClick={() => setHistoryTask(task)} title="Status history" aria-label={`Status history of ${task.title}`} className="tasks-row_action">
+                        <History className="tasks-icon" />
+                      </Button>
                       <Button
                         onClick={() => updateTask.mutate({ id: task.id, status: 'todo' })}
                         title={`Move to ${statuses.todo.label}`}
@@ -868,6 +880,7 @@ export default function TasksScreen() {
           onClose={() => setShowStatuses(false)}
         />
       </div>
+      <TaskHistoryDialog task={historyTask} onClose={() => setHistoryTask(null)} />
     </WorkspaceLayout>
   )
 }

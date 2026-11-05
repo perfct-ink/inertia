@@ -1,5 +1,6 @@
+import { useQuery } from '@tanstack/react-query'
 import api from '@/lib/api'
-import type { Task, TaskKind } from '@/types'
+import type { Task, TaskKind, TaskStatusChange } from '@/types'
 import { ApiResource, useResourceCreate, useResourceDelete, useResourceList, useResourceUpdate } from './base'
 
 export interface TaskFilters {
@@ -44,6 +45,11 @@ export class TaskApi extends ApiResource<Task, NewTask> {
     const task = { ...rest, start_date: startDate, due_date: dueDate, epic_id: epicId, sprint_id: sprintId, milestone_id: milestoneId, parent_id: parentId }
     return api.post<Task>(url, this.body(task)).then((r) => r.data)
   }
+
+  // Every status a task has been in, oldest first, with who changed it.
+  statusChanges(id: number) {
+    return api.get<TaskStatusChange[]>(`${this.path}/${id}/status_changes`).then((r) => r.data)
+  }
 }
 
 export const taskApi = new TaskApi()
@@ -53,3 +59,6 @@ export const useCreateTask = () => useResourceCreate(taskApi)
 export const useUpdateTask = () => useResourceUpdate(taskApi)
 // The server drops a deleted task's Gantt links with it.
 export const useDeleteTask = () => useResourceDelete(taskApi, ['task_dependencies'])
+
+export const useTaskStatusChanges = (taskId: number, enabled: boolean) =>
+  useQuery({ queryKey: ['task_status_changes', taskId], queryFn: () => taskApi.statusChanges(taskId), enabled })

@@ -1,5 +1,5 @@
 import type { Task } from '@/types'
-import { buildTaskTree, taskFolderId, dueBucket, myWork, taskCards, estimateLabel, pointsLabel, priorityLabel, filterByKind, kindOf, elapsedClock, formatMinutes, progressById, subtaskProgress } from './task'
+import { buildTaskTree, taskFolderId, dueBucket, myWork, taskCards, estimateLabel, pointsLabel, priorityLabel, filterByKind, kindOf, elapsedClock, formatMinutes, progressById, subtaskProgress, statusChangeLabel } from './task'
 
 const task = (id: number, parent_id: number | null = null) => ({ id, title: `T${id}`, parent_id }) as unknown as Task
 
@@ -108,4 +108,9 @@ test('formatMinutes', () => {
 test('elapsedClock shows hours, minutes and seconds since the start', () => {
   expect(elapsedClock('2026-10-21T10:00:00Z', new Date('2026-10-21T11:05:09Z'))).toBe('1:05:09')
   expect(elapsedClock('2026-10-21T10:00:00Z', new Date('2026-10-21T09:00:00Z'))).toBe('0:00:00')
+})
+
+test('statusChangeLabel reads the creation row and transitions', () => {
+  expect(statusChangeLabel({ from_status: null, to_status: 'todo' })).toBe('Created as To Do')
+  expect(statusChangeLabel({ from_status: 'in_review', to_status: 'done' })).toBe('In Review → Done')
 })

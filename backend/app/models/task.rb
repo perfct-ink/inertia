@@ -21,6 +21,7 @@ class Task < ApplicationRecord
   # Values of the Space's custom task fields (tags, dropdown, ...).
   has_many :field_values, class_name: "TaskFieldValue", dependent: :destroy, inverse_of: :task
   has_many :time_entries, dependent: :destroy
+  has_many :status_changes, -> { order(:created_at, :id) }, class_name: "TaskStatusChange", dependent: :destroy, inverse_of: :task
   # Gantt links (PM-13), removed with either end.
   has_many :successor_links, class_name: "TaskDependency", foreign_key: :predecessor_id, dependent: :destroy, inverse_of: :predecessor
   has_many :predecessor_links, class_name: "TaskDependency", foreign_key: :successor_id, dependent: :destroy, inverse_of: :successor
@@ -47,6 +48,12 @@ class Task < ApplicationRecord
   validate :due_date_not_before_start_date
 
   after_update :create_next_occurrence, if: :repeats_after_completion?
+
+  # Who made the change being saved, for the status history (set by the controller).
+  attr_accessor :status_changed_by
+
+  after_create { record_status_change(nil) }
+  after_update { record_status_change(status_before_last_save) if saved_change_to_status? }
 
   default_scope { order(:position) }
 
@@ -98,6 +105,10 @@ class Task < ApplicationRecord
 
   def recurrence_is_valid
     errors.add(:recurrence, "isn't a supported repeat rule") if recurrence.present? && recurrence_rule.nil?
+  end
+
+  def record_status_change(from)
+    status_changes.create!(from_status: from, to_status: status, changed_by: status_changed_by)
   end
 
   def parent_is_not_self_or_a_descendant

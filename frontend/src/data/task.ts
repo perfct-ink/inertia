@@ -185,3 +185,10 @@ export function elapsedClock(startedAt: string, now: Date): string {
   const pad = (n: number) => String(n).padStart(2, '0')
   return `${Math.floor(total / 3600)}:${pad(Math.floor((total % 3600) / 60))}:${pad(total % 60)}`
 }
+
+const STATUS_NAME: Record<Task['status'], string> = { backlog: 'Backlog', todo: 'To Do', in_progress: 'In Progress', in_review: 'In Review', done: 'Done' }
+
+// "Created as To Do" or "To Do → Done", for one row of a task's history.
+export function statusChangeLabel(change: { from_status: Task['status'] | null; to_status: Task['status'] }): string {
+  return change.from_status ? `${STATUS_NAME[change.from_status]} → ${STATUS_NAME[change.to_status]}` : `Created as ${STATUS_NAME[change.to_status]}`
+}

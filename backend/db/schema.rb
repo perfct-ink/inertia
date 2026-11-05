@@ -463,6 +463,17 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_03_120001) do
     t.index ["user_id"], name: "index_task_participants_on_user_id"
   end
 
+  create_table "task_status_changes", force: :cascade do |t|
+    t.bigint "task_id", null: false
+    t.bigint "changed_by_id"
+    t.integer "from_status"
+    t.integer "to_status", null: false
+    t.datetime "created_at", null: false
+    t.index ["changed_by_id"], name: "index_task_status_changes_on_changed_by_id"
+    t.index ["task_id", "created_at"], name: "index_task_status_changes_on_task_id_and_created_at"
+    t.index ["task_id"], name: "index_task_status_changes_on_task_id"
+  end
+
   create_table "task_status_settings", force: :cascade do |t|
     t.bigint "workspace_id", null: false
     t.bigint "folder_id"
@@ -653,6 +664,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_03_120001) do
   add_foreign_key "task_fields", "workspaces"
   add_foreign_key "task_participants", "tasks"
   add_foreign_key "task_participants", "users"
+  add_foreign_key "task_status_changes", "tasks"
+  add_foreign_key "task_status_changes", "users", column: "changed_by_id", on_delete: :nullify
   add_foreign_key "task_status_settings", "folders"
   add_foreign_key "task_status_settings", "workspaces"
   add_foreign_key "tasks", "documents"
