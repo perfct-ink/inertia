@@ -12,6 +12,8 @@ interface SelectOption {
   label: ReactNode
   text: string
   disabled: boolean
+  // Small text at the end of the option in the list (a keyboard shortcut), from `data-hint`.
+  hint?: string
 }
 
 function textOf(node: ReactNode): string {
@@ -26,10 +28,10 @@ function textOf(node: ReactNode): string {
 function readOptions(children: ReactNode): SelectOption[] {
   const options: SelectOption[] = []
   Children.forEach(children, (child) => {
-    if (!isValidElement<{ children?: ReactNode, value?: unknown, disabled?: boolean }>(child)) return
-    const { children: label, value, disabled } = child.props
+    if (!isValidElement<{ children?: ReactNode, value?: unknown, disabled?: boolean, 'data-hint'?: string }>(child)) return
+    const { children: label, value, disabled, 'data-hint': hint } = child.props
     if (child.type === 'option') {
-      options.push({ value: value === undefined ? textOf(label) : String(value), label, text: textOf(label), disabled: !!disabled })
+      options.push({ value: value === undefined ? textOf(label) : String(value), label, text: textOf(label), disabled: !!disabled, hint })
     } else if (child.type === 'optgroup' || child.type === Fragment) {
       options.push(...readOptions(label))
     }
@@ -200,6 +202,7 @@ export const Select = forwardRef<HTMLSelectElement, SelectHTMLAttributes<HTMLSel
               onClick={() => choose(o)}
             >
               <span className="ui-select-option_label">{o.label}</span>
+              {o.hint && <span className="ui-select-option_hint" aria-hidden="true">{o.hint}</span>}
               {i === selectedIndex && <Check className="ui-select-option_check" aria-hidden="true" />}
             </div>
           ))}

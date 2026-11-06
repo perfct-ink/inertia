@@ -51,7 +51,7 @@ Document editor (TipTap, `frontend/src/pages/workspace/DocumentPage.tsx`) uses t
 
 ### Paragraph styles
 
-The built-in paragraph styles (see `docs/features/paragraph_styles.md`) have `⌘⌥` plus a digit, like Google Docs' headings. The table is `PARAGRAPH_STYLE_SHORTCUTS` in `frontend/src/data/paragraphStyleShortcut.ts`; `extensions/ParagraphStyleShortcuts.ts` binds it, and a test fails if this table stops listing one. Digits are used because browsers keep `⌘N`, `⌘T` and `⌘W`, and `⌃⌘1`–`⌃⌘9` stay free for keys people assign to a style themselves (`paragraph-style-keystrokes`).
+The built-in paragraph styles (see `docs/features/paragraph_styles.md`) have `⌘⌥` plus a digit, like Google Docs' headings, except Monospace, which has `⌘⇧M` as in Apple Notes. The table is `PARAGRAPH_STYLE_SHORTCUTS` in `frontend/src/data/paragraphStyleShortcut.ts`; `extensions/ParagraphStyleShortcuts.ts` binds it, the Style menu shows each key beside its style, the `⌘/` sheet lists them, and a test fails if this table stops listing one. Digits are used because browsers keep `⌘N`, `⌘T` and `⌘W`, and `⌃⌘1`–`⌃⌘9` stay free for keys people assign to a style themselves (`paragraph-style-keystrokes`).
 
 | Keys | Style | Bound by |
 |------|-------|----------|
@@ -62,13 +62,17 @@ The built-in paragraph styles (see `docs/features/paragraph_styles.md`) have `�
 | `⌘⌥3` | Heading 3 | TipTap's Heading |
 | `⌘⌥0` | Body | the style table (TipTap's Paragraph has the same key) |
 | `⌘⌥9` | Quote | the style table |
+| `⌘⇧M` | Monospace | the style table |
+| `⌘⌥4`, `⌘⌥5`, `⌘⌥6` | Heading 4, 5, 6 | TipTap's Heading (these have no entry in the Style menu) |
 
-Caption and Monospace have no default key. Neither app has one for Caption, and `⌘⇧M`, which is Apple Notes' Monospaced style, is also the planned code block key below, so which of the two gets it is still to be decided.
+Heading 1 to 6 are `⌘⌥1` to `⌘⌥6` (Alex's call). Caption has no default key yet: neither Apple Notes nor Google Docs has one, and Alex hasn't chosen one.
+
+`⌘⇧M` is Monospace by Alex's decision (2026-11-06). In Chrome on a Mac that key is the browser's own profile menu, so it may not reach the page there; Safari and the Mac app pass it on.
 
 Clashes, checked against the Apple Notes map below and the branch that builds it (`backlog/rebind-editor-shortcuts-to-apple-notes-map`, `data/shortcuts.ts`):
 
-- Keys: the only shared one is `⌘⌥0`, which that branch binds as "Normal text" to the same plain-paragraph command. Harmless when both merge, but drop one of the two. `⌘⌥7`, `⌘⌥8` and `⌘⌥9` are not used there.
-- Meaning: its Title / Heading / Subheading keys `⌘⇧T` / `⌘⇧H` / `⌘⇧J` make Heading 1 / 2 / 3, while here Title is a style of its own (`⌘⌥7`). Its `⌘⇧M` makes a code block where Apple Notes' own is a style.
+- Keys: `⌘⌥0` is shared: that branch binds it as "Normal text" to the same plain-paragraph command. Harmless when both merge, but drop one of the two. `⌘⇧M` is shared too, and not harmless (code block there, Monospace here). `⌘⌥7`, `⌘⌥8` and `⌘⌥9` are not used there.
+- Meaning: its Title / Heading / Subheading keys `⌘⇧T` / `⌘⇧H` / `⌘⇧J` make Heading 1 / 2 / 3, while here Title is a style of its own (`⌘⌥7`). Its `⌘⇧M` makes a code block, but `⌘⇧M` is Monospace here, so that branch has to give the code block another key.
 - macOS Zoom, if switched on in System Settings, takes `⌥⌘8` before the page does.
 
 Task items (`frontend/src/extensions/WorkspaceTaskItem.tsx`):

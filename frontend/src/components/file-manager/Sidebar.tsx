@@ -34,6 +34,7 @@ import logoMark from '@/assets/logo-mark.svg'
 import { todayISO } from '@/util/date'
 import { isElectron } from '@/util/platform'
 import { isShortcut, shortcutAvailable, shortcutKey, shortcutLabel } from '@/util/shortcuts'
+import { styleShortcutRows } from '@/data/paragraphStyleShortcut'
 
 // Kept in sync by hand with the onKey handler below — there's only one
 // place global shortcuts are bound, so this is just their display copy.
@@ -47,6 +48,8 @@ const KEYBOARD_SHORTCUTS: { keys: string; label: string }[] = [
   { keys: '⌘W', label: 'Close the active tab' },
   { keys: '⌘/', label: 'Show or hide this list' },
   { keys: 'Esc', label: 'Close a dialog or panel' },
+  // Paragraph styles in a document: Title, Subtitle, Heading 1 to 6, Body, Quote, Monospace.
+  ...styleShortcutRows(),
 ]
 
 // The extra top padding/drag-region reserve room for macOS's traffic

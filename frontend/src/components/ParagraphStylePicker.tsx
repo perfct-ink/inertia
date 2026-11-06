@@ -3,6 +3,8 @@ import type { Editor } from '@tiptap/react'
 import { Select } from '@/components/ui'
 import { PARAGRAPH_STYLES, styleOfBlock, type ParagraphStyleId } from '@/data/paragraphStyle'
 import { applyParagraphStyle } from '@/util/paragraphStyleCommand'
+import { shortcutOfStyle } from '@/data/paragraphStyleShortcut'
+import { shortcutLabel } from '@/util/shortcuts'
 
 function currentStyle(editor: Editor): ParagraphStyleId | '' {
   const parent = editor.state.selection.$from.parent
@@ -24,7 +26,10 @@ export default function ParagraphStylePicker({ editor }: { editor: Editor }) {
   return (
     <Select aria-label="Paragraph style" value={value} onChange={(e) => applyParagraphStyle(editor, e.target.value as ParagraphStyleId)} className="document-toolbar_style">
       {value === '' && <option value="">Style</option>}
-      {PARAGRAPH_STYLES.map((style) => <option key={style.id} value={style.id}>{style.label}</option>)}
+      {PARAGRAPH_STYLES.map((style) => {
+        const keys = shortcutOfStyle(style.id)?.keys
+        return <option key={style.id} value={style.id} data-hint={keys && shortcutLabel(keys)}>{style.label}</option>
+      })}
     </Select>
   )
 }

@@ -30,9 +30,9 @@ test('says so when the block cannot take the style', () => {
   expect(applyParagraphStyle(editor, 'title')).toBe(false)
 })
 
-test('the keymap binds the Cmd+Opt keys for Title, Subtitle, Body and Quote, and leaves the headings to TipTap', () => {
+test('the keymap binds the keys for Title, Subtitle, Body, Quote and Monospace, and leaves the headings to TipTap', () => {
   const { editor } = fakeEditor()
-  expect(Object.keys(paragraphStyleKeymap(editor)).sort()).toEqual(['Mod-Alt-0', 'Mod-Alt-7', 'Mod-Alt-8', 'Mod-Alt-9'])
+  expect(Object.keys(paragraphStyleKeymap(editor)).sort()).toEqual(['Mod-Alt-0', 'Mod-Alt-7', 'Mod-Alt-8', 'Mod-Alt-9', 'Mod-Shift-m'])
 })
 
 test('each key applies its own style', () => {
@@ -42,7 +42,8 @@ test('each key applies its own style', () => {
   keymap['Mod-Alt-8']()
   keymap['Mod-Alt-0']()
   keymap['Mod-Alt-9']()
-  expect(calls).toEqual(['paragraph', 'paragraph:title', 'paragraph', 'paragraph:subtitle', 'paragraph', 'paragraph:body', 'paragraph', 'paragraph:quote'])
+  keymap['Mod-Shift-m']()
+  expect(calls).toEqual(['paragraph', 'paragraph:title', 'paragraph', 'paragraph:subtitle', 'paragraph', 'paragraph:body', 'paragraph', 'paragraph:quote', 'paragraph', 'paragraph:monospace'])
 })
 
 test('a key reports whether the style was applied, so an unapplied one falls through', () => {

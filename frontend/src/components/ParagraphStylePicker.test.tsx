@@ -1,5 +1,5 @@
 import '@testing-library/jest-dom'
-import { fireEvent, render, screen } from '@testing-library/react'
+import { fireEvent, render, screen, within } from '@testing-library/react'
 import type { Editor } from '@tiptap/react'
 import ParagraphStylePicker from './ParagraphStylePicker'
 
@@ -38,4 +38,16 @@ test('choosing a heading sets the level; choosing a named style sets a paragraph
   fireEvent.change(screen.getByLabelText('Paragraph style'), { target: { value: 'heading2' } })
   fireEvent.change(screen.getByLabelText('Paragraph style'), { target: { value: 'caption' } })
   expect(calls).toEqual(['heading:2', 'paragraph', 'style:caption'])
+})
+
+test('each style that has a key shows it beside its name in the list, and Caption shows none', () => {
+  const { editor } = fakeEditor({ type: { name: 'paragraph' }, attrs: { style: 'body' } })
+  const { container } = render(<ParagraphStylePicker editor={editor} />)
+  fireEvent.click(container.querySelector('.ui-select') as HTMLElement)
+  const hints = (name: string) => within(within(screen.getByRole('listbox')).getByRole('option', { name })).queryByText(/[⌘⌥⇧]/)?.textContent
+  expect(hints('Title')).toBe('⌘⌥7')
+  expect(hints('Heading 1')).toBe('⌘⌥1')
+  expect(hints('Body')).toBe('⌘⌥0')
+  expect(hints('Monospace')).toBe('⌘⇧M')
+  expect(hints('Caption')).toBeUndefined()
 })

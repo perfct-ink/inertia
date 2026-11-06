@@ -211,7 +211,7 @@ export default function DocumentScreen() {
       Underline,
       Strike,
       Code,
-      HeadingAnchor.configure({ levels: [1, 2, 3, 4, 5] as (1 | 2 | 3 | 4 | 5 | 6)[] }),
+      HeadingAnchor.configure({ levels: [1, 2, 3, 4, 5, 6] }),
       BulletList,
       OrderedList,
       ListItem,
