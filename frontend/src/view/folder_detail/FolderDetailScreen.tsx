@@ -22,11 +22,12 @@ import { canWriteWorkspace } from '@/api/workspaces'
 import { useUpdateTask } from '@/api/tasks'
 import { useMilestones } from '@/api/milestones'
 import { useInitiatives } from '@/api/initiatives'
-import type { Document, Task, WorkspaceEvent, Epic } from '@/types'
+import type { Document, Folder, Task, WorkspaceEvent, Epic } from '@/types'
 import './FolderDetailScreen.scss'
 import { usePageTitle } from '@/hooks/usePageTitle'
 import { useBoardStatuses } from '@/hooks/useBoardStatuses'
 import { StatusSettings } from '@/components/workspace/StatusSettings'
+import { folderIconOf } from '@/components/file-manager/folderIcon'
 import { donePercent, milestoneMarkers } from '@/data/schedule'
 import { BOARD_STATUSES, NEXT_STATUS, nextStatusLabel, type BoardStatuses } from '@/data/task_status'
 import GanttPane from './GanttPane'
@@ -240,10 +241,39 @@ function CalendarView({ events }: { events: WorkspaceEvent[] }) {
 }
 
 // ── Overview — the landing view when you click into a folder: a dashboard
-// (a few high-level epics, upcoming events) plus the folder's documents
-// shown as a proper primary section rather than the thin chip row the other
-// four views get. The Gantt tab renders through GanttPane.tsx (shared
-// Timeline plus dependency links). ─────────────────────────────────────────
+// (a few high-level epics, upcoming events) plus what is directly inside the
+// folder (its folders and documents, one level, not everything nested) shown
+// as a proper primary section rather than the thin chip row the other views
+// get. The Gantt tab renders through GanttPane.tsx (shared Timeline plus
+// dependency links). ───────────────────────────────────────────────────────
+
+// A link to a document in the folder; `chip` is the small form of the row
+// above the non-Overview views.
+function DocumentLink({ doc, chip = false }: { doc: Pick<Document, 'id' | 'title' | 'doc_type'>; chip?: boolean }) {
+  const iconClass = classNames(chip ? 'folder_detail-icon--xs' : 'folder_detail-icon--md', 'folder_detail-icon--doc')
+  return (
+    <Link to={`/documents/${doc.id}`} className={classNames('folder_detail-doc', chip && 'folder_detail-doc--chip')}>
+      {doc.doc_type === 'table'
+        ? <Database className={iconClass} />
+        : doc.doc_type === 'spreadsheet'
+        ? <TableIcon className={iconClass} />
+        : <FileText className={iconClass} />
+      }
+      <span className={classNames('folder_detail-doc-title', chip && 'folder_detail-doc-title--chip')}>{doc.title}</span>
+    </Link>
+  )
+}
+
+// A link to a folder directly inside this one.
+function FolderLink({ folder, chip = false }: { folder: Pick<Folder, 'id' | 'name' | 'kind'>; chip?: boolean }) {
+  const Icon = folderIconOf(folder.kind)
+  return (
+    <Link to={`/folders/${folder.id}`} className={classNames('folder_detail-doc', chip && 'folder_detail-doc--chip')}>
+      <Icon className={classNames(chip ? 'folder_detail-icon--xs' : 'folder_detail-icon--md', 'folder_detail-icon--doc')} />
+      <span className={classNames('folder_detail-doc-title', chip && 'folder_detail-doc-title--chip')}>{folder.name}</span>
+    </Link>
+  )
+}
 
 // A small header-row link to a sibling view — always shown regardless of
 // whether this section has any data, since Overview doubles as the
@@ -260,10 +290,11 @@ function ViewLink({ folderId, view, label, navigate }: { folderId: number; view:
 }
 
 function OverviewView({
-  folderId, documents, tasks, epics, events, navigate,
+  folderId, folders, documents, tasks, epics, events, navigate,
 }: {
   folderId: number
-  documents: { id: number; title: string; doc_type: Document['doc_type'] }[]
+  folders: Pick<Folder, 'id' | 'name' | 'kind'>[]
+  documents: Pick<Document, 'id' | 'title' | 'doc_type'>[]
   tasks: Task[]
   epics: Epic[]
   events: WorkspaceEvent[]
@@ -277,6 +308,14 @@ function OverviewView({
     <div className="folder_detail-pane folder_detail-pane--overview">
       <div className="folder_detail-overview">
         <FeatureRollup folderId={folderId} />
+        {folders.length > 0 && (
+          <section>
+            <h2 className="folder_detail-heading folder_detail-spaced">Folders</h2>
+            <div className="folder_detail-doc_grid">
+              {folders.map((folder) => <FolderLink key={folder.id} folder={folder} />)}
+            </div>
+          </section>
+        )}
         <section>
           <h2 className="folder_detail-heading folder_detail-spaced">Documents, Sheets & Collections</h2>
           <div className="folder_detail-spaced"><CreateItem folderId={folderId} /></div>
@@ -284,21 +323,7 @@ function OverviewView({
             <p className="folder_detail-note">No documents yet.</p>
           ) : (
             <div className="folder_detail-doc_grid">
-              {documents.map((doc) => (
-                <Link
-                  key={doc.id}
-                  to={`/documents/${doc.id}`}
-                  className="folder_detail-doc"
-                >
-                  {doc.doc_type === 'table'
-                    ? <Database className="folder_detail-icon--md folder_detail-icon--doc" />
-                    : doc.doc_type === 'spreadsheet'
-                    ? <TableIcon className="folder_detail-icon--md folder_detail-icon--doc" />
-                    : <FileText className="folder_detail-icon--md folder_detail-icon--doc" />
-                  }
-                  <span className="folder_detail-doc-title">{doc.title}</span>
-                </Link>
-              ))}
+              {documents.map((doc) => <DocumentLink key={doc.id} doc={doc} />)}
             </div>
           )}
         </section>
@@ -385,7 +410,7 @@ export default function FolderDetailScreen() {
   const location = useLocation()
   const view = VIEWS.find((v) => v.key === searchParams.get('view'))?.key ?? 'overview'
 
-  const { data, isLoading } = useFolderContents(folderId)
+  const { data, isLoading, isError } = useFolderContents(folderId)
   const { data: workspace } = useWorkspace()
   const { statuses } = useBoardStatuses(folderId)
   const [showStatuses, setShowStatuses] = useState(false)
@@ -394,6 +419,17 @@ export default function FolderDetailScreen() {
   const { data: allMilestones = [] } = useMilestones()
   const { data: initiatives = [] } = useInitiatives()
   usePageTitle(data?.folder.name)
+
+  // The failed request already raised an error notice (lib/api.ts); don't leave a spinner running.
+  if (isError && !data) {
+    return (
+      <WorkspaceLayout>
+        <div className="folder_detail-center">
+          <p role="alert" className="folder_detail-note">Couldn&apos;t load this folder.</p>
+        </div>
+      </WorkspaceLayout>
+    )
+  }
 
   if (isLoading || !data) {
     return (
@@ -405,7 +441,7 @@ export default function FolderDetailScreen() {
     )
   }
 
-  const { folder, documents, tasks, events, epics } = data
+  const { folder, folders, documents, tasks, events, epics } = data
   const milestones = milestoneMarkers(allMilestones.filter((m) => m.folder_id === folderId))
   // Opening the folder lands on its home document; ?view=overview (or any view) shows the contents.
   const homeId = homeDocumentToOpen(folder, location.search)
@@ -456,36 +492,23 @@ export default function FolderDetailScreen() {
             onChange={(e) => updateFolder.mutate({ id: folderId, home_document_id: e.target.value ? Number(e.target.value) : null })}
           >
             <option value="">No home document</option>
-            {documents.filter((d) => d.folder_id === folderId).map((d) => <option key={d.id} value={d.id}>{d.title}</option>)}
+            {documents.map((d) => <option key={d.id} value={d.id}>{d.title}</option>)}
           </Select>
         </div>
 
-        {/* Documents — always visible regardless of which view is active,
-            since they're part of "everything in this folder" too. Skipped
-            on Overview, which already gives documents their own full
-            section instead of this thin chip row. */}
-        {view !== 'overview' && documents.length > 0 && (
+        {/* What is directly inside the folder — always visible regardless of
+            which view is active, since it's part of "everything in this
+            folder" too. Skipped on Overview, which already gives them their
+            own full sections instead of this thin chip row. */}
+        {view !== 'overview' && (folders.length > 0 || documents.length > 0) && (
           <div className="folder_detail-docs">
-            {documents.map((doc) => (
-              <Link
-                key={doc.id}
-                to={`/documents/${doc.id}`}
-                className="folder_detail-doc folder_detail-doc--chip"
-              >
-                {doc.doc_type === 'table'
-                  ? <Database className="folder_detail-icon--xs folder_detail-icon--doc" />
-                  : doc.doc_type === 'spreadsheet'
-                  ? <TableIcon className="folder_detail-icon--xs folder_detail-icon--doc" />
-                  : <FileText className="folder_detail-icon--xs folder_detail-icon--doc" />
-                }
-                <span className="folder_detail-doc-title folder_detail-doc-title--chip">{doc.title}</span>
-              </Link>
-            ))}
+            {folders.map((child) => <FolderLink key={`folder-${child.id}`} folder={child} chip />)}
+            {documents.map((doc) => <DocumentLink key={doc.id} doc={doc} chip />)}
           </div>
         )}
 
         {view === 'overview' && (
-          <OverviewView folderId={folderId} documents={documents} tasks={tasks} epics={epics} events={events} navigate={navigate} />
+          <OverviewView folderId={folderId} folders={folders} documents={documents} tasks={tasks} epics={epics} events={events} navigate={navigate} />
         )}
         {view === 'board' && (
           <BoardView
