@@ -27,23 +27,15 @@ Scoped to the current Space; a key result of another Space's objective is 404. I
 - `frontend/src/data/okr.test.ts`, `frontend/src/view/okrs/OkrsScreen.test.tsx`
 
 ## Known limits
-<<<<<<< HEAD
-- A key result's current value is overwritten in place; no history of check-ins (see `docs/backlog/key-result-check-in-history.md`).
-=======
-- The API accepts `owner_id` and `status`, but the page has no owner or status picker, and objective title and description cannot be edited after creation (see `docs/backlog/okr-owner-status-and-editing.md`).
->>>>>>> origin/backlog/key-result-check-in-history
+- The API accepts `owner_id` and `status`, but the page has no owner or status picker, and objective title and description cannot be edited after creation.
 - Objectives are not linked to anything but initiatives (via key results). The IO Map does not exist yet, so there is nothing to link to.
 - There is no reordering UI for key results although `position` exists.
 - The client lists all initiatives in the link picker, including finished ones.
 
 ## History
 - Implemented 2026-10-17. Committed locally; not pushed or deployed.
-<<<<<<< HEAD
-- Not implemented: check-in history, IO Map link.
-=======
-- Check-in history added 2026-10-19 on branch `backlog/key-result-check-in-history`, not merged: migration, tests, lint and type-check were not run (no database, no node_modules); `schema.rb` was edited by hand.
+- Check-in history added 2026-10-19 on branch `backlog/key-result-check-in-history`, since merged to main. When it was written the migration, tests, lint and type-check had not been run (no database, no node_modules) and `schema.rb` was edited by hand.
 - Not implemented: owner picker, IO Map link.
->>>>>>> origin/backlog/key-result-check-in-history
 - Not verified: no tests, lint, type-check, migration or browser run (no dependencies installed, no network).
 
 - Merged to main 2026-11-02 after running, merged with main: `rails db:migrate` (schema diff clean), `rails test`, `npm run lint`, `tsc -b`, Jest, and the collab-server tests, all passing. Not checked in a browser.
