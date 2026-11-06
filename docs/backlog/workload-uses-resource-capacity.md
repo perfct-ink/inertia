@@ -2,6 +2,7 @@
 priority: p2
 depends_on: [workload-view, resource-capacity-management]
 components: [frontend]
+branch: backlog/workload-uses-resource-capacity
 ---
 # Workload view uses each person's capacity and allocations
 
@@ -24,3 +25,6 @@ The Workload view (`docs/backlog/workload-view.md`, branch `backlog/workload-vie
 - Changing a person's capacity on the Resources page changes the over-allocation warnings on the Workload view.
 - No duplicate week or capacity helpers remain.
 - Tests cover the combined calculation; both feature docs are updated and this file is removed.
+
+## Blocked
+Incomplete. The agent working on this task was stopped before it finished, so the work so far is committed as it stood. Nothing was run beyond what the commit message lists. To finish: read the diff against main (`git diff origin/main...backlog/workload-uses-resource-capacity`), complete the requirements and acceptance criteria above, write or update the feature doc in `docs/features/` and its README row, merge the current main in, run the checks (`cd frontend && npm install && npm run lint && npm test`, `cd backend && rails db:migrate && rails test`), then remove this file.

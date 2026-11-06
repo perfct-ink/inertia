@@ -20,6 +20,30 @@
       }
     }
 
+    @at-root .workload-hint {
+      color: color(muted-foreground);
+      @include text('sm');
+    }
+
+    @at-root .workload-link {
+      color: color(foreground);
+      text-decoration: underline;
+      text-decoration-color: transparent;
+      text-underline-offset: 2px;
+      @include transition(text-decoration-color);
+
+      &:hover {
+        text-decoration-color: currentcolor;
+      }
+    }
+
+    @at-root .workload-capacity {
+      display: block;
+      color: color(muted-foreground);
+      font-weight: 400;
+      @include text('xs');
+    }
+
     @at-root .workload-cell--over {
       background: palette('red-500', 0.12);
       font-weight: 600;

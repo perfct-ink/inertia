@@ -45,6 +45,10 @@ jest.mock('@/api/resourceAllocations', () => ({
   useUpdateResourceAllocation: () => mockUpdate,
   useDeleteResourceAllocation: () => mockDelete,
 }))
+const mockTasks: Record<string, unknown>[] = []
+jest.mock('@/api/tasks', () => ({
+  useTasks: () => ({ data: mockTasks, isLoading: false }),
+}))
 
 // Wednesday 4 November 2026: the first week shown starts on Monday 2 November.
 beforeAll(() => {
@@ -55,6 +59,7 @@ afterAll(() => jest.useRealTimers())
 beforeEach(() => {
   jest.clearAllMocks()
   mockWorkspace.role = 'owner'
+  mockTasks.length = 0
 })
 
 test('shows each person\'s hours against their capacity and warns about any week over it', () => {
@@ -64,6 +69,7 @@ test('shows each person\'s hours against their capacity and warns about any week
   expect(ada.getByText('30 / 40 h')).toBeInTheDocument()
   expect(ada.getByText('10 h free')).toBeInTheDocument()
   expect(ada.getAllByText('Over by 10 h')).toHaveLength(7)
+  expect(ada.queryByText(/^Tasks/)).not.toBeInTheDocument()
 
   const ben = within(screen.getByRole('list', { name: /Hours per week for Ben/ }))
   expect(ben.getAllByText('10 / 20 h')).toHaveLength(8)
@@ -71,6 +77,19 @@ test('shows each person\'s hours against their capacity and warns about any week
 
   expect(screen.getByRole('status')).toHaveTextContent('Over capacity: Ada (7 weeks)')
   expect(screen.getByText('Ada (you)')).toBeInTheDocument()
+})
+
+test('shows the hours of a person\'s open tasks beside their allocation and warns when the tasks alone are over capacity', () => {
+  // Ben (20 h a week, 10 allocated) has 30 hours of tasks in the first week.
+  mockTasks.push({ id: 1, status: 'todo', assignee_id: 2, estimate_hours: 30, start_date: '2026-11-02', due_date: '2026-11-06' })
+  render(<ResourcesScreen />)
+  const ben = within(screen.getByRole('list', { name: /Hours per week for Ben/ }))
+  expect(ben.getByText('Tasks 30 h')).toBeInTheDocument()
+  expect(ben.getAllByText('Tasks 0 h')).toHaveLength(7)
+  expect(ben.getByText('Tasks over by 10 h')).toBeInTheDocument()
+  expect(ben.getAllByText('10 / 20 h')).toHaveLength(8)
+  expect(ben.getAllByText('10 h free')).toHaveLength(8)
+  expect(screen.getByRole('status')).toHaveTextContent('Over capacity: Ada (7 weeks), Ben (1 week)')
 })
 
 test('an admin changes a person\'s weekly capacity, and a value outside a week is refused', () => {

@@ -1,40 +1,41 @@
-import { useState } from 'react'
 import { format, parseISO } from 'date-fns'
 import { AlertTriangle, Gauge, Loader2 } from 'lucide-react'
-import { Input } from '@/components/ui'
+import { Link } from 'react-router-dom'
 import WorkspaceLayout from '@/components/WorkspaceLayout'
 import { useTasks } from '@/api/tasks'
 import { useWorkspaceMembers } from '@/api/workspaceMembers'
-import { DEFAULT_WEEKLY_CAPACITY, weekRange, workload } from '@/data/workload'
+import { formatHours, personLoads, weekRange } from '@/data/resource'
+import { workload } from '@/data/workload'
 import { usePageTitle } from '@/hooks/usePageTitle'
 import { useWorkspaceStore } from '@/store/workspaces'
+import { todayISO } from '@/util/date'
 import '../planning/PlanningScreen.scss'
 import './WorkloadScreen.scss'
 
 const WEEKS = 8
 
 // Estimated hours per person per week for the next eight weeks, from open tasks'
-// estimates spread over their dates. A week over the weekly capacity is marked.
+// estimates spread over their dates. A week over that person's own weekly
+// capacity (set on the Resources page) is marked.
 export default function WorkloadScreen() {
   usePageTitle('Workload')
   const { data: tasks = [], isLoading } = useTasks()
   const workspaceId = useWorkspaceStore((s) => s.activeWorkspaceId) ?? 0
   const { data: members = [] } = useWorkspaceMembers(workspaceId)
-  const [capacity, setCapacity] = useState(DEFAULT_WEEKLY_CAPACITY)
-  const weeks = weekRange(format(new Date(), 'yyyy-MM-dd'), WEEKS)
-  const result = workload(tasks, weeks, capacity)
-  const names = new Map(members.map((m) => [m.user_id, m.user.name]))
-  const nameOf = (id: number | null) => (id === null ? 'Unassigned' : names.get(id) ?? `User ${id}`)
+  const weeks = weekRange(todayISO(), WEEKS)
+  const people = personLoads(members, [], weeks)
+  const result = workload(tasks, weeks, people)
+  const nameOf = (id: number | null) => (id === null ? 'Unassigned' : people.find((p) => p.userId === id)?.name ?? `User ${id}`)
+  const capacityOf = (id: number | null) => people.find((p) => p.userId === id)?.capacity
 
   return (
     <WorkspaceLayout>
       <div className="view-planning view-workload">
         <div className="planning-header">
           <h1 className="planning-title">Workload</h1>
-          <label>
-            Hours per week
-            <Input type="number" min={1} aria-label="Weekly capacity in hours" value={capacity} onChange={(e) => setCapacity(Math.max(1, Number(e.target.value) || DEFAULT_WEEKLY_CAPACITY))} />
-          </label>
+          <p className="workload-hint">
+            Each person&apos;s weekly capacity is set on the <Link to="/resources" className="workload-link">Resources page</Link>.
+          </p>
         </div>
         <div className="planning-body">
           {isLoading && <Loader2 className="planning-spinner" aria-label="Loading" />}
@@ -54,18 +55,24 @@ export default function WorkloadScreen() {
                 </tr>
               </thead>
               <tbody>
-                {result.rows.map((row) => (
-                  <tr key={row.assigneeId ?? 'none'}>
-                    <th scope="row">{nameOf(row.assigneeId)}</th>
-                    {row.hours.map((h, i) => (
-                      <td key={weeks[i]} className={row.over[i] > 0 ? 'workload-cell--over' : undefined}>
-                        {h > 0 ? `${h} h` : ''}
-                        {row.over[i] > 0 && <span className="workload-warning"><AlertTriangle className="workload-icon" aria-hidden="true" /> over by {row.over[i]} h</span>}
-                      </td>
-                    ))}
-                    <td>{row.total} h</td>
-                  </tr>
-                ))}
+                {result.rows.map((row) => {
+                  const capacity = capacityOf(row.assigneeId)
+                  return (
+                    <tr key={row.assigneeId ?? 'none'}>
+                      <th scope="row">
+                        {nameOf(row.assigneeId)}{' '}
+                        {capacity !== undefined && <span className="workload-capacity">{formatHours(capacity)} h/week</span>}
+                      </th>
+                      {row.hours.map((h, i) => (
+                        <td key={weeks[i]} className={row.over[i] > 0 ? 'workload-cell--over' : undefined}>
+                          {h > 0 ? `${h} h` : ''}
+                          {row.over[i] > 0 && <span className="workload-warning"><AlertTriangle className="workload-icon" aria-hidden="true" /> over by {row.over[i]} h</span>}
+                        </td>
+                      ))}
+                      <td>{row.total} h</td>
+                    </tr>
+                  )
+                })}
               </tbody>
             </table>
           )}
