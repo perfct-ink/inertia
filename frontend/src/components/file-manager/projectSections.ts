@@ -34,7 +34,7 @@ export const SECTION_GROUPS: { heading: string | null; sections: Section[] }[] =
     { label: 'Timeline', path: '/timeline', icon: GanttChart },
     { label: 'Milestones', path: '/milestones', icon: Milestone },
     { label: 'Initiatives', path: '/initiatives', icon: Flag },
-    { label: 'Epics', path: '/epics', icon: Target },
+    { label: 'Features', path: '/epics', icon: Target },
     { label: 'Sprints', path: '/sprints', icon: Rocket },
     { label: 'Hierarchy', path: '/hierarchy', icon: ListTree },
   ] },

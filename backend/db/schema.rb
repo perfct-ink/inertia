@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_11_03_120001) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_05_010001) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -129,6 +129,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_03_120001) do
     t.bigint "milestone_id"
     t.integer "horizon"
     t.integer "position", default: 0, null: false
+    t.bigint "document_id"
+    t.index ["document_id"], name: "index_epics_on_document_id", unique: true
     t.index ["folder_id"], name: "index_epics_on_folder_id"
     t.index ["initiative_id"], name: "index_epics_on_initiative_id"
     t.index ["milestone_id"], name: "index_epics_on_milestone_id"
@@ -695,6 +697,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_03_120001) do
   add_foreign_key "documents", "milestones", on_delete: :nullify
   add_foreign_key "documents", "users", column: "created_by_id"
   add_foreign_key "documents", "users", column: "feature_owner_id", on_delete: :nullify
+  add_foreign_key "epics", "documents", on_delete: :nullify
   add_foreign_key "epics", "folders"
   add_foreign_key "epics", "initiatives"
   add_foreign_key "epics", "milestones"

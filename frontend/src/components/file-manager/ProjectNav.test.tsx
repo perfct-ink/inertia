@@ -8,6 +8,8 @@ jest.mock('./FolderItem', () => ({ FolderItem: ({ folder }: { folder: { name: st
 jest.mock('@/components/project/ProjectIconDialog', () => function DialogMock() { return null })
 const mockNewDocument = jest.fn()
 jest.mock('@/hooks/useNewDocument', () => ({ useNewDocument: () => mockNewDocument }))
+const mockNewFeature = jest.fn().mockResolvedValue({ id: 4 })
+jest.mock('@/hooks/useNewFeature', () => ({ useNewFeature: () => mockNewFeature }))
 const mockCreateFolder = jest.fn()
 jest.mock('@/api/folders', () => ({
   useCreateFolder: () => ({ mutateAsync: jest.fn(), mutate: mockCreateFolder }),
@@ -48,6 +50,7 @@ function renderAt(path: string) {
 beforeEach(() => {
   useProjectStore.setState({ activeProjectId: null })
   mockReset.mockClear()
+  mockNewFeature.mockClear()
 })
 
 test('the projects list is flat: projects only, no pages or files', () => {
@@ -110,6 +113,23 @@ test('the Files tab creates documents, sheets, Collections and folders in the pr
   fireEvent.change(name, { target: { value: 'Drafts' } })
   fireEvent.keyDown(name, { key: 'Enter' })
   expect(mockCreateFolder).toHaveBeenCalledWith({ name: 'Drafts', parent_id: 2 }, expect.anything())
+})
+
+test('New feature asks for a name and makes the feature in the project', () => {
+  useProjectStore.setState({ activeProjectId: 2 })
+  renderAt('/documents/9')
+  fireEvent.click(screen.getByRole('button', { name: 'New feature' }))
+  fireEvent.change(screen.getByRole('textbox', { name: 'Feature name' }), { target: { value: 'Background images' } })
+  fireEvent.click(screen.getByRole('button', { name: 'Create' }))
+  expect(mockNewFeature).toHaveBeenCalledWith('Background images', 2)
+})
+
+test('a blank feature name makes nothing', () => {
+  useProjectStore.setState({ activeProjectId: 2 })
+  renderAt('/documents/9')
+  fireEvent.click(screen.getByRole('button', { name: 'New feature' }))
+  fireEvent.click(screen.getByRole('button', { name: 'Create' }))
+  expect(mockNewFeature).not.toHaveBeenCalled()
 })
 
 test('with a project open, All files replaces the Files heading and keeps the project open', () => {

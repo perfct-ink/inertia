@@ -34,7 +34,7 @@ Scoped to the current Space (`WorkspaceScoped`): reads need membership, writes n
 - No sidebar entry; open the page from an epic's Plan button or by URL. The sidebar rail is shared with other branches.
 - All tasks are fetched and filtered in the browser, with no paging.
 - Rows are not ordered by drop position, and a task of another epic cannot be pulled in (move it from the Hierarchy page).
-- The UI says "epic"; it becomes "feature" with `features-with-requirements-docs.md`.
+- The UI still says "epic" here. An epic is also a feature with a requirements document ([feature_requirements_docs.md](feature_requirements_docs.md)); only the Features page and the sidebar say "feature" so far.
 - The page shows write controls to viewers.
 
 ## History

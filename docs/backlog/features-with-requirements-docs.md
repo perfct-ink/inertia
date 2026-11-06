@@ -2,6 +2,7 @@
 priority: p0
 depends_on: [requirements-template, task-line-two-way-sync]
 components: [backend, frontend]
+branch: backlog/features-with-requirements-docs
 ---
 # Features with requirements docs
 
@@ -39,3 +40,25 @@ This replaces the folder-flag design in `feature-folder-type.md` and the `parent
 - The collapse toggle shows only the tasks (under their headings) and restores the full doc; the choice is remembered for that feature.
 - Works in light and dark mode and at mobile width. Failed API calls show an error.
 - Tests cover the new behaviour; `docs/features/` is updated (a `features.md` doc, the epic docs that mention Features, and `document_task_lines.md` for the checkbox), and this file is removed.
+
+## Blocked
+
+Built on `backlog/features-with-requirements-docs` following Alex's decision of 2026-10-23 (a feature is an epic with a required requirements document), with the older folder-flag features left in place. Not merged because Rails, lint, the type-check and a browser could not run on the machine that wrote it.
+
+Done: `epics.document_id` (migration `20261105010001`, with a backfill that gives every existing epic a document), the server-built document from the requirements template, `epic_id` set on tasks written in the document, no stand-alone delete or Space move of the document, the progress header, a remembered Tasks only toggle, "New feature" (Features page, the project's Files toolbar, `CreateItem`), a confirmed delete, and tests.
+
+Not done (new backlog files): saying "feature" everywhere in the UI (`rename-epics-to-features-in-the-ui`), one definition of the templates (`single-source-document-templates`), reconciling the folder-flag features (`reconcile-folder-features-with-epic-features`), folding single sections (`fold-requirements-by-section`).
+
+Ran: `ruby -c` on the changed Ruby, the Ruby template on its own, the static checker, the pure data tests, and these in a Jest stand-in: `useNewFeature`, `useNewDocument`, `useTasksOnly`, `FeatureProgress`, `CreateItem`, `ProjectNav`, `SidebarRail`, `EpicsScreen`.
+
+Not run, to do before merging:
+
+```sh
+cd backend && rails db:migrate && git diff db/schema.rb   # the schema was edited by hand; the diff should be empty
+cd backend && rails test
+cd frontend && npm install && npm run lint && npx tsc -b && npm test
+```
+
+Then check in a browser, light and dark, at 375px and desktop: make a feature from each entry point and land in its document, write and tick a task and watch the header, fold to Tasks only and reload, delete a feature, and try to delete its document from the sidebar (it must refuse). When it merges, delete this file.
+
+Decisions for Alex: the database column stays nullable (make it `NOT NULL` once every environment is backfilled), and deleting a feature deletes the tasks written in its document.

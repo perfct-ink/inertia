@@ -206,6 +206,9 @@ export interface Epic {
   id: number
   title: string
   folder_id: number | null
+  // The feature's requirements document (docs/features/feature_requirements_docs.md); null
+  // only when it was deleted along with its folder.
+  document_id?: number | null
   initiative_id: number | null
   milestone_id: number | null
   start_date: string | null

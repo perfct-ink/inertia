@@ -18,6 +18,8 @@ class SpaceTransfer
   # the id of the Space task the line created.
   TASK_LINE = "workspaceTaskItem".freeze
 
+  FEATURE_DOCUMENT = "A feature's requirements document can't leave the feature's Space.".freeze
+
   LINKED_COLLECTION = "A Collection links to a Collection that is not part of this transfer. " \
                       "Transfer them together (for example by transferring the folder that holds both) " \
                       "or remove the link first.".freeze
@@ -189,6 +191,8 @@ class SpaceTransfer
   # ── Move ────────────────────────────────────────────────────────────────
 
   def move_documents(documents)
+    raise Error, FEATURE_DOCUMENT if Epic.where(document_id: documents.map(&:id)).exists?
+
     reject_outside_links!(documents)
     rehome_tasks(documents.map(&:id))
   end

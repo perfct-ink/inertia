@@ -55,10 +55,11 @@ export class TaskApi extends ApiResource<Task, NewTask> {
 export const taskApi = new TaskApi()
 
 export const useTasks = (filters: TaskFilters = {}) => useResourceList(taskApi, { params: filters })
-export const useCreateTask = () => useResourceCreate(taskApi)
-export const useUpdateTask = () => useResourceUpdate(taskApi)
+// An epic's counts of tasks and done tasks come with the epic, so they refresh with its tasks.
+export const useCreateTask = () => useResourceCreate(taskApi, ['epics'])
+export const useUpdateTask = () => useResourceUpdate(taskApi, ['epics'])
 // The server drops a deleted task's Gantt links with it.
-export const useDeleteTask = () => useResourceDelete(taskApi, ['task_dependencies'])
+export const useDeleteTask = () => useResourceDelete(taskApi, ['task_dependencies', 'epics'])
 
 export const useTaskStatusChanges = (taskId: number, enabled: boolean) =>
   useQuery({ queryKey: ['task_status_changes', taskId], queryFn: () => taskApi.statusChanges(taskId), enabled })

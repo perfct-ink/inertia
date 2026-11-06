@@ -44,6 +44,7 @@ The user needs the `member` role or above in the Space the item leaves or is cop
 
 ## Known limits
 - A folder with tasks, events, epics or milestones attached to it directly (not through a document) cannot be moved; it can be copied, but those items are not copied (`docs/backlog/move-folder-attached-records-between-spaces.md`).
+- A feature's requirements document can't be moved to another Space (it belongs to the feature), nor can a folder holding one; a copy is an ordinary document ([feature_requirements_docs.md](feature_requirements_docs.md)).
 - AI runs of a moved task are deleted; dependencies and event links of moved tasks are removed. Copies start without them.
 - Copying a very large Collection runs in one request and creates its values one at a time.
 - Uploaded images and videos inside a document are referenced by URL, so a copy and its original share the same files.

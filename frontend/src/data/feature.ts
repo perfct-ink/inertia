@@ -17,3 +17,34 @@ export function parentFeatureOptions(folders: Folder[], excludeId?: number): Doc
 export function isFeatureDocument(folders: Folder[], document: Pick<Document, 'folder_id'>): boolean {
   return flattenFolders(folders).some((f) => f.id === document.folder_id && f.kind === 'feature')
 }
+
+// A feature made from an epic (docs/features/feature_requirements_docs.md): its
+// status worked out from its tasks, the same rule as FeatureRollup on the
+// server. No tasks is planned, all done is done, some done is active,
+// otherwise planned.
+export function epicFeatureStatus({ tasks_count, done_tasks_count }: { tasks_count: number; done_tasks_count: number }): FeatureStatus {
+  if (tasks_count === 0) return 'planned'
+  if (done_tasks_count >= tasks_count) return 'done'
+  return done_tasks_count > 0 ? 'active' : 'planned'
+}
+
+// Whether a feature's document is folded down to its tasks is remembered per
+// person per feature, so a feature reopens the way it was left.
+export const tasksOnlyKey = (userId: number | undefined, epicId: number) => `inertia-tasks-only:${userId ?? 'anonymous'}:${epicId}`
+
+export function readTasksOnly(storage: Pick<Storage, 'getItem'>, key: string): boolean {
+  try {
+    return storage.getItem(key) === '1'
+  } catch {
+    return false
+  }
+}
+
+export function writeTasksOnly(storage: Pick<Storage, 'setItem' | 'removeItem'>, key: string, on: boolean): void {
+  try {
+    if (on) storage.setItem(key, '1')
+    else storage.removeItem(key)
+  } catch {
+    // Storage can be full or blocked; the choice just isn't remembered.
+  }
+}

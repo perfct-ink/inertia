@@ -108,4 +108,23 @@ class TaskTest < ActiveSupport::TestCase
     task.update!(assignee_id: nil)
     assert_equal [], task.reload.assignee_ids
   end
+
+  test "a task written in a feature's requirements document belongs to the feature" do
+    user = User.create!(name: "Ada", email: "ada-feature@example.com", password: "password123")
+    epic = user.workspace.epics.create!(title: "Launch")
+
+    task = user.workspace.tasks.create!(title: "Write it", document: epic.document)
+    assert_equal epic, task.epic
+
+    other = user.workspace.epics.create!(title: "Other")
+    chosen = user.workspace.tasks.create!(title: "Chosen", document: epic.document, epic: other)
+    assert_equal other, chosen.epic
+  end
+
+  test "a task in an ordinary document has no epic" do
+    user = User.create!(name: "Ada", email: "ada-plain@example.com", password: "password123")
+    document = user.workspace.root_folder.documents.create!(title: "Notes", created_by: user)
+
+    assert_nil user.workspace.tasks.create!(title: "Plain", document: document).epic_id
+  end
 end

@@ -71,6 +71,9 @@ import Breadcrumb from '@/components/Breadcrumb'
 import DocumentOutline from '@/components/DocumentOutline'
 import DocumentInitiativeBar from '@/components/DocumentInitiativeBar'
 import FeatureBar from '@/components/FeatureBar'
+import FeatureProgress from '@/components/FeatureProgress'
+import { useEpics } from '@/api/epics'
+import { useTasksOnly } from '@/hooks/useTasksOnly'
 import DocumentPlanningSummary from '@/components/DocumentPlanningSummary'
 import ParagraphStylePicker from '@/components/ParagraphStylePicker'
 import TableEditor from '@/components/editors/TableEditor'
@@ -141,7 +144,9 @@ export default function DocumentScreen() {
   const { data: workspace } = useWorkspace()
   const user = useAuthStore((s) => s.user)
   const [linkDialogOpen, setLinkDialogOpen] = useState(false)
-  const [tasksOnly, setTasksOnly] = useState(false)
+  // A feature's requirements document remembers whether it is folded down to its tasks.
+  const { data: epics = [] } = useEpics()
+  const [tasksOnly, toggleTasksOnly] = useTasksOnly(epics.find((epic) => epic.document_id === docId)?.id)
   // The document's content while the "Link to a heading" dialog is open (null when closed).
   const [headingLinkContent, setHeadingLinkContent] = useState<Record<string, unknown> | null>(null)
   const [saveStatus, setSaveStatus] = useState<'saved' | 'saving' | 'unsaved'>('saved')
@@ -670,7 +675,7 @@ export default function DocumentScreen() {
           />
           <ToolbarBtn
             icon={<ListFilter className="document-toolbar_icon" />}
-            onClick={() => setTasksOnly((v) => !v)}
+            onClick={toggleTasksOnly}
             active={tasksOnly}
             title="Tasks only"
           />
@@ -727,6 +732,7 @@ export default function DocumentScreen() {
         <DocumentInitiativeBar doc={doc} />
         <DocumentPlanningSummary doc={doc} />
 
+        <FeatureProgress doc={doc} tasksOnly={tasksOnly} onToggleTasksOnly={toggleTasksOnly} />
         <FeatureBar doc={doc} />
 
         {/* Editor area — clicking anywhere in the whitespace focuses the editor */}

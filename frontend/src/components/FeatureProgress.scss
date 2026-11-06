@@ -1,0 +1,80 @@
+@use 'tokens' as *;
+
+@layer app.components {
+  .feature_progress {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: space(2) space(3);
+    padding: space(2) space(4);
+    border-bottom-width: 1px;
+    @include text('sm');
+
+    &-name {
+      min-width: 0;
+      font-weight: 600;
+      @include truncate;
+
+      &:hover {
+        text-decoration: underline;
+      }
+    }
+
+    &-status {
+      padding: space(0.5) space(2);
+      border-radius: radius('full');
+      background: color(muted);
+      color: color(muted-foreground);
+      @include text('xs');
+
+      &--active {
+        background: color(accent);
+        color: color(foreground);
+      }
+
+      &--done {
+        background: color(primary);
+        color: color(primary-foreground);
+      }
+    }
+
+    // The bar takes the room that's left; on a phone it wraps under the name.
+    &-bar {
+      display: flex;
+      flex: 1 1 10rem;
+      align-items: center;
+      gap: space(2);
+      min-width: 0;
+
+      .timeline-progress {
+        flex: 1 1 4rem;
+      }
+    }
+
+    &-count {
+      flex-shrink: 0;
+      color: color(muted-foreground);
+      @include text('xs');
+    }
+
+    // A touch-sized toggle; pressed changes its colour, never its size.
+    &-toggle {
+      display: inline-flex;
+      align-items: center;
+      gap: space(1.5);
+      min-height: space(10);
+      margin-left: auto;
+
+      &[aria-pressed='true'] {
+        background: color(accent);
+        color: color(foreground);
+      }
+    }
+
+    &-icon {
+      flex-shrink: 0;
+      width: space(4);
+      height: space(4);
+    }
+  }
+}

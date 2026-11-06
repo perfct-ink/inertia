@@ -235,4 +235,30 @@ class SpaceTransferTest < ActiveSupport::TestCase
     assert_equal @source.id, task.reload.workspace_id
     assert_equal @source_folder, document.reload.folder
   end
+
+  test "a feature's requirements document cannot move to another Space" do
+    epic = @source.epics.create!(title: "Launch", creator: @user)
+
+    error = assert_raises(SpaceTransfer::Error) { transfer_into(@team_root).move_document(epic.document) }
+
+    assert_equal SpaceTransfer::FEATURE_DOCUMENT, error.message
+    assert_equal @source.root_folder, epic.document.reload.folder
+  end
+
+  test "moving a folder that holds a feature's requirements document is refused too" do
+    folder = @source.folders.create!(name: "Specs")
+    epic = @source.epics.create!(title: "Launch", creator: @user, document: folder.documents.create!(title: "Launch", created_by: @user))
+
+    assert_raises(SpaceTransfer::Error) { transfer_into(@team_root).move_folder(folder) }
+    assert_equal folder, epic.document.reload.folder
+  end
+
+  test "a copy of a requirements document is an ordinary document" do
+    epic = @source.epics.create!(title: "Launch", creator: @user)
+
+    copy = transfer_into(@team_root).copy_document(epic.document)
+
+    assert_nil copy.feature_epic
+    assert_equal epic.document, epic.reload.document
+  end
 end
