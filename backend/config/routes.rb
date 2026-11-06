@@ -89,6 +89,8 @@ Rails.application.routes.draw do
       resources :time_entries, only: [ :destroy ] do
         member { post :stop }
       end
+      # Every task's status changes at once, for the agile reports.
+      resources :task_status_changes, only: [ :index ]
 
       resources :epics, only: [ :index, :create, :update, :destroy ]
 

@@ -155,6 +155,8 @@ export interface Task {
   actual_story_points?: number | null
   recurrence?: string | null
   recurrence_from?: 'schedule' | 'completion'
+  // When the task was made (the agile reports tell planned work from added work by it).
+  created_at?: string
   document?: Document
   // Values of the Space's custom task fields, keyed by field id; fields with
   // no value are absent. Only the task list endpoint includes them.
@@ -419,6 +421,16 @@ export interface TaskStatusChange {
   from_status: Task['status'] | null
   to_status: Task['status']
   changed_by_name: string | null
+  created_at: string
+}
+
+// One row of the status history of many tasks at once (the agile reports read
+// it): the same change, tagged with its task and without who made it.
+export interface TaskStatusEvent {
+  id: number
+  task_id: number
+  from_status: TaskStatus | null
+  to_status: TaskStatus
   created_at: string
 }
 
