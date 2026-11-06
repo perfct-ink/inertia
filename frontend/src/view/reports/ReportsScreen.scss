@@ -1,0 +1,194 @@
+@use 'tokens' as *;
+
+@layer view {
+  .view-reports {
+    @at-root .reports-body {
+      display: flex;
+      flex-direction: column;
+      gap: space(4);
+      max-width: 48rem;
+      margin-inline: auto;
+      @include page-padding;
+    }
+
+    @at-root .reports-controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: space(3);
+    }
+
+    @at-root .reports-control {
+      display: flex;
+      flex-direction: column;
+      gap: space(1);
+      min-width: 10rem;
+      color: color(muted-foreground);
+      @include text('xs');
+    }
+
+    @at-root .reports-note {
+      color: color(muted-foreground);
+      @include text('sm');
+    }
+
+    @at-root .reports-figure {
+      display: flex;
+      flex-direction: column;
+      gap: space(2);
+      margin: 0;
+    }
+
+    // The chart fills the width and keeps its proportions, so a phone gets a smaller copy of the same drawing.
+    @at-root .reports-chart {
+      display: block;
+      width: 100%;
+      height: auto;
+    }
+
+    @at-root .reports-caption {
+      color: color(muted-foreground);
+      @include text('sm');
+    }
+
+    @at-root .reports-grid {
+      stroke: color(border);
+      stroke-width: 1;
+    }
+
+    @at-root .reports-tick {
+      fill: color(muted-foreground);
+      @include text('xs');
+
+      &--y {
+        text-anchor: end;
+      }
+
+      &--x {
+        text-anchor: middle;
+      }
+    }
+
+    @at-root .reports-value {
+      fill: color(foreground);
+      text-anchor: middle;
+      @include text('xs');
+    }
+
+    @at-root .reports-line {
+      fill: none;
+      stroke-linejoin: round;
+      stroke-linecap: round;
+
+      &--remaining {
+        stroke: color(primary);
+        stroke-width: 3;
+      }
+
+      &--scope {
+        stroke: palette('orange-500');
+        stroke-width: 2;
+      }
+
+      &--ideal,
+      &--average {
+        stroke: color(muted-foreground);
+        stroke-width: 2;
+        stroke-dasharray: 6 5;
+      }
+    }
+
+    @at-root .reports-dot {
+      fill: color(primary);
+    }
+
+    @at-root .reports-bar {
+      fill: color(primary);
+
+      &--active {
+        fill-opacity: 0.55;
+      }
+
+      &--unplanned {
+        fill: palette('orange-500');
+      }
+    }
+
+    // Flow bands take the colours of the board's task statuses.
+    @at-root .reports-band {
+      fill-opacity: 0.85;
+
+      &--gray { fill: palette('zinc-500'); }
+      &--blue { fill: palette('blue-500'); }
+      &--yellow { fill: palette('yellow-500'); }
+      &--green { fill: palette('green-500'); }
+      &--orange { fill: palette('orange-500'); }
+      &--red { fill: palette('red-500'); }
+      &--purple { fill: palette('purple-500'); }
+    }
+
+    @at-root .reports-legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: space(2) space(4);
+      color: color(muted-foreground);
+      @include text('sm');
+
+      li {
+        display: flex;
+        align-items: center;
+        gap: space(1.5);
+      }
+    }
+
+    @at-root .reports-swatch {
+      width: space(4);
+      height: space(1);
+      border-radius: radius('full');
+
+      &--remaining { background: color(primary); }
+      &--scope { background: palette('orange-500'); }
+      &--ideal { background: color(muted-foreground); }
+      &--planned { background: color(primary); }
+      &--unplanned { background: palette('orange-500'); }
+    }
+
+    @at-root .reports-details {
+      @include text('sm');
+
+      summary {
+        cursor: pointer;
+        color: color(muted-foreground);
+        user-select: none;
+      }
+    }
+
+    // A wide table scrolls inside its box instead of the page.
+    @at-root .reports-table_wrap {
+      margin-top: space(2);
+      overflow-x: auto;
+    }
+
+    @at-root .reports-table {
+      border-collapse: collapse;
+
+      caption {
+        padding-bottom: space(2);
+        color: color(muted-foreground);
+        text-align: left;
+      }
+
+      th,
+      td {
+        padding: space(1) space(3);
+        border-width: 1px;
+        text-align: right;
+        font-variant-numeric: tabular-nums;
+      }
+
+      th[scope='row'],
+      .reports-table-first {
+        text-align: left;
+      }
+    }
+  }
+}

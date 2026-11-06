@@ -14,6 +14,7 @@ import EpicPlanScreen from '@/view/epic_plan/EpicPlanScreen'
 import InitiativesScreen from '@/view/initiatives/InitiativesScreen'
 import MilestonesScreen from '@/view/milestones/MilestonesScreen'
 import SprintsScreen from '@/view/sprints/SprintsScreen'
+import ReportsScreen from '@/view/reports/ReportsScreen'
 import HierarchyScreen from '@/view/hierarchy/HierarchyScreen'
 import RoadmapScreen from '@/view/roadmap/RoadmapScreen'
 import OkrsScreen from '@/view/okrs/OkrsScreen'
@@ -158,6 +159,14 @@ export default function App() {
           element={
             <PrivateRoute>
               <SprintsScreen />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/reports"
+          element={
+            <PrivateRoute>
+              <ReportsScreen />
             </PrivateRoute>
           }
         />

@@ -313,3 +313,29 @@ export function defaultReportSprint<T extends Pick<Sprint, 'id' | 'status' | 'st
   const started = reportSprints(sprints, sprints.length)
   return started[started.length - 1]
 }
+
+// ---- The page's choices --------------------------------------------------
+
+export interface ReportParams {
+  kind: ReportKind
+  measure: ReportMeasure
+  // The sprint chosen for the burndown, or to narrow the flow chart; null is the page's default (a flow chart over all work).
+  sprintId: number | null
+  // Days the flow chart covers when no sprint is chosen.
+  range: number
+}
+
+export const DEFAULT_FLOW_RANGE = 30
+
+// What the page shows, from its query string (?report=velocity&measure=tasks&sprint=3&range=90).
+// Anything missing or not recognised falls back to a default, so a bad link still opens a report.
+export function readReportParams(params: URLSearchParams): ReportParams {
+  const sprint = Number(params.get('sprint'))
+  const range = Number(params.get('range'))
+  return {
+    kind: REPORT_KINDS.find((k) => k.value === params.get('report'))?.value ?? 'burndown',
+    measure: params.get('measure') === 'tasks' ? 'tasks' : 'points',
+    sprintId: Number.isInteger(sprint) && sprint > 0 ? sprint : null,
+    range: FLOW_RANGES.some((r) => r.value === range) ? range : DEFAULT_FLOW_RANGE,
+  }
+}

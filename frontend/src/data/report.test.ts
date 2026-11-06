@@ -1,7 +1,7 @@
 import type { TaskStatus, TaskStatusEvent } from '@/types'
 import {
   addDays, burndown, cumulativeFlow, daysBetween, defaultReportSprint, deliveredOf, flowTasks, flowWindow, groupChanges, plannedVsUnplanned,
-  reportSprints, statusAt, unestimatedCount, velocity, workLabel, workOf, type ReportSprint, type ReportTask,
+  readReportParams, reportSprints, statusAt, unestimatedCount, velocity, workLabel, workOf, type ReportSprint, type ReportTask,
 } from './report'
 
 // A moment on a day, in the viewer's time zone, as the API sends it.
@@ -176,4 +176,25 @@ test('the sprint a report opens on is the active one, else the latest that began
   expect(defaultReportSprint([done, week, later])?.id).toBe(1)
   expect(defaultReportSprint([planned])).toBeUndefined()
   expect(defaultReportSprint([])).toBeUndefined()
+})
+
+describe('readReportParams', () => {
+  const read = (query: string) => readReportParams(new URLSearchParams(query))
+
+  test('opens the burndown in story points over the last 30 days by default', () => {
+    expect(read('')).toEqual({ kind: 'burndown', measure: 'points', sprintId: null, range: 30 })
+  })
+
+  test('reads the report, measure, sprint and range', () => {
+    expect(read('report=flow&measure=tasks&sprint=7&range=90')).toEqual({ kind: 'flow', measure: 'tasks', sprintId: 7, range: 90 })
+    expect(read('report=velocity').kind).toBe('velocity')
+    expect(read('report=scope').kind).toBe('scope')
+  })
+
+  test('anything it does not recognise falls back to the default', () => {
+    expect(read('report=pie&measure=hours&sprint=abc&range=45')).toEqual({ kind: 'burndown', measure: 'points', sprintId: null, range: 30 })
+    expect(read('sprint=0').sprintId).toBeNull()
+    expect(read('sprint=-3').sprintId).toBeNull()
+    expect(read('sprint=2.5').sprintId).toBeNull()
+  })
 })
