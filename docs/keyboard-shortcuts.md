@@ -49,6 +49,28 @@ Document editor (TipTap, `frontend/src/pages/workspace/DocumentPage.tsx`) uses t
 | `Shift+Enter` | Line break |
 | `⌘Z` / `⌘⇧Z` | Undo / redo |
 
+### Paragraph styles
+
+The built-in paragraph styles (see `docs/features/paragraph_styles.md`) have `⌘⌥` plus a digit, like Google Docs' headings. The table is `PARAGRAPH_STYLE_SHORTCUTS` in `frontend/src/data/paragraphStyleShortcut.ts`; `extensions/ParagraphStyleShortcuts.ts` binds it, and a test fails if this table stops listing one. Digits are used because browsers keep `⌘N`, `⌘T` and `⌘W`, and `⌃⌘1`–`⌃⌘9` stay free for keys people assign to a style themselves (`paragraph-style-keystrokes`).
+
+| Keys | Style | Bound by |
+|------|-------|----------|
+| `⌘⌥7` | Title | the style table (sets the style) |
+| `⌘⌥8` | Subtitle | the style table |
+| `⌘⌥1` | Heading 1 | TipTap's Heading (toggles it) |
+| `⌘⌥2` | Heading 2 | TipTap's Heading |
+| `⌘⌥3` | Heading 3 | TipTap's Heading |
+| `⌘⌥0` | Body | the style table (TipTap's Paragraph has the same key) |
+| `⌘⌥9` | Quote | the style table |
+
+Caption and Monospace have no default key. Neither app has one for Caption, and `⌘⇧M`, which is Apple Notes' Monospaced style, is also the planned code block key below, so which of the two gets it is still to be decided.
+
+Clashes, checked against the Apple Notes map below and the branch that builds it (`backlog/rebind-editor-shortcuts-to-apple-notes-map`, `data/shortcuts.ts`):
+
+- Keys: the only shared one is `⌘⌥0`, which that branch binds as "Normal text" to the same plain-paragraph command. Harmless when both merge, but drop one of the two. `⌘⌥7`, `⌘⌥8` and `⌘⌥9` are not used there.
+- Meaning: its Title / Heading / Subheading keys `⌘⇧T` / `⌘⇧H` / `⌘⇧J` make Heading 1 / 2 / 3, while here Title is a style of its own (`⌘⌥7`). Its `⌘⇧M` makes a code block where Apple Notes' own is a style.
+- macOS Zoom, if switched on in System Settings, takes `⌥⌘8` before the page does.
+
 Task items (`frontend/src/extensions/WorkspaceTaskItem.tsx`):
 
 | Keys | Action |
@@ -90,7 +112,7 @@ The work is split into tasks in `docs/backlog/`: `rebind-editor-shortcuts-to-app
 | Bold / italic / underline | `⌘B` `⌘I` `⌘U` | same | same | matches |
 | Strikethrough | `⌘⇧X` | `⌘⇧X` | `⌘⇧X` | `⌘⇧S` |
 | Title / Heading / Subheading / Body | `⌘⇧T` / `⌘⇧H` / `⌘⇧J` / `⌘⇧B` | (none) | Notes keys → H1 / H2 / H3 / paragraph | not bound |
-| Heading 1–6, normal text | (none) | `⌘⌥1`–`6`, `⌘⌥0` | Docs keys | `⌘⌥1`–`6` match; `⌘⌥0` missing |
+| Heading 1–6, normal text | (none) | `⌘⌥1`–`6`, `⌘⌥0` | Docs keys | `⌘⌥1`–`5` match; `⌘⌥0` is the Body style (see Paragraph styles) |
 | Monospaced / code block | `⌘⇧M` | (none) | `⌘⇧M` | `⌘⌥C` |
 | Bulleted list | `⌘⇧7` | `⌘⇧8` | **`⌘⇧7`** (Notes wins) | `⌘⇧8` |
 | Dashed list | `⌘⇧8` | (bullets) | **`⌘⇧8`** dashed list (Notes wins) | bulleted list |
