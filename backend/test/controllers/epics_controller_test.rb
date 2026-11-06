@@ -29,16 +29,17 @@ class EpicsControllerTest < ActionDispatch::IntegrationTest
     document = Document.find(feature["document_id"])
     assert_equal "Launch", document.title
     assert_equal @owner, document.created_by
-    assert_equal @space.root_folder, document.folder
+    assert_equal @space.personal_project, document.folder
     assert_equal feature["id"], document.feature_epic.id
   end
 
-  test "a feature made inside a project keeps its document in the project" do
+  test "a feature made inside a project keeps its document in the project, and makes no Personal Project" do
     project = @space.folders.create!(name: "Messages", kind: :project)
     feature = create_feature(project: project)
 
     assert_equal project.id, feature["folder_id"]
     assert_equal project, Document.find(feature["document_id"]).folder
+    assert_not @space.folders.exists?(name: "Personal Project")
   end
 
   test "a feature without a title is rejected and leaves no document behind" do

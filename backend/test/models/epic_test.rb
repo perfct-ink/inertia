@@ -48,12 +48,33 @@ class EpicTest < ActiveSupport::TestCase
     document = epic.document
     assert document.persisted?
     assert_equal "Launch", document.title
-    assert_equal user.workspace.root_folder, document.folder
+    assert_equal user.workspace.personal_project, document.folder
     assert_equal user, document.created_by
     headings = document.content["content"].select { |node| node["type"] == "heading" }.map { |node| node["content"]&.first&.dig("text") }
     assert_equal [ "Launch", "Problem", "Goals", "User stories", "Acceptance criteria", "Out of scope", "Tasks" ], headings
     assert_equal "workspaceTaskList", document.content["content"].last["type"]
     assert_equal epic, document.feature_epic
+  end
+
+  test "a feature with no folder files its document in the Personal Project, made once" do
+    user = User.create!(name: "Ada", email: "ada@example.com", password: "password123")
+    first = user.workspace.epics.create!(title: "Launch")
+    second = user.workspace.epics.create!(title: "Billing")
+
+    project = first.document.folder
+    assert_equal "Personal Project", project.name
+    assert project.project?
+    assert_equal user.workspace.root_folder, project.parent
+    assert_equal project, second.document.folder
+    assert_equal 1, user.workspace.folders.where(name: "Personal Project").count
+  end
+
+  test "an archived Personal Project is not reused" do
+    user = User.create!(name: "Ada", email: "ada@example.com", password: "password123")
+    old = user.workspace.personal_project
+    old.update!(archived_at: Time.current)
+
+    assert_not_equal old, user.workspace.epics.create!(title: "Launch").document.folder
   end
 
   test "the requirements document goes in the feature's folder and is the Space creator's without a creator" do

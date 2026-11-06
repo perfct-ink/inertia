@@ -53,12 +53,13 @@ class Epic < ApplicationRecord
 
   private
 
-  # The requirements document goes in the feature's folder, or the Space's root
-  # folder, built from the requirements template and titled like the feature.
+  # The requirements document goes in the feature's folder (its project, when it
+  # was made in one), else in the Space's Personal Project, built from the
+  # requirements template and titled like the feature.
   def build_requirements_document
     return if document || workspace.nil? || title.blank?
 
-    parent = folder || workspace.ensure_document_root!
+    parent = folder || workspace.personal_project
     self.document = Document.new(
       title: title,
       folder: parent,

@@ -242,7 +242,7 @@ class SpaceTransferTest < ActiveSupport::TestCase
     error = assert_raises(SpaceTransfer::Error) { transfer_into(@team_root).move_document(epic.document) }
 
     assert_equal SpaceTransfer::FEATURE_DOCUMENT, error.message
-    assert_equal @source.root_folder, epic.document.reload.folder
+    assert_equal @source.personal_project, epic.document.reload.folder
   end
 
   test "moving a folder that holds a feature's requirements document is refused too" do

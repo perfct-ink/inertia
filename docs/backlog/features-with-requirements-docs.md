@@ -61,4 +61,4 @@ cd frontend && npm install && npm run lint && npx tsc -b && npm test
 
 Then check in a browser, light and dark, at 375px and desktop: make a feature from each entry point and land in its document, write and tick a task and watch the header, fold to Tasks only and reload, delete a feature, and try to delete its document from the sidebar (it must refuse). When it merges, delete this file.
 
-Decisions for Alex: the database column stays nullable (make it `NOT NULL` once every environment is backfilled), and deleting a feature deletes the tasks written in its document.
+Decided by Alex (2026-11-06): deleting a feature deletes the tasks written in its document, and a feature made with no project files its document in the Personal Project (a feature made in a project keeps it in that project). Still open: the database column stays nullable (make it `NOT NULL` once every environment is backfilled), and the migration puts existing epics that have no folder in the hidden Root instead of a Personal Project.
