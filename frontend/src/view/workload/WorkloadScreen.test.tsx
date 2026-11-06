@@ -39,7 +39,8 @@ const rowOf = (name: string) => within(screen.getByRole('rowheader', { name: new
 test('shows each person with their capacity and hours per week, and counts tasks it could not place', () => {
   render(<WorkloadScreen />)
   expect(screen.getByRole('rowheader', { name: /^Sam 40 h\/week$/ })).toBeInTheDocument()
-  expect(rowOf('Sam').getByText('50 h')).toBeInTheDocument()
+  // The week's 50 hours, and the same 50 as the total.
+  expect(rowOf('Sam').getAllByText('50 h')).toHaveLength(2)
   expect(screen.getByText(/1 open task is not counted/)).toBeInTheDocument()
   expect(screen.queryByLabelText('Weekly capacity in hours')).not.toBeInTheDocument()
   expect(screen.getByRole('link', { name: 'Resources page' })).toHaveAttribute('href', '/resources')

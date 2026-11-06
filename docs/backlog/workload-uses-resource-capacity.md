@@ -27,4 +27,19 @@ The Workload view (`docs/backlog/workload-view.md`, branch `backlog/workload-vie
 - Tests cover the combined calculation; both feature docs are updated and this file is removed.
 
 ## Blocked
-Incomplete. The agent working on this task was stopped before it finished, so the work so far is committed as it stood. Nothing was run beyond what the commit message lists. To finish: read the diff against main (`git diff origin/main...backlog/workload-uses-resource-capacity`), complete the requirements and acceptance criteria above, write or update the feature doc in `docs/features/` and its README row, merge the current main in, run the checks (`cd frontend && npm install && npm run lint && npm test`, `cd backend && rails db:migrate && rails test`), then remove this file.
+
+Built on `backlog/workload-uses-resource-capacity`, not merged because lint, the type-check and a browser could not run on the machine that finished it.
+
+Done: the Workload view compares each person's open task hours with that person's own capacity from Resource management and drops its single "Hours per week" field (with a link to the Resources page); the Resources People tab shows each week's task hours beside the allocated hours and warns when either is over capacity (the larger of the two, not their sum, because the tasks are the work inside the allocations); the duplicate week and capacity helpers are gone from `data/workload.ts`, which now reads `weekStart`, `weekRange` and `personLoads` from `data/resource.ts`. Tests and both feature docs are updated.
+
+Ran: the static checker; `workload.test.ts` and `resource.test.ts` (pure); `WorkloadScreen.test.tsx` and `ResourcesScreen.test.tsx` in a Jest stand-in (all passed). No backend change.
+
+Not run, to do before merging:
+
+```sh
+cd frontend && npm install && npm run lint && npx tsc -b && npm test
+```
+
+Then open /workload and /resources at 375px and desktop, light and dark: change a person's capacity on Resources and watch the warning on Workload change.
+
+Merge note: `backlog/resource-time-off-and-holidays` also changes `personLoads` in `data/resource.ts` (time off lowers a week's capacity). The Workload page reads each week's capacity through `capacityOfWeek` over `personLoads`, so it should follow once both merge, but `WorkloadScreen` must pass `personLoads` the same inputs as the Resources page (it currently passes no allocations or time off). Decision for Alex: a week is over capacity when allocations or tasks alone exceed it, not when they add up.
