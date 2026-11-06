@@ -2,12 +2,12 @@
 
 @layer app.components {
   // The modal itself (Modal's className): a tall form scrolls on a short phone.
-  .ui-custom_style_dialog {
+  .custom_style_dialog {
     max-height: calc(100dvh - #{space(8)});
     overflow-y: auto;
   }
 
-  .ui-custom_style_dialog-field {
+  .custom_style_dialog-field {
     display: flex;
     flex-direction: column;
     gap: space(1.5);
@@ -15,13 +15,13 @@
   }
 
   // Two columns when they fit (a 375px phone), one when they don't.
-  .ui-custom_style_dialog-grid {
+  .custom_style_dialog-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
     gap: space(3);
   }
 
-  .ui-custom_style_dialog-colors {
+  .custom_style_dialog-colors {
     display: flex;
     flex-wrap: wrap;
     gap: space(2);
@@ -29,7 +29,7 @@
 
   // A color swatch: 40px to tap. The border is always 2px, so choosing one
   // doesn't move anything (design principle 7).
-  .ui-custom_style_dialog-color {
+  .custom_style_dialog-color {
     width: space(10);
     height: space(10);
     border: 2px solid transparent;

@@ -27,7 +27,7 @@ function Field<T extends string | number>({ label, value, options, onChange }: {
   onChange: (value: T | undefined) => void
 }) {
   return (
-    <label className="ui-custom_style_dialog-field">
+    <label className="custom_style_dialog-field">
       {label}
       <Select
         value={value === undefined ? '' : String(value)}
@@ -72,21 +72,21 @@ export default function CustomStyleDialog({ open, initial, styles, onCreated, on
   }
 
   return (
-    <Modal open={open} title="New paragraph style" description="Saved to your styles, for every document." onClose={onClose} className="ui-custom_style_dialog">
+    <Modal open={open} title="New paragraph style" description="Saved to your styles, for every document." onClose={onClose} className="custom_style_dialog">
       <form onSubmit={submit} className="ui-modal-form">
-        <label className="ui-custom_style_dialog-field">
+        <label className="custom_style_dialog-field">
           Name
           <Input value={name} maxLength={STYLE_NAME_MAX} autoFocus onChange={(e) => setName(e.target.value)} />
         </label>
 
-        <label className="ui-custom_style_dialog-field">
+        <label className="custom_style_dialog-field">
           Based on
           <Select value={base} onChange={(e) => setBase(e.target.value as StyleBase)}>
             {STYLE_BASES.map((id) => <option key={id} value={id}>{STYLE_BASE_LABELS[id]}</option>)}
           </Select>
         </label>
 
-        <div className="ui-custom_style_dialog-grid">
+        <div className="custom_style_dialog-grid">
           <Field label="Font" value={properties.font} onChange={set('font')} options={STYLE_FONTS.map((f) => ({ value: f, label: STYLE_FONT_LABELS[f] }))} />
           <Field label="Size" value={properties.size} onChange={set('size')} options={STYLE_SIZES.map((s) => ({ value: s, label: `${s} px` }))} />
           <Field label="Weight" value={properties.weight} onChange={set('weight')} options={STYLE_WEIGHTS.map((w) => ({ value: w, label: STYLE_WEIGHT_LABELS[w] }))} />
@@ -94,14 +94,14 @@ export default function CustomStyleDialog({ open, initial, styles, onCreated, on
           <Field label="Alignment" value={properties.align} onChange={set('align')} options={STYLE_ALIGNMENTS.map((a) => ({ value: a, label: STYLE_ALIGNMENT_LABELS[a] }))} />
         </div>
 
-        <div className="ui-custom_style_dialog-field" role="group" aria-label="Color">
+        <div className="custom_style_dialog-field" role="group" aria-label="Color">
           Color
-          <div className="ui-custom_style_dialog-colors">
+          <div className="custom_style_dialog-colors">
             <Button
               type="button"
               aria-pressed={properties.color === undefined}
               onClick={() => set('color')(undefined)}
-              className={classNames('ui-custom_style_dialog-color', 'ui-custom_style_dialog-color--default', properties.color === undefined && 'ui-custom_style_dialog-color--active')}
+              className={classNames('custom_style_dialog-color', 'custom_style_dialog-color--default', properties.color === undefined && 'custom_style_dialog-color--active')}
             >
               Default
             </Button>
@@ -114,7 +114,7 @@ export default function CustomStyleDialog({ open, initial, styles, onCreated, on
                 title={c.label}
                 onClick={() => set('color')(c.value)}
                 style={{ backgroundColor: c.value }}
-                className={classNames('ui-custom_style_dialog-color', properties.color === c.value && 'ui-custom_style_dialog-color--active')}
+                className={classNames('custom_style_dialog-color', properties.color === c.value && 'custom_style_dialog-color--active')}
               />
             ))}
           </div>
