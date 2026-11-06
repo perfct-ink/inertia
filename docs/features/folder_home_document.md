@@ -25,7 +25,7 @@ Anyone who can edit the folder.
 ## Known limits
 - There is no link from the home document back to the folder's contents; add `?view=overview` to any breadcrumb or "folder" link (see [document_breadcrumb.md](document_breadcrumb.md) once merged) or the link would bounce back to the home document.
 - Only direct documents can be the home page, and the home document is not marked in the sidebar tree.
-- The listing has no counts, sorting or search; a deep file is found by opening each folder, the sidebar tree, or All files. A project's page lists only its direct files and folders now (it used to list every file in its subfolders; the sidebar's project file list and the Projects page still show them all).
+- The listing has no counts, sorting or search; a deep file is found by opening each folder, the sidebar tree, or All files. A project's page lists only its direct files and folders now, by Alex's decision (it used to list every file in its subfolders; the sidebar's project file list and the Projects page still show them all).
 - Folder links on a phone sit in the two-column grid (Overview) or the scrolling chip row (other views); not checked at 375px in a browser.
 
 ## History

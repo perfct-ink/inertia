@@ -46,4 +46,4 @@ cd frontend && npm install && npm run lint && npx tsc -b && npm test
 
 Then open a folder with subfolders and documents (and a project) at 375px and desktop, in light and dark: the Folders section, the chip row on Board/List/Gantt, opening a subfolder, and the empty folder. When it merges, delete this file.
 
-Decision for Alex: a project's page now lists only its direct files and folders (the sidebar and the Projects page still show everything under it). Merge note: `backlog/features-with-requirements-docs` makes creating an epic also create a document, so any test that creates an epic in a folder and then counts that folder's documents needs a look once both are merged.
+Decided by Alex (2026-11-06): a project's page lists only its direct files and folders, like any folder (the sidebar and the Projects page still show everything under it). Merge note: `backlog/features-with-requirements-docs` makes creating an epic also create a document, so any test that creates an epic in a folder and then counts that folder's documents needs a look once both are merged.
