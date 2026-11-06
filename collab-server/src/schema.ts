@@ -47,11 +47,12 @@ const Heading = BaseHeading.extend({
   },
 });
 
-// Matches frontend/src/extensions/StyledParagraph.ts exactly (shape only): a
-// paragraph with a named style.
+// Matches frontend/src/extensions/StyledParagraph.ts and
+// CustomParagraphStyle.ts exactly (shape only): a paragraph with a named style,
+// and for a custom style a copy of its resolved formatting (`styleProps`).
 const Paragraph = TiptapParagraph.extend({
   addAttributes() {
-    return { style: { default: "body" } };
+    return { style: { default: "body" }, styleProps: { default: null } };
   },
 });
 

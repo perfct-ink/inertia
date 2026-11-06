@@ -25,4 +25,13 @@ describe("schema", () => {
     expect(withId.attrs).toEqual({ level: 2, id: "launch-plan" });
     expect(schema.nodeFromJSON({ type: "heading", attrs: { level: 2 } }).attrs.id).toBeNull();
   });
+
+  it("keeps a paragraph's style and, for a custom style, its stored formatting", () => {
+    const styled = schema.nodeFromJSON({
+      type: "paragraph",
+      attrs: { style: "custom-7", styleProps: { base: "quote", size: 20 } },
+    });
+    expect(styled.attrs).toEqual({ style: "custom-7", styleProps: { base: "quote", size: 20 } });
+    expect(schema.nodeFromJSON({ type: "paragraph" }).attrs).toEqual({ style: "body", styleProps: null });
+  });
 });

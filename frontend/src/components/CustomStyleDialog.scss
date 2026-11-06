@@ -1,0 +1,63 @@
+@use 'tokens' as *;
+
+@layer app.components {
+  // The modal itself (Modal's className): a tall form scrolls on a short phone.
+  .ui-custom_style_dialog {
+    max-height: calc(100dvh - #{space(8)});
+    overflow-y: auto;
+  }
+
+  .ui-custom_style_dialog-field {
+    display: flex;
+    flex-direction: column;
+    gap: space(1.5);
+    @include text('sm');
+  }
+
+  // Two columns when they fit (a 375px phone), one when they don't.
+  .ui-custom_style_dialog-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+    gap: space(3);
+  }
+
+  .ui-custom_style_dialog-colors {
+    display: flex;
+    flex-wrap: wrap;
+    gap: space(2);
+  }
+
+  // A color swatch: 40px to tap. The border is always 2px, so choosing one
+  // doesn't move anything (design principle 7).
+  .ui-custom_style_dialog-color {
+    width: space(10);
+    height: space(10);
+    border: 2px solid transparent;
+    border-radius: radius('full');
+    @include transition(border-color);
+
+    // The "no color" choice is a labelled pill rather than a swatch.
+    &--default {
+      width: auto;
+      padding: 0 space(3);
+      border-color: color(border);
+      border-radius: radius('md');
+      background: color(card);
+      color: color(muted-foreground);
+      @include text('sm');
+    }
+
+    &:hover {
+      border-color: color(border-strong);
+    }
+
+    &--active,
+    &--active:hover {
+      border-color: color(primary);
+    }
+
+    &:focus-visible {
+      @include focus-ring;
+    }
+  }
+}
