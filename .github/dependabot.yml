@@ -20,6 +20,10 @@ updates:
     # Do the v3 migration as one deliberate PR instead of via dependabot.
     - dependency-name: "@tiptap/*"
       update-types: [ "version-update:semver-major" ]
+    # Babel 8 broke npm ci: @babel/preset-env 7 still needs @babel/core 7.
+    # Move the core and presets to 8 together, by hand.
+    - dependency-name: "@babel/*"
+      update-types: [ "version-update:semver-major" ]
 - package-ecosystem: npm
   directory: "/collab-server"
   schedule:
@@ -33,6 +37,10 @@ updates:
     # (collab-server/src/schema.ts) must stay on the same Tiptap major line
     # as the frontend's real editor.
     - dependency-name: "@tiptap/*"
+      update-types: [ "version-update:semver-major" ]
+    # TypeScript 7 broke npm ci: typescript-eslint's peer range stops below
+    # it. Move to 7 by hand once typescript-eslint supports it.
+    - dependency-name: "typescript"
       update-types: [ "version-update:semver-major" ]
 - package-ecosystem: github-actions
   directory: "/"
