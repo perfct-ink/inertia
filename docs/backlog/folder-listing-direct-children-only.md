@@ -1,6 +1,6 @@
 ---
 priority: p1
-depends_on: [folder-home-document]
+depends_on: []
 components: [frontend]
 ---
 # Folders without a home document show the files and folders directly inside them (one level, not everything nested)

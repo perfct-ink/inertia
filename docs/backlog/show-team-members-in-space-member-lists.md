@@ -1,6 +1,6 @@
 ---
 priority: p2
-depends_on: [teams-with-space-roles]
+depends_on: []
 components: [backend, frontend]
 ---
 # Show people who are only on a team in the Space's member lists

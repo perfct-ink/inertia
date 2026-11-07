@@ -1,6 +1,6 @@
 ---
 priority: p3
-depends_on: [teams-with-space-roles]
+depends_on: []
 components: [backend, frontend]
 ---
 # Let a person leave a team

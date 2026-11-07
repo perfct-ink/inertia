@@ -1,6 +1,6 @@
 ---
 priority: p0
-depends_on: [notifications-inbox]
+depends_on: []
 ---
 # Ongoing tasks with check-ins
 

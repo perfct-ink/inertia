@@ -1,6 +1,6 @@
 ---
 priority: p0
-depends_on: [ai-worker-anthropic-adapter, notifications-inbox, ongoing-tasks-with-check-ins]
+depends_on: [ai-worker-anthropic-adapter, ongoing-tasks-with-check-ins]
 components: [backend, frontend]
 ---
 # AI worker: progress updates and questions

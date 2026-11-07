@@ -1,6 +1,6 @@
 ---
 priority: p1
-depends_on: [style-picker]
+depends_on: []
 components: [frontend]
 ---
 # Keyboard shortcuts for styles (e.g. Cmd+Opt+1 for Heading 1)

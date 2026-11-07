@@ -1,6 +1,6 @@
 ---
 priority: p2
-depends_on: [formula-field]
+depends_on: []
 components: [backend, frontend]
 ---
 # Formula results in the API and for sorting

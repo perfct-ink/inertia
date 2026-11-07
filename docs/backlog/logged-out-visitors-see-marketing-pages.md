@@ -1,6 +1,6 @@
 ---
 priority: p1
-depends_on: [clean-urls-no-index-html-or-hashes]
+depends_on: []
 components: [frontend, backend, deploy]
 ---
 # Logged-out visitors see the marketing pages

@@ -1,6 +1,6 @@
 ---
 priority: p3
-depends_on: [move-or-copy-content-between-spaces]
+depends_on: []
 components: [backend]
 ---
 # Move folder-attached records between Spaces

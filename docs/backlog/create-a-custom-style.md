@@ -1,6 +1,6 @@
 ---
 priority: p1
-depends_on: [style-picker]
+depends_on: []
 ---
 # Create a custom style
 

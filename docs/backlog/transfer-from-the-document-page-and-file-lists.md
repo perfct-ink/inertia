@@ -1,6 +1,6 @@
 ---
 priority: p3
-depends_on: [move-or-copy-content-between-spaces]
+depends_on: []
 components: [frontend]
 ---
 # Move or copy to another Space from the document page and file lists

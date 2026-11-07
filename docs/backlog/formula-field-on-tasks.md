@@ -1,6 +1,6 @@
 ---
 priority: p2
-depends_on: [custom-fields-on-tasks, formula-field]
+depends_on: [custom-fields-on-tasks]
 components: [frontend, backend]
 ---
 # Formula field on tasks

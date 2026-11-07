@@ -1,6 +1,6 @@
 ---
 priority: p2
-depends_on: [workload-view, resource-capacity-management]
+depends_on: []
 components: [frontend]
 ---
 # Workload view uses each person's capacity and allocations

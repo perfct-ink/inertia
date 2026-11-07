@@ -1,6 +1,6 @@
 ---
 priority: p1
-depends_on: [upload-files-and-images-into-a-folder]
+depends_on: []
 ---
 # Attach uploaded files to tasks and features
 

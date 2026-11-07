@@ -1,6 +1,6 @@
 ---
 priority: p2
-depends_on: [status-change-history]
+depends_on: []
 ---
 # Agile reports: burndown, velocity, cumulative flow, planned vs. unplanned
 

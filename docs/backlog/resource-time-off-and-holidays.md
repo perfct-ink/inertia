@@ -1,6 +1,6 @@
 ---
 priority: p2
-depends_on: [resource-capacity-management]
+depends_on: []
 components: [backend, frontend]
 ---
 # Resource planning: time off and holidays
