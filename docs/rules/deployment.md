@@ -1,18 +1,31 @@
-## Production and deployment
+<!-- agent-rules:synced from agent-rules@1.2.0+2 (69c7ce1) sha256:468b22d25497. Edit agent-rules/docs/rules/deployment.md, then run `make rules`; local edits here are not kept. -->
+## Production and Deployment
 
-Production runs on Coolify from `docker-compose.coolify.yml`; [docs/deployment.md](../deployment.md) is the runbook.
+General rules for touching production. The concrete deployment standard (hosts, pipeline, settings, secrets list) lives in the project's own deployment doc.
 
 ### Hands off production
 
-- A push to `main` deploys once CI passes: CI's last job, `deploy`, tells Coolify to deploy (Auto Deploy is off). A red CI run means nothing ships.
-- **Do not SSH to the server, run commands against the production database, or change GitHub secrets, variables or DNS.** Hand those steps to the user as exact instructions.
-- Sessions that have `COOLIFY_API_TOKEN` may use Coolify's API to check the `inertia` resource and its deployments (Alex asked for this on 2026-10-21). Change its settings or start a deploy by hand only when the user asks.
-- Secrets live in the encrypted Rails credentials (`backend/config/credentials.yml.enc`, key in the gitignored `backend/config/master.key`), in Coolify's environment variables. Never print or commit them, and never pass one as a frontend build argument (`APP_URL`, `COLLAB_URL` and anything else webpack's `DefinePlugin` reads ship to every browser).
+- Deploy only through the project's automated pipeline, as documented in its runbook.
+- Do not log in to production hosts, run commands against production databases or storage, or change CI secrets or variables. Hand those steps to the user as exact commands.
+- Never print secrets, commit them, or ship them in client-side bundles. Public client configuration is not a place for secrets, even when the value originates in a secret store.
+- Other applications may share the same host. Scope changes to this app's own resources; avoid global cleanups, host-wide restarts, or changes to shared infrastructure as part of routine deployment.
 
-### Changing the stack
+### Deployment standard
 
-- Each production service has its own Dockerfile and a health check in `docker-compose.coolify.yml`; a new service needs both. Only `web` gets a public domain; everything else is reached over the stack's network by service name.
-- Public routes are decided in `frontend/nginx/default.conf`. A new Rails-rendered page or API prefix needs a location there.
-- A new runtime setting goes in `docker-compose.coolify.yml` (as `${NAME:-default}` so it appears in Coolify), in `docs/deployment.md`'s configuration table and in `docs/services.md`, in the same commit.
-- Rails runs `db:prepare` on every boot, so migrations deploy with the code. Keep them backward compatible with the previous release, since Coolify rollbacks don't reverse them.
-- The database is the shared PostgreSQL in Coolify's Shared Infrastructure project (Alex, 2026-10-25), reached through `DATABASE_URL`. Don't add a database container to the production stack unless the user asks.
+- CI runs in GitHub Actions. An app deployed to a general VPS deploys from GitHub Actions and runs in Docker on the VPS.
+- If the project has tests, they run in CI, and the deploy runs only after they pass. Deploy only the exact commit whose required checks passed. Separate pipelines firing on the same push do not establish a dependency; use explicit dependencies between jobs.
+- Serialize production deployments, and never interrupt one in progress with a newer push.
+- Build artifacts in CI, not on the production host. Pin the server identity; do not disable host-key checking.
+- Pass runtime configuration through an explicit allowlist. Adding a setting means updating the pipeline, the deploy script, the application configuration, and the docs together. Validate required values before changing the host, and write configuration atomically with restrictive permissions.
+- Keep runtime versions consistent across version files, build files, and pipelines. Use lockfiles and bounded job timeouts.
+- Deploy scripts fail fast and are safe to rerun. Never reset databases or load demo data in production.
+- Schema changes stay compatible with rollback and with the previous release (rolling back an app doesn't reverse its migrations), or have a documented recovery procedure. Never run destructive down-migrations automatically. Document backup and restore before risky migrations.
+- Changing a storage backend does not migrate existing files. Copy and verify them through a deliberate migration, and preserve originals until verified.
+- Add paid or third-party services only when the app needs them, and never automatically.
+
+### Validation, recovery, and reporting
+
+- Before delivering deployment changes, run the relevant application checks and validate scripts, pipelines, and server configuration in suitable environments.
+- Retain a known-good build for recovery, labeled by commit, and document how to restore it and recheck health.
+- A deployment is complete only after remote health checks and public checks (frontend and a real API response over HTTPS) pass. An internal check alone does not verify the proxy, DNS, or TLS.
+- Don't claim zero downtime unless it is true. Distinguish local validation from an actual deployment, report anything unverified, and keep the README aligned with the final configuration.

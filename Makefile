@@ -5,7 +5,8 @@
         logs logs-backend logs-frontend ps \
         db-migrate db-rollback db-reset db-fake db-seed db-status \
         console routes shell-backend shell-frontend \
-        typecheck test test-backend test-frontend test-fast lint-backend nuke hooks
+        typecheck test test-backend test-frontend test-fast lint-backend nuke hooks \
+        rules rules-check
 
 # GUI-launched processes on macOS (Dock, Spotlight, a task runner — anything
 # that isn't a shell that sourced your profile) get a minimal PATH from
@@ -232,3 +233,13 @@ dev-native-mac: mac-build ## Open the native SwiftUI macOS app
 
 test-native-mac: ## Run native API/model regression tests
 	swift test --package-path macos
+
+# ── Agent rules ───────────────────────────────────────────────────────────────
+
+AGENT_RULES ?= $(HOME)/Sites/agent-rules
+
+rules: ## Sync shared agent rules from agent-rules into docs/rules/
+	@$(AGENT_RULES)/bin/agent-rules sync "$(CURDIR)"
+
+rules-check: ## Show what `make rules` would change (exit 1 if anything)
+	@$(AGENT_RULES)/bin/agent-rules check "$(CURDIR)"

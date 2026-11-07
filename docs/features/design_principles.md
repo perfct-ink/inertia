@@ -1,6 +1,6 @@
 # Design principles in the web app
 
-Alex's nine design principles (`docs/rules/product.md`, "Design principles") as they are applied in the React frontend. Most of them are enforced once, in the shared styles, so every view inherits them; this page says where each one lives so a new view gets them for free.
+Alex's design principles (`docs/rules/design-principles.md`, synced from agent-rules) as they are applied in the React frontend. Most of them are enforced once, in the shared styles, so every view inherits them; this page says where each one lives so a new view gets them for free.
 
 ## What users get
 

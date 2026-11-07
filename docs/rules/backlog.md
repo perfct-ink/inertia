@@ -1,10 +1,11 @@
+<!-- agent-rules:synced from agent-rules@1.2.0+2 (69c7ce1) sha256:4899fc1329d2. Edit agent-rules/docs/rules/backlog.md, then run `make rules`; local edits here are not kept. -->
 ## Backlog Management
 
 The `/docs/backlog/` directory contains specifications for incomplete work. Each Markdown file represents an independently actionable task. The `/docs/features/` directory documents completed and implemented functionality.
 
 ### Task Organization
 
-- Use descriptive, kebab-case filenames (e.g., `add-stripe-billing.md`).
+- Use descriptive, kebab-case filenames (e.g., `add-user-onboarding.md`).
 - Do not use sequential task numbers or infer priority from filenames.
 - Keep tasks focused, self-contained, and independently implementable whenever possible.
 - Each backlog item should describe its objective, requirements, and acceptance criteria.
@@ -56,7 +57,7 @@ The `/docs/backlog/` directory contains specifications for incomplete work. Each
 - Avoid modifying shared configuration or infrastructure files unless required.
 - Prefer tasks that affect different components when multiple agents are working concurrently.
 - Coordinate overlapping changes through Git branches and pull requests.
-- Rebase or merge against the latest main branch and rerun relevant tests before merging.
+- Rebase onto the latest main branch and rerun relevant tests before merging, then rebase merge (see Branches in [conventions.md](conventions.md)).
 
 ### Guiding Principles
 

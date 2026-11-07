@@ -1,3 +1,4 @@
+<!-- agent-rules:synced from agent-rules@1.2.0+2 (69c7ce1) sha256:9d7cee3dce75. Edit agent-rules/docs/rules/make-files.md, then run `make rules`; local edits here are not kept. -->
 # Make Files
 
 make should be used for forgettable tasks that are common development and production workflows.
@@ -10,8 +11,10 @@ Some examples are:
 - make dev - Run `make dev` and open it.
 - make build - Build for development once.
 - make running - Check to see if its running.
+- make test - Run every test suite.
 - make clean - Clean existing builds and artifacts.
-- make down - kill app. Stop docker containers if using docker.
+- make down - kill app. Stop any containers or background processes it started.
 - make help - help for all make commands, grouped by category.
 - make all - alias for `make help`
 - make deploy - If theres a deployment script that isnt in CI, deploy the app directly.
+- make release - Bump the version and tag the release (see [versioning.md](versioning.md)). Only for projects with a `VERSION` file.
