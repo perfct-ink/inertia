@@ -20,7 +20,7 @@ class ProjectScopingTest < ActionDispatch::IntegrationTest
   def titles(path, headers) = (get(path, headers: headers) && response.parsed_body.map { |r| r["title"] }).sort
 
   test "lists hold only the selected project's records, subfolders included" do
-    %i[initiatives sprints ideas releases objectives epics milestones].each do |kind|
+    %i[initiatives sprints ideas objectives epics milestones].each do |kind|
       records = @workspace.public_send(kind)
       records.create!(title: "In project", folder: @project)
       records.create!(title: "In subfolder", folder: @design)

@@ -115,13 +115,6 @@ Rails.application.routes.draw do
         post :promote, on: :member
       end
       resources :io_nodes, only: [ :index, :create, :update, :destroy ]
-      resources :releases, only: [ :index, :create, :update, :destroy ] do
-        member do
-          get :tasks
-          post :documents, action: :add_document
-          delete "documents/:document_id", action: :remove_document
-        end
-      end
       resource :portfolio, only: [ :show ], controller: "portfolio"
       resources :notifications, only: [ :index, :update ] do
         post :read_all, on: :collection

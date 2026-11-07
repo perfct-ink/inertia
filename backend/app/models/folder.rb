@@ -19,7 +19,6 @@ class Folder < ApplicationRecord
   has_many :sprints, dependent: :nullify
   has_many :ideas, dependent: :nullify
   has_many :io_nodes, dependent: :nullify
-  has_many :releases, dependent: :nullify
   has_many :objectives, dependent: :nullify
   has_many :baselines, dependent: :destroy
 

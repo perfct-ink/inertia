@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_11_03_120001) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_07_120001) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -357,26 +357,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_03_120001) do
     t.datetime "updated_at", null: false
     t.index ["destination_folder_id"], name: "index_quip_imports_on_destination_folder_id"
     t.index ["workspace_id"], name: "index_quip_imports_on_workspace_id"
-  end
-
-  create_table "release_documents", force: :cascade do |t|
-    t.bigint "release_id", null: false
-    t.bigint "document_id", null: false
-    t.index ["document_id"], name: "index_release_documents_on_document_id"
-    t.index ["release_id", "document_id"], name: "index_release_documents_on_release_id_and_document_id", unique: true
-    t.index ["release_id"], name: "index_release_documents_on_release_id"
-  end
-
-  create_table "releases", force: :cascade do |t|
-    t.bigint "workspace_id", null: false
-    t.string "title", null: false
-    t.integer "kind", default: 0, null: false
-    t.date "release_date"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.bigint "folder_id"
-    t.index ["folder_id"], name: "index_releases_on_folder_id"
-    t.index ["workspace_id"], name: "index_releases_on_workspace_id"
   end
 
   create_table "resource_allocations", force: :cascade do |t|
@@ -737,10 +717,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_03_120001) do
   add_foreign_key "project_requests", "workspaces"
   add_foreign_key "quip_imports", "folders", column: "destination_folder_id"
   add_foreign_key "quip_imports", "workspaces"
-  add_foreign_key "release_documents", "documents"
-  add_foreign_key "release_documents", "releases"
-  add_foreign_key "releases", "folders", on_delete: :nullify
-  add_foreign_key "releases", "workspaces"
   add_foreign_key "resource_allocations", "folders"
   add_foreign_key "resource_allocations", "users"
   add_foreign_key "resource_allocations", "workspaces"

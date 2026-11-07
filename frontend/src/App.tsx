@@ -233,8 +233,6 @@ export default function App() {
             </PrivateRoute>
           }
         />
-        {/* Releases was removed from the app (docs/features/releases.md). */}
-        <Route path="/releases" element={<Navigate to="/space" replace />} />
         <Route
           path="/calendar"
           element={

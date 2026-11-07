@@ -21,7 +21,6 @@ class Workspace < ApplicationRecord
   has_many :shares, as: :shareable, dependent: :destroy
   has_many :ideas, dependent: :destroy
   has_many :io_nodes, dependent: :destroy
-  has_many :releases, dependent: :destroy
   has_many :baselines, dependent: :destroy
   has_many :milestones, dependent: :destroy
   has_many :sprints, dependent: :destroy
