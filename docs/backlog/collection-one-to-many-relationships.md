@@ -1,5 +1,5 @@
 ---
-priority: p0
+priority: p2
 depends_on: []
 components: [frontend, backend]
 ---

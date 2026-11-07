@@ -1,5 +1,5 @@
 ---
-priority: p0
+priority: p1
 depends_on: [ai-worker-run-ui]
 components: [frontend, backend]
 ---

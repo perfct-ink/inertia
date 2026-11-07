@@ -1,5 +1,5 @@
 ---
-priority: p0
+priority: p1
 depends_on: [ai-worker-agent-access]
 components: [frontend, backend]
 ---

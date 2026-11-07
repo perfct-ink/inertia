@@ -7,15 +7,21 @@ components: [frontend, backend]
 
 ## Objective
 
-**More field types**, each with its own validation and display format. From jandi: email, phone, person name, username, alphanumeric (IDs/codes), money, number with commas, mileage, VIN, month, year. Also: long text, URL, percent, rating, single select, multi select/tags, person (Space member), color, created/updated time, auto-number
+**More field types**, each with its own validation and display format. From jandi: email, phone, person name, username, alphanumeric (IDs/codes), money, number with commas, mileage, month, year. Also: long text, URL, percent, rating, single select, multi select/tags, person (Space member), color, created/updated time, auto-number
 
 ## Current state
 
-7 types
+Main has 9 stored types (text, integer, number, boolean, date, datetime, relation, file, files) plus formula. Branch `backlog/collection-field-types` (2026-10-19, untested, behind main) adds 15 value-validated types.
 
 ## Requirements / notes
 
-Validation and formatting rules live in one place per type (data file plus model), so the editor, import and API all share them. Credit card, CVV and password from jandi are left out: a collection shouldn't store card numbers or passwords.
+Validation and formatting rules live in one place per type (data file plus model), so the editor, import and API all share them. Credit card, CVV, password and VIN from jandi are left out (Alex, 2026-11-07): a collection shouldn't store card numbers or passwords, and VIN isn't wanted.
+
+## Decisions (groom, Alex, 2026-11-07)
+
+- **One task, not split.** All the types in the Objective, including single and multi select, person, created/updated time and auto-number, ship as this task.
+- **Type, then format.** A field has a type, and each type has the formats that fit it; most types have exactly one. Values are stored plain and shown in the grid in the field's format (for example money as `$1,250.00`, phone as `(555) 123-4567`). Where a type has more than one format, the field form offers a format picker after the type.
+- **Left out:** credit card, CVV, password and VIN.
 
 ## Context
 
@@ -30,6 +36,7 @@ Requested by Alex on 2026-10-18: tables should be called **Collections**; collec
 ## Acceptance criteria
 
 - More field types works as described in the Objective, for a signed-in member of the Space, in the web app.
+- The grid, import and API show each value in its field's format and store it plain.
 - Anything stated in Requirements / notes (including any named default) is implemented or deliberately changed with the reason recorded.
 - Failed API calls show an error to the user.
 - Tests cover the new behaviour; a feature doc in `docs/features/` is written (or the existing one updated) and this file is removed.

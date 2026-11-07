@@ -1,5 +1,5 @@
 ---
-priority: p0
+priority: p1
 depends_on: [ai-worker-accept-result]
 components: [backend]
 ---
