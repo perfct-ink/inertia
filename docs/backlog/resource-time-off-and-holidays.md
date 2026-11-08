@@ -3,6 +3,7 @@ priority: p2
 depends_on: [resource-capacity-management]
 components: [backend, frontend]
 branch: backlog/resource-time-off-and-holidays
+status: incomplete
 ---
 # Resource planning: time off and holidays
 
