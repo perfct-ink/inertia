@@ -3,6 +3,7 @@ priority: p3
 depends_on: [teams-with-space-roles]
 components: [backend, frontend]
 branch: backlog/leave-a-team
+status: incomplete
 ---
 # Let a person leave a team
 
