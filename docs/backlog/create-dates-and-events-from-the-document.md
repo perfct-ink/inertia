@@ -16,6 +16,12 @@ Not present. `events` has `folder_id` but no `document_id`, so an event can't po
 
 Default: add `events.document_id` and an inline event node like the task item. Editing either side updates the other.
 
+### Decisions (Alex, 2026-11-08 groom)
+
+- **Dates, not events.** Picking or typing a date in a document makes a date chip linked to that spot, not a full calendar event. Every date chip still **shows on the calendar** (task calendar, `docs/features/task_calendar.md`), as an entry that links back to its place in the document. Changing the date on the calendar or in the document updates the other.
+- **Deleting the line** (groom default, not answered): the calendar entry goes with it if it is only a date chip; a real event created separately is kept, unlinked.
+- **Priority** stays p0 (not answered; left as is).
+
 ## Context
 
 Section "Plan from a single document" of the retired shared backlog.
