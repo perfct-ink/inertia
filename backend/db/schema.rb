@@ -320,6 +320,17 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_07_120001) do
     t.index ["workspace_id"], name: "index_objectives_on_workspace_id"
   end
 
+  create_table "paragraph_styles", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.string "name", null: false
+    t.string "base", default: "body", null: false
+    t.json "properties", default: {}, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["user_id", "name"], name: "index_paragraph_styles_on_user_id_and_name", unique: true
+    t.index ["user_id"], name: "index_paragraph_styles_on_user_id"
+  end
+
   create_table "project_requests", force: :cascade do |t|
     t.bigint "workspace_id", null: false
     t.bigint "requested_by_id"
@@ -711,6 +722,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_07_120001) do
   add_foreign_key "objectives", "folders", on_delete: :nullify
   add_foreign_key "objectives", "users", column: "owner_id", on_delete: :nullify
   add_foreign_key "objectives", "workspaces"
+  add_foreign_key "paragraph_styles", "users"
   add_foreign_key "project_requests", "folders", column: "project_id", on_delete: :nullify
   add_foreign_key "project_requests", "users", column: "decided_by_id", on_delete: :nullify
   add_foreign_key "project_requests", "users", column: "requested_by_id", on_delete: :nullify

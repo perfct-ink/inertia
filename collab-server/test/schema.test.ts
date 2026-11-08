@@ -25,4 +25,9 @@ describe("schema", () => {
     expect(withId.attrs).toEqual({ level: 2, id: "launch-plan" });
     expect(schema.nodeFromJSON({ type: "heading", attrs: { level: 2 } }).attrs.id).toBeNull();
   });
+
+  it("keeps a paragraph's style, including a reference to a custom style", () => {
+    expect(schema.nodeFromJSON({ type: "paragraph", attrs: { style: "custom-7" } }).attrs).toEqual({ style: "custom-7" });
+    expect(schema.nodeFromJSON({ type: "paragraph" }).attrs).toEqual({ style: "body" });
+  });
 });

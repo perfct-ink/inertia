@@ -69,6 +69,8 @@ Rails.application.routes.draw do
       resources :documents, only: [] do
         resource :file, only: [ :update ], controller: "files"
         resources :tasks, only: [ :index, :create ], shallow: true
+        # The custom paragraph styles the document's paragraphs refer to, whoever made them.
+        resources :paragraph_styles, only: [ :index ], controller: "document_paragraph_styles"
       end
 
       get "tables/:id", to: "tables#show"
@@ -119,6 +121,8 @@ Rails.application.routes.draw do
       resources :notifications, only: [ :index, :update ] do
         post :read_all, on: :collection
       end
+      # The signed-in person's own custom paragraph styles (not scoped to a Space).
+      resources :paragraph_styles, only: [ :index, :create ]
       resources :objectives, only: [ :index, :create, :update, :destroy ]
       resources :key_results, only: [ :create, :update, :destroy ] do
         resources :check_ins, only: [ :index, :create ], controller: "key_result_check_ins"

@@ -8,6 +8,8 @@ import Collaboration from '@tiptap/extension-collaboration'
 import CollaborationCursor from '@tiptap/extension-collaboration-cursor'
 import TiptapDocument from '@tiptap/extension-document'
 import { StyledParagraph } from '@/extensions/StyledParagraph'
+import { CustomParagraphStyle } from '@/extensions/CustomParagraphStyle'
+import { useDocumentCustomStyles } from '@/hooks/useDocumentCustomStyles'
 import Text from '@tiptap/extension-text'
 import Bold from '@tiptap/extension-bold'
 import Italic from '@tiptap/extension-italic'
@@ -202,6 +204,7 @@ export default function DocumentScreen() {
     extensions: [
       CustomDocument,
       StyledParagraph,
+      CustomParagraphStyle,
       Text,
       HardBreak,
       Bold,
@@ -286,6 +289,9 @@ export default function DocumentScreen() {
       },
     },
   }, [provider])
+
+  // Paragraphs in a custom style refer to it by id; the editor draws them from these definitions.
+  useDocumentCustomStyles(editor, docId)
 
   useEffect(() => {
     if (!editor || !doc) return
