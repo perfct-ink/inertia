@@ -6,6 +6,13 @@ import { ProjectNav } from './ProjectNav'
 
 jest.mock('./FolderItem', () => ({ FolderItem: ({ folder }: { folder: { name: string } }) => <p>Files of {folder.name}</p> }))
 jest.mock('@/components/project/ProjectIconDialog', () => function DialogMock() { return null })
+// The dialogs own their data hooks and are tested on their own; here they show that they were opened.
+jest.mock('@/components/project/NewProjectDialog', () => function NewProjectMock({ onClose, onCreated }: { onClose: () => void; onCreated: (p: unknown) => void }) {
+  return <div role="dialog" aria-label="New project"><button onClick={() => { onCreated({ id: 3, name: 'Billing', kind: 'project' }); onClose() }}>Pretend created</button></div>
+})
+jest.mock('@/components/project/SaveProjectTypeDialog', () => function SaveTypeMock({ project }: { project: { name: string } }) {
+  return <div role="dialog" aria-label="Save as project type">{project.name}</div>
+})
 const mockNewDocument = jest.fn()
 jest.mock('@/hooks/useNewDocument', () => ({ useNewDocument: () => mockNewDocument }))
 const mockCreateFolder = jest.fn()
@@ -148,4 +155,28 @@ test('the projects list leads to all files and to archived items, not other file
   expect(screen.getByText('Nothing archived.')).toBeInTheDocument()
   fireEvent.click(screen.getByRole('button', { name: 'All files' }))
   expect(screen.getByTestId('where')).toHaveTextContent('/documents')
+})
+
+test('New project opens the dialog, and the project it makes is opened', () => {
+  renderAt('/space')
+  expect(screen.queryByRole('dialog', { name: 'New project' })).not.toBeInTheDocument()
+  fireEvent.click(screen.getByRole('button', { name: 'New project' }))
+  fireEvent.click(within(screen.getByRole('dialog', { name: 'New project' })).getByRole('button', { name: 'Pretend created' }))
+  expect(useProjectStore.getState().activeProjectId).toBe(3)
+  expect(screen.getByTestId('where')).toHaveTextContent('/folders/3')
+  expect(screen.queryByRole('dialog', { name: 'New project' })).not.toBeInTheDocument()
+})
+
+test("the open project's dropdown can start a project or save the project as a type", () => {
+  useProjectStore.setState({ activeProjectId: 2 })
+  renderAt('/folders/2')
+  fireEvent.click(screen.getByRole('button', { name: 'Project: Messages. Switch project' }))
+  fireEvent.click(screen.getByRole('menuitem', { name: /Save as type/ }))
+  expect(within(screen.getByRole('dialog', { name: 'Save as project type' })).getByText('Messages')).toBeInTheDocument()
+
+  cleanup()
+  renderAt('/folders/2')
+  fireEvent.click(screen.getByRole('button', { name: 'Project: Messages. Switch project' }))
+  fireEvent.click(screen.getByRole('menuitem', { name: /New project/ }))
+  expect(screen.getByRole('dialog', { name: 'New project' })).toBeInTheDocument()
 })

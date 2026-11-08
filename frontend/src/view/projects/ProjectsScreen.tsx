@@ -1,18 +1,18 @@
-import { useRef, useState } from 'react'
+import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { format, parseISO } from 'date-fns'
-import { Briefcase, FolderKanban, Loader2, Plus } from 'lucide-react'
-import { Button, FormError, Input } from '@/components/ui'
+import { BookmarkPlus, Briefcase, FolderKanban, Loader2, Plus } from 'lucide-react'
+import { Button } from '@/components/ui'
 import WorkspaceLayout from '@/components/WorkspaceLayout'
 import CreateItem from '@/components/CreateItem'
 import ProjectDetails from '@/components/ProjectDetails'
 import DocTypeIcon from '@/components/DocTypeIcon'
 import ProjectIcon from '@/components/project/ProjectIcon'
 import ProjectIconDialog from '@/components/project/ProjectIconDialog'
+import NewProjectDialog from '@/components/project/NewProjectDialog'
+import SaveProjectTypeDialog from '@/components/project/SaveProjectTypeDialog'
 import type { Folder } from '@/types'
 import { useWorkspace } from '@/api/workspace'
-import { useCreateFolder } from '@/api/folders'
-import { errorMessage } from '@/api/tables'
 import { documentsIn, projectLastModified, projectsOf } from '@/data/folder'
 import { usePageTitle } from '@/hooks/usePageTitle'
 import './ProjectsScreen.scss'
@@ -24,22 +24,11 @@ import './ProjectsScreen.scss'
 export default function ProjectsScreen() {
   usePageTitle('Projects')
   const { data: workspace, isLoading } = useWorkspace()
-  const createFolder = useCreateFolder()
-  const [adding, setAdding] = useState(false)
-  const [error, setError] = useState('')
+  const [creating, setCreating] = useState(false)
   const navigate = useNavigate()
-  const nameRef = useRef('')
   const [iconFor, setIconFor] = useState<Folder | null>(null)
+  const [typeFor, setTypeFor] = useState<Folder | null>(null)
   const projects = projectsOf(workspace?.folders ?? [])
-
-  function commitAdd() {
-    const name = nameRef.current.trim()
-    setAdding(false)
-    nameRef.current = ''
-    if (!name) return
-    setError('')
-    createFolder.mutate({ name, kind: 'project' }, { onError: (e) => setError(errorMessage(e)) })
-  }
 
   return (
     <WorkspaceLayout>
@@ -52,7 +41,7 @@ export default function ProjectsScreen() {
               Portfolio
             </Button>
           )}
-          <Button variant="primary" onClick={() => setAdding(true)} className="projects-new">
+          <Button variant="primary" onClick={() => setCreating(true)} className="projects-new">
             <Plus className="projects-icon" aria-hidden="true" />
             New project
           </Button>
@@ -60,24 +49,9 @@ export default function ProjectsScreen() {
 
         <div className="projects-body">
           <div className="projects-list">
-            <FormError message={error} />
-            {adding && (
-              <Input
-                autoFocus
-                aria-label="Project name"
-                placeholder="Project name"
-                onChange={(e) => { nameRef.current = e.target.value }}
-                onBlur={commitAdd}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') commitAdd()
-                  if (e.key === 'Escape') { nameRef.current = ''; setAdding(false) }
-                }}
-              />
-            )}
-
             {isLoading && <Loader2 className="projects-icon projects-icon--spin" aria-label="Loading" />}
 
-            {!isLoading && projects.length === 0 && !adding && (
+            {!isLoading && projects.length === 0 && (
               <div className="projects-empty">
                 <FolderKanban className="projects-empty_icon" aria-hidden="true" />
                 <p>No projects yet. A project holds the documents, files, collections, tasks and events for one piece of work.</p>
@@ -96,6 +70,9 @@ export default function ProjectsScreen() {
                     <h2 id={`project-${project.id}`} className="projects-card-title">
                       <Link to={`/folders/${project.id}`} className="projects-card-link">{project.name}</Link>
                     </h2>
+                    <Button onClick={() => setTypeFor(project)} aria-label={`Save ${project.name} as a project type`} title="Save as project type" className="projects-card-action">
+                      <BookmarkPlus className="projects-icon" aria-hidden="true" />
+                    </Button>
                     <span className="projects-card-meta">
                       {docs.length} {docs.length === 1 ? 'file' : 'files'}
                       {modified && ` · updated ${format(parseISO(modified), 'MMM d, yyyy')}`}
@@ -123,6 +100,8 @@ export default function ProjectsScreen() {
             })}
           </div>
         </div>
+        {creating && <NewProjectDialog onClose={() => setCreating(false)} />}
+        {typeFor && <SaveProjectTypeDialog project={typeFor} onClose={() => setTypeFor(null)} />}
         <ProjectIconDialog project={iconFor && (projects.find((p) => p.id === iconFor.id) ?? null)} onClose={() => setIconFor(null)} />
       </div>
     </WorkspaceLayout>

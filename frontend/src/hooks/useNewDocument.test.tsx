@@ -20,7 +20,7 @@ afterEach(() => { jest.clearAllMocks(); mockFolders = [] })
 test('with no folder, a Personal Project is created, opened and used', async () => {
   mockFolders = [folder(1, 'Root')]
   await renderHook(() => useNewDocument()).result.current('document')
-  expect(mockCreateFolder).toHaveBeenCalledWith({ name: 'Personal Project', kind: 'project' })
+  expect(mockCreateFolder).toHaveBeenCalledWith({ name: 'Personal Project', kind: 'project', project_type: 'personal' })
   expect(mockSelect).toHaveBeenCalledWith(77)
   expect(mockCreateDocument).toHaveBeenCalledWith({ folderId: 77, title: 'Untitled Document', doc_type: 'document' })
   expect(mockNavigate).toHaveBeenCalledWith('/documents/9', { state: { focusTitle: true } })

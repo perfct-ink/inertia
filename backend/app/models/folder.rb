@@ -34,6 +34,7 @@ class Folder < ApplicationRecord
   enum :project_status, { planned: 0, active: 1, on_hold: 2, done: 3 }, prefix: :status, scopes: false
 
   validates :name, presence: true
+  validate :project_type_is_known, if: :project_type_changed?
   validates :icon, length: { maximum: 16 }
   validates :image_url, length: { maximum: 2048 }, format: { with: %r{\A(https?://|/)\S*\z}, message: "must be a web address" }, allow_blank: true
   validate :home_document_is_in_this_folder
@@ -101,6 +102,12 @@ class Folder < ApplicationRecord
   def owner_is_a_member
     return if owner_id.blank? || workspace.nil?
     errors.add(:owner, "must be a member of the space") unless workspace.memberships.exists?(user_id: owner_id)
+  end
+
+  # What kind of work a project is: a built-in key or one of this Space's saved
+  # types (see ProjectType). Only meaningful for projects.
+  def project_type_is_known
+    errors.add(:project_type, "is not a project type of this space") unless ProjectType.known_key?(project_type, workspace)
   end
 
   def target_date_not_before_start_date

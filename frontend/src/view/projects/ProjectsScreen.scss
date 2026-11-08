@@ -100,6 +100,24 @@
       @include truncate;
     }
 
+    // An icon-only action beside the title, with a full-size tap target.
+    @at-root .projects-card-action {
+      display: flex;
+      flex-shrink: 0;
+      align-items: center;
+      justify-content: center;
+      min-width: space(10);
+      min-height: space(10);
+      border-radius: radius('md');
+      color: color(muted-foreground);
+      @include transition(background-color, color);
+
+      &:hover {
+        background: color(accent);
+        color: color(foreground);
+      }
+    }
+
     @at-root .projects-card-link:hover {
       text-decoration: underline;
     }

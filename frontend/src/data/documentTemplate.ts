@@ -1,6 +1,6 @@
 import { buildInitialContent } from '@/data/document'
 
-type Json = Record<string, unknown>
+export type Json = Record<string, unknown>
 
 export interface DocumentTemplate {
   id: string
@@ -10,9 +10,9 @@ export interface DocumentTemplate {
 }
 
 const text = (value: string): Json => ({ type: 'text', text: value })
-const heading = (level: number, value: string): Json => ({ type: 'heading', attrs: { level }, content: [text(value)] })
-const paragraph = (value = ''): Json => (value ? { type: 'paragraph', content: [text(value)] } : { type: 'paragraph' })
-const bullets = (items: string[]): Json => ({
+export const heading = (level: number, value: string): Json => ({ type: 'heading', attrs: { level }, content: [text(value)] })
+export const paragraph = (value = ''): Json => (value ? { type: 'paragraph', content: [text(value)] } : { type: 'paragraph' })
+export const bullets = (items: string[]): Json => ({
   type: 'bulletList',
   content: items.map((item) => ({ type: 'listItem', content: [paragraph(item)] })),
 })
@@ -22,9 +22,15 @@ const tasks = (items: string[]): Json => ({
   content: items.map((item) => ({ type: 'workspaceTaskItem', content: [paragraph(item)] })),
 })
 
-function doc(title: string, blocks: Json[]): Json {
+export function doc(title: string, blocks: Json[]): Json {
   const [titleHeading] = (buildInitialContent(title).content as Json[])
   return { type: 'doc', content: [titleHeading, ...blocks] }
+}
+
+// A template under another title; its first block is the title heading.
+export function withTitle(template: DocumentTemplate, title: string): DocumentTemplate {
+  const [, ...blocks] = template.content.content as Json[]
+  return { ...template, title, content: doc(title, blocks) }
 }
 
 export const REQUIREMENTS_TEMPLATE: DocumentTemplate = {

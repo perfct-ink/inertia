@@ -1,0 +1,132 @@
+@use 'tokens' as *;
+
+@layer app.components {
+  // Wider than the default modal and scrollable, so the type list fits a phone.
+  .ui-new_project_dialog {
+    max-width: 40rem;
+    max-height: calc(100dvh - #{space(8)});
+    overflow-y: auto;
+  }
+
+  .ui-new_project_dialog-form {
+    display: flex;
+    flex-direction: column;
+    gap: space(3);
+    margin-top: space(3);
+  }
+
+  .ui-new_project_dialog-heading {
+    color: color(muted-foreground);
+    font-weight: 500;
+    @include text('xs');
+  }
+
+  // One column on a phone, two from the small breakpoint up.
+  .ui-new_project_dialog-types {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: space(2);
+
+    @include up('sm') {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  // The border is always the same width, so choosing a type changes its color
+  // only, never its size.
+  .ui-new_project_dialog-type {
+    display: flex;
+    flex: 1 1 auto;
+    align-items: flex-start;
+    gap: space(3);
+    width: 100%;
+    min-height: space(10);
+    padding: space(3);
+    border: 1px solid color(border);
+    border-radius: radius('md');
+    text-align: left;
+    @include transition(background-color, border-color);
+
+    &:hover {
+      background: color(accent);
+    }
+
+    &--selected {
+      border-color: color(primary);
+      background: color(accent);
+    }
+  }
+
+  .ui-new_project_dialog-type_icon {
+    flex-shrink: 0;
+    width: space(6);
+    font-size: 1.25rem;
+    line-height: 1.5rem;
+    text-align: center;
+  }
+
+  .ui-new_project_dialog-blank_icon {
+    width: space(5);
+    height: space(5);
+    color: color(muted-foreground);
+  }
+
+  .ui-new_project_dialog-type_text {
+    display: flex;
+    flex-direction: column;
+    gap: space(0.5);
+    min-width: 0;
+  }
+
+  .ui-new_project_dialog-type_name {
+    font-weight: 500;
+    @include text('sm');
+  }
+
+  .ui-new_project_dialog-type_about {
+    color: color(muted-foreground);
+    @include text('xs');
+  }
+
+  .ui-new_project_dialog-saved {
+    display: flex;
+    align-items: stretch;
+    gap: space(1);
+  }
+
+  .ui-new_project_dialog-delete {
+    display: inline-flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    min-width: space(10);
+    border-radius: radius('md');
+    color: color(muted-foreground);
+
+    &:hover {
+      background: color(accent);
+      color: color(foreground);
+    }
+  }
+
+  .ui-new_project_dialog-delete_icon {
+    width: space(4);
+    height: space(4);
+  }
+
+  .ui-new_project_dialog-confirm {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    gap: space(2);
+    padding: space(3);
+    border: 1px solid color(border);
+    border-radius: radius('md');
+    @include text('sm');
+  }
+
+  .ui-new_project_dialog-confirm_actions {
+    display: flex;
+    gap: space(2);
+  }
+}

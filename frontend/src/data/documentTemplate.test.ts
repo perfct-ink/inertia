@@ -1,4 +1,4 @@
-import { DOCUMENT_TEMPLATES } from './documentTemplate'
+import { DOCUMENT_TEMPLATES, withTitle } from './documentTemplate'
 import { extractTitle } from './document'
 
 type Node = { type: string; content?: Node[] }
@@ -37,4 +37,14 @@ test('the PRD template has its sections, with requirements and milestones as tas
   expect(after('Requirements')).toBe('workspaceTaskList')
   expect(after('Milestones')).toBe('workspaceTaskList')
   expect(after('Acceptance criteria')).toBe('bulletList')
+})
+
+test('withTitle keeps the sections and renames the title heading', () => {
+  const song = DOCUMENT_TEMPLATES.find((t) => t.id === 'song')!
+  const renamed = withTitle(song, 'Song 1')
+  expect(renamed.title).toBe('Song 1')
+  expect(extractTitle(renamed.content)).toBe('Song 1')
+  expect(JSON.stringify(renamed.content)).toContain('Versions and stems')
+  expect((renamed.content as { content: Node[] }).content).toHaveLength((song.content as { content: Node[] }).content.length)
+  expect(extractTitle(song.content)).toBe('Untitled Song')
 })

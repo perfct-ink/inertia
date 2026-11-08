@@ -235,4 +235,20 @@ class SpaceTransferTest < ActiveSupport::TestCase
     assert_equal @source.id, task.reload.workspace_id
     assert_equal @source_folder, document.reload.folder
   end
+
+  test "a project keeps a built-in type when copied or moved, and a saved type only inside its own Space" do
+    saved = @source.project_types.create!(name: "Release")
+    built_in = @source.folders.create!(name: "Debut", kind: :project, project_type: "music_release")
+    custom = @source.folders.create!(name: "Album", kind: :project, project_type: saved.key)
+
+    assert_equal "music_release", transfer_into(@team_root).copy_folder(built_in).project_type
+    assert_equal "blank", transfer_into(@team_root).copy_folder(custom).project_type
+    assert_equal saved.key, transfer_into(@source.root_folder).copy_folder(custom).project_type
+    assert_equal saved.key, custom.reload.project_type
+
+    transfer_into(@team_root).move_folder(custom)
+    assert_equal "blank", custom.reload.project_type
+    transfer_into(@team_root).move_folder(built_in)
+    assert_equal "music_release", built_in.reload.project_type
+  end
 end

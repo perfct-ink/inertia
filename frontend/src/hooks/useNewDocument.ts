@@ -26,7 +26,7 @@ export function useNewDocument() {
     if (!target) {
       if (!workspace) throw new Error('The space is still loading. Please try again.')
       const personal = projectsOf(workspace.folders ?? []).find((p) => p.name === PERSONAL_PROJECT_NAME)
-        ?? await createFolder.mutateAsync({ name: PERSONAL_PROJECT_NAME, kind: 'project' })
+        ?? await createFolder.mutateAsync({ name: PERSONAL_PROJECT_NAME, kind: 'project', project_type: 'personal' })
       selectProject(personal.id)
       target = personal.id
     }

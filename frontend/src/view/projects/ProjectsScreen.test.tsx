@@ -1,5 +1,5 @@
 import '@testing-library/jest-dom'
-import { fireEvent, render, screen } from '@testing-library/react'
+import { fireEvent, render, screen, within } from '@testing-library/react'
 import ProjectsScreen from './ProjectsScreen'
 
 jest.mock('@/components/WorkspaceLayout', () => function LayoutMock({ children }: { children: React.ReactNode }) { return <div>{children}</div> })
@@ -11,8 +11,14 @@ jest.mock('react-router-dom', () => ({
 jest.mock('@/components/CreateItem', () => function CreateItemMock() { return null })
 jest.mock('@/components/project/ProjectIconDialog', () => function DialogMock() { return null })
 jest.mock('@/components/ProjectDetails', () => function DetailsMock() { return null })
+// The dialogs own their data hooks and are tested on their own; here they show that they were opened.
+jest.mock('@/components/project/NewProjectDialog', () => function NewProjectMock({ onClose }: { onClose: () => void }) {
+  return <div role="dialog" aria-label="New project"><button onClick={onClose}>Close</button></div>
+})
+jest.mock('@/components/project/SaveProjectTypeDialog', () => function SaveTypeMock({ project }: { project: { name: string } }) {
+  return <div role="dialog" aria-label="Save as project type">{project.name}</div>
+})
 
-const mockCreateFolder = { mutate: jest.fn() }
 const doc = (id: number, title: string) => ({ id, title, doc_type: 'document', updated_at: '2026-10-05T00:00:00Z', content_updated_at: null })
 const mockWorkspace = {
   root_folder_id: 1,
@@ -27,7 +33,6 @@ const mockWorkspace = {
 jest.mock('@/api/workspace', () => ({
   useWorkspace: () => ({ data: mockWorkspace, isLoading: false }),
 }))
-jest.mock('@/api/folders', () => ({ useCreateFolder: () => mockCreateFolder }))
 
 test('lists each project with the docs inside it, including subfolders', () => {
   render(<ProjectsScreen />)
@@ -38,13 +43,19 @@ test('lists each project with the docs inside it, including subfolders', () => {
   expect(screen.getByText(/2 files/)).toBeInTheDocument()
 })
 
-test('creates a project from the name typed in', () => {
+test('New project opens the dialog, which can be closed', () => {
   render(<ProjectsScreen />)
+  expect(screen.queryByRole('dialog', { name: 'New project' })).not.toBeInTheDocument()
   fireEvent.click(screen.getByRole('button', { name: 'New project' }))
-  const input = screen.getByRole('textbox', { name: 'Project name' })
-  fireEvent.change(input, { target: { value: 'Billing' } })
-  fireEvent.keyDown(input, { key: 'Enter' })
-  expect(mockCreateFolder.mutate).toHaveBeenCalledWith({ name: 'Billing', kind: 'project' }, expect.anything())
+  const dialog = screen.getByRole('dialog', { name: 'New project' })
+  fireEvent.click(within(dialog).getByRole('button', { name: 'Close' }))
+  expect(screen.queryByRole('dialog', { name: 'New project' })).not.toBeInTheDocument()
+})
+
+test('a project card can be saved as a project type', () => {
+  render(<ProjectsScreen />)
+  fireEvent.click(screen.getByRole('button', { name: 'Save Messages as a project type' }))
+  expect(within(screen.getByRole('dialog', { name: 'Save as project type' })).getByText('Messages')).toBeInTheDocument()
 })
 
 test('the Portfolio button opens the portfolio once there are projects', () => {

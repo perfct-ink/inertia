@@ -1,12 +1,14 @@
 import { useEffect, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import {
-  Archive, ArchiveRestore, Database, FilePlus, FolderPlus, Table as SheetIcon, ChevronsUpDown, Folder as FolderIcon, FolderKanban, FileText,
+  Archive, ArchiveRestore, BookmarkPlus, Database, FilePlus, FolderPlus, Table as SheetIcon, ChevronsUpDown, Folder as FolderIcon, FolderKanban, FileText,
   LayoutDashboard, Plus, Smile,
 } from 'lucide-react'
-import { Button, FormError, Input, Menu, PromptDialog, classNames } from '@/components/ui'
+import { Button, FormError, Input, Menu, classNames } from '@/components/ui'
 import ProjectIcon from '@/components/project/ProjectIcon'
 import ProjectIconDialog from '@/components/project/ProjectIconDialog'
+import NewProjectDialog from '@/components/project/NewProjectDialog'
+import SaveProjectTypeDialog from '@/components/project/SaveProjectTypeDialog'
 import { useWorkspace } from '@/api/workspace'
 import { useArchivedFolders, useCreateFolder, useUpdateFolder } from '@/api/folders'
 import { errorMessage } from '@/api/tables'
@@ -34,8 +36,8 @@ export function ProjectNav() {
   const selectProject = useSelectProject()
   const activeProjectId = useProjectStore((s) => s.activeProjectId)
   const openProject = useOpenProject()
-  const [adding, setAdding] = useState(false)
-  const [naming, setNaming] = useState(false)
+  const [creating, setCreating] = useState(false)
+  const [savingType, setSavingType] = useState<Folder | null>(null)
   const [showArchived, setShowArchived] = useState(false)
   const { data: archivedFolders = [] } = useArchivedFolders()
   const updateFolder = useUpdateFolder()
@@ -63,17 +65,6 @@ export function ProjectNav() {
   function open(project: Folder) {
     selectProject(project.id)
     navigate(`/folders/${project.id}`)
-  }
-
-  async function add(name: string) {
-    setAdding(false)
-    if (!name) return
-    setError('')
-    try {
-      open(await createFolder.mutateAsync({ name, kind: 'project' }))
-    } catch (e) {
-      setError(errorMessage(e))
-    }
   }
 
   async function createIn(project: Folder, type: Document['doc_type']) {
@@ -118,7 +109,8 @@ export function ProjectNav() {
                   onSelect: () => open(project),
                 })),
                 { key: 'overview', label: 'Overview', icon: <LayoutDashboard className="project_nav-icon" />, separatorBefore: true, onSelect: () => navigate(`/folders/${openProject.id}`) },
-                { key: 'new', label: 'New project...', icon: <Plus className="project_nav-icon" />, onSelect: () => setNaming(true) },
+                { key: 'new', label: 'New project...', icon: <Plus className="project_nav-icon" />, onSelect: () => setCreating(true) },
+                { key: 'save-type', label: 'Save as type...', icon: <BookmarkPlus className="project_nav-icon" />, onSelect: () => setSavingType(openProject) },
                 { key: 'icon', label: 'Change icon...', icon: <Smile className="project_nav-icon" />, onSelect: () => setIconFor(openProject) },
                 { key: 'all', label: 'All projects', icon: <FolderKanban className="project_nav-icon" />, onSelect: () => navigate('/space') },
               ]}
@@ -206,29 +198,14 @@ export function ProjectNav() {
               >
                 <Archive className="project_nav-icon" />
               </Button>
-              <Button title="New project" aria-label="New project" onClick={() => setAdding(true)} className="project_nav-tool">
+              <Button title="New project" aria-label="New project" onClick={() => setCreating(true)} className="project_nav-tool">
                 <Plus className="project_nav-icon" />
               </Button>
             </div>
           </div>
 
           <FormError message={error} />
-          {adding && (
-            <div className="project_nav-new">
-              <Input
-                autoFocus
-                aria-label="Project name"
-                placeholder="Project name"
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') add(e.currentTarget.value.trim())
-                  if (e.key === 'Escape') setAdding(false)
-                }}
-                onBlur={(e) => add(e.currentTarget.value.trim())}
-              />
-            </div>
-          )}
-
-          {workspace && projects.length === 0 && !adding && (
+          {workspace && projects.length === 0 && (
             <p className="project_nav-note">No projects yet.</p>
           )}
 
@@ -261,7 +238,8 @@ export function ProjectNav() {
         </>
       )}
 
-      <PromptDialog open={naming} title="New project" label="Project name" placeholder="e.g. Website relaunch" submitLabel="Create" onSubmit={add} onClose={() => setNaming(false)} />
+      {creating && <NewProjectDialog onClose={() => setCreating(false)} onCreated={open} />}
+      {savingType && <SaveProjectTypeDialog project={savingType} onClose={() => setSavingType(null)} />}
       <ProjectIconDialog
         project={iconFor && (projects.find((p) => p.id === iconFor.id) ?? null)}
         onClose={() => setIconFor(null)}

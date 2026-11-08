@@ -180,6 +180,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_07_120001) do
     t.bigint "home_document_id"
     t.string "icon"
     t.string "image_url"
+    t.string "project_type", default: "blank", null: false
     t.index ["home_document_id"], name: "index_folders_on_home_document_id"
     t.index ["owner_id"], name: "index_folders_on_owner_id"
     t.index ["parent_id"], name: "index_folders_on_parent_id"
@@ -340,6 +341,18 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_07_120001) do
     t.index ["project_id"], name: "index_project_requests_on_project_id"
     t.index ["requested_by_id"], name: "index_project_requests_on_requested_by_id"
     t.index ["workspace_id"], name: "index_project_requests_on_workspace_id"
+  end
+
+  create_table "project_types", force: :cascade do |t|
+    t.bigint "workspace_id", null: false
+    t.string "name", null: false
+    t.text "description"
+    t.string "icon"
+    t.json "template", default: {}, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["workspace_id", "name"], name: "index_project_types_on_workspace_id_and_name", unique: true
+    t.index ["workspace_id"], name: "index_project_types_on_workspace_id"
   end
 
   create_table "quip_imports", force: :cascade do |t|
@@ -715,6 +728,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_07_120001) do
   add_foreign_key "project_requests", "users", column: "decided_by_id", on_delete: :nullify
   add_foreign_key "project_requests", "users", column: "requested_by_id", on_delete: :nullify
   add_foreign_key "project_requests", "workspaces"
+  add_foreign_key "project_types", "workspaces"
   add_foreign_key "quip_imports", "folders", column: "destination_folder_id"
   add_foreign_key "quip_imports", "workspaces"
   add_foreign_key "resource_allocations", "folders"

@@ -123,6 +123,7 @@ Rails.application.routes.draw do
       resources :key_results, only: [ :create, :update, :destroy ] do
         resources :check_ins, only: [ :index, :create ], controller: "key_result_check_ins"
       end
+      resources :project_types, only: [ :index, :create, :destroy ]
       resources :project_requests, only: [ :index, :create, :update, :destroy ] do
         member do
           post :approve

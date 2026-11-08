@@ -68,7 +68,7 @@ module Api
 
       def create
         folder = current_workspace.folders.build(folder_params)
-        if folder.save
+        if save_with_template(folder)
           render json: FolderBlueprint.render(folder), status: :created
         else
           render json: { errors: folder.errors.full_messages }, status: :unprocessable_entity
@@ -114,6 +114,33 @@ module Api
 
       private
 
+      # Saves the folder and, for a project started from a type, the documents,
+      # Collections and tasks of its template: all of it, or none. The template
+      # is the one in the request (the built-in types send theirs), else the
+      # saved type the project names.
+      def save_with_template(folder)
+        template = starting_template(folder)
+        Folder.transaction do
+          raise ActiveRecord::Rollback unless folder.save
+
+          ProjectTemplate.apply(template, folder: folder, user: current_user) if template
+          true
+        end || false
+      rescue ProjectTemplate::Invalid, ActiveRecord::RecordInvalid => e
+        folder.errors.add(:base, e.is_a?(ActiveRecord::RecordInvalid) ? e.record.errors.full_messages.to_sentence : e.message)
+        false
+      end
+
+      def starting_template(folder)
+        if params.key?(:template)
+          raise ProjectTemplate::Invalid, "Only a project can start from a template." unless folder.project?
+
+          params[:template]
+        elsif folder.project?
+          ProjectType.for_key(folder.project_type, current_workspace)&.template
+        end
+      end
+
       def transferred(folder)
         { workspace_id: folder.workspace_id, folder: FolderBlueprint.render_as_hash(folder, root_folder_id: folder.workspace.root_folder_id) }
       end
@@ -123,7 +150,7 @@ module Api
       end
 
       def folder_params
-        params.require(:folder).permit(:name, :kind, :dependency_mode, :parent_id, :position, :pinned, :archived, :owner_id, :project_status, :start_date, :target_date, :description, :home_document_id, :icon, :image_url)
+        params.require(:folder).permit(:name, :kind, :dependency_mode, :parent_id, :position, :pinned, :archived, :owner_id, :project_status, :start_date, :target_date, :description, :home_document_id, :icon, :image_url, :project_type)
       end
     end
   end

@@ -1,4 +1,6 @@
 ---
+branch: backlog/project-types
+status: incomplete
 priority: p2
 depends_on: []
 ---
@@ -39,3 +41,20 @@ Requested by Alex on 2026-10-18: write product requirement documents that turn i
 - Anything stated in Requirements / notes (including any named default) is implemented or deliberately changed with the reason recorded.
 - Failed API calls show an error to the user.
 - Tests cover the new behaviour; a feature doc in `docs/features/` is written (or the existing one updated) and this file is removed.
+
+## Unverified
+Built on this branch (see `docs/features/project_types.md`): the eight types with starting documents, Collections and tasks, a New project dialog with a type picker, saving a project as a type, deleting a saved type, a Type select on the project card, and the project type through copy and move between Spaces. The decisions made for Alex are in the feature doc ("Decisions"): the type is a string key on `folders.project_type`, built-in templates live in the web app, the "features a type turns on" part is deferred until the per-project and per-Space features settings exist (so it does not collide with their columns), and a type does not create Space-wide task fields.
+
+Ran here: `ruby -c` on every changed Ruby file, the pure `ProjectTemplate.clean` cases with `ruby -e`, the data tests (`projectType`, `documentTemplate`), and the component tests in the Jest stand-in.
+
+Not run (no network, node_modules, database or browser here). To verify:
+
+```bash
+cd backend && rails db:migrate && git diff db/schema.rb   # only the project_type column and the project_types table should differ
+cd backend && rails test
+cd frontend && npm install && npm run lint && npx tsc -b && npm test
+```
+
+Then look at the Projects page and the sidebar in a browser at 375px and desktop, light and dark: the New project dialog (type cards, saved types, delete), Save as type, and the card's Type select.
+
+Left for later, filed as their own tasks: `project-types-set-features.md` (apply a type's features once the per-project and per-Space features settings land) and `project-types-edit-saved.md` (rename and update a saved type). Not filed: a type column or filter on the Portfolio. Delete this file when the branch is merged.

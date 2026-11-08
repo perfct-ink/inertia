@@ -87,6 +87,8 @@ class SpaceTransfer
       move_documents(documents)
       QuipImport.where(destination_folder_id: folder_ids).update_all(destination_folder_id: nil)
       Folder.where(id: folder_ids).update_all(workspace_id: @workspace.id)
+      # A saved project type belongs to one Space, so its projects become plain ones here.
+      Folder.where(id: folder_ids).where.not(project_type: ProjectType::BUILT_IN).update_all(project_type: ProjectType::BLANK)
       folder.reload.update!(parent: @target_folder)
       folder
     end
@@ -126,7 +128,8 @@ class SpaceTransfer
   def copy_tree(folder, parent, pairs)
     copy = @workspace.folders.create!(
       name: folder.name, kind: folder.kind, dependency_mode: folder.dependency_mode,
-      position: folder.position, archived_at: folder.archived_at, parent: parent
+      position: folder.position, archived_at: folder.archived_at, parent: parent,
+      project_type: ProjectType.key_for(folder.project_type, @workspace)
     )
     folder.documents.each { |document| pairs << [ document, copy ] }
     folder.children.each { |child| copy_tree(child, copy, pairs) }

@@ -23,6 +23,9 @@ export interface Document {
 export type FolderKind = 'folder' | 'project' | 'feature'
 export type FeatureStatus = 'planned' | 'active' | 'done'
 export type ProjectStatus = 'planned' | 'active' | 'on_hold' | 'done'
+// What kind of work a project is: a built-in key ('software', 'music_release', ...)
+// or 'custom_<id>' for a type the Space saved (see data/projectType.ts).
+export type ProjectTypeKey = string
 // How a folder's Gantt reacts to dependency links when a task is rescheduled.
 export type DependencyMode = 'none' | 'strict' | 'flexible'
 
@@ -38,6 +41,8 @@ export interface Folder {
   // Project details (kind: project)
   owner_id?: number | null
   project_status?: ProjectStatus
+  // Older servers send none; read it as 'blank'.
+  project_type?: ProjectTypeKey
   start_date?: string | null
   target_date?: string | null
   description?: string | null
@@ -56,6 +61,18 @@ export interface Folder {
   // WorkspacesController#show / FolderBlueprint.
   has_tasks: boolean
   has_events: boolean
+}
+
+// A project type the Space saved from one of its projects. The server keeps the
+// template; `starts_with` says what a new project of the type gets.
+export interface SavedProjectType {
+  id: number
+  key: ProjectTypeKey
+  name: string
+  description: string | null
+  icon: string | null
+  starts_with: { documents: number; collections: number; tasks: number }
+  created_at: string
 }
 
 // A folder as listed for choosing where to put something in a Space: the

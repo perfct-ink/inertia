@@ -4,11 +4,13 @@ import ProjectDetails from './ProjectDetails'
 
 const mockUpdate = { mutate: jest.fn() }
 jest.mock('@/api/folders', () => ({ useUpdateFolder: () => mockUpdate }))
+const mockSavedTypes = [{ id: 7, key: 'custom_7', name: 'Podcast season' }]
+jest.mock('@/api/projectTypes', () => ({ useProjectTypes: () => ({ data: mockSavedTypes }) }))
 jest.mock('@/api/workspaceMembers', () => ({
   useWorkspaceMembers: () => ({ data: [{ user_id: 7, user: { id: 7, name: 'Sam', email: 's@x.co' } }] }),
 }))
 
-const project = { id: 2, name: 'Album', kind: 'project', project_status: 'planned', owner_id: null, start_date: null, target_date: null, description: null } as never
+const project = { id: 2, name: 'Album', kind: 'project', project_status: 'planned', project_type: 'blank', owner_id: null, start_date: null, target_date: null, description: null } as never
 
 afterEach(() => jest.clearAllMocks())
 
@@ -26,4 +28,14 @@ test('saves owner, status, dates and description', () => {
   fireEvent.change(description, { target: { value: 'Ten songs' } })
   fireEvent.blur(description)
   expect(mockUpdate.mutate).toHaveBeenCalledWith({ id: 2, description: 'Ten songs' }, expect.anything())
+})
+
+test('relabels the project with a built-in or a saved type', () => {
+  render(<ProjectDetails project={project} />)
+  const type = screen.getByLabelText('Type')
+  expect(type).toHaveValue('blank')
+  fireEvent.change(type, { target: { value: 'music_release' } })
+  expect(mockUpdate.mutate).toHaveBeenCalledWith({ id: 2, project_type: 'music_release' }, expect.anything())
+  fireEvent.change(type, { target: { value: 'custom_7' } })
+  expect(mockUpdate.mutate).toHaveBeenCalledWith({ id: 2, project_type: 'custom_7' }, expect.anything())
 })

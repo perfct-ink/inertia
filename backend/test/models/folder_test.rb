@@ -126,4 +126,27 @@ class FolderTest < ActiveSupport::TestCase
     assert_not project.valid?
     assert_includes project.errors[:owner], "must be a member of the space"
   end
+
+  test "a project holds its type as a key: blank by default, a built-in one, or one the Space saved" do
+    user = User.create!(name: "Ada", email: "ptype-ada@example.com", password: "password123")
+    project = user.workspace.folders.create!(name: "Album", kind: :project)
+    assert_equal "blank", project.project_type
+
+    project.update!(project_type: "music_release")
+    assert_equal "music_release", project.reload.project_type
+
+    project.project_type = "bogus"
+    assert_not project.valid?
+    assert_includes project.errors[:project_type], "is not a project type of this space"
+    project.project_type = nil
+    assert_not project.valid?
+
+    saved = user.workspace.project_types.create!(name: "Podcast")
+    project.update!(project_type: saved.key)
+    assert_equal "custom_#{saved.id}", project.reload.project_type
+
+    elsewhere = Workspace.create!(name: "Team", user: user).folders.create!(name: "Other", kind: :project)
+    elsewhere.project_type = saved.key
+    assert_not elsewhere.valid?
+  end
 end

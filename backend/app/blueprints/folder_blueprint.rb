@@ -5,6 +5,7 @@ class FolderBlueprint < Blueprinter::Base
   field :parent_id
   field :home_document_id
   fields :owner_id, :project_status, :start_date, :target_date, :description
+  field :project_type
   field :root do |folder, options|
     folder.id == (options[:root_folder_id] || folder.workspace.root_folder_id)
   end
