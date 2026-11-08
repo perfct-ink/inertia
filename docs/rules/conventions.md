@@ -1,4 +1,4 @@
-<!-- agent-rules:synced from agent-rules@1.2.0+2 (69c7ce1) sha256:0c194b4bc352. Edit agent-rules/docs/rules/conventions.md, then run `make rules`; local edits here are not kept. -->
+<!-- agent-rules:synced from agent-rules@1.2.0+6 (adbbcd4) sha256:9ad4744a12b0. Edit agent-rules/docs/rules/conventions.md, then run `make rules`; local edits here are not kept. -->
 ## Conventions
 
 - **Match surrounding code.** Keep comment density, naming, and idioms consistent. Comments explain *why*; many files have a header comment worth reading before you edit.
@@ -8,6 +8,7 @@
 - **Git.** Commit only when asked. Don't push the production branch unless the user asks. Keep commit messages descriptive and in the style of `git log`.
 - **Branches merge by rebase.** Before merging a branch, rebase it onto the latest `origin/main` and rerun the checks; then merge it as a rebase merge (fast-forward main, or the code host's "Rebase and merge"), so main's history stays linear. Don't use merge commits or squash merges unless the user asks. Pushing a rebased branch you own needs `git push --force-with-lease`; never force-push main or a branch someone else is working on.
 - **Finishing a code change.** After a request that changes code, run `make test` (or the project's test command), then suggest one or more commit messages and ask the user to type "commit". When they do, `git add`, `git commit` and `git push`. With [prototyping mode](prototyping-mode.md) on, run the tests and commit and push without waiting; in [backlog mode](backlog-mode.md), follow its branch rules.
+- **Asking the user questions.** Ask one question per message and wait for its answer before asking the next, even when one task raises several. If a question goes unanswered, ask it again; never assume an answer, including your own recommendation.
 - **Large or ambiguous work (outside backlog mode).** Propose a scoped first step and confirm it with the user before building.
 - **Other sessions work here too.** Several agents may work in a repo at once, so the working tree and `origin` can change under you. `git fetch` before assuming state, and check `docs/backlog/` and recent `git log` before a non-trivial build, since another session may have built it already. A rejected push because `origin` moved is routine: fetch, confirm the new commits don't touch your change, `git pull --rebase`, and push again. Never force-push a shared branch.
 - **Production data.** Anything that writes or deletes production data (backfills, dedupes, resets) is dry-run first, and needs a backup and the user's go-ahead.
