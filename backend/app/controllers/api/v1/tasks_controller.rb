@@ -24,8 +24,7 @@ module Api
         end
         if current_project
           # Same two routes into the project, across its subfolders.
-          tasks = tasks.left_joins(:document)
-            .where("tasks.folder_id IN (:ids) OR documents.folder_id IN (:ids)", ids: project_folder_ids)
+          tasks = tasks.in_folders(project_folder_ids)
         end
         tasks = tasks.title_matching(params[:q]) if params[:q]
         render json: TaskBlueprint.render(tasks, view: :with_document_and_field_values, current_user: current_user)
