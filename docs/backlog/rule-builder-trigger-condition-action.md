@@ -2,6 +2,7 @@
 priority: p2
 depends_on: []
 branch: backlog/rule-builder-trigger-condition-action
+status: incomplete
 ---
 # Rule builder: trigger → condition → action
 
