@@ -57,3 +57,17 @@ test('a disabled option cannot be picked and an uncontrolled select shows its de
   fireEvent.click(option('Small'))
   expect(onChange).not.toHaveBeenCalled()
 })
+
+test('an option can carry a hint, shown at the end of its entry in the list and not on the face', () => {
+  const { container } = render(
+    <Select defaultValue="a">
+      <option value="a" data-hint="⌘⌥7">Title</option>
+      <option value="b">Body</option>
+    </Select>
+  )
+  expect(container.querySelector('.ui-select-value')).not.toHaveTextContent('⌘')
+  fireEvent.click(container.querySelector('.ui-select') as HTMLElement)
+  const list = within(screen.getByRole('listbox'))
+  expect(within(list.getByRole('option', { name: 'Title' })).getByText('⌘⌥7')).toBeInTheDocument()
+  expect(within(list.getByRole('option', { name: 'Body' })).queryByText('⌘⌥7')).not.toBeInTheDocument()
+})

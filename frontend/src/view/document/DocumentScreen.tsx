@@ -8,6 +8,7 @@ import Collaboration from '@tiptap/extension-collaboration'
 import CollaborationCursor from '@tiptap/extension-collaboration-cursor'
 import TiptapDocument from '@tiptap/extension-document'
 import { StyledParagraph } from '@/extensions/StyledParagraph'
+import { ParagraphStyleShortcuts } from '@/extensions/ParagraphStyleShortcuts'
 import Text from '@tiptap/extension-text'
 import Bold from '@tiptap/extension-bold'
 import Italic from '@tiptap/extension-italic'
@@ -202,6 +203,7 @@ export default function DocumentScreen() {
     extensions: [
       CustomDocument,
       StyledParagraph,
+      ParagraphStyleShortcuts,
       Text,
       HardBreak,
       Bold,
@@ -209,7 +211,7 @@ export default function DocumentScreen() {
       Underline,
       Strike,
       Code,
-      HeadingAnchor.configure({ levels: [1, 2, 3, 4, 5] as (1 | 2 | 3 | 4 | 5 | 6)[] }),
+      HeadingAnchor.configure({ levels: [1, 2, 3, 4, 5, 6] }),
       BulletList,
       OrderedList,
       ListItem,
