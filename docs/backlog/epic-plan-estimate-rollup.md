@@ -3,6 +3,7 @@ priority: p2
 depends_on: [task-priority-effort-and-story-points, epic-and-feature-planning-view]
 branch: backlog/epic-plan-estimate-rollup
 components: [frontend]
+status: incomplete
 ---
 # Estimates on the epic planning view
 
