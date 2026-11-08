@@ -3,6 +3,7 @@ priority: p2
 depends_on: [teams-with-space-roles]
 components: [backend, frontend]
 branch: backlog/show-team-members-in-space-member-lists
+status: incomplete
 ---
 # Show people who are only on a team in the Space's member lists
 
