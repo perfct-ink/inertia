@@ -15,7 +15,7 @@ Anyone who can open the document. It is read-only navigation.
 ## Known limits
 - Only on documents; sheets and Collections have their own screens without it.
 - The trail depends on the Space payload nesting; if the document's folder is archived (not in the payload) the trail shows only the Space and the document.
-- URLs are still flat ids (`docs/backlog/hierarchical-urls.md`).
+- The trail links use the hierarchical paths (`docs/features/hierarchical_urls.md`).
 
 ## History
 - Implemented 2026-10-19 on branch `backlog/breadcrumb-path-above-the-document-name`. Not merged or deployed.

@@ -1,0 +1,32 @@
+@use 'tokens' as *;
+
+@layer view {
+  .view-item {
+    display: flex;
+    flex: 1 1 0%;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: space(3);
+    padding: space(6) space(4);
+    text-align: center;
+
+    @at-root .item-spinner {
+      width: space(5);
+      height: space(5);
+
+      @include spin;
+    }
+
+    @at-root .item-title {
+      font-size: 1.25rem;
+      line-height: 1.75rem;
+      font-weight: 600;
+    }
+
+    @at-root .item-message {
+      max-width: 28rem;
+      color: color(muted-foreground);
+    }
+  }
+}

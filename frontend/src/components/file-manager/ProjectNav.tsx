@@ -11,6 +11,8 @@ import { useWorkspace } from '@/api/workspace'
 import { useArchivedFolders, useCreateFolder, useUpdateFolder } from '@/api/folders'
 import { errorMessage } from '@/api/tables'
 import { documentsIn, folderOfDocument, projectOf, projectsOf } from '@/data/folder'
+import { itemAtPath } from '@/data/path'
+import { usePaths } from '@/hooks/usePaths'
 import { useSelectProject } from '@/hooks/useSelectProject'
 import { useOpenProject } from '@/hooks/useOpenProject'
 import { TASKS_HEADING, TASK_SECTIONS } from './projectSections'
@@ -29,6 +31,7 @@ import './ProjectNav.scss'
 export function ProjectNav() {
   const navigate = useNavigate()
   const location = useLocation()
+  const paths = usePaths()
   const { data: workspace } = useWorkspace()
   const createFolder = useCreateFolder()
   const selectProject = useSelectProject()
@@ -49,8 +52,8 @@ export function ProjectNav() {
   // Opening a folder or document inside a project opens that project too.
   useEffect(() => {
     const tree = workspace?.folders ?? []
-    const folderId = Number(location.pathname.match(/^\/folders\/(\d+)/)?.[1])
-      || folderOfDocument(tree, Number(location.pathname.match(/^\/documents\/(\d+)/)?.[1]))?.id
+    const item = itemAtPath(tree, location.pathname)
+    const folderId = item?.type === 'folder' ? item.id : item ? folderOfDocument(tree, item.id)?.id : undefined
     const project = folderId ? projectOf(tree, folderId) : null
     if (project) selectProject(project.id)
   }, [location.pathname, workspace, selectProject])
@@ -62,7 +65,7 @@ export function ProjectNav() {
 
   function open(project: Folder) {
     selectProject(project.id)
-    navigate(`/folders/${project.id}`)
+    navigate(paths.folder(project.id))
   }
 
   async function add(name: string) {
@@ -117,7 +120,7 @@ export function ProjectNav() {
                   checked: project.id === openProject.id,
                   onSelect: () => open(project),
                 })),
-                { key: 'overview', label: 'Overview', icon: <LayoutDashboard className="project_nav-icon" />, separatorBefore: true, onSelect: () => navigate(`/folders/${openProject.id}`) },
+                { key: 'overview', label: 'Overview', icon: <LayoutDashboard className="project_nav-icon" />, separatorBefore: true, onSelect: () => navigate(paths.folder(openProject.id)) },
                 { key: 'new', label: 'New project...', icon: <Plus className="project_nav-icon" />, onSelect: () => setNaming(true) },
                 { key: 'icon', label: 'Change icon...', icon: <Smile className="project_nav-icon" />, onSelect: () => setIconFor(openProject) },
                 { key: 'all', label: 'All projects', icon: <FolderKanban className="project_nav-icon" />, onSelect: () => navigate('/space') },
@@ -238,7 +241,7 @@ export function ProjectNav() {
               {archivedFolders.map((folder) => (
                 <div key={folder.id} className="sidebar-archived_row">
                   {folder.kind === 'project' ? <ProjectIcon project={folder} /> : <FolderIcon className="project_nav-icon" />}
-                  <Button onClick={() => navigate(`/folders/${folder.id}`)} className="sidebar-archived_open">{folder.name}</Button>
+                  <Button onClick={() => navigate(paths.folder(folder.id))} className="sidebar-archived_open">{folder.name}</Button>
                   <Button onClick={() => updateFolder.mutate({ id: folder.id, archived: false })} title="Unarchive" aria-label={`Unarchive ${folder.name}`} className="sidebar-unarchive">
                     <ArchiveRestore className="project_nav-icon" />
                   </Button>

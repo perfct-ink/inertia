@@ -2,12 +2,14 @@ import { Link } from 'react-router-dom'
 import { ProgressBar } from '@/components/Timeline'
 import { useFolderFeatures } from '@/api/documents'
 import { FEATURE_STATUS_LABEL } from '@/data/feature'
+import { usePaths } from '@/hooks/usePaths'
 import './FeatureRollup.scss'
 
 // A folder's features (documents in feature folders), nested, each with its
 // status, owner and progress including its sub-features' tasks. Hidden when the
 // folder has none.
 export default function FeatureRollup({ folderId }: { folderId: number }) {
+  const paths = usePaths()
   const { data: rows = [] } = useFolderFeatures(folderId)
   if (rows.length === 0) return null
 
@@ -22,7 +24,7 @@ export default function FeatureRollup({ folderId }: { folderId: number }) {
           {rows.map((row) => (
             <tr key={row.id}>
               <th scope="row" style={{ paddingLeft: `${0.75 + row.depth * 1.25}rem` }}>
-                <Link to={`/documents/${row.id}`}>{row.title}</Link>
+                <Link to={paths.document(row.id)}>{row.title}</Link>
               </th>
               <td>{FEATURE_STATUS_LABEL[row.status]}{row.status_derived ? ' (auto)' : ''}</td>
               <td>{row.owner_name ?? ''}</td>

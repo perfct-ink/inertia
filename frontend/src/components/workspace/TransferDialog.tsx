@@ -2,11 +2,13 @@ import { useState, type FormEvent } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { Button, FormError, Modal, Select } from '@/components/ui'
 import { useSpaceFolders, useTransfer, type TransferResult } from '@/api/transfer'
+import { usePaths } from '@/hooks/usePaths'
 import { useSwitchWorkspace } from '@/hooks/useSwitchWorkspace'
 import { useTransferTargets } from '@/hooks/useTransferTargets'
 import { useTabsStore } from '@/store/tabs'
 import { useTransferStore } from '@/store/transfer'
 import { folderChoices } from '@/data/folder'
+import { idPath } from '@/data/path'
 import {
   isMovedPage, transferDone, transferPath, transferSummary, transferTitle, transferVerb, type TransferRequest,
 } from '@/data/transfer'
@@ -32,6 +34,7 @@ export function TransferDialog({ request, onClose }: { request: TransferRequest;
   const navigate = useNavigate()
   const { pathname } = useLocation()
   const switchWorkspace = useSwitchWorkspace()
+  const paths = usePaths()
   const { targets, isLoading } = useTransferTargets()
   const transfer = useTransfer()
   const [chosenSpaceId, setChosenSpaceId] = useState<number | null>(null)
@@ -46,7 +49,9 @@ export function TransferDialog({ request, onClose }: { request: TransferRequest;
   // Whatever left this Space can't stay open or in a tab here.
   function leaveMovedPages() {
     useTabsStore.getState().removeTabs(request.documentIds.map(String))
-    if (isMovedPage(request, pathname)) navigate('/space')
+    // The page's address may be a hierarchical path; moved pages are named by id.
+    const current = paths.itemAt(pathname)
+    if (isMovedPage(request, current ? idPath(current) : pathname)) navigate('/space')
   }
 
   function submit(e: FormEvent) {

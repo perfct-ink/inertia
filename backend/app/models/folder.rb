@@ -40,6 +40,9 @@ class Folder < ApplicationRecord
   validate :owner_is_a_member
   validate :target_date_not_before_start_date
   before_validation :attach_to_root
+  # After attach_to_root: a new folder's parent is needed to pick its slug.
+  include Sluggable
+  slugged_by :name, within: :parent
   validate :validate_parent
   validate :protect_root_location
   before_destroy :protect_root_deletion, prepend: true
@@ -89,6 +92,22 @@ class Folder < ApplicationRecord
     ids = [ id ]
     children.find_each { |child| ids.concat(child.self_and_descendant_ids) }
     ids
+  end
+
+  # This folder and everything nested in it as [record, slugs from the Root]
+  # pairs, for remembering the old addresses when the folder is renamed or
+  # moved (PathAlias).
+  def path_entries
+    own = path_segments
+    [ [ self, own ] ] + descendant_path_entries(own)
+  end
+
+  def descendant_path_entries(prefix)
+    folder_entries = Folder.where(parent_id: id).flat_map do |child|
+      segments = prefix + [ child.slug ]
+      [ [ child, segments ] ] + child.descendant_path_entries(segments)
+    end
+    folder_entries + Document.where(folder_id: id).map { |document| [ document, prefix + [ document.slug ] ] }
   end
 
   private

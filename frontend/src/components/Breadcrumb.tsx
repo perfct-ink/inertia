@@ -3,10 +3,12 @@ import { ChevronRight } from 'lucide-react'
 import { useWorkspace } from '@/api/workspace'
 import { folderTrail } from '@/data/folder'
 import './Breadcrumb.scss'
+import { usePaths } from '@/hooks/usePaths'
 
 // Space › folder › sub-folder › document, each folder a link; the document is
 // the current page. Shown above a document's toolbar.
 export default function Breadcrumb({ folderId, title }: { folderId: number; title: string }) {
+  const paths = usePaths()
   const { data: workspace } = useWorkspace()
   const trail = folderTrail(workspace?.folders ?? [], folderId)
 
@@ -19,7 +21,7 @@ export default function Breadcrumb({ folderId, title }: { folderId: number; titl
         {trail.map((folder) => (
           <li key={folder.id} className="ui-breadcrumb-item">
             <ChevronRight className="ui-breadcrumb-separator" aria-hidden="true" />
-            <Link to={`/folders/${folder.id}`} className="ui-breadcrumb-link">{folder.name}</Link>
+            <Link to={paths.folder(folder.id)} className="ui-breadcrumb-link">{folder.name}</Link>
           </li>
         ))}
         <li className="ui-breadcrumb-item">

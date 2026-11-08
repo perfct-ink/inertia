@@ -1,6 +1,6 @@
 class FolderBlueprint < Blueprinter::Base
   identifier :id
-  fields :name, :kind, :icon, :image_url, :dependency_mode, :position, :pinned, :created_at, :updated_at
+  fields :name, :slug, :kind, :icon, :image_url, :dependency_mode, :position, :pinned, :created_at, :updated_at
 
   field :parent_id
   field :home_document_id

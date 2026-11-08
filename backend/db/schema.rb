@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_11_07_120001) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_08_040002) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -107,10 +107,12 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_07_120001) do
     t.integer "feature_status"
     t.bigint "epic_id"
     t.bigint "milestone_id"
+    t.string "slug"
     t.index ["created_by_id"], name: "index_documents_on_created_by_id"
     t.index ["doc_type"], name: "index_documents_on_doc_type"
     t.index ["epic_id"], name: "index_documents_on_epic_id"
     t.index ["feature_owner_id"], name: "index_documents_on_feature_owner_id"
+    t.index ["folder_id", "slug"], name: "index_documents_on_folder_id_and_slug", unique: true
     t.index ["folder_id"], name: "index_documents_on_folder_id"
     t.index ["initiative_id"], name: "index_documents_on_initiative_id"
     t.index ["milestone_id"], name: "index_documents_on_milestone_id"
@@ -180,8 +182,10 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_07_120001) do
     t.bigint "home_document_id"
     t.string "icon"
     t.string "image_url"
+    t.string "slug"
     t.index ["home_document_id"], name: "index_folders_on_home_document_id"
     t.index ["owner_id"], name: "index_folders_on_owner_id"
+    t.index ["parent_id", "slug"], name: "index_folders_on_parent_id_and_slug", unique: true
     t.index ["parent_id"], name: "index_folders_on_parent_id"
     t.index ["workspace_id"], name: "index_folders_on_workspace_id"
   end
@@ -318,6 +322,18 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_07_120001) do
     t.index ["folder_id"], name: "index_objectives_on_folder_id"
     t.index ["owner_id"], name: "index_objectives_on_owner_id"
     t.index ["workspace_id"], name: "index_objectives_on_workspace_id"
+  end
+
+  create_table "path_aliases", force: :cascade do |t|
+    t.bigint "workspace_id", null: false
+    t.string "path", null: false
+    t.string "target_type", null: false
+    t.bigint "target_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["target_type", "target_id"], name: "index_path_aliases_on_target"
+    t.index ["workspace_id", "path"], name: "index_path_aliases_on_workspace_id_and_path", unique: true
+    t.index ["workspace_id"], name: "index_path_aliases_on_workspace_id"
   end
 
   create_table "project_requests", force: :cascade do |t|
@@ -711,6 +727,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_07_120001) do
   add_foreign_key "objectives", "folders", on_delete: :nullify
   add_foreign_key "objectives", "users", column: "owner_id", on_delete: :nullify
   add_foreign_key "objectives", "workspaces"
+  add_foreign_key "path_aliases", "workspaces"
   add_foreign_key "project_requests", "folders", column: "project_id", on_delete: :nullify
   add_foreign_key "project_requests", "users", column: "decided_by_id", on_delete: :nullify
   add_foreign_key "project_requests", "users", column: "requested_by_id", on_delete: :nullify

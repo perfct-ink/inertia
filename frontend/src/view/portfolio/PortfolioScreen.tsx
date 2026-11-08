@@ -8,6 +8,7 @@ import { ProgressBar } from '@/components/Timeline'
 import { usePortfolio } from '@/api/portfolio'
 import { projectStatusLabel, sortPortfolio, type PortfolioSortKey } from '@/data/project'
 import { usePageTitle } from '@/hooks/usePageTitle'
+import { usePaths } from '@/hooks/usePaths'
 import '../planning/PlanningScreen.scss'
 import './PortfolioScreen.scss'
 
@@ -25,6 +26,7 @@ const date = (value: string | null) => (value ? format(parseISO(value), 'MMM d, 
 // health. Click a column to sort. Details are edited on the Projects page.
 export default function PortfolioScreen() {
   usePageTitle('Portfolio')
+  const paths = usePaths()
   const { data: rows = [], isLoading } = usePortfolio()
   const [sortKey, setSortKey] = useState<PortfolioSortKey>('name')
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc')
@@ -68,7 +70,7 @@ export default function PortfolioScreen() {
               <tbody>
                 {sorted.map((row) => (
                   <tr key={row.id}>
-                    <th scope="row"><Link to={`/folders/${row.id}?view=overview`}>{row.name}</Link></th>
+                    <th scope="row"><Link to={`${paths.folder(row.id)}?view=overview`}>{row.name}</Link></th>
                     <td>{row.owner_name ?? 'No owner'}</td>
                     <td>{projectStatusLabel(row.project_status)}</td>
                     <td>{row.start_date || row.target_date ? `${date(row.start_date)} → ${date(row.target_date)}` : ''}</td>

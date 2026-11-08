@@ -87,6 +87,8 @@ GET    /api/v1/documents/:id
 PATCH  /api/v1/documents/:id
 DELETE /api/v1/documents/:id
 
+GET    /api/v1/paths?path=a/b/c   # the folder or document at a hierarchical URL (docs/features/hierarchical_urls.md)
+
 GET    /api/v1/tables/:id
 POST   /api/v1/tables/:id/fields
 PATCH  /api/v1/tables/:id/fields/:field_id

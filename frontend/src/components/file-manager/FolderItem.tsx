@@ -8,7 +8,9 @@ import { useCreateDocument, useDeleteDocument, usePinDocument, useUpdateDocument
 import { useUploadFiles } from '@/api/workspace'
 import { errorMessage } from '@/api/tables'
 import { documentsIn } from '@/data/folder'
+import { idPath } from '@/data/path'
 import type { TransferRequest } from '@/data/transfer'
+import { usePaths } from '@/hooks/usePaths'
 import { useTransferTargets } from '@/hooks/useTransferTargets'
 import { useTransferStore } from '@/store/transfer'
 import type { Folder as FolderType, Document } from '@/types'
@@ -101,6 +103,7 @@ const hasFiles = (transfer: DataTransfer) => Array.from(transfer.types).includes
 export function FolderItem({ folder, depth = 0, bare = false, hideProjects = false }: { folder: FolderType; depth?: number; bare?: boolean; hideProjects?: boolean }) {
   const navigate = useNavigate()
   const location = useLocation()
+  const paths = usePaths()
   const [open, setOpen] = useState(true)
   const [addingFolder, setAddingFolder] = useState(false)
   const [renamingFolder, setRenamingFolder] = useState(false)
@@ -141,7 +144,7 @@ export function FolderItem({ folder, depth = 0, bare = false, hideProjects = fal
     setActionError('')
     try {
       const doc = await createDocument.mutateAsync({ folderId: folder.id, title: `Untitled ${type === 'spreadsheet' ? 'Sheet' : type === 'table' ? 'Table' : 'Document'}`, doc_type: type })
-      navigate(`/documents/${doc.id}`)
+      navigate(idPath({ type: 'document', id: doc.id }))
     } catch (error) { setActionError(errorMessage(error)) }
   }
 
@@ -166,7 +169,7 @@ export function FolderItem({ folder, depth = 0, bare = false, hideProjects = fal
       {actionError && <div role="alert" className="folder_item-error">{actionError}<Button className="folder_item-dismiss" onClick={() => setActionError('')}>Dismiss</Button></div>}
       {/* Folder row */}
       {!rowless && <div
-        className={`folder_item-row folder_item-row--folder${location.pathname === `/folders/${folder.id}` ? ' folder_item-row--active' : ''}${dropTarget ? ' folder_item-row--drop' : ''}`}
+        className={`folder_item-row folder_item-row--folder${location.pathname === paths.folder(folder.id) ? ' folder_item-row--active' : ''}${dropTarget ? ' folder_item-row--drop' : ''}`}
         style={{ paddingLeft: `${8 + indent}px`, paddingRight: '8px' }}
         onContextMenu={(e) => { e.preventDefault(); e.stopPropagation(); setFolderCtx({ x: e.clientX, y: e.clientY }) }}
         onDragOver={(e) => { if (hasFiles(e.dataTransfer)) { e.preventDefault(); setDropTarget(true) } }}
@@ -191,7 +194,7 @@ export function FolderItem({ folder, depth = 0, bare = false, hideProjects = fal
           />
         ) : (
           <Button
-            onClick={() => navigate(`/folders/${folder.id}`)}
+            onClick={() => navigate(paths.folder(folder.id))}
             title="Open folder — see its documents, tasks, and events"
             className="folder_item-name"
           >
@@ -231,11 +234,11 @@ export function FolderItem({ folder, depth = 0, bare = false, hideProjects = fal
           ))}
 
           {folder.documents?.map((doc) => {
-            const active = location.pathname === `/documents/${doc.id}`
+            const active = location.pathname === paths.document(doc)
             return (
               <Link
                 key={doc.id}
-                to={`/documents/${doc.id}`}
+                to={paths.document(doc)}
                 className={`folder_item-row folder_item-row--doc${active ? ' folder_item-row--active' : ''}`}
                 style={{ paddingLeft: `${36 + indent}px`, paddingRight: '8px' }}
                 onContextMenu={(e) => { e.preventDefault(); e.stopPropagation(); setDocCtx({ x: e.clientX, y: e.clientY, doc }) }}

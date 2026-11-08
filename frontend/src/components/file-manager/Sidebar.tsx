@@ -1,4 +1,6 @@
 import { flattenFolders } from '@/data/folder'
+import { itemAtPath } from '@/data/path'
+import { usePaths } from '@/hooks/usePaths'
 import { WorkspaceSwitcher } from '@/components/workspace/WorkspaceSwitcher'
 import { TransferHost } from '@/components/workspace/TransferDialog'
 import { Button, Input, Select, DatePicker, Menu } from '@/components/ui'
@@ -57,6 +59,7 @@ const KEYBOARD_SHORTCUTS: { keys: string; label: string }[] = [
 export default function Sidebar() {
   const navigate = useNavigate()
   const location = useLocation()
+  const paths = usePaths()
   const { data: workspace } = useWorkspace()
   const newDocument = useNewDocument()
   const pinDocument = usePinDocument()
@@ -199,11 +202,10 @@ export default function Sidebar() {
   // The folder the user is "in": the open folder page, or the folder of the
   // open document. Falls back to the workspace root on any other page.
   function scopeFolderId() {
-    const folderMatch = location.pathname.match(/^\/folders\/(\d+)/)
-    if (folderMatch) return Number(folderMatch[1])
-    const docMatch = location.pathname.match(/^\/documents\/(\d+)/)
-    if (docMatch) {
-      const folder = flattenFolders(workspace?.folders ?? []).find((f) => f.documents?.some((d) => d.id === Number(docMatch[1])))
+    const item = itemAtPath(workspace?.folders ?? [], location.pathname)
+    if (item?.type === 'folder') return item.id
+    if (item?.type === 'document') {
+      const folder = flattenFolders(workspace?.folders ?? []).find((f) => f.documents?.some((d) => d.id === item.id))
       if (folder) return folder.id
     }
     // Otherwise new things go in the open project.
@@ -268,7 +270,7 @@ export default function Sidebar() {
                 return (
                   <Button
                     key={folder.id}
-                    onClick={() => firstDoc && navigate(`/documents/${firstDoc.id}`)}
+                    onClick={() => firstDoc && navigate(paths.document(firstDoc))}
                     className="sidebar-pinned_item"
                   >
                     <Folder className="sidebar-icon--sm sidebar-icon--muted sidebar-icon--shrink" />
@@ -285,11 +287,11 @@ export default function Sidebar() {
                 )
               })}
               {pinnedDocs.map((doc) => {
-                const active = location.pathname === `/documents/${doc.id}`
+                const active = location.pathname === paths.document(doc)
                 return (
                   <Button
                     key={doc.id}
-                    onClick={() => navigate(`/documents/${doc.id}`)}
+                    onClick={() => navigate(paths.document(doc))}
                     className={`sidebar-pinned_item${active ? ' sidebar-pinned_item--active' : ''}`}
                   >
                     {doc.doc_type === 'table'

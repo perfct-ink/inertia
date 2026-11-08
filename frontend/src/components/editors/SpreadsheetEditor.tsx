@@ -5,6 +5,7 @@ import { Loader2 } from 'lucide-react'
 import WorkspaceLayout from '@/components/WorkspaceLayout'
 import { useDocument, useUpdateDocument } from '@/api/documents'
 import { useTabsStore } from '@/store/tabs'
+import { idPath } from '@/data/path'
 import type { Sheet } from '@fortune-sheet/core'
 
 const EMPTY_SHEETS: Sheet[] = [
@@ -32,7 +33,7 @@ export default function SpreadsheetEditor({ docId }: { docId: number }) {
     if (!doc) return
     openTab({
       id: String(doc.id),
-      path: `/documents/${doc.id}`,
+      path: idPath({ type: 'document', id: doc.id }),
       title: doc.title || 'Untitled',
       docType: 'spreadsheet',
     })

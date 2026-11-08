@@ -30,6 +30,7 @@ import DecisionDialog, { type Decision } from './ProjectRequestDecisionDialog'
 import ProjectRequestForm from './ProjectRequestForm'
 import '../planning/PlanningScreen.scss'
 import './ProjectRequestsScreen.scss'
+import { usePaths } from '@/hooks/usePaths'
 
 const formatDate = (iso: string) => format(parseISO(iso), 'MMM d, yyyy')
 
@@ -185,6 +186,7 @@ type CardProps = {
 }
 
 function RequestCard({ request, canEdit, canDelete, isManager, withdrawing, busy, onEdit, onDelete, onDecide, onReopen }: CardProps) {
+  const paths = usePaths()
   const titleId = `project-request-${request.id}`
   const meta = [
     `${request.requested_by_name ? `Requested by ${request.requested_by_name}` : 'Requested'} on ${formatDate(request.created_at)}`,
@@ -217,7 +219,7 @@ function RequestCard({ request, canEdit, canDelete, isManager, withdrawing, busy
             {request.decision_note && <>: <span className="project_requests-text">{request.decision_note}</span></>}
           </p>
           {request.project_id != null && (
-            <Link to={`/folders/${request.project_id}`} className="project_requests-link">Open project</Link>
+            <Link to={paths.folder(request.project_id)} className="project_requests-link">Open project</Link>
           )}
         </div>
       )}

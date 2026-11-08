@@ -6,6 +6,7 @@ import { Button, classNames } from '@/components/ui'
 import { filePreview, formatBytes, galleryFiles, type GalleryFilter } from '@/data/document'
 import type { Document } from '@/types'
 import './FilesGallery.scss'
+import { usePaths } from '@/hooks/usePaths'
 
 const FILTERS: { value: GalleryFilter; label: string }[] = [
   { value: 'all', label: 'All' }, { value: 'image', label: 'Images' }, { value: 'video', label: 'Videos' }, { value: 'pdf', label: 'PDFs' }, { value: 'other', label: 'Other' },
@@ -15,6 +16,7 @@ const FILTERS: { value: GalleryFilter; label: string }[] = [
 // filterable by kind. Opening a card opens the file viewer.
 export default function FilesGallery({ documents }: { documents: Document[] }) {
   const navigate = useNavigate()
+  const paths = usePaths()
   const [filter, setFilter] = useState<GalleryFilter>('all')
   const files = galleryFiles(documents, filter)
   const base = api.defaults.baseURL ?? ''
@@ -29,7 +31,7 @@ export default function FilesGallery({ documents }: { documents: Document[] }) {
       {files.length === 0 && <p className="files_gallery-empty">No files here yet. Upload some from the buttons above.</p>}
       <div className="files_gallery-grid">
         {files.map((doc) => (
-          <Button key={doc.id} variant="unstyled" className="files_gallery-card" onClick={() => navigate(`/documents/${doc.id}`)} aria-label={`Open ${doc.title}`}>
+          <Button key={doc.id} variant="unstyled" className="files_gallery-card" onClick={() => navigate(paths.document(doc))} aria-label={`Open ${doc.title}`}>
             <span className="files_gallery-thumb">
               {filePreview(doc.file?.content_type) === 'image' && doc.file
                 ? <img src={`${base}${doc.file.url}`} alt="" loading="lazy" />
