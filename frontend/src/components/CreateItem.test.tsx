@@ -48,3 +48,10 @@ test('a template button creates a document with the template content', async () 
   fireEvent.click(screen.getByRole('button', { name: 'New Song' }))
   await waitFor(() => expect(mockCreate).toHaveBeenCalledWith(expect.objectContaining({ folderId: 101, title: 'Untitled Song', doc_type: 'document', content: expect.objectContaining({ type: 'doc' }) })))
 })
+
+test('shows how much of the Space\'s storage is used', () => {
+  mockWorkspace.storage = { used: 5 * 1024 * 1024, limit: 1024 ** 3 }
+  render(<CreateItem />)
+  expect(screen.getByText('5 MB of 1 GB used')).toBeInTheDocument()
+  delete (mockWorkspace as { storage?: unknown }).storage
+})

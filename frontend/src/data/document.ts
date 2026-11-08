@@ -1,3 +1,4 @@
+import { formatBytes } from '@/data/attachment'
 import type { Document } from '@/types'
 
 export interface JsonNode { type?: string; text?: string; attrs?: Record<string, unknown>; content?: JsonNode[] }
@@ -96,4 +97,14 @@ export function activeHeadingIndex(headings: OutlineHeading[], selectionPos: num
   let active = 0
   headings.forEach((h, i) => { if (h.pos <= selectionPos) active = i })
   return active
+}
+
+// "120 MB of 1 GB used", or null when the server did not send usage.
+export function storageLabel(storage: { used: number; limit: number } | undefined): string | null {
+  return storage ? `${formatBytes(storage.used)} of ${formatBytes(storage.limit)} used` : null
+}
+
+// The share of the limit used, 0 to 100 (a limit of 0 reads as full).
+export function storagePercent(storage: { used: number; limit: number }): number {
+  return storage.limit <= 0 ? 100 : Math.min(100, Math.round((storage.used / storage.limit) * 100))
 }

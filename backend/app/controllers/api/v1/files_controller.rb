@@ -15,6 +15,12 @@ module Api
         upload = params[:file]
         return render(json: { errors: [ "No file provided" ] }, status: :unprocessable_entity) unless upload.respond_to?(:original_filename)
 
+        growth = upload.size - (document.file.blob&.byte_size || 0)
+        workspace = document.folder.workspace
+        unless growth <= 0 || workspace.storage_room_for?(growth)
+          return render(json: { errors: [ storage_message(workspace) ] }, status: :unprocessable_entity)
+        end
+
         document.file.attach(io: upload.tempfile, filename: upload.original_filename, content_type: upload.content_type)
         if document.save
           render json: DocumentBlueprint.render(document.reload)
@@ -28,6 +34,10 @@ module Api
         upload = params[:file]
         return render(json: { errors: [ "No file provided" ] }, status: :unprocessable_entity) unless upload.respond_to?(:original_filename)
 
+        unless folder.workspace.storage_room_for?(upload.size)
+          return render(json: { errors: [ storage_message(folder.workspace) ] }, status: :unprocessable_entity)
+        end
+
         document = folder.documents.build(title: upload.original_filename, doc_type: :file, created_by: current_user)
         document.file.attach(io: upload.tempfile, filename: upload.original_filename, content_type: upload.content_type)
         if document.save
@@ -35,6 +45,13 @@ module Api
         else
           render json: { errors: document.errors.full_messages }, status: :unprocessable_entity
         end
+      end
+
+      private
+
+      def storage_message(workspace)
+        helper = ActiveSupport::NumberHelper
+        "Not enough storage in this space (#{helper.number_to_human_size(workspace.storage_used)} of #{helper.number_to_human_size(workspace.storage_limit)} used)"
       end
     end
   end
