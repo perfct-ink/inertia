@@ -497,6 +497,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_07_120001) do
     t.json "options", default: [], null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "display_format"
     t.index ["workspace_id", "name"], name: "index_task_fields_on_workspace_id_and_name", unique: true
     t.index ["workspace_id"], name: "index_task_fields_on_workspace_id"
   end

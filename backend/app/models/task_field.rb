@@ -1,6 +1,8 @@
 # A custom field every task in a Space can carry a value for (Monday-style
-# column): tags, dropdown, checkbox, rating or vote. The kind is fixed when the
-# field is created, because values of one kind mean nothing as another.
+# column): text, integer, number, date, person, tags, dropdown, checkbox, rating
+# or vote. The kind is fixed when the field is created, because values of one
+# kind mean nothing as another. `display_format` only changes how a value is
+# shown (an integer or number can be plain or with commas).
 class TaskField < ApplicationRecord
   belongs_to :workspace
   has_many :field_values, class_name: "TaskFieldValue", dependent: :destroy, inverse_of: :task_field
@@ -10,8 +12,10 @@ class TaskField < ApplicationRecord
   validates :field_type, inclusion: { in: TaskFieldType::TYPES }
   validate :field_type_is_not_changed, on: :update
   validate :options_fit_the_kind
+  validate :format_fits_the_kind
 
   before_validation { self.name = name.strip if name }
+  before_validation { self.display_format = display_format.presence }
   before_validation { self.options = TaskFieldType.tidy_labels(options) }
   after_update :drop_values_for_removed_options, if: :saved_change_to_options?
 
@@ -37,6 +41,12 @@ class TaskField < ApplicationRecord
     elsif options.any?
       errors.add(:options, "only apply to dropdown fields")
     end
+  end
+
+  def format_fits_the_kind
+    return if display_format.nil? || TaskFieldType.formats(field_type).include?(display_format)
+
+    errors.add(:display_format, "is not a format of #{field_type} fields")
   end
 
   # A task that had picked a choice which is no longer offered goes back to

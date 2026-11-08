@@ -2,6 +2,8 @@
 priority: p1
 depends_on: []
 components: [backend]
+branch: backlog/custom-fields-on-tasks
+status: incomplete
 ---
 # Custom fields on tasks
 

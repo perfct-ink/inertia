@@ -7,7 +7,7 @@ class TaskFieldTest < ActiveSupport::TestCase
     @task = @workspace.tasks.create!(title: "Ship it")
   end
 
-  test "each of the five kinds can be created" do
+  test "each kind can be created" do
     TaskFieldType::TYPES.each do |type|
       options = type == "dropdown" ? [ "High", "Low" ] : []
       field = @workspace.task_fields.create!(name: "Field #{type}", field_type: type, options: options)
@@ -117,5 +117,75 @@ class TaskFieldTest < ActiveSupport::TestCase
     foreign = other.task_fields.create!(name: "Stars", field_type: "rating")
     value = TaskFieldValue.write(@task, foreign, 3)
     assert_includes value.errors[:task_field], "must belong to the task's Space"
+  end
+
+  test "text, integer, number and date fields store plain values and reject the rest" do
+    cases = {
+      "text" => { ok: [ "Needs a design", "0" ], bad: [ 5, true, [ "a" ], "x" * 501 ] },
+      "integer" => { ok: [ 0, -3, 42, 1_000_000_000_000 ], bad: [ 1.5, "4", true, 1_000_000_000_001 ] },
+      "number" => { ok: [ 0, -3.5, 12.25 ], bad: [ "4", true, 1.0e13 ] },
+      "date" => { ok: [ "2026-11-07", "2028-02-29" ], bad: [ "2026-02-30", "11/07/2026", 20_261_107 ] }
+    }
+    cases.each do |type, values|
+      field = @workspace.task_fields.create!(name: "Field #{type}", field_type: type)
+      values[:ok].each { |value| assert_empty TaskFieldValue.write(@task, field, value).errors, "#{type} rejected #{value.inspect}" }
+      stored = @task.field_values.find_by(task_field: field).value
+      values[:bad].each do |value|
+        assert_predicate TaskFieldValue.write(@task, field, value).errors, :any?, "#{type} accepted #{value.inspect}"
+        assert_equal stored, @task.field_values.find_by(task_field: field).value
+      end
+    end
+  end
+
+  test "zero is a value but an empty or blank text is not" do
+    count = @workspace.task_fields.create!(name: "Count", field_type: "integer")
+    note = @workspace.task_fields.create!(name: "Note", field_type: "text")
+    day = @workspace.task_fields.create!(name: "Review on", field_type: "date")
+    TaskFieldValue.write(@task, count, 0)
+    TaskFieldValue.write(@task, note, "Ship it")
+    TaskFieldValue.write(@task, day, "2026-11-07")
+    assert_equal 0, @task.field_values.find_by(task_field: count).value
+
+    assert_difference("TaskFieldValue.count", -3) do
+      TaskFieldValue.write(@task, count, nil)
+      TaskFieldValue.write(@task, note, "   ")
+      TaskFieldValue.write(@task, day, "")
+    end
+  end
+
+  test "the scalar kinds are Collection types, so both use the same rules" do
+    assert_empty TaskFieldType::SCALAR_TYPES - FieldValue::TYPES
+    assert_not TaskFieldType.valid_value?("date", "2026-02-30")
+    assert_not TaskFieldType.valid_value?("integer", 1.5)
+    assert TaskFieldType.valid_value?("number", 1.5)
+  end
+
+  test "a person field names someone who can open the Space" do
+    teammate = User.create!(name: "Tess", email: "tess-task-field@example.com", password: "password123")
+    outsider = User.create!(name: "Out", email: "out-task-field@example.com", password: "password123")
+    @workspace.memberships.create!(user: teammate, role: :member)
+    reviewer = @workspace.task_fields.create!(name: "Reviewer", field_type: "person")
+
+    assert_empty TaskFieldValue.write(@task, reviewer, teammate.id).errors
+    assert_empty TaskFieldValue.write(@task, reviewer, @user.id).errors
+    assert_predicate TaskFieldValue.write(@task, reviewer, outsider.id).errors, :any?
+    assert_predicate TaskFieldValue.write(@task, reviewer, "Tess").errors, :any?
+    assert_predicate TaskFieldValue.write(@task, reviewer, 0).errors, :any?
+    assert_equal @user.id, @task.field_values.find_by(task_field: reviewer).value
+  end
+
+  test "only integer and number fields have a display format, and it must be one of theirs" do
+    assert_equal %w[plain commas], TaskFieldType.formats("integer")
+    assert_equal %w[plain commas], TaskFieldType.formats("number")
+    assert_empty TaskFieldType.formats("date")
+
+    assert @workspace.task_fields.build(name: "Cost", field_type: "number", display_format: "commas").valid?
+    assert @workspace.task_fields.build(name: "Count", field_type: "integer", display_format: "").valid?
+    assert_not @workspace.task_fields.build(name: "Cost 2", field_type: "number", display_format: "roman").valid?
+    assert_not @workspace.task_fields.build(name: "Day", field_type: "date", display_format: "commas").valid?
+
+    field = @workspace.task_fields.create!(name: "Cost 3", field_type: "number", display_format: "commas")
+    field.update!(display_format: "")
+    assert_nil field.display_format
   end
 end

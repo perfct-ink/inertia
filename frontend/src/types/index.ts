@@ -162,7 +162,7 @@ export interface Task {
 }
 
 // Custom task fields (Monday-style columns), defined once per Space.
-export type TaskFieldType = 'tags' | 'dropdown' | 'checkbox' | 'rating' | 'vote'
+export type TaskFieldType = 'text' | 'integer' | 'number' | 'date' | 'person' | 'tags' | 'dropdown' | 'checkbox' | 'rating' | 'vote'
 
 export interface TaskField {
   id: number
@@ -170,10 +170,13 @@ export interface TaskField {
   field_type: TaskFieldType
   // The choices of a dropdown field; empty for every other kind.
   options: string[]
+  // How an integer or number is shown ('plain' or 'commas'); null elsewhere and for the default.
+  display_format?: string | null
 }
 
-// tags: labels. dropdown: the chosen label. checkbox: true. rating: 1 to 5.
-// vote: the ids of the users who voted.
+// text: the string. integer and number: a number. date: YYYY-MM-DD. person: a
+// user id. tags: labels. dropdown: the chosen label. checkbox: true. rating: 1
+// to 5. vote: the ids of the users who voted.
 export type TaskFieldValue = string | string[] | number | number[] | boolean
 export type TaskFieldValues = Record<string, TaskFieldValue>
 

@@ -1,0 +1,33 @@
+{
+  "comment": "Shared by backend/test/models/field_value_test.rb and frontend/src/data/fieldValue.test.ts, so the Ruby FieldValue and the TypeScript data/fieldValue.ts give the same answers. Add a case here when either side changes. In display, a null text means the value is shown as stored. These are the same cases as the text, integer, number, boolean, date and datetime entries of fieldType.vectors.json on the collection-field-types branch.",
+  "valid": {
+    "text": { "ok": ["", "hello", "line\nbreak"], "bad": [5, null, true] },
+    "integer": { "ok": [0, -3, 42], "bad": [1.5, "4", null, true] },
+    "number": { "ok": [0, -3.5, 42], "bad": ["4", null, true] },
+    "boolean": { "ok": [true, false], "bad": [0, "true", null] },
+    "date": { "ok": ["2026-11-07", "2028-02-29"], "bad": ["2026-02-30", "11/07/2026", "2026-1-7", 5] },
+    "datetime": { "ok": ["2026-11-07T14:30:00Z", "2026-11-07T14:30:00.123+02:00"], "bad": ["2026-11-07", "2026-11-07T25:00:00Z", "2026-11-07 14:30:00", null] }
+  },
+  "formats": {
+    "integer": ["plain", "commas"],
+    "number": ["plain", "commas"],
+    "text": [],
+    "date": []
+  },
+  "display": [
+    ["integer", "commas", 1234567, "1,234,567"],
+    ["integer", "commas", -1234, "-1,234"],
+    ["integer", "commas", 0, "0"],
+    ["integer", null, 1234567, null],
+    ["integer", "plain", 1234567, null],
+    ["integer", "roman", 1234567, null],
+    ["number", "commas", 1234567.891, "1,234,567.891"],
+    ["number", "commas", -1234.5, "-1,234.5"],
+    ["number", "commas", 12, "12"],
+    ["number", "commas", 1000, "1,000"],
+    ["number", "commas", 0.5, "0.5"],
+    ["number", null, 1234.5, null],
+    ["text", null, "hello", null],
+    ["date", null, "2026-11-07", null]
+  ]
+}

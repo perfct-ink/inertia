@@ -8,6 +8,7 @@ class TaskFieldValue < ApplicationRecord
   validates :task_field_id, uniqueness: { scope: :task_id }
   validate :field_belongs_to_the_tasks_space
   validate :value_fits_the_field
+  validate :person_can_open_the_space
 
   # Sets (or, for an empty value, clears) the task's value for the field.
   # Returns the record; check `errors` for a rejected value.
@@ -28,6 +29,12 @@ class TaskFieldValue < ApplicationRecord
   def field_belongs_to_the_tasks_space
     return unless task && task_field
     errors.add(:task_field, "must belong to the task's Space") unless task_field.workspace_id == task.workspace_id
+  end
+
+  # A person field names someone who can open the task's Space.
+  def person_can_open_the_space
+    return unless task && task_field&.person? && value.is_a?(Integer)
+    errors.add(:value, "must be someone who can open the Space") unless task.workspace.accessible_by?(value)
   end
 
   def value_fits_the_field

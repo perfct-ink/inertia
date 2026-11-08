@@ -1,6 +1,7 @@
 module Api
   module V1
-    # The Space's custom task fields (tags, dropdown, checkbox, rating, vote).
+    # The Space's custom task fields (text, number, date, person, tags, dropdown,
+    # checkbox, rating, vote).
     # Any member who can write may define them; viewers only read.
     class TaskFieldsController < ApplicationController
       include WorkspaceScoped
@@ -19,7 +20,8 @@ module Api
         end
       end
 
-      # Only the name and the dropdown's choices change; the kind is fixed.
+      # Only the name, the dropdown's choices and the display format change; the
+      # kind is fixed.
       def update
         if @task_field.update(update_params)
           render json: TaskFieldBlueprint.render(@task_field)
@@ -40,11 +42,11 @@ module Api
       end
 
       def create_params
-        params.require(:task_field).permit(:name, :field_type, options: [])
+        params.require(:task_field).permit(:name, :field_type, :display_format, options: [])
       end
 
       def update_params
-        params.require(:task_field).permit(:name, options: [])
+        params.require(:task_field).permit(:name, :display_format, options: [])
       end
     end
   end

@@ -95,6 +95,69 @@ class TaskFieldsControllerTest < ActionDispatch::IntegrationTest
     assert_equal [ tags.id.to_s, stage.id.to_s ].sort, response.parsed_body["field_values"].keys.sort
   end
 
+  test "text, number, date and person values are set, listed and cleared" do
+    note = create_field("Note", "text")
+    cost = create_field("Cost", "number")
+    count = create_field("Count", "integer")
+    due = create_field("Review on", "date")
+    reviewer = create_field("Reviewer", "person")
+
+    put field_path(note), params: { value: "Needs a design" }, headers: headers_for(@user), as: :json
+    put field_path(cost), params: { value: 12.5 }, headers: headers_for(@user), as: :json
+    put field_path(count), params: { value: 0 }, headers: headers_for(@user), as: :json
+    put field_path(due), params: { value: "2026-11-07" }, headers: headers_for(@user), as: :json
+    put field_path(reviewer), params: { value: @teammate.id }, headers: headers_for(@user), as: :json
+    assert_response :success
+
+    get "/api/v1/tasks", headers: headers_for(@teammate)
+    expected = { note.id.to_s => "Needs a design", cost.id.to_s => 12.5, count.id.to_s => 0, due.id.to_s => "2026-11-07", reviewer.id.to_s => @teammate.id }
+    assert_equal expected, response.parsed_body.first["field_values"]
+
+    [ note, cost, count, due, reviewer ].each do |field|
+      put field_path(field), params: { value: nil }, headers: headers_for(@user), as: :json
+      assert_response :success
+    end
+    assert_equal({}, response.parsed_body["field_values"])
+    assert_equal 0, TaskFieldValue.count
+  end
+
+  test "values that do not fit a text, number, date or person field are rejected" do
+    cost = create_field("Cost", "integer")
+    due = create_field("Review on", "date")
+    reviewer = create_field("Reviewer", "person")
+    outsider = User.create!(name: "Out", email: "out-tf-api-3@example.com", password: "password123")
+    put field_path(cost), params: { value: 3 }, headers: headers_for(@user), as: :json
+
+    put field_path(cost), params: { value: 1.5 }, headers: headers_for(@user), as: :json
+    assert_response :unprocessable_entity
+    put field_path(due), params: { value: "2026-02-30" }, headers: headers_for(@user), as: :json
+    assert_response :unprocessable_entity
+    put field_path(reviewer), params: { value: outsider.id }, headers: headers_for(@user), as: :json
+    assert_response :unprocessable_entity
+    assert_match(/Space/, response.parsed_body["errors"].join)
+    assert_equal 3, @task.field_values.find_by(task_field: cost).value
+    assert_equal 1, TaskFieldValue.count
+  end
+
+  test "a number field keeps its display format, which can change later but only to one of its own" do
+    post "/api/v1/task_fields", params: { task_field: { name: "Budget", field_type: "number", display_format: "commas" } }, headers: headers_for(@user), as: :json
+    assert_response :created
+    assert_equal "commas", response.parsed_body["display_format"]
+    id = response.parsed_body["id"]
+
+    patch "/api/v1/task_fields/#{id}", params: { task_field: { display_format: "plain" } }, headers: headers_for(@user), as: :json
+    assert_response :success
+    assert_equal "plain", response.parsed_body["display_format"]
+
+    patch "/api/v1/task_fields/#{id}", params: { task_field: { display_format: "roman" } }, headers: headers_for(@user), as: :json
+    assert_response :unprocessable_entity
+    post "/api/v1/task_fields", params: { task_field: { name: "Day", field_type: "date", display_format: "commas" } }, headers: headers_for(@user), as: :json
+    assert_response :unprocessable_entity
+
+    get "/api/v1/task_fields", headers: headers_for(@teammate)
+    assert_equal [ "plain" ], response.parsed_body.map { |f| f["display_format"] }
+  end
+
   test "invalid values are rejected and leave the stored value alone" do
     stage = create_field("Stage", "dropdown", options: [ "Draft" ])
     stars = create_field("Stars", "rating")
