@@ -1,4 +1,4 @@
-import { Routes, Route, Navigate, useParams } from 'react-router-dom'
+import { Routes, Route, Navigate, useLocation, useParams } from 'react-router-dom'
 import { useAuthStore } from '@/store/auth'
 import { usesHashRouter } from '@/util/router'
 import { ToastRegion } from '@/components/ui'
@@ -35,10 +35,12 @@ import AppearanceEffect from '@/components/AppearanceEffect'
 import OnboardingSync from '@/components/onboarding/OnboardingSync'
 import InviteScreen from '@/view/invite/InviteScreen'
 
+// Signed-out visitors go to sign-in, which sends them back to the page they asked for.
 function PrivateRoute({ children }: { children: React.ReactNode }) {
   const token = useAuthStore((s) => s.token)
+  const location = useLocation()
   if (process.env.BYPASS_AUTH === 'true') return <>{children}</>
-  return token ? <>{children}</> : <Navigate to="/login" replace />
+  return token ? <>{children}</> : <Navigate to="/login" replace state={{ from: `${location.pathname}${location.search}${location.hash}` }} />
 }
 
 // "/": signed-in people go to the app. Signed-out web visitors see the Rails

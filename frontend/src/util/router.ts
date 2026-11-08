@@ -16,3 +16,13 @@ export function cleanPath(place: Place): string | null {
   if (place.pathname === '/index.html') return `/${place.search}${place.hash}`
   return null
 }
+
+// The page a sign-in goes back to: the one the route guard sent the person away
+// from, kept in the router's location state. Only a path inside the app counts
+// (one that starts with a single slash, and isn't a sign-in page itself);
+// anything else, including a missing state, goes to the app home.
+export function returnPath(state: unknown, fallback = '/space'): string {
+  const from = (state as { from?: unknown } | null)?.from
+  if (typeof from !== 'string' || !from.startsWith('/') || from.startsWith('//')) return fallback
+  return /^\/(login|signup)(\/|\?|#|$)/.test(from) ? fallback : from
+}
