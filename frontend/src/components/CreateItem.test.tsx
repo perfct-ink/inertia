@@ -3,6 +3,7 @@ import CreateItem from './CreateItem'
 
 const mockCreate = jest.fn().mockResolvedValue({ id: 9 })
 const mockUpload = jest.fn().mockResolvedValue([])
+const mockCreateEpic = jest.fn().mockResolvedValue({ id: 4, title: 'Messages', document_id: 31 })
 const mockNavigate = jest.fn()
 const mockWorkspace = {
   id: 1, name: 'Workspace', root_folder_id: 101,
@@ -14,6 +15,7 @@ const mockWorkspace = {
 jest.mock('@/api/workspace', () => ({ useWorkspace: () => ({ data: mockWorkspace }), useUploadFiles: () => ({ mutateAsync: mockUpload }) }))
 jest.mock('@/api/documents', () => ({ useCreateDocument: () => ({ mutateAsync: mockCreate }) }))
 jest.mock('@/api/folders', () => ({ useCreateFolder: () => ({ mutateAsync: jest.fn() }) }))
+jest.mock('@/api/epics', () => ({ useCreateEpic: () => ({ mutateAsync: mockCreateEpic }) }))
 jest.mock('@/hooks/useSelectProject', () => ({ useSelectProject: () => jest.fn() }))
 jest.mock('react-router-dom', () => ({
   useNavigate: () => mockNavigate,
@@ -47,4 +49,35 @@ test('a template button creates a document with the template content', async () 
   render(<CreateItem />)
   fireEvent.click(screen.getByRole('button', { name: 'New Song' }))
   await waitFor(() => expect(mockCreate).toHaveBeenCalledWith(expect.objectContaining({ folderId: 101, title: 'Untitled Song', doc_type: 'document', content: expect.objectContaining({ type: 'doc' }) })))
+})
+
+test('New feature asks for a name, makes the feature in the chosen folder and opens its requirements document', async () => {
+  render(<CreateItem folderId={202} />)
+  fireEvent.click(screen.getByRole('button', { name: 'New feature' }))
+  fireEvent.change(screen.getByRole('textbox', { name: 'Feature name' }), { target: { value: 'Messages' } })
+  fireEvent.click(screen.getByRole('button', { name: 'Create' }))
+  await waitFor(() => expect(mockCreateEpic).toHaveBeenCalledWith({ title: 'Messages', folder_id: 202 }))
+  await waitFor(() => expect(mockNavigate).toHaveBeenCalledWith('/documents/31'))
+})
+
+test('New feature defaults to the root folder like the other items, and a blank name makes nothing', async () => {
+  render(<CreateItem />)
+  fireEvent.click(screen.getByRole('button', { name: 'New feature' }))
+  fireEvent.click(screen.getByRole('button', { name: 'Create' }))
+  expect(mockCreateEpic).not.toHaveBeenCalled()
+
+  fireEvent.click(screen.getByRole('button', { name: 'New feature' }))
+  fireEvent.change(screen.getByRole('textbox', { name: 'Feature name' }), { target: { value: 'Billing' } })
+  fireEvent.click(screen.getByRole('button', { name: 'Create' }))
+  await waitFor(() => expect(mockCreateEpic).toHaveBeenCalledWith({ title: 'Billing', folder_id: 101 }))
+})
+
+test('a feature that cannot be made shows the error', async () => {
+  mockCreateEpic.mockRejectedValueOnce(new Error('network'))
+  render(<CreateItem folderId={202} />)
+  fireEvent.click(screen.getByRole('button', { name: 'New feature' }))
+  fireEvent.change(screen.getByRole('textbox', { name: 'Feature name' }), { target: { value: 'x' } })
+  fireEvent.click(screen.getByRole('button', { name: 'Create' }))
+  await waitFor(() => expect(screen.getByRole('alert')).toHaveTextContent('Unable to save. Please try again.'))
+  expect(mockNavigate).not.toHaveBeenCalled()
 })

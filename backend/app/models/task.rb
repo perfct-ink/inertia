@@ -48,6 +48,9 @@ class Task < ApplicationRecord
   validate :parent_is_not_self_or_a_descendant
   validate :due_date_not_before_start_date
 
+  # A task written in a feature's requirements document belongs to that feature.
+  before_validation :inherit_feature_epic, on: :create
+
   after_update :create_next_occurrence, if: :repeats_after_completion?
 
   # Who made the change being saved, for the status history (set by the controller).
@@ -88,6 +91,12 @@ class Task < ApplicationRecord
   end
 
   private
+
+  def inherit_feature_epic
+    return if epic_id || document_id.nil?
+
+    self.epic_id = Epic.where(document_id: document_id, workspace_id: workspace_id).pick(:id)
+  end
 
   def repeats_after_completion?
     saved_change_to_status? && done? && recurrence_rule.present?

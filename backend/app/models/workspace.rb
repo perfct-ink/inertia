@@ -34,6 +34,15 @@ class Workspace < ApplicationRecord
   after_create :ensure_document_root!
   before_destroy :prepare_destroy, prepend: true
 
+  # What things made with no project open are filed in. Mirrors PERSONAL_PROJECT_NAME
+  # in frontend/src/data/project.ts: keep the two in step.
+  PERSONAL_PROJECT_NAME = "Personal Project".freeze
+
+  # The Space's Personal Project, made when it has none yet.
+  def personal_project
+    folders.active.where(kind: :project).find_by(name: PERSONAL_PROJECT_NAME) || folders.create!(name: PERSONAL_PROJECT_NAME, kind: :project)
+  end
+
   def ensure_document_root!
     return root_folder if root_folder_id.present?
 

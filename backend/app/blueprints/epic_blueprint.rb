@@ -2,6 +2,8 @@ class EpicBlueprint < Blueprinter::Base
   identifier :id
   fields :title, :created_at, :updated_at
   field :folder_id
+  # The requirements document; null for a feature whose document was deleted with its folder.
+  field :document_id
   field :initiative_id
   field :milestone_id
   field :start_date

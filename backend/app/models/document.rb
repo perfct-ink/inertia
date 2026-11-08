@@ -16,6 +16,10 @@ class Document < ApplicationRecord
   belongs_to :feature_owner, class_name: "User", optional: true
   belongs_to :epic, optional: true
   belongs_to :milestone, optional: true
+  # The feature (epic) this is the requirements document of. A document deleted
+  # along with its folder leaves the feature without one; deleting the document
+  # alone is refused (DocumentsController), delete the feature instead.
+  has_one :feature_epic, class_name: "Epic", foreign_key: :document_id, dependent: :nullify, inverse_of: :document
   has_many :tasks, dependent: :destroy
   has_many :shares, as: :shareable, dependent: :destroy
 

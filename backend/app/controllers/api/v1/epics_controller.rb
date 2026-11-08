@@ -14,6 +14,7 @@ module Api
 
       def create
         epic = file_in_current_project(current_workspace.epics.build(epic_params))
+        epic.creator = current_user
         if epic.save
           render json: EpicBlueprint.render(epic), status: :created
         else

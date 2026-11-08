@@ -1,11 +1,7 @@
 import { useNavigate } from 'react-router-dom'
-import { useWorkspace } from '@/api/workspace'
 import { useCreateDocument } from '@/api/documents'
-import { useCreateFolder } from '@/api/folders'
 import { untitledTitle } from '@/data/document'
-import { projectsOf } from '@/data/folder'
-import { PERSONAL_PROJECT_NAME } from '@/data/project'
-import { useSelectProject } from '@/hooks/useSelectProject'
+import { useTargetFolder } from '@/hooks/useTargetFolder'
 import { markUntouched } from '@/store/untouchedDocuments'
 import type { DocumentTemplate } from '@/data/documentTemplate'
 import type { Document } from '@/types'
@@ -17,19 +13,10 @@ import type { Document } from '@/types'
 // Throws when it can't, so callers can show the error.
 export function useNewDocument() {
   const navigate = useNavigate()
-  const { data: workspace } = useWorkspace()
   const create = useCreateDocument()
-  const createFolder = useCreateFolder()
-  const selectProject = useSelectProject()
+  const targetFolder = useTargetFolder()
   return async (type: Document['doc_type'], folderId?: number, template?: DocumentTemplate) => {
-    let target = folderId
-    if (!target) {
-      if (!workspace) throw new Error('The space is still loading. Please try again.')
-      const personal = projectsOf(workspace.folders ?? []).find((p) => p.name === PERSONAL_PROJECT_NAME)
-        ?? await createFolder.mutateAsync({ name: PERSONAL_PROJECT_NAME, kind: 'project' })
-      selectProject(personal.id)
-      target = personal.id
-    }
+    const target = await targetFolder(folderId)
     const doc = await create.mutateAsync({ folderId: target, ...(template ? { title: template.title, content: template.content } : { title: untitledTitle(type) }), doc_type: type })
     if (type === 'document') markUntouched(doc.id)
     navigate(`/documents/${doc.id}`, { state: { focusTitle: true } })

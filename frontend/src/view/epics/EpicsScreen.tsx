@@ -1,9 +1,9 @@
-import { Button, Input, Select, DatePicker } from '@/components/ui'
+import { Button, ConfirmDialog, FormError, Input, Select, DatePicker } from '@/components/ui'
 import { useState, useRef } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { Plus, X, Target, Loader2, ListChecks } from 'lucide-react'
+import { Plus, X, Target, Loader2, ListChecks, FileText } from 'lucide-react'
 import WorkspaceLayout from '@/components/WorkspaceLayout'
-import { useEpics, useCreateEpic, useUpdateEpic, useDeleteEpic } from '@/api/epics'
+import { useEpics, useUpdateEpic, useDeleteEpic } from '@/api/epics'
 import { useInitiatives } from '@/api/initiatives'
 import { useMilestones } from '@/api/milestones'
 import '../planning/PlanningScreen.scss'
@@ -11,9 +11,12 @@ import { ProgressBar } from '@/components/Timeline'
 import PlanningTimeline from '@/components/PlanningTimeline'
 import { usePageTitle } from '@/hooks/usePageTitle'
 import { donePercent } from '@/data/schedule'
+import { useNewFeature } from '@/hooks/useNewFeature'
+import { errorMessage } from '@/util/errorMessage'
+import type { Epic } from '@/types'
 
 export default function EpicsScreen() {
-  usePageTitle('Epics')
+  usePageTitle('Features')
   const navigate = useNavigate()
   const [searchParams, setSearchParams] = useSearchParams()
   const view = searchParams.get('view') === 'timeline' ? 'timeline' : 'list'
@@ -22,16 +25,21 @@ export default function EpicsScreen() {
   const { data: initiatives = [] } = useInitiatives()
   const { data: milestones = [] } = useMilestones()
   const epics = initiativeIdFilter ? allEpics.filter((e) => String(e.initiative_id) === initiativeIdFilter) : allEpics
-  const createEpic = useCreateEpic()
+  // A feature is an epic with a requirements document: making one opens the document.
+  const newFeature = useNewFeature()
   const updateEpic = useUpdateEpic()
   const deleteEpic = useDeleteEpic()
   const [adding, setAdding] = useState(false)
+  const [deleting, setDeleting] = useState<Epic | null>(null)
+  const [error, setError] = useState('')
   const titleRef = useRef('')
 
   function commitAdd(value: string) {
     const title = value.trim()
-    if (title) createEpic.mutate({ title })
     setAdding(false)
+    if (!title) return
+    setError('')
+    newFeature(title).catch((e) => setError(errorMessage(e)))
   }
 
   function setView(next: 'list' | 'timeline') {
@@ -54,7 +62,7 @@ export default function EpicsScreen() {
     <WorkspaceLayout>
       <div className="view-planning view-epics">
         <div className="planning-header">
-          <h1 className="planning-title">Epics</h1>
+          <h1 className="planning-title">Features</h1>
           <div className="planning-tabs">
             <Button
               onClick={() => setView('list')}
@@ -79,17 +87,19 @@ export default function EpicsScreen() {
             className="planning-new"
           >
             <Plus className="planning-icon" />
-            New epic
+            New feature
           </Button>
         </div>
 
         <div className="planning-body">
           <div className="planning-list">
+            <FormError message={error} />
             {adding && (
               <div className="planning-new_card">
                 <Input
                   autoFocus
-                  placeholder="Epic title…"
+                  aria-label="Feature name"
+                  placeholder="Feature name…"
                   className="planning-new_input"
                   onChange={(e) => { titleRef.current = e.target.value }}
                   onKeyDown={(e) => {
@@ -110,7 +120,7 @@ export default function EpicsScreen() {
             {!isLoading && epics.length === 0 && !adding && (
               <div className="planning-empty">
                 <Target className="planning-empty_icon" />
-                <p>No epics yet</p>
+                <p>No features yet</p>
               </div>
             )}
 
@@ -128,6 +138,17 @@ export default function EpicsScreen() {
                   <span className="planning-card-count">
                     {epic.done_tasks_count}/{epic.tasks_count} done
                   </span>
+                  {epic.document_id && (
+                    <Button
+                      variant="ghost"
+                      onClick={(e) => { e.stopPropagation(); navigate(`/documents/${epic.document_id}`) }}
+                      aria-label={`Requirements of ${epic.title}`}
+                      className="planning-card-plan"
+                    >
+                      <FileText className="planning-delete_icon" aria-hidden="true" />
+                      Requirements
+                    </Button>
+                  )}
                   <Button
                     variant="ghost"
                     onClick={(e) => { e.stopPropagation(); navigate(`/plan?epic_id=${epic.id}`) }}
@@ -138,8 +159,8 @@ export default function EpicsScreen() {
                     Plan
                   </Button>
                   <Button
-                    onClick={(e) => { e.stopPropagation(); deleteEpic.mutate(epic.id) }}
-                    aria-label="Delete epic"
+                    onClick={(e) => { e.stopPropagation(); setDeleting(epic) }}
+                    aria-label={`Delete ${epic.title}`}
                     className="planning-card-delete"
                   >
                     <X className="planning-delete_icon" aria-hidden="true" />
@@ -189,6 +210,15 @@ export default function EpicsScreen() {
           </div>
         </div>
       </div>
+      <ConfirmDialog
+        open={!!deleting}
+        title={`Delete ${deleting?.title ?? 'this feature'}?`}
+        description="Its requirements document and the tasks written in it are deleted too. Tasks that were only assigned to it are kept."
+        confirmLabel="Delete feature"
+        destructive
+        onConfirm={() => deleting && deleteEpic.mutate(deleting.id)}
+        onClose={() => setDeleting(null)}
+      />
     </WorkspaceLayout>
   )
 }
