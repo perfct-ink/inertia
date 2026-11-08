@@ -11,7 +11,7 @@
 A linter whose tool is missing counts as a failure, so it can't be skipped by accident. Set `LINT_SKIP_MISSING=1` to skip Ruby or Swift on a machine without them. `SWIFTPM_FLAGS` is passed to `swift build` (for example `--disable-sandbox`).
 
 ## Who can run it
-Anyone with the tools installed. CI does not run it yet.
+Anyone with the tools installed. CI does not run it yet: its Linux jobs have no Swift toolchain, so running it there needs `LINT_SKIP_MISSING=1` or a separate job.
 
 ## Tests
 None; it is a script. Run `sh -n scripts/lint.sh` for a syntax check.
@@ -24,3 +24,4 @@ None; it is a script. Run `sh -n scripts/lint.sh` for a syntax check.
 ## History
 - Implemented 2026-10-19 on branch `backlog/lint-ruby-and-swift-from-root`. Not merged or deployed.
 - Verified: the Swift step ran and passed; the shell syntax check passed. Not verified: the npm and RuboCop steps.
+- 2026-11-07: rebased onto main (`docs/project/checks.md` now describes it). The Swift step was run again and passed (`swift build --disable-sandbox --target InertiaCore -Xswiftc -warnings-as-errors`, Build complete); `sh -n scripts/lint.sh` passed. Not run: RuboCop (no gems here), ESLint and Stylelint (no node_modules), so whether the repository passes the new command is unknown.
