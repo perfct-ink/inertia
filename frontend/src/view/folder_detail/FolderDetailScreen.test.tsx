@@ -6,6 +6,7 @@ import type { TaskStatusSetting } from '@/types'
 
 jest.mock('@/components/WorkspaceLayout', () => function LayoutMock({ children }: { children: React.ReactNode }) { return <div>{children}</div> })
 jest.mock('@/components/CreateItem', () => function CreateItemMock() { return null })
+jest.mock('@/components/FeatureRollup', () => function FeatureRollupMock() { return null })
 jest.mock('./GanttPane', () => function GanttPaneMock() { return null })
 
 const mockUpdate = { mutate: jest.fn() }
@@ -15,15 +16,20 @@ const mockWorkspace = {
   folders: [{ id: 1, name: 'Root', root: true, parent_id: null, documents: [], children: [{ id: 2, name: 'Messages', root: false, parent_id: 1, documents: [], children: [] }] }],
 }
 const task = (id: number, title: string, status: string) => ({ id, title, status, parent_id: null, due_date: null, document_id: 1 })
-const mockContents = {
+const docItem = (id: number, title: string, doc_type = 'document') => ({ id, title, doc_type, folder_id: 2 })
+const subfolder = (id: number, name: string, kind = 'folder') => ({ id, name, kind, parent_id: 2 })
+const baseContents = {
   folder: { id: 2, name: 'Messages', archived: false, dependency_mode: 'none' },
-  documents: [],
+  folders: [] as ReturnType<typeof subfolder>[],
+  documents: [] as ReturnType<typeof docItem>[],
   tasks: [task(1, 'Write copy', 'todo'), task(2, 'Ship it', 'in_progress')],
   events: [],
   epics: [],
 }
+let mockContents = baseContents
+let mockFailed = false
 jest.mock('@/api/folders', () => ({
-  useFolderContents: () => ({ data: mockContents, isLoading: false }),
+  useFolderContents: () => ({ data: mockFailed ? undefined : mockContents, isLoading: false, isError: mockFailed }),
   useUpdateFolder: () => mockUpdate,
 }))
 jest.mock('@/api/workspace', () => ({
@@ -51,6 +57,42 @@ function renderScreen(view: string) {
 beforeEach(() => {
   mockRole = 'member'
   mockSettings = []
+  mockContents = baseContents
+  mockFailed = false
+})
+
+test('a folder that fails to load says so instead of spinning forever', () => {
+  mockFailed = true
+  renderScreen('overview')
+  expect(screen.getByRole('alert')).toHaveTextContent("Couldn't load this folder.")
+})
+
+test('the overview lists the folders and documents directly inside the folder', () => {
+  mockContents = { ...baseContents, folders: [subfolder(5, 'Design'), subfolder(6, 'Launch', 'project')], documents: [docItem(10, 'Brief')] }
+  renderScreen('overview')
+  expect(screen.getByRole('heading', { name: 'Folders' })).toBeInTheDocument()
+  expect(screen.getByRole('link', { name: 'Design' })).toHaveAttribute('href', '/folders/5')
+  expect(screen.getByRole('link', { name: 'Launch' })).toHaveAttribute('href', '/folders/6')
+  expect(screen.getByRole('link', { name: 'Brief' })).toHaveAttribute('href', '/documents/10')
+})
+
+test('the overview shows no Folders section when nothing is nested directly inside', () => {
+  mockContents = { ...baseContents, documents: [docItem(10, 'Brief')] }
+  renderScreen('overview')
+  expect(screen.queryByRole('heading', { name: 'Folders' })).not.toBeInTheDocument()
+  expect(screen.getByRole('link', { name: 'Brief' })).toBeInTheDocument()
+})
+
+test('the other views keep the folders and documents in the row above them', () => {
+  mockContents = { ...baseContents, folders: [subfolder(5, 'Design')], documents: [docItem(10, 'Brief')] }
+  renderScreen('board')
+  expect(screen.getByRole('link', { name: 'Design' })).toHaveAttribute('href', '/folders/5')
+  expect(screen.getByRole('link', { name: 'Brief' })).toHaveAttribute('href', '/documents/10')
+})
+
+test('the other views show no row when the folder is empty', () => {
+  renderScreen('board')
+  expect(screen.queryByRole('link')).not.toBeInTheDocument()
 })
 
 test('the board names its columns and the move arrow with the built-in statuses by default', () => {

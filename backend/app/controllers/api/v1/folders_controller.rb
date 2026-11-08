@@ -33,13 +33,14 @@ module Api
       end
 
       # Everything a folder's detail page needs in one request: the folder
-      # itself (for the breadcrumb/name) plus documents/tasks/events/epics
-      # scoped to it AND every folder nested underneath it — clicking a
-      # folder three levels deep narrows to that subtree, not just its own
-      # direct contents.
+      # itself (for the breadcrumb/name), the documents and the (active)
+      # folders directly inside it, one level and not everything nested, and
+      # the tasks/events/epics scoped to it AND every folder nested underneath
+      # it, since the board, list, Gantt and calendar roll the subtree up.
       def contents
         folder_ids = @folder.self_and_descendant_ids
-        documents = Document.where(folder_id: folder_ids).order(:title)
+        documents = @folder.documents.order(:title)
+        folders = @folder.children.active.order(:position, :name)
 
         tasks = @folder.scheduled_tasks.includes(:document)
 
@@ -59,6 +60,7 @@ module Api
 
         render json: {
           folder: FolderBlueprint.render_as_hash(@folder),
+          folders: FolderBlueprint.render_as_hash(folders, root_folder_id: current_workspace.root_folder_id),
           documents: DocumentBlueprint.render_as_hash(documents),
           tasks: TaskBlueprint.render_as_hash(tasks, view: :with_document),
           events: EventBlueprint.render_as_hash(events),

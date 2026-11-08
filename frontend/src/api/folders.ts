@@ -25,8 +25,8 @@ export class FolderApi extends ApiResource<Folder, { name: string; parent_id?: n
     super('/api/v1/folders', 'folder', 'folders')
   }
 
-  // A folder plus its documents/tasks/events/epics, scoped to it and every
-  // subfolder nested underneath.
+  // A folder page's data: the documents and folders directly inside it, plus
+  // its tasks, events and epics rolled up over every subfolder.
   contents(id: number) {
     return api.get<FolderContents>(`${this.url(id)}/contents`).then((r) => r.data)
   }
