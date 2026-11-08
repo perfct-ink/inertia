@@ -13,6 +13,10 @@ const mockWorkspace = {
 
 jest.mock('@/api/workspace', () => ({ useWorkspace: () => ({ data: mockWorkspace }), useUploadFiles: () => ({ mutateAsync: mockUpload }) }))
 jest.mock('@/api/documents', () => ({ useCreateDocument: () => ({ mutateAsync: mockCreate }) }))
+jest.mock('@/api/collectionImport', () => ({
+  usePreviewImport: () => ({ mutateAsync: jest.fn(), isPending: false }),
+  useRunImport: () => ({ mutateAsync: jest.fn(), isPending: false }),
+}))
 jest.mock('@/api/folders', () => ({ useCreateFolder: () => ({ mutateAsync: jest.fn() }) }))
 jest.mock('@/hooks/useSelectProject', () => ({ useSelectProject: () => jest.fn() }))
 jest.mock('react-router-dom', () => ({
@@ -47,4 +51,13 @@ test('a template button creates a document with the template content', async () 
   render(<CreateItem />)
   fireEvent.click(screen.getByRole('button', { name: 'New Song' }))
   await waitFor(() => expect(mockCreate).toHaveBeenCalledWith(expect.objectContaining({ folderId: 101, title: 'Untitled Song', doc_type: 'document', content: expect.objectContaining({ type: 'doc' }) })))
+})
+
+test('Import Collection opens the import dialog, and cancelling closes it', () => {
+  render(<CreateItem folderId={202} />)
+  expect(screen.queryByText('Import JSON or YAML')).not.toBeInTheDocument()
+  fireEvent.click(screen.getByRole('button', { name: 'Import Collection' }))
+  expect(screen.getByText('Import JSON or YAML')).toBeInTheDocument()
+  fireEvent.click(screen.getByRole('button', { name: 'Cancel' }))
+  expect(screen.queryByText('Import JSON or YAML')).not.toBeInTheDocument()
 })

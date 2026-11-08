@@ -4,6 +4,7 @@ import { useQueries } from '@tanstack/react-query'
 import { Database, Loader2, Map as MapIcon, Pencil, Plus, Table as TableIcon, Trash2 } from 'lucide-react'
 import WorkspaceLayout from '@/components/WorkspaceLayout'
 import FormulaInput from '@/components/editors/FormulaInput'
+import ImportCollection from '@/components/ImportCollection'
 import { useWorkspace } from '@/api/workspace'
 import { useUpdateDocument } from '@/api/documents'
 import { useTable, useEditTable, tableQuery, errorMessage, type TableData, type TableField, type TableRecord, type FieldDataType } from '@/api/tables'
@@ -94,6 +95,7 @@ export default function TableEditor({ doc }: { doc: Document }) {
   const [fieldError, setFieldError] = useState('')
   const [editingField, setEditingField] = useState<TableField | null>(null)
   const [showForm, setShowForm] = useState(false)
+  const [importing, setImporting] = useState(false)
   const [mode, setMode] = useState<'grid' | 'map'>('grid')
   const [name, setName] = useState('')
   const [type, setType] = useState<FieldDataType>('text')
@@ -144,7 +146,8 @@ export default function TableEditor({ doc }: { doc: Document }) {
       <div className="table_editor-header">
         <Database className="table_editor-header_icon" />
         <Input aria-label="Collection title" className="table_editor-title" value={title} onChange={e => setTitle(e.target.value)} onBlur={rename} onKeyDown={e => { if (e.key === 'Enter') e.currentTarget.blur() }} />
-        <Button variant="secondary" disabled={busy} onClick={() => fieldForm()} className="table_editor-add_field_button">Add field</Button>
+        <Button variant="secondary" disabled={busy} onClick={() => fieldForm()} className="table_editor-header_button">Add field</Button>
+        <Button variant="secondary" disabled={busy} onClick={() => setImporting(true)} className="table_editor-header_button">Import</Button>
       </div>
       {data && data.fields.length > 0 && <div className="table_editor-modes" role="group" aria-label="Collection view">
         {([['grid', 'Grid', TableIcon], ['map', 'Map', MapIcon]] as const).map(([key, label, Icon]) => <Button key={key} aria-pressed={mode === key} onClick={() => setMode(key)}
@@ -200,5 +203,6 @@ export default function TableEditor({ doc }: { doc: Document }) {
       onConfirm={confirmRemoval}
       onClose={() => setPendingRemoval(null)}
     />
+    {importing && <ImportCollection documentId={doc.id} onClose={() => setImporting(false)} />}
   </WorkspaceLayout>
 }

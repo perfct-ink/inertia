@@ -1,0 +1,61 @@
+@use 'tokens' as *;
+
+@layer app.components {
+  .import_collection {
+    max-width: 36rem;
+
+    &-body {
+      display: flex;
+      flex-direction: column;
+      gap: space(3);
+      margin-top: space(3);
+    }
+
+    &-summary,
+    &-field {
+      @include text('sm');
+    }
+
+    &-field {
+      display: flex;
+      flex-direction: column;
+      gap: space(1);
+    }
+
+    &-columns {
+      display: flex;
+      flex-direction: column;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    // Key, what it becomes, and its type. On a phone the type drops under the key.
+    &-column {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: space(1) space(3);
+      padding: space(2) 0;
+      border-bottom-width: 1px;
+    }
+
+    &-key {
+      flex: 1 1 8rem;
+      min-width: 0;
+      overflow-wrap: anywhere;
+      font-weight: 500;
+      @include text('sm');
+    }
+
+    &-note {
+      color: color(muted-foreground);
+      @include text('xs');
+    }
+
+    &-type {
+      flex: 1 1 12rem;
+      min-width: 0;
+    }
+  }
+}

@@ -17,7 +17,7 @@ Naming only; permissions are unchanged.
 `frontend/src/data/document.test.ts` checks the label. No test covers the other strings.
 
 ## Known limits
-Field types, one-to-many relationships, multiple images and YAML or JSON import are separate backlog tasks (`docs/backlog/collection-*.md`, `import-yaml-or-json-into-collection.md`). Rails model names are not yet translated in `backend/config/locales/en.yml`. A search found no remaining user-facing "Table" text in `frontend/src`, `backend/app` or the marketing views, but screens built later could reintroduce it.
+Field types and one-to-many relationships are separate backlog tasks (`docs/backlog/collection-*.md`). JSON and YAML import is in [collection_import.md](collection_import.md). Rails model names are not yet translated in `backend/config/locales/en.yml`. A search found no remaining user-facing "Table" text in `frontend/src`, `backend/app` or the marketing views, but screens built later could reintroduce it.
 
 ## History
 - 2026-11-03: a Collection always shows its table, and adding or editing a field opens a modal instead of an inline form.

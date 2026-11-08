@@ -12,6 +12,11 @@ jest.mock('@/api/tables', () => ({
   useTable: () => ({ data: mockData, isLoading: false }),
   useEditTable: () => ({ mutateAsync: mockEdit, isPending: false }),
 }))
+jest.mock('@/api/collectionImport', () => ({
+  usePreviewImport: () => ({ mutateAsync: jest.fn(), isPending: false }),
+  useRunImport: () => ({ mutateAsync: jest.fn(), isPending: false }),
+}))
+jest.mock('react-router-dom', () => ({ ...jest.requireActual('react-router-dom'), useNavigate: () => jest.fn() }))
 jest.mock('@/api/workspace', () => ({ useWorkspace: () => ({ data: { folders: [] } }) }))
 jest.mock('@/api/documents', () => ({ useUpdateDocument: () => ({ mutateAsync: jest.fn() }) }))
 jest.mock('@tanstack/react-query', () => ({ ...jest.requireActual('@tanstack/react-query'), useQueries: () => [] }))
@@ -207,4 +212,10 @@ test('number columns have a summary row with sum, average, min, max and count, i
   expect(screen.getByText('2')).toBeInTheDocument()
   fireEvent.change(summary, { target: { value: 'none' } })
   expect(screen.queryByText('7.5 kg')).not.toBeInTheDocument()
+})
+
+test('Import opens the import dialog for this collection', () => {
+  render(<TableEditor doc={doc} />)
+  fireEvent.click(screen.getByRole('button', { name: 'Import' }))
+  expect(screen.getByText('Import into this Collection')).toBeInTheDocument()
 })
