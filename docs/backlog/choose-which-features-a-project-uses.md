@@ -3,6 +3,7 @@ branch: backlog/choose-which-features-a-project-uses
 priority: p1
 depends_on: []
 components: [frontend, backend]
+status: incomplete
 ---
 # Choose which features a project uses
 
