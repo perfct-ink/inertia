@@ -3,6 +3,7 @@ priority: p2
 depends_on: []
 components: [backend, frontend]
 branch: backlog/geocode-collection-locations
+status: incomplete
 ---
 # Geocode addresses in a Collection's location field
 
