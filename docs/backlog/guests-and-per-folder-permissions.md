@@ -3,6 +3,7 @@ priority: p2
 depends_on: []
 components: [frontend, backend]
 branch: backlog/guests-and-per-folder-permissions
+status: incomplete
 ---
 # Guests and per-board permissions (view-only, edit, owner)
 
