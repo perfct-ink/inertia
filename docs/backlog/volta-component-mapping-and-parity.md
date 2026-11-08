@@ -3,6 +3,7 @@ priority: p1
 depends_on: []
 components: [frontend]
 branch: backlog/volta-component-mapping-and-parity
+status: incomplete
 ---
 # Document component mappings and validate parity
 
