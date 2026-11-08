@@ -1,5 +1,5 @@
 ---
-priority: p0
+priority: p2
 depends_on: []
 ---
 # Create dates and events from the document
@@ -20,7 +20,7 @@ Default: add `events.document_id` and an inline event node like the task item. E
 
 - **Dates, not events.** Picking or typing a date in a document makes a date chip linked to that spot, not a full calendar event. Every date chip still **shows on the calendar** (task calendar, `docs/features/task_calendar.md`), as an entry that links back to its place in the document. Changing the date on the calendar or in the document updates the other.
 - **Deleting the line:** ask the user. When a line with a date or event is deleted from the document, a dialog asks whether to delete the calendar entry too or keep it (unlinked). Use the shared modal, not `confirm()`.
-- **Priority** stays p0 (not answered; left as is).
+- **Priority:** lowered to p2.
 
 ## Context
 
