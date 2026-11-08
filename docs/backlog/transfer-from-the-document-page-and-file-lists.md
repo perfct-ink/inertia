@@ -3,6 +3,7 @@ branch: backlog/transfer-from-the-document-page-and-file-lists
 priority: p3
 depends_on: [move-or-copy-content-between-spaces]
 components: [frontend]
+status: incomplete
 ---
 # Move or copy to another Space from the document page and file lists
 
