@@ -3,6 +3,7 @@ priority: p2
 depends_on: [formula-field]
 branch: backlog/formula-results-in-the-api
 components: [backend, frontend]
+status: incomplete
 ---
 # Formula results in the API and for sorting
 
