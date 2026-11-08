@@ -26,6 +26,12 @@ A feature is an **epic with a required requirements document**. Build it on the 
 
 This replaces the folder-flag design in `feature-folder-type.md` and the `parent_feature` default in `feature-hierarchy.md`; revisit those before building them.
 
+## Clarification (Alex, 2026-11-08 groom)
+
+- **A feature is within a project.** It is created from a project, and its requirements doc lives in that project.
+- **A feature must have a requirements doc.**
+- **A feature with tasks in it shows as an epic.** A feature with no tasks yet is just a feature (its doc); once its doc has tasks, it appears as an epic in the planning views (roadmap, Gantt, epic planning, rollups).
+
 ## Current state (checked 2026-10-22)
 
 - Built: task lines in documents create tasks with `document_id`; a "Tasks only" toggle folds a doc to headings and task lists (`DocumentScreen.tsx`, not saved between visits).
