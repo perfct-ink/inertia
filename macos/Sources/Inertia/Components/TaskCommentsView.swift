@@ -14,12 +14,12 @@ struct TaskCommentsView: View {
                     HStack {
                         Text(comment.authorName ?? users.first(where: { $0.id == comment.authorID })?.name ?? "No author").font(.subheadline.bold())
                         Spacer()
-                        Text(comment.createdAt).font(.caption).foregroundStyle(.secondary)
+                        Text(comment.createdAt).font(.caption).foregroundStyle(Volta.mutedForeground)
                         Button { comments.removeAll { $0.id == comment.id } } label: { Image(systemName: "trash") }
                             .buttonStyle(.borderless).help("Remove comment")
                     }
                     TextField("Comment", text: $comment.body, axis: .vertical)
-                }.padding(10).background(.quaternary.opacity(0.4), in: RoundedRectangle(cornerRadius: 8))
+                }.padding(10).background(Volta.muted, in: RoundedRectangle(cornerRadius: 8))
             }
             TextField("Write a comment…", text: $bodyText, axis: .vertical).lineLimit(3...6)
             HStack {
@@ -33,7 +33,7 @@ struct TaskCommentsView: View {
                 }.disabled(bodyText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
             }
             Text("Add your comment, then Save the task to keep changes. Author names are local labels, not verified identities.")
-                .font(.caption).foregroundStyle(.secondary)
+                .font(.caption).foregroundStyle(Volta.mutedForeground)
         }
     }
 }

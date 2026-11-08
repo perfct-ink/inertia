@@ -13,7 +13,7 @@ struct LoginView: View {
             VStack(spacing: 8) {
                 AppLogo()
                 Text("Inertia").font(.largeTitle.bold())
-                Text("Your documents, projects, and tasks.").foregroundStyle(.secondary)
+                Text("Your documents, projects, and tasks.").foregroundStyle(Volta.mutedForeground)
             }
             VStack(spacing: 10) {
                 ForEach(SignInProvider.allCases) { provider in
@@ -36,6 +36,8 @@ struct LoginView: View {
             Button(creatingAccount ? "Already have an account? Sign in" : "Create an account") { creatingAccount.toggle() }
                 .buttonStyle(.link)
         }.padding(.horizontal, 40).padding(.vertical, 32).frame(width: 400)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(Volta.base.ignoresSafeArea())
     }
 
     private func submit() {

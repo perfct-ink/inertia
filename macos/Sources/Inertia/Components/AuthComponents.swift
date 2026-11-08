@@ -29,6 +29,6 @@ struct AuthDivider: View {
             Rectangle().frame(height: 1)
             Text(title).fixedSize()
             Rectangle().frame(height: 1)
-        }.foregroundStyle(.secondary)
+        }.foregroundStyle(Volta.mutedForeground)
     }
 }
