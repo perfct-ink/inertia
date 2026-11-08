@@ -1,4 +1,5 @@
 import type { TableData, TableField, TableRecord } from '@/api/tables'
+import { displayValue, type DisplayContext } from '@/data/fieldType'
 import { parseCoordinates, type LatLng } from '@/util/geo'
 
 // A Collection record that has a place on the map.
@@ -56,12 +57,11 @@ export function mapPins(data: TableData, location: TableField | null): MapPins {
   return result
 }
 
-// A record's other filled-in values as name and text, for the pin's details.
-export function pinDetails(record: TableRecord, fields: TableField[], location: TableField): { name: string; value: string }[] {
+// A record's other filled-in values as name and text (in each field's format), for the pin's details.
+export function pinDetails(record: TableRecord, fields: TableField[], location: TableField, context: DisplayContext = {}): { name: string; value: string }[] {
   return fields.flatMap((field) => {
     const raw = record.values[field.id]
     if (field.id === location.id || raw == null || raw === '') return []
-    const value = typeof raw === 'boolean' ? (raw ? 'Yes' : 'No') : field.data_type === 'relation' ? `Record #${raw}` : String(raw)
-    return [{ name: field.name, value }]
+    return [{ name: field.name, value: displayValue(field, raw, context) }]
   })
 }

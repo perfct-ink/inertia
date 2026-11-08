@@ -18,6 +18,9 @@ class SpaceTransfer
   # the id of the Space task the line created.
   TASK_LINE = "workspaceTaskItem".freeze
 
+  # What a copied Collection field keeps besides its link to another Collection.
+  COPIED_FIELD_ATTRIBUTES = %w[name data_type unit formula display_format options].freeze
+
   LINKED_COLLECTION = "A Collection links to a Collection that is not part of this transfer. " \
                       "Transfer them together (for example by transferring the folder that holds both) " \
                       "or remove the link first.".freeze
@@ -162,22 +165,31 @@ class SpaceTransfer
     same_space = sources.first.folder.workspace_id == @workspace.id
     fields = {}
     records = {}
+    numbered = {}
     sources.each do |source|
       table = Document.find(doc_ids.fetch(source.id))
       source.table_fields.order(:id).each do |field|
         relation_id = linked_id(field.relation_table_id, doc_ids, same_space)
-        fields[field.id] = table.table_fields.create!(name: field.name, data_type: field.data_type, relation_table_id: relation_id).id
+        copy = table.table_fields.create!(field.slice(*COPIED_FIELD_ATTRIBUTES).merge(relation_table_id: relation_id))
+        fields[field.id] = copy.id
+        numbered[copy.id] = field.next_number if field.auto_number?
       end
-      source.table_records.order(:id).each { |record| records[record.id] = table.table_records.create!.id }
+      source.table_records.order(:id).each { |record| records[record.id] = table.table_records.create!(keep_auto_numbers: true).id }
     end
+    person_fields = TableField.where(id: fields.values, data_type: "person").pluck(:id)
     TableCell.where(table_record_id: records.keys).find_each do |cell|
+      field_id = fields.fetch(cell.table_field_id)
+      # Like an assignee, a person who cannot open the new Space is dropped.
+      next if person_fields.include?(field_id) && !@workspace.accessible_by?(cell.value)
+
       TableCell.create!(
         table_record_id: records.fetch(cell.table_record_id),
-        table_field_id: fields.fetch(cell.table_field_id),
+        table_field_id: field_id,
         value: cell.value,
         related_record_id: linked_id(cell.related_record_id, records, same_space)
       )
     end
+    numbered.each { |field_id, next_number| TableField.where(id: field_id).update_all(next_number: next_number) }
   end
 
   def linked_id(id, copied_ids, same_space)

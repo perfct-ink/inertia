@@ -99,6 +99,11 @@
       &.ui-select {
         padding-right: $select-chevron-room;
       }
+
+      // A typed value that does not fit its field's type.
+      &[aria-invalid='true'] {
+        border-color: palette('red-500');
+      }
     }
 
     /* The add/edit field form, in a modal (rendered outside the view). */
@@ -267,8 +272,8 @@
       white-space: nowrap;
     }
 
-    /* A formula field's value: read-only, so it takes the muted fill and does not react to the cursor. */
-    @at-root .table_editor-formula_result {
+    /* A value the app works out or fills in (a formula, an auto-number, a created time): read-only, so it takes the muted fill and does not react to the cursor. */
+    @at-root .table_editor-read_only {
       display: block;
       min-width: space(32);
       padding: space(1.5) space(2);

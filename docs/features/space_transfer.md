@@ -14,6 +14,8 @@ What goes with a **folder** (a project is a folder): the folder, every subfolder
 
 Collections link to each other (relation fields) and a link cannot cross Spaces. A Collection is therefore copied or moved only together with the Collections it links to or is linked from (for example by copying or moving their folder). A copy inside one folder transfer has its links re-pointed at the copies. A Collection with a link to one that is not part of the transfer is refused with an explanation; copying it inside the same Space keeps the link to the original.
 
+A copied Collection keeps each field's type, format, choices, unit and formula (`SpaceTransfer::COPIED_FIELD_ATTRIBUTES`). Auto-number fields keep their numbers and carry on from the same next number. Like an assignee, a person in a person field is dropped from the copy when they cannot open the destination Space (see [collection_field_types.md](collection_field_types.md)).
+
 Every transfer runs in one database transaction: it completes, or both Spaces are left as they were.
 
 ## API and models
@@ -46,6 +48,7 @@ The user needs the `member` role or above in the Space the item leaves or is cop
 - A folder with tasks, events, epics or milestones attached to it directly (not through a document) cannot be moved; it can be copied, but those items are not copied (`docs/backlog/move-folder-attached-records-between-spaces.md`).
 - AI runs of a moved task are deleted; dependencies and event links of moved tasks are removed. Copies start without them.
 - Copying a very large Collection runs in one request and creates its values one at a time.
+- A Collection that is moved (not copied) keeps a person field's people even when they cannot open the new Space; the cell shows "Member #id".
 - Uploaded images and videos inside a document are referenced by URL, so a copy and its original share the same files.
 - Offered only from the sidebar tree, not from the document page, All files, Projects or by drag and drop (`docs/backlog/transfer-from-the-document-page-and-file-lists.md`).
 - Tabs of documents inside a moved folder are closed, but other open pages are not refreshed beyond the usual query refetch.

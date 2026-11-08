@@ -1,3 +1,6 @@
+import type { TableField } from '@/api/tables'
+import { formatValue } from '@/data/fieldType'
+
 export type SummaryKind = 'none' | 'sum' | 'average' | 'min' | 'max' | 'count'
 
 export const SUMMARY_LABEL: Record<SummaryKind, string> = {
@@ -21,8 +24,21 @@ export function columnSummary(values: unknown[], kind: SummaryKind): number | nu
 const round = (n: number) => Math.round(n * 100) / 100
 
 // A number with its unit: "12.5 kg", or "$12.5" when the unit is a currency symbol.
-export function withUnit(value: number | null, unit: string | null | undefined): string {
+// `shown` is the number already written in the field's format ("1,250").
+export function withUnit(value: number | null, unit: string | null | undefined, shown?: string): string {
   if (value === null) return ''
-  if (!unit) return String(value)
-  return /^[$€£¥]$/.test(unit) ? `${unit}${value}` : `${value} ${unit}`
+  const text = shown ?? String(value)
+  if (!unit) return text
+  return /^[$€£¥]$/.test(unit) ? `${unit}${text}` : `${text} ${unit}`
+}
+
+// A column's summary as the grid prints it: in the field's format (money as
+// $1,250.00) and unit; a count is just a number.
+export function summaryText(
+  field: Pick<TableField, 'data_type' | 'display_format' | 'unit'>, values: unknown[], kind: SummaryKind,
+): string {
+  const result = columnSummary(values, kind)
+  if (result === null) return ''
+  if (kind === 'count') return String(result)
+  return withUnit(result, field.unit, formatValue(field.data_type, field.display_format, result) ?? undefined)
 }

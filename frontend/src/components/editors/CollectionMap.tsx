@@ -23,6 +23,8 @@ const PAN_KEYS: Record<string, [number, number]> = {
 
 interface CollectionMapProps {
   data: TableData
+  // Space members by user id, so a person field's details name the person.
+  people?: ReadonlyMap<number, string>
   // A tile server template like https://tiles.example/{z}/{x}/{y}.png. Without
   // one the map is a plain latitude/longitude grid and makes no outside requests.
   tileTemplate?: string
@@ -39,7 +41,7 @@ function Empty({ title, children }: { title: string; children: ReactNode }) {
 
 // The map view of a Collection: each record whose location field holds
 // "latitude, longitude" is a pin. Drag to move, buttons or +/- to zoom.
-export default function CollectionMap({ data, tileTemplate = process.env.MAP_TILE_URL, attribution = process.env.MAP_TILE_ATTRIBUTION }: CollectionMapProps) {
+export default function CollectionMap({ data, people, tileTemplate = process.env.MAP_TILE_URL, attribution = process.env.MAP_TILE_ATTRIBUTION }: CollectionMapProps) {
   const helpId = useId()
   const fields = locationFields(data.fields)
   const fallbackField = useMemo(() => defaultLocationField(data), [data])
@@ -134,7 +136,7 @@ export default function CollectionMap({ data, tileTemplate = process.env.MAP_TIL
             </div>
             <p className="collection_map-callout_place">{formatCoordinates(selected.position)}</p>
             <dl className="collection_map-fields">
-              {pinDetails(selected.record, data.fields, location).map((detail) => <div key={detail.name} className="collection_map-fields_row">
+              {pinDetails(selected.record, data.fields, location, { people }).map((detail) => <div key={detail.name} className="collection_map-fields_row">
                 <dt className="collection_map-fields_name">{detail.name}</dt>
                 <dd className="collection_map-fields_value">{detail.value}</dd>
               </div>)}

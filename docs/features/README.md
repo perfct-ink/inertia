@@ -19,6 +19,7 @@ One file per implemented feature, written from the code (see `docs/rules/feature
 | Checklist lines in documents become Space tasks | [document_task_lines.md](document_task_lines.md) |
 | Switching Spaces from the sidebar | [space_switcher.md](space_switcher.md) |
 | Collections naming (tables are called Collections in the UI) | [collections.md](collections.md) |
+| Collection field types: email, phone, money, rating, selects, person, auto-number and more, each with a format shown in the grid and stored plain | [collection_field_types.md](collection_field_types.md) |
 | Design principles applied across the web app (responsive, styled controls, hover, 150ms motion) | [design_principles.md](design_principles.md) |
 | PostgreSQL database: shared-postgres on Coolify | [postgresql_database.md](postgresql_database.md) |
 | Files of any type embedded in documents: audio player, file cards with preview and download, paste and drop | [embedded_files.md](embedded_files.md) |

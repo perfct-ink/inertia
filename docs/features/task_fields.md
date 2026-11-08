@@ -29,7 +29,7 @@ A field's kind is fixed once created (values of one kind mean nothing as another
   - `PUT /tasks/:task_id/field_values/:task_field_id/vote` `{voted: true|false}`: casts or takes back the signed-in user's own vote. 422 for any other kind.
   - Both value endpoints answer with the task including `field_values`, a map from field id (string) to value. `GET /tasks` includes `field_values` on every task (preloaded); other task endpoints do not.
 - `tasks.field_values` shape: tags `["api", "ui"]`, dropdown `"Final"`, checkbox `true`, rating `4`, vote `[user_id, ...]`.
-- Frontend: `api/taskFields.ts` (hooks; value writes patch the cached task lists), `data/taskField.ts`, `components/task-fields/` (`TaskFieldInput`, `TaskFieldChips`, `TaskFieldsDialog`, `ManageTaskFieldsDialog`, `TaskFields.scss`), `view/tasks/TasksScreen.tsx`. The shared `Modal` gained an optional `className`.
+- Frontend: `api/taskFields.ts` (hooks; value writes patch the cached task lists), `data/taskField.ts`, `components/task-fields/` (`TaskFieldInput`, `TaskFieldChips`, `TaskFieldsDialog`, `ManageTaskFieldsDialog`, `TaskFields.scss`), `view/tasks/TasksScreen.tsx`. The shared `Modal` gained an optional `className`. The star control (`RatingInput` in `TaskFieldInput.tsx`) is also the control of a Collection's Rating field ([collection_field_types.md](collection_field_types.md)).
 
 ## Who can view and change
 Any member of the Space can read fields and values. Writes (defining fields, setting values, voting) need the member role or above; viewers get 403, as everywhere in the Space API. Anything from another Space is a 404. Defining fields is not limited to admins: the task asks for this to work "for a signed-in member of the Space".

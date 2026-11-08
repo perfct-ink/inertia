@@ -13,12 +13,15 @@ jest.mock('@/api/tables', () => ({
   useEditTable: () => ({ mutateAsync: mockEdit, isPending: false }),
 }))
 jest.mock('@/api/workspace', () => ({ useWorkspace: () => ({ data: { folders: [] } }) }))
+let mockMembers: { user_id: number; user: { name: string } }[] = []
+jest.mock('@/api/workspaceMembers', () => ({ useWorkspaceMembers: () => ({ data: mockMembers }) }))
 jest.mock('@/api/documents', () => ({ useUpdateDocument: () => ({ mutateAsync: jest.fn() }) }))
 jest.mock('@tanstack/react-query', () => ({ ...jest.requireActual('@tanstack/react-query'), useQueries: () => [] }))
 const doc = { id: 1, title: 'Contacts', doc_type: 'table' } as Document
 
 beforeEach(() => {
   mockEdit.mockReset().mockResolvedValue({})
+  mockMembers = []
   mockData = {
     fields: [{ id: 1, name: 'Age', data_type: 'integer', relation_table_id: null }, { id: 2, name: 'Active', data_type: 'boolean', relation_table_id: null }],
     records: [],
@@ -207,4 +210,130 @@ test('number columns have a summary row with sum, average, min, max and count, i
   expect(screen.getByText('2')).toBeInTheDocument()
   fireEvent.change(summary, { target: { value: 'none' } })
   expect(screen.queryByText('7.5 kg')).not.toBeInTheDocument()
+})
+
+const typedField = (id: number, name: string, data_type: TableData['fields'][number]['data_type'], extra: Partial<TableData['fields'][number]> = {}) =>
+  ({ id, name, data_type, relation_table_id: null, ...extra })
+
+test('a money cell shows its format, and saving sends the plain amount that was typed', async () => {
+  mockData = { fields: [typedField(1, 'Price', 'money', { display_format: 'eur' })], records: [{ id: 10, values: { 1: 1250 } }] }
+  render(<TableEditor doc={doc} />)
+  const input = screen.getAllByLabelText('Price')[0]
+  expect(input).toHaveValue('€1,250.00')
+  fireEvent.focus(input)
+  fireEvent.change(input, { target: { value: '$2,000.5' } })
+  fireEvent.blur(input)
+  expect(input).toHaveValue('€2,000.50')
+  fireEvent.click(screen.getAllByRole('button', { name: 'Save' })[0])
+  await waitFor(() => expect(mockEdit).toHaveBeenCalledWith({ path: 'records/10', method: 'patch', data: { record: { values: { 1: 2000.5 } } } }))
+})
+
+test('a value that does not fit its type is explained and not sent', () => {
+  mockData = { fields: [typedField(1, 'Email', 'email')], records: [] }
+  render(<TableEditor doc={doc} />)
+  fireEvent.change(screen.getByLabelText('Email'), { target: { value: 'ada@' } })
+  expect(screen.getByLabelText('Email')).toHaveAttribute('aria-invalid', 'true')
+  fireEvent.click(screen.getByRole('button', { name: 'Add record' }))
+  const row = screen.getByRole('button', { name: 'Add record' }).closest('tr')!
+  expect(within(row).getByRole('alert')).toHaveTextContent('Email needs an email address like name@example.com.')
+  expect(mockEdit).not.toHaveBeenCalled()
+})
+
+test('typed text is sent as the plain value of its type', async () => {
+  mockData = { fields: [typedField(1, 'Phone', 'phone'), typedField(2, 'Month', 'month')], records: [] }
+  render(<TableEditor doc={doc} />)
+  fireEvent.change(screen.getByLabelText('Phone'), { target: { value: '(555) 123-4567' } })
+  fireEvent.change(screen.getByLabelText('Month'), { target: { value: '3' } })
+  fireEvent.click(screen.getByRole('button', { name: 'Add record' }))
+  await waitFor(() => expect(mockEdit).toHaveBeenCalledWith({ path: 'records', method: 'post', data: { record: { values: { 1: '5551234567', 2: 3 } } } }))
+})
+
+test('the field form offers a format only for a type with several, and sends a format that is not the default', async () => {
+  render(<TableEditor doc={doc} />)
+  fireEvent.click(screen.getByRole('button', { name: 'Add field' }))
+  fireEvent.change(screen.getByLabelText('Field name'), { target: { value: 'Price' } })
+  fireEvent.change(screen.getByLabelText('Data type'), { target: { value: 'email' } })
+  expect(screen.queryByLabelText('Format')).not.toBeInTheDocument()
+  fireEvent.change(screen.getByLabelText('Data type'), { target: { value: 'money' } })
+  expect(screen.getByLabelText('Format')).toHaveValue('usd')
+  fireEvent.change(screen.getByLabelText('Format'), { target: { value: 'eur' } })
+  fireEvent.click(screen.getByRole('button', { name: 'Create field' }))
+  await waitFor(() => expect(mockEdit).toHaveBeenCalledWith({ path: 'fields', method: 'post', data: { field: { name: 'Price', data_type: 'money', relation_table_id: null, display_format: 'eur' } } }))
+})
+
+test('the default format is not sent, and a field with another format can go back to it', async () => {
+  mockData = { fields: [typedField(1, 'Price', 'money', { display_format: 'eur' }), typedField(2, 'Cost', 'money')], records: [] }
+  render(<TableEditor doc={doc} />)
+  fireEvent.click(screen.getByRole('button', { name: 'Cost' }))
+  fireEvent.click(screen.getByRole('button', { name: 'Save field' }))
+  await waitFor(() => expect(mockEdit).toHaveBeenCalledWith({ path: 'fields/2', method: 'patch', data: { field: { name: 'Cost', data_type: 'money', relation_table_id: null } } }))
+  await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
+  mockEdit.mockClear()
+  fireEvent.click(screen.getByRole('button', { name: 'Price' }))
+  expect(screen.getByLabelText('Format')).toHaveValue('eur')
+  fireEvent.change(screen.getByLabelText('Format'), { target: { value: 'usd' } })
+  fireEvent.click(screen.getByRole('button', { name: 'Save field' }))
+  await waitFor(() => expect(mockEdit).toHaveBeenCalledWith({ path: 'fields/1', method: 'patch', data: { field: { name: 'Price', data_type: 'money', relation_table_id: null, display_format: null } } }))
+})
+
+test('a select field takes its choices one per line and needs at least one', async () => {
+  render(<TableEditor doc={doc} />)
+  fireEvent.click(screen.getByRole('button', { name: 'Add field' }))
+  fireEvent.change(screen.getByLabelText('Field name'), { target: { value: 'Stage' } })
+  fireEvent.change(screen.getByLabelText('Data type'), { target: { value: 'single_select' } })
+  fireEvent.click(screen.getByRole('button', { name: 'Create field' }))
+  expect(screen.getByRole('alert')).toHaveTextContent('Add at least one choice.')
+  expect(mockEdit).not.toHaveBeenCalled()
+  fireEvent.change(screen.getByLabelText('Choices (one per line)'), { target: { value: 'Open\n Done \nopen' } })
+  fireEvent.click(screen.getByRole('button', { name: 'Create field' }))
+  await waitFor(() => expect(mockEdit).toHaveBeenCalledWith({
+    path: 'fields', method: 'post', data: { field: { name: 'Stage', data_type: 'single_select', relation_table_id: null, options: ['Open', 'Done'] } },
+  }))
+})
+
+test('the type picker lists every type and leaves out card numbers and passwords', () => {
+  render(<TableEditor doc={doc} />)
+  fireEvent.click(screen.getByRole('button', { name: 'Add field' }))
+  const names = within(screen.getByLabelText('Data type')).getAllByRole('option').map(option => option.textContent)
+  expect(names).toEqual(expect.arrayContaining(['Money', 'Phone', 'Email', 'Person', 'Single select', 'Multi select', 'Auto-number', 'Created time', 'Updated time', 'Formula', 'Rating']))
+  expect(names.join(' ')).not.toMatch(/card|cvv|password|vin/i)
+})
+
+test('auto-number and time fields are read-only in the grid, and the new row says they are automatic', () => {
+  mockData = {
+    fields: [typedField(1, 'No.', 'auto_number', { display_format: 'padded' }), typedField(2, 'Created', 'created_time', { display_format: 'date' })],
+    records: [{ id: 10, values: { 1: 3, 2: '2026-11-07T14:30:00Z' } }],
+  }
+  render(<TableEditor doc={doc} />)
+  expect(screen.getAllByLabelText('No.')[0]).toHaveTextContent('0003')
+  expect(screen.getAllByLabelText('Created')[0]).toHaveTextContent('2026-11-07')
+  expect(screen.getAllByLabelText('No.')[1]).toHaveTextContent('Automatic')
+  expect(screen.getByText(/Auto-number/)).toBeInTheDocument()
+})
+
+test('a person field lists the Space members', () => {
+  mockMembers = [{ user_id: 7, user: { name: 'Ada Lovelace' } }, { user_id: 8, user: { name: 'Grace Hopper' } }]
+  mockData = { fields: [typedField(1, 'Owner', 'person')], records: [{ id: 10, values: { 1: 7 } }] }
+  render(<TableEditor doc={doc} />)
+  expect(screen.getAllByLabelText('Owner')[0]).toHaveValue('7')
+  expect(within(screen.getAllByLabelText('Owner')[0]).getByRole('option', { name: 'Grace Hopper' })).toBeInTheDocument()
+})
+
+test('money, mileage and percent columns have a summary row written in the field format', () => {
+  mockData = {
+    fields: [typedField(1, 'Price', 'money', { display_format: 'gbp' }), typedField(2, 'Email', 'email')],
+    records: [{ id: 10, values: { 1: 1000, 2: 'a@b.co' } }, { id: 11, values: { 1: 250.5 } }],
+  }
+  render(<TableEditor doc={doc} />)
+  expect(screen.queryByLabelText('Summary of Email')).not.toBeInTheDocument()
+  fireEvent.change(screen.getByLabelText('Summary of Price'), { target: { value: 'sum' } })
+  expect(screen.getByText('£1,250.50')).toBeInTheDocument()
+})
+
+test('the column header names the type and any format other than the default', () => {
+  mockData = { fields: [typedField(1, 'Price', 'money', { display_format: 'eur' }), typedField(2, 'Cost', 'money'), typedField(3, 'Mail', 'email')], records: [] }
+  render(<TableEditor doc={doc} />)
+  expect(screen.getByText('Money · Euros')).toBeInTheDocument()
+  expect(screen.getByText('Money')).toBeInTheDocument()
+  expect(screen.getByText('Email')).toBeInTheDocument()
 })

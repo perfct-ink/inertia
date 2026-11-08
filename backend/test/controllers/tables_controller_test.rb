@@ -139,4 +139,87 @@ class TablesControllerTest < ActionDispatch::IntegrationTest
     assert Folder.exists?(folder.id)
     assert Document.exists?(target.id)
   end
+
+  def add_field(name, data_type, **attributes)
+    post "/api/v1/tables/#{@table.id}/fields", params: { field: { name: name, data_type: data_type, **attributes } }, as: :json
+    assert_response :success
+    response.parsed_body["fields"].last
+  end
+
+  test "money is stored plain, typed in any way, and comes back with its display text" do
+    price = add_field("Price", "money", display_format: "eur")
+    assert_equal "eur", price["display_format"]
+    phone = add_field("Phone", "phone")
+    assert_nil phone["display_format"]
+    post "/api/v1/tables/#{@table.id}/records", params: { record: { values: { price["id"].to_s => "$1,250.5", phone["id"].to_s => "(555) 123-4567" } } }, as: :json
+    assert_response :success
+    row = response.parsed_body["records"].first
+    assert_equal 1250.5, row["values"][price["id"].to_s]
+    assert_equal "5551234567", row["values"][phone["id"].to_s]
+    assert_equal "€1,250.50", row["display"][price["id"].to_s]
+    assert_equal "(555) 123-4567", row["display"][phone["id"].to_s]
+    assert_nil row["display"][@field.id.to_s]
+  end
+
+  test "a value that does not fit its type is rejected with a message" do
+    email = add_field("Email", "email")
+    post "/api/v1/tables/#{@table.id}/records", params: { record: { values: { email["id"].to_s => "ada@" } } }, as: :json
+    assert_response :unprocessable_entity
+    assert_includes response.parsed_body["errors"].first, "email"
+    assert_empty @table.table_records
+  end
+
+  test "a field can be given a format of its type and choices, and bad ones are rejected" do
+    post "/api/v1/tables/#{@table.id}/fields", params: { field: { name: "Bad", data_type: "money", display_format: "dashes" } }, as: :json
+    assert_response :unprocessable_entity
+    post "/api/v1/tables/#{@table.id}/fields", params: { field: { name: "Stage", data_type: "single_select" } }, as: :json
+    assert_response :unprocessable_entity
+    stage = add_field("Stage", "single_select", options: [ "Open", "Done" ])
+    assert_equal %w[Open Done], stage["options"]
+    patch "/api/v1/tables/#{@table.id}/fields/#{stage['id']}", params: { field: { options: [ "Open", "Done", "Late" ] } }, as: :json
+    assert_response :success
+    assert_equal %w[Open Done Late], response.parsed_body["fields"].last["options"]
+  end
+
+  test "multi select values are lists of the field's choices; an empty list clears" do
+    labels = add_field("Labels", "multi_select", options: %w[Bug Feature])
+    post "/api/v1/tables/#{@table.id}/records", params: { record: { values: { labels["id"].to_s => %w[Bug Feature] } } }, as: :json
+    assert_response :success
+    row = response.parsed_body["records"].first
+    assert_equal %w[Bug Feature], row["values"][labels["id"].to_s]
+    assert_equal "Bug, Feature", row["display"][labels["id"].to_s]
+    patch "/api/v1/tables/#{@table.id}/records/#{row['id']}", params: { record: { values: { labels["id"].to_s => [] } } }, as: :json
+    assert_response :success
+    assert_nil response.parsed_body["records"].first["values"][labels["id"].to_s]
+    patch "/api/v1/tables/#{@table.id}/records/#{row['id']}", params: { record: { values: { labels["id"].to_s => %w[Nope] } } }, as: :json
+    assert_response :unprocessable_entity
+  end
+
+  test "auto-number, created and updated time fields fill themselves and cannot be written" do
+    number = add_field("No.", "auto_number")
+    created = add_field("Created", "created_time")
+    updated = add_field("Updated", "updated_time", display_format: "date")
+    2.times { post "/api/v1/tables/#{@table.id}/records", params: { record: { values: { @field.id.to_s => 1 } } }, as: :json }
+    rows = response.parsed_body["records"]
+    assert_equal [ 1, 2 ], rows.map { |row| row["values"][number["id"].to_s] }
+    assert_match(/\A\d{4}-\d\d-\d\dT\d\d:\d\d:\d\dZ\z/, rows.first["values"][created["id"].to_s])
+    assert_equal rows.first["values"][updated["id"].to_s][0, 10], rows.first["display"][updated["id"].to_s]
+    [ number, created, updated ].each do |field|
+      assert_no_difference("TableCell.count") do
+        patch "/api/v1/tables/#{@table.id}/records/#{rows.first['id']}", params: { record: { values: { field["id"].to_s => 7 } } }, as: :json
+        assert_response :unprocessable_entity
+      end
+      assert_includes response.parsed_body["errors"].first, "filled in automatically"
+    end
+  end
+
+  test "editing a record moves its updated time forward" do
+    updated = add_field("Updated", "updated_time")
+    post "/api/v1/tables/#{@table.id}/records", params: { record: { values: { @field.id.to_s => 1 } } }, as: :json
+    row = response.parsed_body["records"].first
+    @table.table_records.find(row["id"]).update_columns(updated_at: 1.day.ago)
+    patch "/api/v1/tables/#{@table.id}/records/#{row['id']}", params: { record: { values: { @field.id.to_s => 2 } } }, as: :json
+    assert_response :success
+    assert_operator Time.iso8601(response.parsed_body["records"].first["values"][updated["id"].to_s]), :>, 1.hour.ago
+  end
 end
