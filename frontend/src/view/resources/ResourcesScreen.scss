@@ -219,7 +219,16 @@
           border-radius: radius('full');
           background: color(primary);
           @include transition(width);
+
+          &--over {
+            background: color(danger);
+          }
         }
+      }
+
+      &-tasks {
+        font-variant-numeric: tabular-nums;
+        color: color(muted-foreground);
       }
 
       &-note {
@@ -227,15 +236,11 @@
         align-items: center;
         gap: space(1);
         color: color(muted-foreground);
-      }
 
-      &--over &-bar_fill {
-        background: color(danger);
-      }
-
-      &--over &-note {
-        color: color(danger);
-        font-weight: 600;
+        &--over {
+          color: color(danger);
+          font-weight: 600;
+        }
       }
     }
 

@@ -4,15 +4,17 @@ import { ChevronLeft, ChevronRight, Loader2, TriangleAlert, Users } from 'lucide
 import { Button } from '@/components/ui'
 import WorkspaceLayout from '@/components/WorkspaceLayout'
 import { useResourceAllocations } from '@/api/resourceAllocations'
+import { useTasks } from '@/api/tasks'
 import { useWorkspace } from '@/api/workspace'
 import { canManageWorkspace } from '@/api/workspaces'
 import { useWorkspaceMembers } from '@/api/workspaceMembers'
 import { flattenFolders, projectsOf } from '@/data/folder'
 import { overAllocated, personLoads, projectLoads, weekEnd, weekLabel, weekRange, WEEKS_SHOWN } from '@/data/resource'
+import { planWithTasks, workload } from '@/data/workload'
 import { usePageTitle } from '@/hooks/usePageTitle'
 import { useAuthStore } from '@/store/auth'
 import { todayISO } from '@/util/date'
-import type { ResourceAllocation, WorkspaceMember } from '@/types'
+import type { ResourceAllocation, Task, WorkspaceMember } from '@/types'
 import PersonCard from './PersonCard'
 import ProjectCard from './ProjectCard'
 import './ResourcesScreen.scss'
@@ -22,9 +24,11 @@ type Tab = 'people' | 'projects'
 // Stable while a query has no data yet, so the memos below don't rerun.
 const NO_MEMBERS: WorkspaceMember[] = []
 const NO_ALLOCATIONS: ResourceAllocation[] = []
+const NO_TASKS: Task[] = []
 
 // Resource management: each person's weekly capacity and how many hours a week
-// they are allocated to projects, with a warning for any week over capacity.
+// they are allocated to projects, next to the hours their open tasks add up to,
+// with a warning for any week where either is over capacity.
 // Everyone in the Space can read the plan; admins and owners change it.
 export default function ResourcesScreen() {
   usePageTitle('Resources')
@@ -32,13 +36,18 @@ export default function ResourcesScreen() {
   const { data: workspace, isLoading: loadingWorkspace } = useWorkspace()
   const { data: members = NO_MEMBERS, isLoading: loadingMembers } = useWorkspaceMembers(workspace?.id ?? 0)
   const { data: allocations = NO_ALLOCATIONS, isLoading: loadingAllocations } = useResourceAllocations()
+  // Not waited for: the plan reads fine without task hours, which join in once loaded.
+  const { data: tasks = NO_TASKS } = useTasks()
   const [tab, setTab] = useState<Tab>('people')
   // How many weeks the window has been moved from the current week.
   const [offset, setOffset] = useState(0)
   const today = todayISO()
 
   const weeks = useMemo(() => weekRange(today, WEEKS_SHOWN, offset), [today, offset])
-  const people = useMemo(() => personLoads(members, allocations, weeks), [members, allocations, weeks])
+  const people = useMemo(() => {
+    const loads = personLoads(members, allocations, weeks)
+    return planWithTasks(loads, workload(tasks, weeks, loads))
+  }, [members, allocations, tasks, weeks])
   const projects = useMemo(() => projectLoads(allocations, weeks), [allocations, weeks])
   const tree = workspace?.folders
   const names = useMemo(() => new Map(flattenFolders(tree ?? []).map((f): [number, string] => [f.id, f.name])), [tree])

@@ -1,34 +1,62 @@
 import '@testing-library/jest-dom'
-import { fireEvent, render, screen } from '@testing-library/react'
-import { addDays, format } from 'date-fns'
+import { render, screen, within } from '@testing-library/react'
 import WorkloadScreen from './WorkloadScreen'
 
 jest.mock('@/components/WorkspaceLayout', () => function LayoutMock({ children }: { children: React.ReactNode }) { return <div>{children}</div> })
-const day = (n: number) => format(addDays(new Date(), n), 'yyyy-MM-dd')
-jest.mock('@/api/tasks', () => {
-  const { addDays, format } = jest.requireActual('date-fns')
-  return {
-  useTasks: () => ({
-    data: [
-      { id: 1, status: 'todo', assignee_id: 7, estimate_hours: 50, start_date: format(new Date(), 'yyyy-MM-dd'), due_date: format(addDays(new Date(), 13), 'yyyy-MM-dd') },
-      { id: 2, status: 'todo', assignee_id: 7, estimate_hours: null, start_date: null, due_date: format(addDays(new Date(), 2), 'yyyy-MM-dd') },
-    ],
-    isLoading: false,
-  }),
-  }
-})
-jest.mock('@/api/workspaceMembers', () => ({ useWorkspaceMembers: () => ({ data: [{ user_id: 7, user: { name: 'Sam' } }] }) }))
+jest.mock('react-router-dom', () => ({
+  Link: ({ to, children, ...props }: { to: string; children: React.ReactNode }) => <a href={to} {...props}>{children}</a>,
+}))
+jest.mock('@/store/workspaces', () => ({
+  useWorkspaceStore: (select: (s: { activeWorkspaceId: number }) => unknown) => select({ activeWorkspaceId: 3 }),
+}))
 
-test('shows each person with hours per week and counts tasks it could not place', () => {
+// Wednesday 4 November 2026: the first week shown starts on Monday 2 November.
+const mockTasks = [
+  { id: 1, status: 'todo', assignee_id: 7, estimate_hours: 50, start_date: '2026-11-02', due_date: '2026-11-06' },
+  { id: 2, status: 'todo', assignee_id: 7, estimate_hours: null, start_date: null, due_date: '2026-11-04' },
+  { id: 3, status: 'todo', assignee_id: 8, estimate_hours: 25, start_date: '2026-11-02', due_date: '2026-11-06' },
+]
+jest.mock('@/api/tasks', () => ({ useTasks: () => ({ data: mockTasks, isLoading: false }) }))
+
+const mockMembers = [
+  { id: 107, user_id: 7, role: 'member', weekly_capacity_hours: 40, user: { id: 7, name: 'Sam', email: 'sam@example.com' } },
+  { id: 108, user_id: 8, role: 'member', weekly_capacity_hours: 20, user: { id: 8, name: 'Kim', email: 'kim@example.com' } },
+]
+jest.mock('@/api/workspaceMembers', () => ({ useWorkspaceMembers: () => ({ data: mockMembers }) }))
+
+beforeAll(() => {
+  jest.useFakeTimers()
+  jest.setSystemTime(new Date(2026, 10, 4, 12))
+})
+afterAll(() => jest.useRealTimers())
+beforeEach(() => {
+  mockMembers[0].weekly_capacity_hours = 40
+  mockMembers[1].weekly_capacity_hours = 20
+})
+
+const rowOf = (name: string) => within(screen.getByRole('rowheader', { name: new RegExp(`^${name}`) }).closest('tr') as HTMLElement)
+
+test('shows each person with their capacity and hours per week, and counts tasks it could not place', () => {
   render(<WorkloadScreen />)
-  expect(day(0)).toBeTruthy()
-  expect(screen.getByRole('rowheader', { name: 'Sam' })).toBeInTheDocument()
-  expect(screen.getByText('50 h')).toBeInTheDocument()
+  expect(screen.getByRole('rowheader', { name: /^Sam 40 h\/week$/ })).toBeInTheDocument()
+  // The week's 50 hours, and the same 50 as the total.
+  expect(rowOf('Sam').getAllByText('50 h')).toHaveLength(2)
   expect(screen.getByText(/1 open task is not counted/)).toBeInTheDocument()
+  expect(screen.queryByLabelText('Weekly capacity in hours')).not.toBeInTheDocument()
+  expect(screen.getByRole('link', { name: 'Resources page' })).toHaveAttribute('href', '/resources')
 })
 
-test('a lower capacity flags weeks as over-allocated, in text', () => {
+test('flags a week against each person\'s own capacity, in text', () => {
   render(<WorkloadScreen />)
-  fireEvent.change(screen.getByLabelText('Weekly capacity in hours'), { target: { value: '10' } })
-  expect(screen.getAllByText(/over by/).length).toBeGreaterThan(0)
+  expect(rowOf('Sam').getByText(/over by 10 h/)).toBeInTheDocument()
+  expect(rowOf('Kim').getByText(/over by 5 h/)).toBeInTheDocument()
+})
+
+test('a capacity changed on the Resources page changes the warning', () => {
+  mockMembers[0].weekly_capacity_hours = 60
+  mockMembers[1].weekly_capacity_hours = 30
+  render(<WorkloadScreen />)
+  expect(screen.getByRole('rowheader', { name: /^Sam 60 h\/week$/ })).toBeInTheDocument()
+  expect(rowOf('Sam').queryByText(/over by/)).not.toBeInTheDocument()
+  expect(rowOf('Kim').queryByText(/over by/)).not.toBeInTheDocument()
 })

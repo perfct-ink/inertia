@@ -2,14 +2,15 @@ import { useState } from 'react'
 import { TriangleAlert } from 'lucide-react'
 import { FormError, Input } from '@/components/ui'
 import { useUpdateMemberCapacity } from '@/api/workspaceMembers'
-import { CAPACITY_ERROR, formatHours, loadPercent, MAX_WEEKLY_HOURS, parseHours, weekLabel, weekNote } from '@/data/resource'
-import type { PersonLoad, WeekLoad } from '@/data/resource'
+import { CAPACITY_ERROR, formatHours, loadPercent, MAX_WEEKLY_HOURS, parseHours, weekLabel } from '@/data/resource'
+import { planNotes } from '@/data/workload'
+import type { PersonPlan, WeekPlan } from '@/data/workload'
 import type { Folder } from '@/types'
 import AllocateForm from './AllocateForm'
 import AllocationRow from './AllocationRow'
 
 type PersonCardProps = {
-  load: PersonLoad
+  load: PersonPlan
   workspaceId: number
   // The projects people can be allocated to.
   projects: Folder[]
@@ -19,8 +20,8 @@ type PersonCardProps = {
   today: string
 }
 
-// One person: their weekly capacity, hours allocated in each visible week and
-// the projects they are on.
+// One person: their weekly capacity, hours allocated and hours of open tasks in
+// each visible week and the projects they are on.
 export default function PersonCard({ load, workspaceId, projects, projectName, canManage, isMe, today }: PersonCardProps) {
   return (
     <section className="resources-card" aria-labelledby={`resources-person-${load.userId}`}>
@@ -32,7 +33,7 @@ export default function PersonCard({ load, workspaceId, projects, projectName, c
       </div>
 
       <ul className="resources-weeks" aria-label={`Hours per week for ${load.name}, by week starting Monday`}>
-        {load.weeks.map((week) => <WeekCell key={week.week} week={week} capacity={load.capacity} />)}
+        {load.weeks.map((week) => <WeekCell key={week.week} week={week} showTasks={load.hasTasks} />)}
       </ul>
 
       {load.allocations.length > 0 && (
@@ -54,28 +55,35 @@ export default function PersonCard({ load, workspaceId, projects, projectName, c
   )
 }
 
-// A week's hours against capacity. Over-allocation is said in words and an
-// icon as well as the red bar, so it doesn't rely on colour.
-function WeekCell({ week, capacity }: { week: WeekLoad; capacity: number }) {
-  const over = week.over > 0
+// A week's allocated hours against capacity, with the hours of the person's
+// open tasks beside them when they have any. Over capacity (by either) is said
+// in words and an icon as well as the red border, so it doesn't rely on colour.
+function WeekCell({ week, showTasks }: { week: WeekPlan; showTasks: boolean }) {
+  const overAllocated = week.over > 0
   return (
-    <li className={`resources-week${over ? ' resources-week--over' : ''}`}>
+    <li className={`resources-week${week.worstOver > 0 ? ' resources-week--over' : ''}`}>
       <span className="resources-week-label">{weekLabel(week.week)}</span>
-      <span className="resources-week-hours">{formatHours(week.allocated)} / {formatHours(capacity)} h</span>
+      <span className="resources-week-hours">{formatHours(week.allocated)} / {formatHours(week.capacity)} h</span>
       <span className="resources-week-bar" aria-hidden="true">
-        <span className="resources-week-bar_fill" style={{ width: `${Math.min(100, loadPercent(week.allocated, capacity))}%` }} />
+        <span
+          className={`resources-week-bar_fill${overAllocated ? ' resources-week-bar_fill--over' : ''}`}
+          style={{ width: `${Math.min(100, loadPercent(week.allocated, week.capacity))}%` }}
+        />
       </span>
-      <span className="resources-week-note">
-        {over && <TriangleAlert className="resources-icon" aria-hidden="true" />}
-        {weekNote(week)}
-      </span>
+      {showTasks && <span className="resources-week-tasks">Tasks {formatHours(week.tasks)} h</span>}
+      {planNotes(week).map(({ text, over }) => (
+        <span key={text} className={`resources-week-note${over ? ' resources-week-note--over' : ''}`}>
+          {over && <TriangleAlert className="resources-icon" aria-hidden="true" />}
+          {text}
+        </span>
+      ))}
     </li>
   )
 }
 
 // Saves when the field loses focus. A rejected value goes back to the saved one
 // (the field is remounted with `version`); the failed request shows its own error.
-function CapacityField({ load, workspaceId }: { load: PersonLoad; workspaceId: number }) {
+function CapacityField({ load, workspaceId }: { load: PersonPlan; workspaceId: number }) {
   const update = useUpdateMemberCapacity(workspaceId)
   const [error, setError] = useState('')
   const [version, setVersion] = useState(0)
