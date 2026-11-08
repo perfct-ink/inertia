@@ -3,6 +3,7 @@ priority: p3
 depends_on: [move-or-copy-content-between-spaces]
 components: [backend]
 branch: backlog/move-folder-attached-records-between-spaces
+status: incomplete
 ---
 # Move folder-attached records between Spaces
 
