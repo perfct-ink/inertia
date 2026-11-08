@@ -180,12 +180,26 @@ export type TaskFieldValues = Record<string, TaskFieldValue>
 // Gantt link (PM-13): the successor waits on the predecessor.
 export type DependencyKind = 'finish_to_start' | 'start_to_start' | 'finish_to_finish' | 'start_to_finish'
 
+// A task as the other end of a link: enough to name it, date it and place it in
+// a project (`folder_id` is its own folder, else its document's).
+export interface TaskLink {
+  id: number
+  title: string
+  status: TaskStatus
+  start_date: string | null
+  due_date: string | null
+  folder_id: number | null
+}
+
 export interface TaskDependency {
   id: number
   predecessor_id: number
   successor_id: number
   kind: DependencyKind
   created_at: string
+  // Both ends, as the server sends them with every link.
+  predecessor?: TaskLink
+  successor?: TaskLink
 }
 
 export interface QuipImport {

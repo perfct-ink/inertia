@@ -12,6 +12,8 @@ export interface TaskFilters {
   sprint_id?: number
   kind?: TaskKind
   assignee_id?: number
+  // List the whole Space even with a project open (the default narrows to the project).
+  all_projects?: boolean
 }
 
 export interface NewTask {
@@ -55,8 +57,16 @@ export class TaskApi extends ApiResource<Task, NewTask> {
 export const taskApi = new TaskApi()
 
 export const useTasks = (filters: TaskFilters = {}) => useResourceList(taskApi, { params: filters })
+// Tasks anywhere in the Space whose title matches, even with a project open: a
+// dependency link can reach into another project. Waits for two characters.
+export const useTaskSearch = (query: string) => useQuery<Task[]>({
+  queryKey: [taskApi.queryKey, 'search', query],
+  queryFn: () => taskApi.list({ q: query, all_projects: true }),
+  enabled: query.length >= 2,
+})
 export const useCreateTask = () => useResourceCreate(taskApi)
-export const useUpdateTask = () => useResourceUpdate(taskApi)
+// A link carries its tasks' dates, so a task's change refreshes them too.
+export const useUpdateTask = () => useResourceUpdate(taskApi, ['task_dependencies'])
 // The server drops a deleted task's Gantt links with it.
 export const useDeleteTask = () => useResourceDelete(taskApi, ['task_dependencies'])
 

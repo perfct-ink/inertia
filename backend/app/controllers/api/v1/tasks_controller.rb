@@ -22,7 +22,9 @@ module Api
           tasks = tasks.left_joins(:document)
             .where("tasks.folder_id = :fid OR documents.folder_id = :fid", fid: params[:folder_id])
         end
-        if current_project
+        # `all_projects` lists the whole Space even with a project open: how a
+        # dependency link finds a task in another project.
+        if current_project && !all_projects?
           # Same two routes into the project, across its subfolders.
           tasks = tasks.left_joins(:document)
             .where("tasks.folder_id IN (:ids) OR documents.folder_id IN (:ids)", ids: project_folder_ids)
@@ -69,6 +71,10 @@ module Api
       end
 
       private
+
+      def all_projects?
+        ActiveModel::Type::Boolean.new.cast(params[:all_projects])
+      end
 
       def set_task
         @task = current_workspace.tasks.find(params[:id])

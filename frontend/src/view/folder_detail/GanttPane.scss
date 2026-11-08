@@ -36,9 +36,20 @@
       @include text('sm');
     }
 
+    @at-root .gantt_pane-subheading {
+      color: color(muted-foreground);
+      font-weight: 600;
+      @include text('xs');
+    }
+
     @at-root .gantt_pane-muted {
       color: color(muted-foreground);
       @include text('xs');
+    }
+
+    // A link whose dates no longer hold.
+    @at-root .gantt_pane-warning {
+      color: palette('red-500');
     }
 
     @at-root .gantt_pane-list {
@@ -84,6 +95,13 @@
       width: auto;
       min-width: space(36);
       max-width: 100%;
+    }
+
+    // The search for a task in another project: fills the row on a phone.
+    .gantt_pane-search {
+      flex: 1 1 space(48);
+      min-width: 0;
+      max-width: space(96);
     }
 
 

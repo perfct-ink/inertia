@@ -1,5 +1,7 @@
 import { addDays, differenceInCalendarDays, format, parseISO } from 'date-fns'
-import type { DependencyKind, DependencyMode, TaskDependency } from '@/types'
+import type { DependencyKind, DependencyMode, Folder, Task, TaskDependency, TaskLink } from '@/types'
+import { projectOf } from './folder'
+import { taskFolderId } from './task'
 
 export const DEPENDENCY_KINDS: DependencyKind[] = ['finish_to_start', 'start_to_start', 'finish_to_finish', 'start_to_finish']
 
@@ -22,6 +24,24 @@ export function linkSides(kind: DependencyKind): { from: BarSide; to: BarSide } 
 // The reverse of linkSides: the kind for a link drawn from one bar side to another.
 export function kindFromSides(from: BarSide, to: BarSide): DependencyKind {
   return `${from === 'start' ? 'start' : 'finish'}_to_${to === 'start' ? 'start' : 'finish'}` as DependencyKind
+}
+
+type Span = { start: string; end: string }
+
+const sideOf = (span: Span, side: BarSide) => (side === 'start' ? span.start : span.end)
+
+// The days a task covers: from its start (its due date when it has no start)
+// to its due date. Null when it has no due date, as undated tasks are ignored.
+export function spanOf(task: { start_date?: string | null; due_date: string | null } | undefined): Span | null {
+  return task?.due_date ? { start: task.start_date ?? task.due_date, end: task.due_date } : null
+}
+
+// Days the successor must move later for a link to hold (negative: it has that
+// many days to spare). A link holds when the successor's linked side is on or
+// after the predecessor's; finish to start allows the same day.
+export function linkDaysLate(kind: DependencyKind, predecessor: Span, successor: Span): number {
+  const sides = linkSides(kind)
+  return differenceInCalendarDays(parseISO(sideOf(predecessor, sides.from)), parseISO(sideOf(successor, sides.to)))
 }
 
 type DatedTask = { id: number; start_date?: string | null; due_date: string | null }
@@ -93,26 +113,23 @@ export function planReschedule(
   dueDate: string,
   mode: DependencyMode,
 ): { updates: DateUpdate[] } | { error: string } {
-  const dates = new Map<number, { start: string; end: string }>()
+  const dates = new Map<number, Span>()
   tasks.forEach((t) => {
-    if (t.due_date) dates.set(t.id, { start: t.start_date ?? t.due_date, end: t.due_date })
+    const span = spanOf(t)
+    if (span) dates.set(t.id, span)
   })
   const titles = new Map(tasks.map((t) => [t.id, t.title ?? `#${t.id}`]))
   const fmt = (d: Date) => format(d, 'yyyy-MM-dd')
   const next = new Map(dates)
   next.set(taskId, { start: startDate, end: dueDate })
-  const moved = new Map<number, { start: string; end: string }>([[taskId, { start: startDate, end: dueDate }]])
+  const moved = new Map<number, Span>([[taskId, { start: startDate, end: dueDate }]])
 
-  const sideOf = (span: { start: string; end: string }, side: BarSide) => (side === 'start' ? span.start : span.end)
-
-  // Days the successor must move later for this link to hold (negative: it has
-  // that many days to spare). Null when either task is undated.
+  // Days the successor must move later for this link to hold. Null when either
+  // task is undated.
   const daysLate = (dep: TaskDependency) => {
     const pred = next.get(dep.predecessor_id)
     const succ = next.get(dep.successor_id)
-    if (!pred || !succ) return null
-    const sides = linkSides(dep.kind)
-    return differenceInCalendarDays(parseISO(sideOf(pred, sides.from)), parseISO(sideOf(succ, sides.to)))
+    return pred && succ ? linkDaysLate(dep.kind, pred, succ) : null
   }
 
   // Days (negative) the successor follows its predecessor earlier: only for a
@@ -160,3 +177,72 @@ export function planReschedule(
 
   return { updates: [...moved].map(([id, r]) => ({ id, start_date: r.start, due_date: r.end })) }
 }
+
+// Splits links by how they relate to one folder's tasks: `internal` has both
+// ends in it (drawn on its chart), `external` has exactly one end in it (the
+// other end is a task in another project). Links with neither end are dropped.
+export function splitDependencies(dependencies: TaskDependency[], taskIds: { has(id: number): boolean }) {
+  const internal: TaskDependency[] = []
+  const external: TaskDependency[] = []
+  dependencies.forEach((d) => {
+    const ends = Number(taskIds.has(d.predecessor_id)) + Number(taskIds.has(d.successor_id))
+    if (ends === 2) internal.push(d)
+    else if (ends === 1) external.push(d)
+  })
+  return { internal, external }
+}
+
+// What the editor shows about the end of a link that is in another project.
+export interface ExternalEnd {
+  // The task in the other project, as the server sent it with the link.
+  task: TaskLink | undefined
+  // Whether the task on the chart waits on it (it is the predecessor) or the reverse.
+  isPredecessor: boolean
+  // Name of the project it is in, when it is in one.
+  project: string | null
+  // Days the link is broken by going by the two tasks' dates; 0 when it holds or a task is undated.
+  brokenByDays: number
+}
+
+type Dated = { start_date?: string | null; due_date: string | null }
+
+// For a link with exactly one end on the chart (`onChart`: the folder's tasks
+// by id): the other end, which side of the link it is, the project it sits in,
+// and whether the dates still satisfy the link. The task on the chart is read
+// from the chart, so a drag shows at once; the other end is as the server sent
+// it. `folders` is the Space's folder tree.
+export function externalEnd(dependency: TaskDependency, onChart: Map<number, Dated>, folders: Folder[]): ExternalEnd {
+  const isPredecessor = !onChart.has(dependency.predecessor_id)
+  const task = isPredecessor ? dependency.predecessor : dependency.successor
+  const predecessor = spanOf(onChart.get(dependency.predecessor_id) ?? dependency.predecessor)
+  const successor = spanOf(onChart.get(dependency.successor_id) ?? dependency.successor)
+  return {
+    task,
+    isPredecessor,
+    project: task?.folder_id != null ? projectOf(folders, task.folder_id)?.name ?? null : null,
+    brokenByDays: predecessor && successor ? Math.max(0, linkDaysLate(dependency.kind, predecessor, successor)) : 0,
+  }
+}
+
+export interface LinkCandidates { project: string; tasks: Task[] }
+
+export const NO_PROJECT = 'No project'
+
+// Tasks found by a search, for the editor's pickers: those already on the
+// folder's chart left out, the rest grouped under the project they sit in
+// (by name, with the ones in no project last).
+export function linkCandidates(found: Task[], folders: Folder[], onChart: Set<number>): LinkCandidates[] {
+  const groups = new Map<string, Task[]>()
+  const seen = new Set<number>()
+  found.forEach((task) => {
+    if (onChart.has(task.id) || seen.has(task.id)) return
+    seen.add(task.id)
+    const folderId = taskFolderId(task)
+    const project = (folderId != null ? projectOf(folders, folderId)?.name : null) ?? NO_PROJECT
+    groups.set(project, [...(groups.get(project) ?? []), task])
+  })
+  return [...groups]
+    .map(([project, tasks]) => ({ project, tasks }))
+    .sort((a, b) => Number(a.project === NO_PROJECT) - Number(b.project === NO_PROJECT) || a.project.localeCompare(b.project))
+}
+
