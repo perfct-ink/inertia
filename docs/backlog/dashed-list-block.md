@@ -1,6 +1,6 @@
 ---
 priority: p1
-depends_on: [rebind-editor-shortcuts-to-apple-notes-map]
+depends_on: []
 components: [frontend]
 ---
 # Dashed list block
@@ -12,6 +12,8 @@ Dashed list block
 ## Requirements / notes
 
 Notes' third list style; not in the editor today.
+
+**Build it now** (Alex, 2026-11-09 groom): no need to wait for the shortcut rework. Ship the dashed list with a toolbar button (and the list menu, if any); its keyboard shortcut comes with `rebind-editor-shortcuts-to-apple-notes-map.md`.
 
 ## Context
 
@@ -29,5 +31,4 @@ The full proposed keystroke map (Apple Notes vs Google Docs vs the choice for In
 
 - Dashed list block works as described in the Objective, for a signed-in member of the Space, in the web app.
 - Anything stated in Requirements / notes (including any named default) is implemented or deliberately changed with the reason recorded.
-- Failed API calls show an error to the user.
 - Tests cover the new behaviour; a feature doc in `docs/features/` is written (or the existing one updated) and this file is removed.
