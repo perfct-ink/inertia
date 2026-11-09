@@ -28,3 +28,7 @@ An open project shows its files right under the project dropdown, then every pag
 - Existing projects show every feature until someone changes them.
 - Failed API calls show an error to the user.
 - Tests cover the API (permitted values, default) and the sidebar; `docs/features/projects.md` is updated and this file is removed.
+
+## Not merged (2026-11-09)
+
+`backlog/choose-which-features-a-project-uses` was built on an older project sidebar (Files and Pages tabs). Main's sidebar now has a Tasks section and other changes (paths, home documents, project details), and the merge conflicts in eight files, most of them in `ProjectNav.tsx`. Rebuild it on main: filter main's project sections by the project's features rather than bringing back the old tabs. The backend part (`folders.features`, `store_all_features_as_default`) and `data/projectFeature.ts` can be reused.
