@@ -24,6 +24,12 @@ export function kindFromSides(from: BarSide, to: BarSide): DependencyKind {
   return `${from === 'start' ? 'start' : 'finish'}_to_${to === 'start' ? 'start' : 'finish'}` as DependencyKind
 }
 
+// The links with both ends among these tasks; the rest belong to other charts.
+export function dependenciesAmong(dependencies: TaskDependency[], tasks: { id: number }[]): TaskDependency[] {
+  const ids = new Set(tasks.map((t) => t.id))
+  return dependencies.filter((d) => ids.has(d.predecessor_id) && ids.has(d.successor_id))
+}
+
 type DatedTask = { id: number; start_date?: string | null; due_date: string | null }
 
 // The chain of tasks that drives the latest finish date (PM-15). Starting

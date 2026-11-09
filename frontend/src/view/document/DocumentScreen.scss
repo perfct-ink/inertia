@@ -132,10 +132,11 @@
       box-shadow: 0 0 0 space(1) color(primary, 0.15);
     }
 
-    // Tasks only: fold every top-level block except headings and task lists in place.
+    // Tasks only: fold every top-level block except headings, task lists and
+    // embedded live task lists in place.
     @at-root .document-page--tasks_only
       .ProseMirror
-      > :not(h1, h2, h3, h4, h5, h6, [data-type='workspaceTaskList']) {
+      > :not(h1, h2, h3, h4, h5, h6, [data-type='workspaceTaskList'], [data-type='taskEmbed']) {
       display: none;
     }
   }

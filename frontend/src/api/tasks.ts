@@ -54,7 +54,10 @@ export class TaskApi extends ApiResource<Task, NewTask> {
 
 export const taskApi = new TaskApi()
 
-export const useTasks = (filters: TaskFilters = {}) => useResourceList(taskApi, { params: filters })
+// `enabled` and `refetchInterval` are for lists left on screen, such as the one
+// embedded in a document (see useResourceList).
+export const useTasks = (filters: TaskFilters = {}, options: { enabled?: boolean; refetchInterval?: number } = {}) =>
+  useResourceList(taskApi, { params: filters, ...options })
 export const useCreateTask = () => useResourceCreate(taskApi)
 export const useUpdateTask = () => useResourceUpdate(taskApi)
 // The server drops a deleted task's Gantt links with it.

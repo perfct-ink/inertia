@@ -9,8 +9,8 @@ import { useUpdateFolder } from '@/api/folders'
 import { useBaselines, useCreateBaseline, useDeleteBaseline } from '@/api/baselines'
 import { withBaseline } from '@/data/baseline'
 import { useCreateTaskDependency, useDeleteTaskDependency, useTaskDependencies } from '@/api/taskDependencies'
-import { GANTT_ZOOMS, GANTT_ZOOM_LABEL, ganttTaskKey, groupGanttRows, type GanttGroups, type GanttZoom, type Scheduled } from '@/data/schedule'
-import { DEPENDENCY_KINDS, DEPENDENCY_LABEL, DEPENDENCY_MODES, DEPENDENCY_MODE_LABEL, drivingPath, kindFromSides, planReschedule, type BarSide } from '@/data/dependency'
+import { GANTT_ZOOMS, GANTT_ZOOM_LABEL, ganttLinks, groupGanttRows, type GanttGroups, type GanttZoom, type Scheduled } from '@/data/schedule'
+import { DEPENDENCY_KINDS, DEPENDENCY_LABEL, DEPENDENCY_MODES, DEPENDENCY_MODE_LABEL, dependenciesAmong, drivingPath, kindFromSides, planReschedule, type BarSide } from '@/data/dependency'
 import { errorMessage } from '@/util/errorMessage'
 import { exportGanttPng } from '@/util/ganttCanvas'
 import { printGantt } from '@/util/printGantt'
@@ -92,17 +92,13 @@ export default function GanttPane({ folderId, dependencyMode, epics, tasks, mile
     createDependency.mutate({ predecessor_id: predecessorId, successor_id: successorId, kind: kindFromSides(from.side, to.side) })
   }
 
-  const taskIds = useMemo(() => new Set(tasks.map((t) => t.id)), [tasks])
-  // Only links with both ends in this folder; the rest belong to other charts.
-  const dependencies = useMemo(
-    () => allDependencies.filter((d) => taskIds.has(d.predecessor_id) && taskIds.has(d.successor_id)),
-    [allDependencies, taskIds],
-  )
+  // Only links with both ends in this folder.
+  const dependencies = useMemo(() => dependenciesAmong(allDependencies, tasks), [allDependencies, tasks])
   const critical = useMemo(
     () => (showCritical ? drivingPath(tasks, dependencies) : new Set<number>()),
     [showCritical, tasks, dependencies],
   )
-  const links = dependencies.map((d) => ({ from: ganttTaskKey(d.predecessor_id), to: ganttTaskKey(d.successor_id), kind: d.kind }))
+  const links = ganttLinks(dependencies)
 
   const rows = groupGanttRows(epics, tasks, critical, groups)
 

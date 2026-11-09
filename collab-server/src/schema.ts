@@ -1,6 +1,6 @@
 // Schema-only mirror of frontend/src/pages/workspace/DocumentPage.tsx's editor
 // `extensions` array, plus frontend/src/extensions/{WorkspaceTaskList,
-// WorkspaceTaskItem,Video,Attachment}. y-prosemirror's JSON<->Yjs conversion only cares
+// WorkspaceTaskItem,Video,Attachment,TaskEmbed}. y-prosemirror's JSON<->Yjs conversion only cares
 // about node/mark SHAPE (name, group, content, attrs) — NodeView renderers,
 // parseHTML/renderHTML, keyboard shortcuts, and toolbar commands are UI
 // concerns and are deliberately omitted here. That's why this list is
@@ -109,11 +109,28 @@ const FileAttachment = Node.create({
   },
 });
 
+// Matches frontend/src/extensions/TaskEmbed.ts exactly (shape only): a live task
+// list or Gantt that stores what to show and reads the tasks when drawn. The
+// defaults are TASK_EMBED_DEFAULTS in frontend/src/data/taskEmbed.ts.
+const TaskEmbed = Node.create({
+  name: "taskEmbed",
+  group: "block",
+  atom: true,
+  addAttributes() {
+    return {
+      view: { default: "list" },
+      scope: { default: "space" },
+      scopeId: { default: null },
+      status: { default: "open" },
+    };
+  },
+});
+
 export const schemaExtensions = [
   CustomDocument, Paragraph, Text, HardBreak,
   Bold, Italic, Underline, Strike, Code,
   Heading, BulletList, OrderedList, ListItem,
-  WorkspaceTaskList, WorkspaceTaskItem,
+  WorkspaceTaskList, WorkspaceTaskItem, TaskEmbed,
   CodeBlock, HorizontalRule, Image, Link, Video, AudioAttachment, FileAttachment,
   Table, TableRow, TableCell, TableHeader,
 ];

@@ -10,7 +10,7 @@ describe("schema", () => {
     expect(Object.keys(schema.nodes).sort()).toEqual([
       "audio", "bulletList", "codeBlock", "doc", "fileAttachment", "hardBreak", "heading",
       "horizontalRule", "image", "listItem", "orderedList", "paragraph", "table", "tableCell",
-      "tableHeader", "tableRow", "text", "video", "workspaceTaskItem", "workspaceTaskList",
+      "tableHeader", "tableRow", "taskEmbed", "text", "video", "workspaceTaskItem", "workspaceTaskList",
     ]);
   });
 
@@ -24,5 +24,12 @@ describe("schema", () => {
     const withId = schema.nodeFromJSON({ type: "heading", attrs: { level: 2, id: "launch-plan" } });
     expect(withId.attrs).toEqual({ level: 2, id: "launch-plan" });
     expect(schema.nodeFromJSON({ type: "heading", attrs: { level: 2 } }).attrs.id).toBeNull();
+  });
+
+  it("keeps a live task list's settings, with the defaults a new one gets", () => {
+    const chosen = schema.nodeFromJSON({ type: "taskEmbed", attrs: { view: "gantt", scope: "sprint", scopeId: 4, status: "all" } });
+    expect(chosen.attrs).toEqual({ view: "gantt", scope: "sprint", scopeId: 4, status: "all" });
+    expect(schema.nodes.taskEmbed.isAtom).toBe(true);
+    expect(schema.nodeFromJSON({ type: "taskEmbed" }).attrs).toEqual({ view: "list", scope: "space", scopeId: null, status: "open" });
   });
 });

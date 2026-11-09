@@ -1,0 +1,166 @@
+@use 'tokens' as *;
+
+// The live task list / Gantt block inside a document (components/editors/TaskEmbedPanel.tsx).
+@layer app.components {
+  .view-task_embed {
+    display: flex;
+    flex-direction: column;
+    gap: space(3);
+    min-width: 0;
+    padding: space(3);
+    border-width: 1px;
+    border-radius: radius('lg');
+    background: color(card);
+    color: color(card-foreground);
+    cursor: default;
+
+    &--selected {
+      @include focus-ring;
+    }
+
+    // Title and progress on the left, buttons on the right; on a phone the
+    // progress drops under the title.
+    @at-root .task_embed-header {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: space(2) space(3);
+    }
+
+    @at-root .task_embed-title {
+      flex: 1 1 12rem;
+      min-width: 0;
+      font-weight: 600;
+      @include text('sm');
+    }
+
+    @at-root .task_embed-progress {
+      display: flex;
+      flex: 0 1 10rem;
+      flex-direction: column;
+      gap: space(1);
+      color: color(muted-foreground);
+      @include text('xs');
+    }
+
+    @at-root .task_embed-actions {
+      display: flex;
+      flex-shrink: 0;
+      align-items: center;
+      gap: space(1);
+      margin-left: auto;
+    }
+
+    // Icon buttons are 40px square so they can be tapped.
+    & .task_embed-icon_button {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-width: space(10);
+      min-height: space(10);
+      color: color(muted-foreground);
+
+      &:hover:not(:disabled) {
+        color: color(foreground);
+      }
+
+      &--active {
+        background: color(accent);
+        color: color(foreground);
+      }
+    }
+
+    @at-root .task_embed-icon {
+      width: space(4);
+      height: space(4);
+    }
+
+    @at-root .task_embed-settings {
+      display: flex;
+      flex-wrap: wrap;
+      gap: space(3);
+      padding-bottom: space(3);
+      border-bottom-width: 1px;
+    }
+
+    @at-root .task_embed-field {
+      display: flex;
+      flex: 1 1 10rem;
+      flex-direction: column;
+      gap: space(1);
+      min-width: 0;
+      color: color(muted-foreground);
+      @include text('xs');
+
+      .ui-select {
+        width: 100%;
+      }
+    }
+
+    @at-root .task_embed-list {
+      display: flex;
+      flex-direction: column;
+      gap: space(1);
+    }
+
+    // Checkbox, title, then status and due date; the meta wraps under the title on a phone.
+    @at-root .task_embed-item {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: space(1) space(3);
+      padding: space(1) 0;
+    }
+
+    @at-root .task_embed-task {
+      flex: 1 1 10rem;
+      min-width: 0;
+      overflow-wrap: anywhere;
+      @include text('sm');
+
+      &--done {
+        color: color(muted-foreground);
+        text-decoration: line-through;
+      }
+    }
+
+    // Status and due date while editing: both change the task. They sit on the
+    // title's line on a wide page and wrap under it on a phone.
+    @at-root .task_embed-fields {
+      display: flex;
+      flex: 0 1 auto;
+      flex-wrap: wrap;
+      gap: space(2);
+      min-width: 0;
+
+      .task_embed-status {
+        width: 9rem;
+      }
+
+      .task_embed-date {
+        width: 8.5rem;
+      }
+    }
+
+    @at-root .task_embed-meta {
+      display: inline-flex;
+      flex-shrink: 0;
+      align-items: center;
+      gap: space(1.5);
+      color: color(muted-foreground);
+      @include text('xs');
+    }
+
+    @at-root .task_embed-note {
+      color: color(muted-foreground);
+      @include text('sm');
+    }
+
+    @at-root .task_embed-error {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: space(3);
+    }
+  }
+}

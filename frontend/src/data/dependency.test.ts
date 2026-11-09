@@ -1,5 +1,5 @@
 import type { TaskDependency } from '@/types'
-import { DEPENDENCY_KINDS, drivingPath, kindFromSides, linkSides, planReschedule } from './dependency'
+import { DEPENDENCY_KINDS, dependenciesAmong, drivingPath, kindFromSides, linkSides, planReschedule } from './dependency'
 
 const dep = (predecessor_id: number, successor_id: number, kind: TaskDependency['kind'] = 'finish_to_start') =>
   ({ id: predecessor_id * 100 + successor_id, predecessor_id, successor_id, kind, created_at: '' })
@@ -118,4 +118,11 @@ test('kindFromSides is the reverse of linkSides for all four kinds', () => {
     expect(kindFromSides(from, to)).toBe(kind)
   }
   expect(kindFromSides('end', 'start')).toBe('finish_to_start')
+})
+
+test('dependenciesAmong keeps only the links with both ends among the tasks', () => {
+  const links = [dep(1, 2), dep(1, 99), dep(98, 2), dep(2, 3)]
+  expect(dependenciesAmong(links, [{ id: 1 }, { id: 2 }, { id: 3 }]).map((d) => d.id)).toEqual([102, 203])
+  expect(dependenciesAmong(links, [{ id: 1 }])).toEqual([])
+  expect(dependenciesAmong([], [{ id: 1 }])).toEqual([])
 })
