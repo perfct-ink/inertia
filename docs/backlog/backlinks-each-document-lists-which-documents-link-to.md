@@ -13,6 +13,8 @@ Backlinks: each document lists which documents link to it
 
 Needs a `document_links` table refreshed on save.
 
+**Where** (Alex, 2026-11-09 groom): a "Linked from" section at the bottom of the document, under its content, listing each linking document (title, link to it). Hide the section when nothing links to the document (design principle 9).
+
 ## Context
 
 Section "Document linking, navigation and URLs" of the retired shared backlog.
