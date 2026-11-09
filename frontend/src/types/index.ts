@@ -139,6 +139,12 @@ export interface Task {
   position: number
   document_id: number
   assignee_id: number | null
+  // Auto fields the server fills in (docs/features/task_auto_fields.md). Tasks
+  // made before creators were recorded have no creator.
+  created_by_id?: number | null
+  created_by_name?: string | null
+  created_at?: string
+  updated_at?: string
   logged_minutes?: number
   timer_entry_id?: number | null
   timer_started_at?: string | null

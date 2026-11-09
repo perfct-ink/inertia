@@ -13,6 +13,13 @@ const task = { id: 1, title: 'Ship', description: null, status: 'todo', start_da
 
 afterEach(() => jest.clearAllMocks())
 
+test('shows the automatic fields without a way to edit them', () => {
+  render(<TaskDetail task={{ ...task, created_by_name: 'Ada', created_at: '2026-10-19T12:00:00Z' }} onClose={jest.fn()} />)
+  expect(screen.getByLabelText('Automatic fields')).toHaveTextContent('Item ID#1')
+  expect(screen.getByLabelText('Automatic fields')).toHaveTextContent('Created byAda')
+  expect(screen.queryByLabelText('Created by')).not.toBeInTheDocument()
+})
+
 test('changing the milestone and a date sends only those fields', () => {
   const onClose = jest.fn()
   mockUpdate.mutate.mockImplementation((_data, { onSuccess }) => onSuccess())

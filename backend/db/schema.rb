@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_11_07_120001) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_08_140001) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -561,7 +561,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_07_120001) do
     t.integer "story_points"
     t.integer "actual_story_points"
     t.integer "kind", default: 0, null: false
+    t.bigint "created_by_id"
     t.index ["assignee_id"], name: "index_tasks_on_assignee_id"
+    t.index ["created_by_id"], name: "index_tasks_on_created_by_id"
     t.index ["document_id"], name: "index_tasks_on_document_id"
     t.index ["epic_id"], name: "index_tasks_on_epic_id"
     t.index ["folder_id"], name: "index_tasks_on_folder_id"
@@ -751,6 +753,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_07_120001) do
   add_foreign_key "tasks", "sprints"
   add_foreign_key "tasks", "tasks", column: "parent_id"
   add_foreign_key "tasks", "users", column: "assignee_id"
+  add_foreign_key "tasks", "users", column: "created_by_id", on_delete: :nullify
   add_foreign_key "tasks", "workspaces"
   add_foreign_key "team_memberships", "teams"
   add_foreign_key "team_memberships", "users"

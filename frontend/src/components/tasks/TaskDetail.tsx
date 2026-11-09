@@ -7,6 +7,7 @@ import { useMilestones } from '@/api/milestones'
 import { errorMessage } from '@/util/errorMessage'
 import { taskChanges, taskDraft, taskDraftError, TASK_STATUSES, STATUS_LABEL, type TaskDraft } from '@/data/task'
 import type { Task } from '@/types'
+import { TaskAutoFields } from './TaskAutoFields'
 
 // Edit a task after it was created: title, description, status, dates, epic,
 // sprint and milestone. Only changed fields are sent.
@@ -56,6 +57,7 @@ export function TaskDetail({ task, onClose }: { task: Task; onClose: () => void 
           {milestones.map((x) => <option key={x.id} value={x.id}>{x.title}</option>)}
         </Select>
       </label>
+      <TaskAutoFields task={task} />
       <FormError message={error ?? invalid} />
       <Button variant="primary" disabled={!dirty || !!invalid || update.isPending} onClick={save}>Save</Button>
       <Button onClick={onClose}>Cancel</Button>
