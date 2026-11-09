@@ -1,4 +1,5 @@
-import type { FolderAccess, FolderMember, FolderRole } from '@/types'
+import type { Folder, FolderAccess, FolderMember, FolderRole, SharedFolder } from '@/types'
+import { flattenFolders } from './folder'
 
 // Roles on a folder shared with named people, least to most privileged.
 // Mirrors FolderMembership.roles on the server.
@@ -48,4 +49,17 @@ export function sortFolderMembers(members: FolderMember[]): FolderMember[] {
 // "Editor, invited by Sam" or just "Editor" when the inviter is gone.
 export function roleSummary(role: FolderRole, invitedBy: string | null): string {
   return invitedBy ? `${FOLDER_ROLE_LABEL[role]}, invited by ${invitedBy}` : FOLDER_ROLE_LABEL[role]
+}
+
+// The "Shared with me" entry that gives the user a folder: the one whose tree
+// holds it (the shared folder itself or anything below it).
+export function sharedEntryFor(entries: SharedFolder[], folderId: number): SharedFolder | undefined {
+  const holds = (folder: Folder) => flattenFolders([folder]).some((f) => f.id === folderId)
+  return entries.find((entry) => holds(entry.folder))
+}
+
+// One line for the top of a shared folder's page.
+export function sharedNotice(entry: SharedFolder): string {
+  const by = entry.invited_by ? `, invited by ${entry.invited_by}` : ''
+  return `Shared with you from ${entry.space.name}: ${FOLDER_ROLE_LABEL[entry.role]}${by}.`
 }

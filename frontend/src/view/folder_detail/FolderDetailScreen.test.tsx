@@ -7,11 +7,20 @@ import type { TaskStatusSetting } from '@/types'
 jest.mock('@/components/WorkspaceLayout', () => function LayoutMock({ children }: { children: React.ReactNode }) { return <div>{children}</div> })
 jest.mock('@/components/CreateItem', () => function CreateItemMock() { return null })
 jest.mock('./GanttPane', () => function GanttPaneMock() { return null })
+jest.mock('@/components/FeatureRollup', () => function FeatureRollupMock() { return <p>Feature rollup</p> })
+jest.mock('@/components/file-manager/FolderPresence', () => ({ FolderPresence: ({ enabled }: { enabled: boolean }) => (enabled ? <p>Live room</p> : null) }))
+jest.mock('@/components/file-manager/FolderSharing', () => ({
+  ShareFolderButton: () => <button>Share</button>,
+  SharedFolderBanner: () => <p>Shared with you</p>,
+}))
 
 const mockUpdate = { mutate: jest.fn() }
 let mockRole = 'member'
+let mockAccess: object | undefined
+let mockWorkspaceShared = false
 const mockWorkspace = {
   get role() { return mockRole },
+  get shared() { return mockWorkspaceShared },
   folders: [{ id: 1, name: 'Root', root: true, parent_id: null, documents: [], children: [{ id: 2, name: 'Messages', root: false, parent_id: 1, documents: [], children: [] }] }],
 }
 const task = (id: number, title: string, status: string) => ({ id, title, status, parent_id: null, due_date: null, document_id: 1 })
@@ -23,7 +32,7 @@ const mockContents = {
   epics: [],
 }
 jest.mock('@/api/folders', () => ({
-  useFolderContents: () => ({ data: mockContents, isLoading: false }),
+  useFolderContents: () => ({ data: { ...mockContents, access: mockAccess }, isLoading: false }),
   useUpdateFolder: () => mockUpdate,
 }))
 jest.mock('@/api/workspace', () => ({
@@ -51,6 +60,8 @@ function renderScreen(view: string) {
 beforeEach(() => {
   mockRole = 'member'
   mockSettings = []
+  mockAccess = undefined
+  mockWorkspaceShared = false
 })
 
 test('the board names its columns and the move arrow with the built-in statuses by default', () => {
@@ -94,4 +105,56 @@ test('members can open the status editor from the board; viewers and other views
   mockRole = 'member'
   renderScreen('gantt')
   expect(screen.queryByRole('button', { name: 'Statuses' })).not.toBeInTheDocument()
+})
+
+test('a Space member sees the usual folder controls; admins and owners also get Share', () => {
+  mockAccess = { source: 'space', role: 'member', can_write: true, can_share: false }
+  const { unmount } = renderScreen('overview')
+  expect(screen.getByRole('button', { name: 'Archive' })).toBeInTheDocument()
+  expect(screen.getByLabelText('Home document')).toBeInTheDocument()
+  expect(screen.getByRole('button', { name: 'Gantt' })).toBeInTheDocument()
+  expect(screen.getByText('Feature rollup')).toBeInTheDocument()
+  expect(screen.queryByRole('button', { name: 'Share' })).not.toBeInTheDocument()
+  expect(screen.queryByText('Shared with you')).not.toBeInTheDocument()
+  unmount()
+
+  mockAccess = { source: 'space', role: 'admin', can_write: true, can_share: true }
+  renderScreen('overview')
+  expect(screen.getByRole('button', { name: 'Share' })).toBeInTheDocument()
+})
+
+test('a folder someone invited you to shows the banner and none of the Space-only controls', () => {
+  mockAccess = { source: 'folder', role: 'editor', can_write: true, can_share: false }
+  renderScreen('gantt')
+  expect(screen.getByText('Shared with you')).toBeInTheDocument()
+  expect(screen.queryByRole('button', { name: 'Gantt' })).not.toBeInTheDocument()
+  expect(screen.queryByRole('button', { name: 'Archive' })).not.toBeInTheDocument()
+  expect(screen.queryByLabelText('Home document')).not.toBeInTheDocument()
+  expect(screen.queryByRole('button', { name: 'Statuses' })).not.toBeInTheDocument()
+  expect(screen.queryByText('Feature rollup')).not.toBeInTheDocument()
+  // The Gantt is not offered, so a link to it falls back to the overview.
+  expect(screen.getByRole('heading', { name: 'Documents, Sheets & Collections' })).toBeInTheDocument()
+})
+
+test('a viewer reads the board without the move arrows', () => {
+  mockAccess = { source: 'folder', role: 'viewer', can_write: false, can_share: false }
+  renderScreen('board')
+  expect(screen.getByText('Write copy')).toBeInTheDocument()
+  expect(screen.queryByRole('button', { name: /^Move to/ })).not.toBeInTheDocument()
+})
+
+test('the live room is only joined when more than one person can reach the folder', () => {
+  const { unmount } = renderScreen('overview')
+  expect(screen.queryByText('Live room')).not.toBeInTheDocument()
+  unmount()
+
+  mockWorkspaceShared = true
+  const shared = renderScreen('overview')
+  expect(screen.getByText('Live room')).toBeInTheDocument()
+  shared.unmount()
+
+  mockWorkspaceShared = false
+  mockAccess = { source: 'folder', role: 'viewer', can_write: false, can_share: false }
+  renderScreen('overview')
+  expect(screen.getByText('Live room')).toBeInTheDocument()
 })

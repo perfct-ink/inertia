@@ -33,6 +33,9 @@ import GanttPane from './GanttPane'
 import CardsView from './CardsView'
 import { buildTaskTree, type TaskNode } from '@/data/task'
 import { homeDocumentToOpen } from '@/data/folder'
+import { folderPermissions } from '@/data/folderRole'
+import { FolderPresence } from '@/components/file-manager/FolderPresence'
+import { SharedFolderBanner, ShareFolderButton } from '@/components/file-manager/FolderSharing'
 
 const dotClass = (name: string) => `folder_detail-dot folder_detail-dot--${name}`
 
@@ -49,7 +52,7 @@ const VIEWS = [
 // drag-and-drop board lives on TasksPage; this is deliberately simpler
 // since it's one of four views sharing this page. ──────────────────────────
 
-function BoardView({ tasks, statuses, onAdvance }: { tasks: Task[]; statuses: BoardStatuses; onAdvance: (task: Task) => void }) {
+function BoardView({ tasks, statuses, onAdvance }: { tasks: Task[]; statuses: BoardStatuses; onAdvance?: (task: Task) => void }) {
   return (
     <div className="folder_detail-pane">
       <div className="folder_detail-board">
@@ -66,7 +69,7 @@ function BoardView({ tasks, statuses, onAdvance }: { tasks: Task[]; statuses: Bo
                 {colTasks.map((task) => (
                   <div key={task.id} className="folder_detail-card">
                     <p className="folder_detail-card-title">{task.title}</p>
-                    {NEXT_STATUS[task.status] && (
+                    {onAdvance && NEXT_STATUS[task.status] && (
                       <div className="folder_detail-card-actions">
                         <Button
                           onClick={() => onAdvance(task)}
@@ -260,7 +263,7 @@ function ViewLink({ folderId, view, label, navigate }: { folderId: number; view:
 }
 
 function OverviewView({
-  folderId, documents, tasks, epics, events, navigate,
+  folderId, documents, tasks, epics, events, navigate, canWrite, planning,
 }: {
   folderId: number
   documents: { id: number; title: string; doc_type: Document['doc_type'] }[]
@@ -268,6 +271,10 @@ function OverviewView({
   epics: Epic[]
   events: WorkspaceEvent[]
   navigate: (path: string) => void
+  // Offer creating and uploading (the user may change what is in the folder).
+  canWrite: boolean
+  // The Space's planning data (feature rollup, Gantt) is out of reach for someone invited to the folder.
+  planning: boolean
 }) {
   const todayStr = format(new Date(), 'yyyy-MM-dd')
   const upcomingEvents = events.filter((e) => e.date >= todayStr).slice(0, 5)
@@ -276,10 +283,10 @@ function OverviewView({
   return (
     <div className="folder_detail-pane folder_detail-pane--overview">
       <div className="folder_detail-overview">
-        <FeatureRollup folderId={folderId} />
+        {planning && <FeatureRollup folderId={folderId} />}
         <section>
           <h2 className="folder_detail-heading folder_detail-spaced">Documents, Sheets & Collections</h2>
-          <div className="folder_detail-spaced"><CreateItem folderId={folderId} /></div>
+          {canWrite && <div className="folder_detail-spaced"><CreateItem folderId={folderId} /></div>}
           {documents.length === 0 ? (
             <p className="folder_detail-note">No documents yet.</p>
           ) : (
@@ -329,7 +336,7 @@ function OverviewView({
         <section>
           <div className="folder_detail-section_header">
             <h2 className="folder_detail-heading">Epics</h2>
-            <ViewLink folderId={folderId} view="gantt" label="Gantt" navigate={navigate} />
+            {planning && <ViewLink folderId={folderId} view="gantt" label="Gantt" navigate={navigate} />}
           </div>
           {epics.length === 0 ? (
             <p className="folder_detail-note">No epics yet.</p>
@@ -383,7 +390,6 @@ export default function FolderDetailScreen() {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const location = useLocation()
-  const view = VIEWS.find((v) => v.key === searchParams.get('view'))?.key ?? 'overview'
 
   const { data, isLoading } = useFolderContents(folderId)
   const { data: workspace } = useWorkspace()
@@ -394,6 +400,9 @@ export default function FolderDetailScreen() {
   const { data: allMilestones = [] } = useMilestones()
   const { data: initiatives = [] } = useInitiatives()
   usePageTitle(data?.folder.name)
+  // What the user may do here: a member of the Space follows their Space role;
+  // someone invited to the folder (`shared`) follows the invitation.
+  const perms = folderPermissions(data?.access)
 
   if (isLoading || !data) {
     return (
@@ -406,6 +415,10 @@ export default function FolderDetailScreen() {
   }
 
   const { folder, documents, tasks, events, epics } = data
+  // The Gantt reads the Space's planning data (milestones, initiatives), which
+  // someone invited to the folder can't reach, so it isn't offered to them.
+  const views = perms.shared ? VIEWS.filter((v) => v.key !== 'gantt') : VIEWS
+  const view = views.find((v) => v.key === searchParams.get('view'))?.key ?? 'overview'
   const milestones = milestoneMarkers(allMilestones.filter((m) => m.folder_id === folderId))
   // Opening the folder lands on its home document; ?view=overview (or any view) shows the contents.
   const homeId = homeDocumentToOpen(folder, location.search)
@@ -419,8 +432,9 @@ export default function FolderDetailScreen() {
             <ArrowLeft className="folder_detail-icon--md" />
           </Button>
           <h1 className="folder_detail-title">{folder.name}</h1>
+          <FolderPresence folderId={folderId} enabled={perms.shared || Boolean(workspace?.shared)} />
           <div className="folder_detail-tabs">
-            {VIEWS.map(({ key, label, icon: Icon }) => (
+            {views.map(({ key, label, icon: Icon }) => (
               <Button
                 key={key}
                 onClick={() => navigate(`/folders/${folderId}?view=${key}`)}
@@ -432,7 +446,8 @@ export default function FolderDetailScreen() {
             ))}
           </div>
           <div className="folder_detail-actions">
-            {(view === 'board' || view === 'list') && canWriteWorkspace(workspace?.role) && (
+            {perms.canShare && <ShareFolderButton folder={folder} />}
+            {(view === 'board' || view === 'list') && canWriteWorkspace(workspace?.role) && !perms.shared && perms.canWrite && (
               <Button
                 onClick={() => setShowStatuses(true)}
                 className="folder_detail-subtle folder_detail-action"
@@ -442,23 +457,28 @@ export default function FolderDetailScreen() {
                 Statuses
               </Button>
             )}
-            <Button
-              onClick={() => updateFolder.mutate({ id: folderId, archived: !folder.archived })}
-              className="folder_detail-subtle folder_detail-action"
-            >
-              {folder.archived ? <ArchiveRestore className="folder_detail-icon--sm" /> : <Archive className="folder_detail-icon--sm" />}
-              {folder.archived ? 'Unarchive' : 'Archive'}
-            </Button>
+            {perms.canWrite && !perms.shared && (
+              <Button
+                onClick={() => updateFolder.mutate({ id: folderId, archived: !folder.archived })}
+                className="folder_detail-subtle folder_detail-action"
+              >
+                {folder.archived ? <ArchiveRestore className="folder_detail-icon--sm" /> : <Archive className="folder_detail-icon--sm" />}
+                {folder.archived ? 'Unarchive' : 'Archive'}
+              </Button>
+            )}
           </div>
-          <Select
-            aria-label="Home document"
-            value={folder.home_document_id ?? ''}
-            onChange={(e) => updateFolder.mutate({ id: folderId, home_document_id: e.target.value ? Number(e.target.value) : null })}
-          >
-            <option value="">No home document</option>
-            {documents.filter((d) => d.folder_id === folderId).map((d) => <option key={d.id} value={d.id}>{d.title}</option>)}
-          </Select>
+          {perms.canWrite && !perms.shared && (
+            <Select
+              aria-label="Home document"
+              value={folder.home_document_id ?? ''}
+              onChange={(e) => updateFolder.mutate({ id: folderId, home_document_id: e.target.value ? Number(e.target.value) : null })}
+            >
+              <option value="">No home document</option>
+              {documents.filter((d) => d.folder_id === folderId).map((d) => <option key={d.id} value={d.id}>{d.title}</option>)}
+            </Select>
+          )}
         </div>
+        {perms.shared && <SharedFolderBanner folderId={folderId} />}
 
         {/* Documents — always visible regardless of which view is active,
             since they're part of "everything in this folder" too. Skipped
@@ -485,13 +505,22 @@ export default function FolderDetailScreen() {
         )}
 
         {view === 'overview' && (
-          <OverviewView folderId={folderId} documents={documents} tasks={tasks} epics={epics} events={events} navigate={navigate} />
+          <OverviewView
+            folderId={folderId}
+            documents={documents}
+            tasks={tasks}
+            epics={epics}
+            events={events}
+            navigate={navigate}
+            canWrite={perms.canWrite}
+            planning={!perms.shared}
+          />
         )}
         {view === 'board' && (
           <BoardView
             tasks={tasks}
             statuses={statuses}
-            onAdvance={(task) => updateTask.mutate({ id: task.id, status: NEXT_STATUS[task.status]! })}
+            onAdvance={perms.canWrite ? (task) => updateTask.mutate({ id: task.id, status: NEXT_STATUS[task.status]! }) : undefined}
           />
         )}
         {view === 'list' && <TaskListView tasks={tasks} statuses={statuses} />}

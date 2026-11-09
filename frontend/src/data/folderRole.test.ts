@@ -1,6 +1,6 @@
-import type { FolderMember } from '@/types'
+import type { Folder, FolderMember, SharedFolder } from '@/types'
 import {
-  FOLDER_ROLES, canManageFolder, canWriteFolder, folderPermissions, roleSummary, sortFolderMembers,
+  FOLDER_ROLES, canManageFolder, canWriteFolder, folderPermissions, roleSummary, sharedEntryFor, sharedNotice, sortFolderMembers,
 } from './folderRole'
 
 const member = (id: number, name: string, inherited: boolean): FolderMember => ({
@@ -34,4 +34,22 @@ test('people invited here come before inherited ones, each group by name', () =>
 test('the role summary names who invited, when known', () => {
   expect(roleSummary('editor', 'Sam')).toBe('Editor, invited by Sam')
   expect(roleSummary('viewer', null)).toBe('Viewer')
+})
+
+const folder = (id: number, children: Folder[] = []) => ({ id, name: `F${id}`, children, documents: [] }) as unknown as Folder
+const entry = (id: number, root: Folder, invitedBy: string | null = 'Sam'): SharedFolder => ({
+  id, role: 'editor', folder_id: root.id, invited_by: invitedBy, space: { id: 9, name: 'Team' }, folder: root,
+})
+
+test('a folder belongs to the shared entry whose tree holds it', () => {
+  const first = entry(1, folder(10, [folder(11, [folder(12)])]))
+  const second = entry(2, folder(20))
+  expect(sharedEntryFor([first, second], 12)).toBe(first)
+  expect(sharedEntryFor([first, second], 20)).toBe(second)
+  expect(sharedEntryFor([first, second], 99)).toBeUndefined()
+})
+
+test('the notice says the Space, the role and who invited', () => {
+  expect(sharedNotice(entry(1, folder(10)))).toBe('Shared with you from Team: Editor, invited by Sam.')
+  expect(sharedNotice(entry(1, folder(10), null))).toBe('Shared with you from Team: Editor.')
 })

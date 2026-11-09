@@ -1,0 +1,38 @@
+@use 'tokens' as *;
+
+@layer app.components {
+  .folder_sharing {
+    &-button {
+      display: inline-flex;
+      flex-shrink: 0;
+      align-items: center;
+      gap: space(1.5);
+    }
+
+    &-icon {
+      flex-shrink: 0;
+      width: space(4);
+      height: space(4);
+    }
+
+    // The line under the page header on a folder someone shared with you; the
+    // button wraps below the text on a phone.
+    &-banner {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: space(2);
+      padding: space(2) space(4);
+      border-bottom: 1px solid color(border);
+      background: color(accent);
+    }
+
+    &-notice {
+      flex: 1 1 14rem;
+      min-width: 0;
+      color: color(muted-foreground);
+      @include text('sm');
+    }
+  }
+}

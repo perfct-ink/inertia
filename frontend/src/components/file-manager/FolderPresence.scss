@@ -1,0 +1,28 @@
+@use 'tokens' as *;
+
+@layer app.components {
+  .folder_presence {
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    padding-left: space(2);
+
+    // Each avatar is a person, not a control: no hover, no pointer. They
+    // overlap a little; the page-coloured ring keeps them apart.
+    &-person {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: space(8);
+      height: space(8);
+      margin-left: space(-2);
+      border: 2px solid color(background);
+      border-radius: radius('full');
+      background: var(--folder_presence-color);
+      color: palette('white');
+      font-weight: 600;
+      user-select: none;
+      @include text('xs');
+    }
+  }
+}
