@@ -24,7 +24,8 @@ struct TaskFileView: View {
     var body: some View {
         VStack(spacing: 0) {
             HStack {
-                TextField("Project name", text: $document.board.title).font(.title2.bold()).textFieldStyle(InertiaTextFieldStyle(showsBorder: false))
+                TextField("Project name", text: $document.board.title).voltaFont(.xl, weight: .semibold).foregroundStyle(Volta.foreground)
+                    .textFieldStyle(InertiaTextFieldStyle(showsBorder: false))
                 Picker("View", selection: $view) {
                     Text("Workboard").tag("Workboard")
                     Text("List").tag("List")
@@ -35,26 +36,17 @@ struct TaskFileView: View {
             }.padding()
             if view == "Workboard" || view == "List" {
                 HStack {
-                    Picker("Sprint", selection: $sprintFilter) {
-                        Text("All tasks").tag("all")
-                        Text("Unassigned").tag("unassigned")
-                        ForEach(document.board.sprints) { sprint in Text(sprint.title).tag(String(sprint.id)) }
-                    }.frame(maxWidth: 220)
-                    Picker("Epic", selection: $epicFilter) {
-                        Text("All epics").tag("all")
-                        Text("Unassigned").tag("unassigned")
-                        ForEach(document.board.epics) { Text($0.title).tag(String($0.id)) }
-                    }.frame(maxWidth: 220)
-                    Picker("Event", selection: $milestoneFilter) {
-                        Text("All events").tag("all")
-                        Text("Unassigned").tag("unassigned")
-                        ForEach(document.board.events) { Text($0.title).tag(String($0.id)) }
-                    }.frame(maxWidth: 220)
+                    VoltaSelect("Sprint", selection: $sprintFilter,
+                                options: SelectChoices.filter(all: "All tasks", unassigned: "Unassigned", document.board.sprints, id: \.id, label: \.title)).frame(maxWidth: 220)
+                    VoltaSelect("Epic", selection: $epicFilter,
+                                options: SelectChoices.filter(all: "All epics", unassigned: "Unassigned", document.board.epics, id: \.id, label: \.title)).frame(maxWidth: 220)
+                    VoltaSelect("Event", selection: $milestoneFilter,
+                                options: SelectChoices.filter(all: "All events", unassigned: "Unassigned", document.board.events, id: \.id, label: \.title)).frame(maxWidth: 220)
                     Spacer()
-                    Text("\(visibleTasks.count) tasks").foregroundStyle(.secondary)
+                    Text("\(visibleTasks.count) tasks").voltaMuted()
                 }.padding([.horizontal, .bottom])
             }
-            Divider()
+            VoltaDivider()
             if view == "Workboard" { board }
             else if view == "List" { taskList }
             else if view == "Sprints" { sprints }
@@ -75,6 +67,7 @@ struct TaskFileView: View {
             if let selected = Int( milestoneFilter), !ids.contains(selected) { milestoneFilter = "all" }
         }
         .frame(minWidth: 850, minHeight: 550)
+        .voltaWindow()
         .toolbar {
             Button("New Task", systemImage: "plus") { newTask() }
             Button("New Sprint", systemImage: "calendar.badge.plus") { sprintDraft = Sprint() }
@@ -112,39 +105,39 @@ struct TaskFileView: View {
                     VStack(alignment: .leading, spacing: 10) {
                         HStack {
                             Image(systemName: column.status == .done ? "checkmark.circle" : "rectangle.stack")
-                            Text(column.title).font(.headline)
+                            Text(column.title).voltaFont(.sm, weight: .semibold).foregroundStyle(Volta.foreground)
                             Spacer()
-                            Text("\(visibleTasks.filter { $0.columnID == column.id }.count)").foregroundStyle(.secondary)
-                            Button { newTask(column: column.id) } label: { Image(systemName: "plus") }.help("Add task to \(column.title)")
+                            Text("\(visibleTasks.filter { $0.columnID == column.id }.count)").voltaMuted()
+                            Button { newTask(column: column.id) } label: { Image(systemName: "plus") }
+                                .buttonStyle(.volta(.ghost)).help("Add task to \(column.title)").accessibilityLabel("Add task to \(column.title)")
                         }
                         ForEach(visibleTasks.filter { $0.columnID == column.id }) { task in
                             Button { taskDraft = task } label: {
                                 VStack(alignment: .leading, spacing: 6) {
-                                    Text(task.title).font(.body.weight(.medium)).foregroundStyle(.primary)
-                                    if !task.descriptionText.isEmpty { Text(task.descriptionText).lineLimit(2).font(.caption).foregroundStyle(.secondary) }
+                                    Text(task.title).voltaFont(.sm, weight: .medium).foregroundStyle(Volta.foreground)
+                                    if !task.descriptionText.isEmpty { Text(task.descriptionText).lineLimit(2).voltaCaption() }
                                     if let user = document.board.users.first(where: { $0.id == task.assigneeID }) {
-                                        Label(user.name, systemImage: "person").font(.caption).foregroundStyle(.secondary)
+                                        Label(user.name, systemImage: "person").voltaCaption()
                                     }
-                                    if !task.comments.isEmpty { Label("\(task.comments.count) comments", systemImage: "text.bubble").font(.caption).foregroundStyle(.secondary) }
+                                    if !task.comments.isEmpty { Label("\(task.comments.count) comments", systemImage: "text.bubble").voltaCaption() }
                                     if let epic = document.board.epics.first(where: { $0.id == task.epicID }) {
-                                        Label(epic.title, systemImage: "square.stack.3d.up").font(.caption).foregroundStyle(.secondary)
+                                        Label(epic.title, systemImage: "square.stack.3d.up").voltaCaption()
                                     }
                                     ForEach(document.board.events.filter { document.board.eventIDs(for: task.id).contains($0.id) }) { milestone in
-                                        Label(milestone.title, systemImage: "flag").font(.caption).foregroundStyle(.secondary)
+                                        Label(milestone.title, systemImage: "flag").voltaCaption()
                                     }
-                                    if let date = task.dueDate { Label(date, systemImage: "calendar").font(.caption).foregroundStyle(.secondary) }
+                                    if let date = task.dueDate { Label(date, systemImage: "calendar").voltaCaption() }
                                     if let sprint = document.board.sprints.first(where: { $0.id == task.sprintID }) {
-                                        Text(sprint.title).font(.caption).foregroundStyle(.secondary)
+                                        Text(sprint.title).voltaCaption()
                                     }
-                                }.frame(maxWidth: .infinity, alignment: .leading).padding(12)
-                                    .background(.background, in: RoundedRectangle(cornerRadius: 8))
-                            }.buttonStyle(.plain).draggable(String(task.id))
+                                }.frame(maxWidth: .infinity, alignment: .leading).padding(VoltaMetrics.space(3))
+                            }.buttonStyle(.voltaCard).draggable(String(task.id))
                                 .contextMenu { taskMenu(task) }
                         }
                         if !visibleTasks.contains(where: { $0.columnID == column.id }) {
-                            Text("Drop a task here").foregroundStyle(.secondary).frame(maxWidth: .infinity).padding(.vertical, 30)
+                            Text("Drop a task here").voltaMuted().frame(maxWidth: .infinity).padding(.vertical, 30)
                         }
-                    }.padding(12).frame(width: 260).background(.quaternary.opacity(0.4), in: RoundedRectangle(cornerRadius: 12))
+                    }.padding(12).frame(width: 260).voltaSurface(.muted)
                         .dropDestination(for: String.self) { values, _ in
                             guard let value = values.first, let id = Int( value), document.board.tasks.contains(where: { $0.id == id }) else { return false }
                             document.board.moveTask(id, to: column.id)
@@ -156,36 +149,36 @@ struct TaskFileView: View {
     }
     private var taskList: some View {
         List {
-            if visibleTasks.isEmpty { Text("No tasks. Use New Task to add one.").foregroundStyle(.secondary) }
+            if visibleTasks.isEmpty { Text("No tasks. Use New Task to add one.").voltaMuted() }
             ForEach(visibleTasks) { task in
                 HStack {
-                    Button(task.title) { taskDraft = task }.buttonStyle(.plain)
-                    if task.parentID != nil { Image(systemName: "arrow.turn.down.right").help("Subtask") }
+                    Button(task.title) { taskDraft = task }.buttonStyle(.voltaLink(.title))
+                    if task.parentID != nil { Image(systemName: "arrow.turn.down.right").help("Subtask").accessibilityLabel("Subtask") }
                     Spacer()
                     if let user = document.board.users.first(where: { $0.id == task.assigneeID }) {
-                        Text(user.name).foregroundStyle(.secondary)
+                        Text(user.name).voltaMuted()
                     }
-                    if !task.comments.isEmpty { Label("\(task.comments.count)", systemImage: "text.bubble").foregroundStyle(.secondary) }
-                    Text(task.dueDate ?? "").foregroundStyle(.secondary)
-                    Picker("Column", selection: Binding(get: { task.columnID }, set: { document.board.moveTask(task.id, to: $0) })) {
-                        ForEach(document.board.columns) { Text($0.title).tag($0.id) }
-                    }.labelsHidden().frame(width: 170)
+                    if !task.comments.isEmpty { Label("\(task.comments.count)", systemImage: "text.bubble").voltaMuted() }
+                    Text(task.dueDate ?? "").voltaMuted()
+                    VoltaSelect("Column", selection: Binding(get: { task.columnID }, set: { document.board.moveTask(task.id, to: $0) }),
+                                options: SelectChoices.records(document.board.columns, id: \.id, label: \.title), hidesTitle: true).frame(width: 170)
                 }.contextMenu { taskMenu(task) }
             }
-        }
+        }.scrollContentBackground(.hidden)
     }
     private var sprints: some View {
         List {
-            if document.board.sprints.isEmpty { Text("No sprints yet. Tasks can also stay unassigned.").foregroundStyle(.secondary) }
+            if document.board.sprints.isEmpty { Text("No sprints yet. Tasks can also stay unassigned.").voltaMuted() }
             ForEach(document.board.sprints) { sprint in
                 VStack(alignment: .leading, spacing: 8) {
                     HStack {
-                        Button(sprint.title) { sprintDraft = sprint }.font(.headline).buttonStyle(.plain)
+                        Button(sprint.title) { sprintDraft = sprint }.buttonStyle(.voltaLink(.title))
                         Spacer()
                         Button("View Tasks") { sprintFilter = String(sprint.id); epicFilter = "all"; milestoneFilter = "all"; view = "Workboard" }
+                            .buttonStyle(.volta(.secondary))
                     }
-                    if !sprint.goal.isEmpty { Text(sprint.goal).foregroundStyle(.secondary) }
-                    Text("\(sprint.startDate ?? "No start date") – \(sprint.endDate ?? "No end date")").font(.caption)
+                    if !sprint.goal.isEmpty { Text(sprint.goal).voltaMuted() }
+                    Text("\(sprint.startDate ?? "No start date") – \(sprint.endDate ?? "No end date")").voltaCaption()
                     let total = document.board.tasks.filter { $0.sprintID == sprint.id }.count
                     let done = document.board.completedCount(in: sprint.id)
                     CompletionProgress(done: done, total: total)
@@ -197,7 +190,7 @@ struct TaskFileView: View {
                     }
                 }
             }
-        }
+        }.scrollContentBackground(.hidden)
     }
     @ViewBuilder private func taskMenu(_ task: TaskRecord) -> some View {
         Button("Edit Task") { taskDraft = task }

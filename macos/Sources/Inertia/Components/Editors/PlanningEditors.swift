@@ -10,8 +10,8 @@ struct EpicEditor: View {
         EditorSheet(title: "Epic", width: 480) {
             Form {
                 TextField("Title", text: $draft.title)
-                OptionalTextField(title: "Start (YYYY-MM-DD)", text: $draft.startDate)
-                OptionalTextField(title: "Target (YYYY-MM-DD)", text: $draft.targetDate)
+                OptionalTextField(title: "Start (YYYY-MM-DD)", text: $draft.startDate, rule: .isoDate)
+                OptionalTextField(title: "Target (YYYY-MM-DD)", text: $draft.targetDate, rule: .isoDate)
             }
             NotesEditor(text: $draft.notes)
             ValidationMessage(message: error)
@@ -33,14 +33,9 @@ struct MilestoneEditor: View {
         EditorSheet(title: "Event", width: 480) {
             Form {
                 TextField("Title", text: $draft.title)
-                Picker("Type", selection: $draft.event_type) {
-                    ForEach(EventType.allCases, id: \.self) { Text($0.rawValue.capitalized).tag($0) }
-                }
-                OptionalTextField(title: "Date (YYYY-MM-DD)", text: $draft.date)
-                Picker("Epic (file extension)", selection: $draft.epicID) {
-                    Text("None").tag(nil as Int?)
-                    ForEach(epics) { Text($0.title).tag(Optional($0.id)) }
-                }
+                VoltaSelect("Type", selection: $draft.event_type, options: EventType.allCases.map { SelectOption($0, $0.rawValue.capitalized) })
+                OptionalTextField(title: "Date (YYYY-MM-DD)", text: $draft.date, rule: .isoDate)
+                VoltaSelect("Epic (file extension)", selection: $draft.epicID, options: SelectChoices.optional(none: "None", epics, id: \.id, label: \.title))
                 Toggle("Reached", isOn: $draft.completed)
             }
             NotesEditor(text: $draft.notes)

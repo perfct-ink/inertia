@@ -12,8 +12,8 @@ struct LoginView: View {
         VStack(spacing: 16) {
             VStack(spacing: 8) {
                 AppLogo()
-                Text("Inertia").font(.largeTitle.bold())
-                Text("Your documents, projects, and tasks.").foregroundStyle(.secondary)
+                Text("Inertia").voltaFont(.twoXL, weight: .semibold).tracking(-0.6).foregroundStyle(Volta.foreground)
+                Text("Your documents, projects, and tasks.").voltaFont(.sm).foregroundStyle(Volta.mutedForeground)
             }
             VStack(spacing: 10) {
                 ForEach(SignInProvider.allCases) { provider in
@@ -30,12 +30,12 @@ struct LoginView: View {
             }
             .textFieldStyle(InertiaTextFieldStyle(minimumHeight: InertiaTextFieldStyle.loginHeight))
             .disabled(session.busy)
-            Button(creatingAccount ? "Create Account" : "Sign In", action: submit).buttonStyle(.borderedProminent)
+            Button(creatingAccount ? "Create Account" : "Sign In", action: submit).buttonStyle(.volta(.primary, fullWidth: true))
                 .disabled(session.busy || email.isEmpty || password.isEmpty || (creatingAccount && name.isEmpty))
             if session.busy { ProgressView() }
             Button(creatingAccount ? "Already have an account? Sign in" : "Create an account") { creatingAccount.toggle() }
-                .buttonStyle(.link)
-        }.padding(.horizontal, 40).padding(.vertical, 32).frame(width: 400)
+                .buttonStyle(.voltaLink)
+        }.voltaAuthCard()
     }
 
     private func submit() {

@@ -186,10 +186,7 @@ public struct TaskFile: Codable, Equatable {
     }
     private func validateDate(_ value: String?) throws {
         guard let value else { return }
-        let formatter = DateFormatter(); formatter.locale = Locale(identifier: "en_US_POSIX")
-        formatter.calendar = Calendar(identifier: .gregorian); formatter.timeZone = TimeZone(secondsFromGMT: 0)
-        formatter.dateFormat = "yyyy-MM-dd"; formatter.isLenient = false
-        guard value.count == 10, let parsed = formatter.date(from: value), formatter.string(from: parsed) == value else { throw TaskFileError.invalid("Use a valid YYYY-MM-DD calendar date.") }
+        guard ISODate.isValid(value) else { throw TaskFileError.invalid("Use a valid YYYY-MM-DD calendar date.") }
     }
 }
 public enum TaskFileError: LocalizedError {

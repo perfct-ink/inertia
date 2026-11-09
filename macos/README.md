@@ -28,6 +28,8 @@ The login screen, system authentication, window/file handling, and local task-fi
 
 Native login, local task-file screens, and platform wrappers live in `Sources/Inertia/Components/`. The shared online workspace has one layout, `frontend/src/components/WorkspaceLayout.tsx`, and one sidebar, `frontend/src/components/file-manager/Sidebar.tsx`. Update those existing React components to change the workspace in every client. Shared native controls retain a single definition for login and local file editing.
 
+The native controls follow the web's Volta design system: `Volta*.swift` and `TextFieldStyle.swift` in `Components/` draw the values defined and tested in `Sources/InertiaCore/Volta*.swift` (theme colors in light and dark, 4pt corners, 150ms motion, the type scale, 40pt minimum fields). Use `.buttonStyle(.volta(...))`, `VoltaSelect`, `VoltaPanel` and the `Volta.*` colors on screens rather than system colors, `Picker` or `GroupBox`. See [Native macOS Volta controls](../docs/features/native_mac_volta_controls.md).
+
 ## Local task files
 
 The local Kanban editor opens when you explicitly create or open a task file.

@@ -2,7 +2,9 @@
 @use 'volta';
 
 // Inertia theme: Volta's tokens set to Inertia's blue palette. A different
-// theme only needs to override these tokens.
+// theme only needs to override these tokens. The native Mac app carries the same
+// values in macos/Sources/InertiaCore/VoltaPalette.swift (a test reads this file
+// and fails when they differ), so change both together.
 :root {
   --v-accent: hsl(217deg 72% 32%);
   --v-accent-hover: hsl(217deg 72% 27%);
