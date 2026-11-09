@@ -90,13 +90,14 @@ function HierarchyRow({ node, depth, expanded, drop, onToggle, onMove }: {
         {...listeners}
       >
         {hasChildren ? (
-          <button
+          <Button
             onClick={() => onToggle(node.key)}
             className="hierarchy-toggle"
             aria-label={isOpen ? 'Collapse' : 'Expand'}
+            aria-expanded={isOpen}
           >
             <ChevronRight className={classNames('hierarchy-chevron', isOpen && 'hierarchy-chevron--open')} />
-          </button>
+          </Button>
         ) : (
           <span className="hierarchy-toggle_spacer" />
         )}

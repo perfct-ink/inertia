@@ -40,4 +40,3 @@ export function useEditTable(id: number) {
     },
   })
 }
-export { errorMessage } from '@/util/errorMessage'

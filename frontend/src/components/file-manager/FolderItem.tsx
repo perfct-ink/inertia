@@ -6,7 +6,7 @@ import { ChevronRight, Folder, FolderKanban, FileText, TableIcon, Pin, CheckSqua
 import { useCreateFolder, useDeleteFolder, usePinFolder, useUpdateFolder } from '@/api/folders'
 import { useCreateDocument, useDeleteDocument, usePinDocument, useUpdateDocument } from '@/api/documents'
 import { useUploadFiles } from '@/api/workspace'
-import { errorMessage } from '@/api/tables'
+import { errorMessage } from '@/util/errorMessage'
 import { documentsIn } from '@/data/folder'
 import type { TransferRequest } from '@/data/transfer'
 import { useTransferTargets } from '@/hooks/useTransferTargets'
@@ -167,7 +167,7 @@ export function FolderItem({ folder, depth = 0, bare = false, hideProjects = fal
       {/* Folder row */}
       {!rowless && <div
         className={`folder_item-row folder_item-row--folder${location.pathname === `/folders/${folder.id}` ? ' folder_item-row--active' : ''}${dropTarget ? ' folder_item-row--drop' : ''}`}
-        style={{ paddingLeft: `${8 + indent}px`, paddingRight: '8px' }}
+        style={{ paddingLeft: `${8 + indent}px` }}
         onContextMenu={(e) => { e.preventDefault(); e.stopPropagation(); setFolderCtx({ x: e.clientX, y: e.clientY }) }}
         onDragOver={(e) => { if (hasFiles(e.dataTransfer)) { e.preventDefault(); setDropTarget(true) } }}
         onDragLeave={() => setDropTarget(false)}
@@ -237,7 +237,7 @@ export function FolderItem({ folder, depth = 0, bare = false, hideProjects = fal
                 key={doc.id}
                 to={`/documents/${doc.id}`}
                 className={`folder_item-row folder_item-row--doc${active ? ' folder_item-row--active' : ''}`}
-                style={{ paddingLeft: `${36 + indent}px`, paddingRight: '8px' }}
+                style={{ paddingLeft: `${36 + indent}px` }}
                 onContextMenu={(e) => { e.preventDefault(); e.stopPropagation(); setDocCtx({ x: e.clientX, y: e.clientY, doc }) }}
               >
                 {doc.doc_type === 'table'

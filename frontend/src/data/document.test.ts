@@ -1,5 +1,5 @@
 import type { Document } from '@/types'
-import { buildInitialContent, extractTitle, filePreview, galleryFiles, lastModified, selectionTaskTitle, taskListContent, DOC_TYPE_LABELS, activeHeadingIndex } from './document'
+import { buildInitialContent, extractTitle, filePreview, galleryFiles, lastModified, selectionTaskTitle, taskListContent, DOC_TYPE_LABELS, activeHeadingIndex, GALLERY_FILTERS } from './document'
 
 test('extractTitle reads the leading heading', () => {
   expect(extractTitle(buildInitialContent('Launch plan'))).toBe('Launch plan')
@@ -62,4 +62,8 @@ test('activeHeadingIndex is the last heading at or before the cursor', () => {
   expect(activeHeadingIndex(headings, 50)).toBe(2)
   expect(activeHeadingIndex(headings, 999)).toBe(2)
   expect(activeHeadingIndex([], 5)).toBe(-1)
+})
+
+test('the gallery filters cover every kind galleryFiles understands, All first', () => {
+  expect(GALLERY_FILTERS.map((f) => f.value)).toEqual(['all', 'image', 'video', 'pdf', 'other'])
 })

@@ -1,8 +1,8 @@
 import { useState } from 'react'
-import { FormError, Input, Select, Textarea } from '@/components/ui'
+import { DatePicker, FormError, Select, Textarea } from '@/components/ui'
 import { useUpdateFolder } from '@/api/folders'
 import { useWorkspaceMembers } from '@/api/workspaceMembers'
-import { errorMessage } from '@/api/tables'
+import { errorMessage } from '@/util/errorMessage'
 import { PROJECT_STATUSES } from '@/data/project'
 import { useWorkspaceStore } from '@/store/workspaces'
 import type { Folder, ProjectStatus } from '@/types'
@@ -30,9 +30,9 @@ export default function ProjectDetails({ project }: { project: Folder }) {
         <Select aria-label="Status" value={project.project_status ?? 'planned'} onChange={(e) => save({ project_status: e.target.value as ProjectStatus })}>
           {PROJECT_STATUSES.map((s) => <option key={s.value} value={s.value}>{s.label}</option>)}
         </Select>
-        <Input type="date" aria-label="Start date" value={project.start_date ?? ''} onChange={(e) => save({ start_date: e.target.value || null })} />
+        <DatePicker aria-label="Start date" value={project.start_date ?? ''} onChange={(e) => save({ start_date: e.target.value || null })} />
         <span aria-hidden="true">&rarr;</span>
-        <Input type="date" aria-label="End date" value={project.target_date ?? ''} onChange={(e) => save({ target_date: e.target.value || null })} />
+        <DatePicker aria-label="End date" value={project.target_date ?? ''} onChange={(e) => save({ target_date: e.target.value || null })} />
       </div>
       <Textarea
         key={`${project.id}-${project.description ?? ''}`}

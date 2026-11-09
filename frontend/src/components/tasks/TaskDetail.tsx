@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Button, FormError, Input, Modal, Select, Textarea } from '@/components/ui'
+import { Button, DatePicker, FormError, Input, Modal, Select, Textarea } from '@/components/ui'
 import { useUpdateTask } from '@/api/tasks'
 import { useEpics } from '@/api/epics'
 import { useSprints } from '@/api/sprints'
@@ -36,8 +36,8 @@ export function TaskDetail({ task, onClose }: { task: Task; onClose: () => void 
           {TASK_STATUSES.map((s) => <option key={s} value={s}>{STATUS_LABEL[s]}</option>)}
         </Select>
       </label>
-      <label>Start date<Input type="date" aria-label="Start date" value={draft.start_date} onChange={(e) => set('start_date', e.target.value)} /></label>
-      <label>Due date<Input type="date" aria-label="Due date" value={draft.due_date} onChange={(e) => set('due_date', e.target.value)} /></label>
+      <label>Start date<DatePicker aria-label="Start date" value={draft.start_date} onChange={(e) => set('start_date', e.target.value)} /></label>
+      <label>Due date<DatePicker aria-label="Due date" value={draft.due_date} onChange={(e) => set('due_date', e.target.value)} /></label>
       <label>Epic
         <Select aria-label="Epic" value={draft.epic_id} onChange={(e) => set('epic_id', e.target.value)}>
           <option value="">No epic</option>

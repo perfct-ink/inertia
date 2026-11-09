@@ -20,7 +20,7 @@ import { useNewDocument } from '@/hooks/useNewDocument'
 import { useCreateTask } from '@/api/tasks'
 import { useCreateEvent } from '@/api/events'
 import { useEpics } from '@/api/epics'
-import { errorMessage } from '@/api/tables'
+import { errorMessage } from '@/util/errorMessage'
 import { useStartQuipImport, useQuipImport } from '@/api/quipImports'
 import { useQueryClient } from '@tanstack/react-query'
 import { useAuthStore } from '@/store/auth'
@@ -29,25 +29,12 @@ import { closeTab } from '@/lib/closeTab'
 import { ProjectNav } from './ProjectNav'
 import { SidebarRail } from './SidebarRail'
 import { useProjectStore } from '@/store/projects'
-import api from '@/lib/api'
+import { authApi } from '@/api/auth'
 import logoMark from '@/assets/logo-mark.svg'
 import { todayISO } from '@/util/date'
 import { isElectron } from '@/util/platform'
 import { isShortcut, shortcutAvailable, shortcutKey, shortcutLabel } from '@/util/shortcuts'
-
-// Kept in sync by hand with the onKey handler below — there's only one
-// place global shortcuts are bound, so this is just their display copy.
-const KEYBOARD_SHORTCUTS: { keys: string; label: string }[] = [
-  { keys: '⌘K', label: 'Quick-add a task or event' },
-  { keys: '⌘N', label: 'New document in this folder' },
-  { keys: '⌘⇧N', label: 'New sheet in this folder' },
-  { keys: '⌘T', label: 'New task in this folder' },
-  { keys: '⌘E', label: 'New event' },
-  { keys: '⌘J', label: 'New idea' },
-  { keys: '⌘W', label: 'Close the active tab' },
-  { keys: '⌘/', label: 'Show or hide this list' },
-  { keys: 'Esc', label: 'Close a dialog or panel' },
-]
+import { KEYBOARD_SHORTCUTS } from '@/data/shortcut'
 
 // The extra top padding/drag-region reserve room for macOS's traffic
 // lights, which only exist in the packaged Electron app's frameless
@@ -141,7 +128,7 @@ export default function Sidebar() {
   // Cmd+N → new document, Cmd+Shift+N → new sheet, Cmd+T → new task, Cmd+E → new event, Cmd+J → new idea, Cmd+W → close
   // tab, Cmd+K → quick-add a task or event without leaving the current page,
   // Cmd+/ (or Cmd+? — Shift+/ on a US layout) → toggle the shortcuts cheat
-  // sheet. Keep KEYBOARD_SHORTCUTS below in sync with this list.
+  // sheet. Keep KEYBOARD_SHORTCUTS (data/shortcut.ts) in sync with this list.
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
       if (e.key === 'Escape') {
@@ -190,7 +177,7 @@ export default function Sidebar() {
   }, [])
 
   function handleLogout() {
-    api.delete('/api/v1/auth/logout').finally(() => {
+    authApi.logout().finally(() => {
       logout()
       navigate('/login')
     })

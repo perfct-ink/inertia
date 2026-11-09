@@ -197,9 +197,14 @@ $shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
       @include truncate;
     }
 
+    // Hidden until the row is hovered or focused, and always shown on touch
+    // screens (design principles 1 and 7). It fades with opacity so the row
+    // keeps its size.
     @at-root .sidebar-unpin {
-      display: none;
+      display: flex;
+      flex-shrink: 0;
       color: color(muted-foreground);
+      @include reveal-on-hover;
 
       &:hover {
         color: color(foreground);
@@ -207,7 +212,7 @@ $shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
     }
 
     @at-root .sidebar-pinned_item:hover .sidebar-unpin {
-      display: flex;
+      opacity: 1;
     }
 
     @at-root .sidebar-error {

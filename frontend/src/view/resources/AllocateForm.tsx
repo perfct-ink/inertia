@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react'
-import { Button, FormError, Input, Select } from '@/components/ui'
+import { Button, DatePicker, FormError, Input, Select } from '@/components/ui'
 import { useCreateResourceAllocation } from '@/api/resourceAllocations'
 import { allocationError, MAX_WEEKLY_HOURS, parseHours } from '@/data/resource'
 import type { Folder } from '@/types'
@@ -59,11 +59,11 @@ export default function AllocateForm({ userId, person, projects, today }: Alloca
       </label>
       <label className="resources-field">
         <span>From</span>
-        <Input type="date" aria-label={`Start date to allocate ${person}`} value={start} onChange={(e) => setStart(e.target.value)} className="resources-date" />
+        <DatePicker aria-label={`Start date to allocate ${person}`} value={start} onChange={(e) => setStart(e.target.value)} className="resources-date" />
       </label>
       <label className="resources-field">
         <span>Until (optional)</span>
-        <Input type="date" aria-label={`End date to allocate ${person}`} value={end} onChange={(e) => setEnd(e.target.value)} className="resources-date" />
+        <DatePicker aria-label={`End date to allocate ${person}`} value={end} onChange={(e) => setEnd(e.target.value)} className="resources-date" />
       </label>
       <Button type="submit" variant="primary" aria-label={`Allocate ${person}`} disabled={create.isPending} className="resources-submit">Allocate</Button>
       <FormError message={error} className="resources-form-error" />

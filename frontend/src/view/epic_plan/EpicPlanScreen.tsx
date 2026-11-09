@@ -15,7 +15,7 @@ import {
 } from '@dnd-kit/core'
 import { format, parseISO } from 'date-fns'
 import { GripVertical, ListChecks, Loader2, Plus, Target, X } from 'lucide-react'
-import { Button, Input, Select, classNames } from '@/components/ui'
+import { Button, DatePicker, Input, Select, classNames } from '@/components/ui'
 import WorkspaceLayout from '@/components/WorkspaceLayout'
 import { ProgressBar } from '@/components/Timeline'
 import { useEpics, useUpdateEpic } from '@/api/epics'
@@ -166,8 +166,7 @@ function EpicPlanner({ epic, tasks }: { epic: Epic; tasks: Task[] }) {
                   >
                     {PLAN_STATUSES.map((s) => <option key={s.key} value={s.key}>{s.label}</option>)}
                   </Select>
-                  <Input
-                    type="date"
+                  <DatePicker
                     aria-label={`Start date of ${task.title}`}
                     value={task.start_date ?? ''}
                     max={task.due_date ?? undefined}
@@ -175,8 +174,7 @@ function EpicPlanner({ epic, tasks }: { epic: Epic; tasks: Task[] }) {
                     className="epic_plan-date"
                   />
                   <span className="epic_plan-arrow" aria-hidden="true">&rarr;</span>
-                  <Input
-                    type="date"
+                  <DatePicker
                     aria-label={`Due date of ${task.title}`}
                     value={task.due_date ?? ''}
                     min={task.start_date ?? undefined}
@@ -249,8 +247,7 @@ function PlanSummary({ epic, plan, initiative, milestone }: { epic: Epic; plan: 
       <div className="epic_plan-epic_dates">
         <label className="epic_plan-field">
           <span className="epic_plan-meta">Epic starts</span>
-          <Input
-            type="date"
+          <DatePicker
             value={epic.start_date ?? ''}
             max={epic.target_date ?? undefined}
             onChange={(e) => updateEpic.mutate({ id: epic.id, start_date: e.target.value || null })}
@@ -259,8 +256,7 @@ function PlanSummary({ epic, plan, initiative, milestone }: { epic: Epic; plan: 
         </label>
         <label className="epic_plan-field">
           <span className="epic_plan-meta">Epic target</span>
-          <Input
-            type="date"
+          <DatePicker
             value={epic.target_date ?? ''}
             min={epic.start_date ?? undefined}
             onChange={(e) => updateEpic.mutate({ id: epic.id, target_date: e.target.value || null })}

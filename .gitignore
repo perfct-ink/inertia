@@ -25,3 +25,6 @@ frontend/dist
 macos/.build/
 macos/dist/
 docs/backlog/.stop
+
+# Sass compiler cache
+.sass-cache/

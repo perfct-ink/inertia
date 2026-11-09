@@ -1,8 +1,7 @@
 import { Button, Input, FormError } from '@/components/ui'
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
-import { useMutation } from '@tanstack/react-query'
-import api from '@/lib/api'
+import { useLogin } from '@/api/auth'
 import { useAuthStore } from '@/store/auth'
 import AuthLayout from '@/components/auth/AuthLayout'
 import { usePageTitle } from '@/hooks/usePageTitle'
@@ -14,12 +13,9 @@ export default function LoginScreen() {
   const [form, setForm] = useState({ email: '', password: '' })
   const [error, setError] = useState('')
 
-  const login = useMutation({
-    mutationFn: (data: typeof form) =>
-      api.post('/api/v1/auth/login', { user: data }, { silent: true }),
-    onSuccess: (res) => {
-      const token = res.headers['authorization']?.replace('Bearer ', '')
-      setAuth(token, res.data.user)
+  const login = useLogin({
+    onSuccess: ({ token, user }) => {
+      setAuth(token, user)
       navigate('/space')
     },
     onError: () => setError('Invalid email or password'),

@@ -75,6 +75,15 @@ export { formatBytes } from './attachment'
 
 export type GalleryFilter = 'all' | 'image' | 'video' | 'pdf' | 'other'
 
+// The filter buttons above the gallery, in order.
+export const GALLERY_FILTERS: { value: GalleryFilter; label: string }[] = [
+  { value: 'all', label: 'All' },
+  { value: 'image', label: 'Images' },
+  { value: 'video', label: 'Videos' },
+  { value: 'pdf', label: 'PDFs' },
+  { value: 'other', label: 'Other' },
+]
+
 // The files of a Space, narrowed to one kind (images, videos, PDFs or everything
 // else), newest first. Documents that aren't uploaded files are left out.
 export function galleryFiles(documents: Document[], filter: GalleryFilter): Document[] {

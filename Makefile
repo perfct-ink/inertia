@@ -1,11 +1,12 @@
 .DEFAULT_GOAL := all
 
 .PHONY: all setup deps dev dev-backend dev-frontend dev-mac build build-backend build-coolify build-frontend build-mac dev-all clean clean-backend clean-frontend clean-mac help \
-        up up-d up-build down restart open \
+        up up-d up-build down restart running open \
         logs logs-backend logs-frontend ps \
         db-migrate db-rollback db-reset db-fake db-seed db-status \
         console routes shell-backend shell-frontend \
-        typecheck test test-backend test-frontend test-fast lint-backend nuke hooks \
+        typecheck test test-backend test-frontend test-collab test-fast lint-backend nuke hooks \
+        clean-electron \
         rules rules-check
 
 # GUI-launched processes on macOS (Dock, Spotlight, a task runner — anything
@@ -19,6 +20,8 @@ export PATH := /opt/homebrew/bin:/usr/local/bin:$(PATH)
 # Rewrite localhost proxy URLs to host.docker.internal so containers can reach them
 HOST_PROXY = $(shell echo "$${HTTP_PROXY:-}" | sed 's/localhost/host.docker.internal/g')
 COMPOSE     = HTTP_PROXY=$(HOST_PROXY) HTTPS_PROXY=$(HOST_PROXY) docker compose
+# Stop what is running and build fresh images (what up and dev both start from).
+REBUILD     = $(COMPOSE) down --remove-orphans && $(COMPOSE) build
 
 # ── Main ──────────────────────────────────────────────────────────────────────
 
@@ -39,8 +42,7 @@ setup: deps ## Install host dependencies (Homebrew, Docker, Node), then build im
 	@echo "✓ Setup complete"
 
 dev: deps ## Rebuild all services, start attached (streaming logs), and open browser
-	$(COMPOSE) down --remove-orphans
-	$(COMPOSE) build
+	$(REBUILD)
 	@bash scripts/open-app.sh &
 	$(COMPOSE) up
 
@@ -93,7 +95,7 @@ build-electron-mac: ## Build the Electron Mac app (outputs to frontend/dist-elec
 
 clean: ## Remove containers, volumes, all build artifacts, and Docker build cache
 	$(COMPOSE) down -v --remove-orphans
-	rm -rf frontend/dist frontend/dist-electron
+	rm -rf frontend/dist frontend/dist-electron macos/dist macos/.build
 	docker builder prune -f
 
 clean-backend: ## Remove the backend container and its volume
@@ -105,17 +107,21 @@ clean-frontend: ## Remove the frontend container, node_modules volume, and webpa
 	docker volume rm $$(docker volume ls -q | grep frontend_node_modules) 2>/dev/null || true
 	rm -rf frontend/dist
 
-clean-mac: ## Remove the Electron build output
-	rm -rf frontend/dist frontend/dist-electron
+clean-electron: ## Remove the Electron build output
+	rm -rf frontend/dist-electron
+
+clean-mac: ## Remove the native Mac app's build output (macos/dist and macos/.build)
+	rm -rf macos/dist macos/.build
 
 # ── Help ──────────────────────────────────────────────────────────────────────
 
-help: ## Show this help message
-	@awk 'BEGIN{FS=":.*##"} /^[a-zA-Z_-]+:.*##/{printf "  \033[36m%-18s\033[0m %s\n",$$1,$$2}' $(MAKEFILE_LIST)
+help: ## Show this help message, grouped by category
+	@awk 'BEGIN{FS=":.*##"} /^# ── /{sub(/^# ── /,""); sub(/ ──.*$$/,""); printf "\n\033[1m%s\033[0m\n",$$0; next} /^[a-zA-Z_-]+:.*##/{printf "  \033[36m%-18s\033[0m %s\n",$$1,$$2}' $(MAKEFILE_LIST)
 
 # ── Run ───────────────────────────────────────────────────────────────────────
 
-up: deps ## Start all services (foreground, streaming logs)
+up: deps ## Stop anything running, rebuild, and start all services attached (streaming logs)
+	$(REBUILD)
 	$(COMPOSE) up
 
 up-d: deps ## Start all services in the background
@@ -129,6 +135,9 @@ down: ## Stop and remove containers
 
 restart: ## Restart all services
 	$(COMPOSE) restart
+
+running: ## Check whether the app is running (exits non-zero when it is not)
+	@if [ -n "$$($(COMPOSE) ps --status running -q)" ]; then echo "Running"; $(COMPOSE) ps; else echo "Not running (start it with make dev)"; exit 1; fi
 
 open: ## Open the app in the default browser once the frontend answers
 	@bash scripts/open-app.sh
@@ -187,7 +196,8 @@ typecheck: ## Run TypeScript type-checker
 
 # ── Quality ───────────────────────────────────────────────────────────────────
 
-test: test-backend test-frontend ## Run the full test suite (backend + frontend)
+test: test-backend test-frontend test-collab ## Run every test suite (backend, frontend, collab server, and the native Mac app on macOS)
+	@if [ "$$(uname -s)" = Darwin ]; then $(MAKE) test-native-mac; fi
 
 test-backend: ## Run the full backend test suite
 	$(COMPOSE) exec backend bundle exec rails test
@@ -201,6 +211,11 @@ test-frontend: ## Run the frontend test suite
 	$(COMPOSE) up -d frontend
 	$(COMPOSE) exec -T frontend npm install
 	$(COMPOSE) exec -T frontend npm test -- --silent
+
+test-collab: ## Run the collab server test suite
+	$(COMPOSE) up -d collab
+	$(COMPOSE) exec -T collab npm install
+	$(COMPOSE) exec -T collab npm test
 
 test-fast: ## Run the short pre-commit suite (models/controllers, frontend, and native tests on macOS)
 	$(COMPOSE) up -d backend frontend
@@ -223,6 +238,8 @@ hooks: ## Install the git pre-commit hook (runs `test-fast` before every commit)
 
 nuke: ## Remove everything including built images (full reset)
 	$(COMPOSE) down -v --remove-orphans --rmi all
+
+# ── Native Mac app ────────────────────────────────────────────────────────────
 
 .PHONY: mac-build dev-native-mac test-native-mac
 mac-build: ## Stop the running development Mac app and rebuild macos/dist/Inertia.app

@@ -13,7 +13,10 @@ on:
 
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  # A newer push cancels the older run of a branch, but never a run on main:
+  # that run may be deploying, and a deploy in progress is never interrupted
+  # (docs/rules/deployment.md). Runs on main queue and so deploy one at a time.
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
 permissions:
   contents: read
