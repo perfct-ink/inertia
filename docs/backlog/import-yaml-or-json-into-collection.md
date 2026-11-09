@@ -1,6 +1,6 @@
 ---
-priority: p0
-depends_on: []
+priority: p2
+depends_on: [collection-one-to-many-relationships]
 components: [backend]
 ---
 # Import YAML or JSON into a collection
@@ -20,7 +20,7 @@ Nested objects or arrays can become a related collection (`collection-one-to-man
 ### Decisions (Alex, 2026-11-09 groom)
 
 - **Nested values: offer a choice.** For each key whose values are nested objects or lists, the import preview offers two options: make it **another Collection** (records created there and linked from this one), or keep it as **JSON text** in a text field.
-- A nested single object can link with today's relation field (many-to-one). A nested list needs `collection-one-to-many-relationships.md` (p2); how to handle lists until that ships is still open.
+- A nested single object can link with today's relation field (many-to-one). A nested list needs `collection-one-to-many-relationships.md` (p2); so this import waits for it and is p2 too (Alex, 2026-11-09).
 
 ## Context
 
