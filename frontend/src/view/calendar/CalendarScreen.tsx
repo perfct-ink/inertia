@@ -1,25 +1,36 @@
 import { useState } from 'react'
 import { addMonths, eachDayOfInterval, endOfMonth, endOfWeek, format, isSameMonth, isToday, startOfMonth, startOfWeek, subMonths } from 'date-fns'
-import { CalendarDays, ChevronLeft, ChevronRight, Loader2 } from 'lucide-react'
+import { Link } from 'react-router-dom'
+import { CalendarDays, ChevronLeft, ChevronRight, Loader2, Pencil } from 'lucide-react'
 import { Button, Input, classNames } from '@/components/ui'
 import WorkspaceLayout from '@/components/WorkspaceLayout'
+import DocumentDateEditDialog from '@/components/DocumentDateEditDialog'
+import { useDeleteDocumentDate, useDocumentDates, useUpdateDocumentDate } from '@/api/documentDates'
 import { useEvents } from '@/api/events'
 import { useTasks } from '@/api/tasks'
-import { calendarItems } from '@/data/calendar'
+import { calendarItems, type CalendarItem } from '@/data/calendar'
+import type { DocumentDate } from '@/types'
 import { usePageTitle } from '@/hooks/usePageTitle'
 import './CalendarScreen.scss'
 
-// A month calendar of the Space's tasks (on their due date) and events. Either
-// can be hidden. On a phone it becomes a dated list.
+// A month calendar of the Space's tasks (on their due date), events and dates
+// from documents (each a link to its chip in the document, with a button to
+// change its day or label). Any kind can be hidden. On a phone it becomes a
+// dated list.
 export default function CalendarScreen() {
   usePageTitle('Calendar')
   const { data: tasks = [], isLoading } = useTasks()
   const { data: events = [] } = useEvents()
+  const { data: dates = [] } = useDocumentDates()
+  const updateDate = useUpdateDocumentDate()
+  const deleteDate = useDeleteDocumentDate()
+  const [editing, setEditing] = useState<DocumentDate | null>(null)
   const [month, setMonth] = useState(new Date())
   const [showTasks, setShowTasks] = useState(true)
   const [showEvents, setShowEvents] = useState(true)
+  const [showDates, setShowDates] = useState(true)
   const days = eachDayOfInterval({ start: startOfWeek(startOfMonth(month)), end: endOfWeek(endOfMonth(month)) })
-  const items = calendarItems(tasks, events, showTasks, showEvents)
+  const items = calendarItems(tasks, events, showTasks, showEvents, dates, showDates)
   const inMonth = days.filter((d) => isSameMonth(d, month))
 
   return (
@@ -29,6 +40,7 @@ export default function CalendarScreen() {
           <h1 className="calendar-title"><CalendarDays className="calendar-icon" aria-hidden="true" /> Calendar</h1>
           <label className="calendar-toggle"><Input type="checkbox" checked={showTasks} onChange={(e) => setShowTasks(e.target.checked)} /> Tasks</label>
           <label className="calendar-toggle"><Input type="checkbox" checked={showEvents} onChange={(e) => setShowEvents(e.target.checked)} /> Events</label>
+          <label className="calendar-toggle"><Input type="checkbox" checked={showDates} onChange={(e) => setShowDates(e.target.checked)} /> Dates</label>
           <div className="calendar-nav">
             <Button onClick={() => setMonth((m) => subMonths(m, 1))} aria-label="Previous month"><ChevronLeft className="calendar-icon" /></Button>
             <span className="calendar-month">{format(month, 'MMMM yyyy')}</span>
@@ -45,7 +57,7 @@ export default function CalendarScreen() {
             return (
               <div key={day.toISOString()} className="calendar-agenda-day">
                 <strong className={classNames(isToday(day) && 'calendar-today')}>{format(day, 'EEE d')}</strong>
-                {list.map((item) => <span key={item.key} className={`calendar-chip calendar-chip--${item.kind}${item.done ? ' calendar-chip--done' : ''}`}>{item.title}</span>)}
+                {list.map((item) => <CalendarEntry key={item.key} item={item} onEdit={setEditing} />)}
               </div>
             )
           })}
@@ -58,12 +70,39 @@ export default function CalendarScreen() {
             return (
               <div key={day.toISOString()} className={classNames('calendar-cell', !isSameMonth(day, month) && 'calendar-cell--outside')} role="gridcell">
                 <span className={classNames('calendar-day', isToday(day) && 'calendar-today')}>{format(day, 'd')}</span>
-                {list.map((item) => <span key={item.key} className={`calendar-chip calendar-chip--${item.kind}${item.done ? ' calendar-chip--done' : ''}`} title={item.title}>{item.title}</span>)}
+                {list.map((item) => <CalendarEntry key={item.key} item={item} onEdit={setEditing} grid />)}
               </div>
             )
           })}
         </div>
       </div>
+      <DocumentDateEditDialog
+        entry={editing}
+        pending={updateDate.isPending || deleteDate.isPending}
+        onClose={() => setEditing(null)}
+        onSave={(values) => editing && updateDate.mutate({ id: editing.id, ...values }, { onSuccess: () => setEditing(null) })}
+        onDelete={() => editing && deleteDate.mutate(editing.id, { onSuccess: () => setEditing(null) })}
+      />
     </WorkspaceLayout>
+  )
+}
+
+// One task, event or date on the calendar. A date from a document links to its
+// chip in the document (plain text once it was kept after its line was deleted)
+// and has a button to change it.
+function CalendarEntry({ item, grid, onEdit }: { item: CalendarItem; grid?: boolean; onEdit: (entry: DocumentDate) => void }) {
+  const className = `calendar-chip calendar-chip--${item.kind}${item.done ? ' calendar-chip--done' : ''}`
+  const title = grid ? item.title : undefined
+  if (!item.entry) return <span className={className} title={title}>{item.title}</span>
+  const entry = item.entry
+  return (
+    <span className="calendar-entry">
+      {item.href
+        ? <Link to={item.href} className={classNames(className, 'calendar-chip--link')} title={`${item.title} (open in the document)`}>{item.title}</Link>
+        : <span className={className} title={title}>{item.title}</span>}
+      <Button variant="ghost" className="calendar-entry-edit" aria-label={`Edit ${item.title}`} title="Edit date" onClick={() => onEdit(entry)}>
+        <Pencil className="calendar-icon" aria-hidden="true" />
+      </Button>
+    </span>
   )
 }

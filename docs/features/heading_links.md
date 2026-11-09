@@ -12,7 +12,7 @@ No endpoint, model or migration. Document content is already JSON, so the headin
 - `frontend/src/extensions/HeadingAnchor.ts`: Heading with the `id` attribute (rendered as `data-heading-id`), `assignHeadingIds`, `findHeadingPos`, `linkToHeading`.
 - `collab-server/src/schema.ts` mirrors the attribute. Without it, seeding a room from Rails' JSON would drop the ids. Deploy the collab server together with the frontend.
 - `frontend/src/data/heading.ts`: the pure rules (slug, anchors, which ids to store, heading lists from saved JSON, parsing and building document paths).
-- `frontend/src/hooks/useHeadingLinks.ts`: `useScrollToHeading` and `useFollowDocumentLinks`, used by `view/document/DocumentScreen.tsx`.
+- `frontend/src/hooks/useHeadingLinks.ts`: `useScrollToHeading` and `useFollowDocumentLinks`, used by `view/document/DocumentScreen.tsx`. `useScrollToTarget` is the shared scroll-and-highlight step (also used for date chips, `document_dates.md`); a `#date=…` address is a date link, not a heading.
 - `frontend/src/components/HeadingLinkPicker.tsx` (+ `.scss`): the dialog. Headings of other documents come from the existing `GET /api/v1/documents/:id`; the open document is read from the editor, since its saved copy can lag. A failed load shows the usual error notice and an inline message.
 - `DocumentScreen.scss` styles the landing highlight (`document-heading--target`).
 

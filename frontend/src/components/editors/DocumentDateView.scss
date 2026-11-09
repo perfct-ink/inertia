@@ -1,0 +1,66 @@
+@use 'tokens' as *;
+
+@layer app.components {
+  .view-document_date {
+    display: inline-flex;
+    align-items: center;
+    gap: space(1.5);
+    max-width: 100%;
+    padding: 0 space(2);
+    border-radius: radius('md');
+    background: color(primary, 0.15);
+    user-select: none;
+
+    @at-root .document_date-icon {
+      flex-shrink: 0;
+      width: space(3.5);
+      height: space(3.5);
+
+      &--spinning {
+        @include spin;
+      }
+    }
+
+    // The day is a field drawn as an underline, so the chip reads as text until
+    // the cursor is over it.
+    & .document_date-field {
+      @include field-underline;
+      @include text('xs');
+
+      width: space(24);
+      min-width: 0;
+      padding-bottom: 0;
+      font-weight: 500;
+      user-select: text;
+
+      // A phone gets a taller field to tap; text stays 16px so iOS doesn't zoom in.
+      @media (pointer: coarse) {
+        min-height: space(8);
+        font-size: 1rem;
+      }
+    }
+
+    @at-root .document_date-missing {
+      display: inline-flex;
+      align-items: center;
+      gap: space(1.5);
+      @include text('xs');
+
+      color: color(muted-foreground);
+      font-style: italic;
+    }
+
+    & .document_date-retry {
+      font-style: normal;
+      @include text('xs');
+    }
+  }
+
+  // The chip a link from the calendar landed on, for a moment (useScrollToDate).
+  .document-date--target {
+    border-radius: radius('md');
+    background: color(primary, 0.3);
+    box-shadow: 0 0 0 space(1) color(primary, 0.3);
+    transition: background-color 200ms;
+  }
+}

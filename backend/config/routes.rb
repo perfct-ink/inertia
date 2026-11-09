@@ -137,6 +137,8 @@ Rails.application.routes.draw do
         resources :event_tasks, only: [ :create, :destroy ]
       end
 
+      resources :document_dates, only: [ :index, :show, :create, :update, :destroy ]
+
       resources :quip_imports, only: [ :index, :create, :show ]
 
       resources :shares, only: [ :create, :show, :destroy ]

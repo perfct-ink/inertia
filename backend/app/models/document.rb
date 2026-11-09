@@ -18,6 +18,9 @@ class Document < ApplicationRecord
   belongs_to :milestone, optional: true
   has_many :tasks, dependent: :destroy
   has_many :shares, as: :shareable, dependent: :destroy
+  # Dates typed or picked in the text (date chips). They stay on the calendar,
+  # unlinked, if the document is deleted.
+  has_many :document_dates, dependent: :nullify
 
   has_many :table_fields, dependent: :destroy
   has_many :table_records, dependent: :destroy
@@ -46,6 +49,8 @@ class Document < ApplicationRecord
   end
   # Moving a document out of a folder ends its time as that folder's home page.
   after_update { Folder.where(home_document_id: id).where.not(id: folder_id).update_all(home_document_id: nil) if saved_change_to_folder_id? }
+  # Its dates follow it to the new folder, so they stay in the project it is in.
+  after_update { document_dates.update_all(folder_id: folder_id) if saved_change_to_folder_id? }
 
   private
 

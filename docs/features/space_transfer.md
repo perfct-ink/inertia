@@ -45,6 +45,7 @@ The user needs the `member` role or above in the Space the item leaves or is cop
 ## Known limits
 - A folder with tasks, events, epics or milestones attached to it directly (not through a document) cannot be moved; it can be copied, but those items are not copied (`docs/backlog/move-folder-attached-records-between-spaces.md`).
 - AI runs of a moved task are deleted; dependencies and event links of moved tasks are removed. Copies start without them.
+- Calendar entries of dates picked in a document (`document_dates.md`) stay in the old Space when the document or its folder moves: they lose their document and project but stay on the old calendar, and the date chips left in the moved document read "Deleted date". A copy to another Space has the same dangling chips; a copy within the Space shares the original's entries.
 - Copying a very large Collection runs in one request and creates its values one at a time.
 - Uploaded images and videos inside a document are referenced by URL, so a copy and its original share the same files.
 - Offered only from the sidebar tree, not from the document page, All files, Projects or by drag and drop (`docs/backlog/transfer-from-the-document-page-and-file-lists.md`).

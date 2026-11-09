@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_11_07_120001) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_08_200001) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -89,6 +89,20 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_07_120001) do
     t.index ["created_by_id"], name: "index_baselines_on_created_by_id"
     t.index ["folder_id"], name: "index_baselines_on_folder_id"
     t.index ["workspace_id"], name: "index_baselines_on_workspace_id"
+  end
+
+  create_table "document_dates", force: :cascade do |t|
+    t.bigint "workspace_id", null: false
+    t.bigint "document_id"
+    t.bigint "folder_id"
+    t.date "date", null: false
+    t.string "label", default: "", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["document_id"], name: "index_document_dates_on_document_id"
+    t.index ["folder_id"], name: "index_document_dates_on_folder_id"
+    t.index ["workspace_id", "date"], name: "index_document_dates_on_workspace_id_and_date"
+    t.index ["workspace_id"], name: "index_document_dates_on_workspace_id"
   end
 
   create_table "documents", force: :cascade do |t|
@@ -668,6 +682,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_07_120001) do
   add_foreign_key "baselines", "folders"
   add_foreign_key "baselines", "users", column: "created_by_id", on_delete: :nullify
   add_foreign_key "baselines", "workspaces"
+  add_foreign_key "document_dates", "documents", on_delete: :nullify
+  add_foreign_key "document_dates", "folders", on_delete: :nullify
+  add_foreign_key "document_dates", "workspaces"
   add_foreign_key "documents", "documents", column: "parent_feature_id", on_delete: :nullify
   add_foreign_key "documents", "epics", on_delete: :nullify
   add_foreign_key "documents", "folders"

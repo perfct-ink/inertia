@@ -6,7 +6,9 @@
 # and the Space tasks its checklist lines made. A task belongs to one Space, so
 # a move keeps the task but drops what only makes sense in the old Space (epic,
 # sprint, milestone, Gantt links, event links, AI runs, and an assignee who is
-# not a member of the new Space). A copy duplicates the tasks and points the
+# not a member of the new Space). The calendar entries of dates picked in a
+# document stay in the old Space, unlinked from it. A copy duplicates the tasks
+# and points the
 # copied checklist lines at them.
 #
 # Everything runs in one transaction: a transfer either completes or leaves
@@ -84,7 +86,7 @@ class SpaceTransfer
       folder_ids = folder.self_and_descendant_ids
       documents = Document.where(folder_id: folder_ids).to_a
       reject_attached_records!(folder_ids, documents)
-      move_documents(documents)
+      move_documents(documents, folder_ids)
       QuipImport.where(destination_folder_id: folder_ids).update_all(destination_folder_id: nil)
       Folder.where(id: folder_ids).update_all(workspace_id: @workspace.id)
       folder.reload.update!(parent: @target_folder)
@@ -188,9 +190,17 @@ class SpaceTransfer
 
   # ── Move ────────────────────────────────────────────────────────────────
 
-  def move_documents(documents)
+  def move_documents(documents, folder_ids = [])
     reject_outside_links!(documents)
     rehome_tasks(documents.map(&:id))
+    detach_dates(documents.map(&:id), folder_ids)
+  end
+
+  # A date chip's calendar entry belongs to the old Space, so it can't keep
+  # pointing at the document (or a folder) once those are in the new one. It
+  # stays on the old Space's calendar, unlinked and out of any project.
+  def detach_dates(document_ids, folder_ids)
+    DocumentDate.where(document_id: document_ids).or(DocumentDate.where(folder_id: folder_ids)).update_all(document_id: nil, folder_id: nil)
   end
 
   # A Collection can only change Space with every Collection it links to or is

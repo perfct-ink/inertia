@@ -8,9 +8,9 @@ import { schema } from "../src/schema.js";
 describe("schema", () => {
   it("has exactly the node types DocumentPage.tsx's editor extensions produce", () => {
     expect(Object.keys(schema.nodes).sort()).toEqual([
-      "audio", "bulletList", "codeBlock", "doc", "fileAttachment", "hardBreak", "heading",
-      "horizontalRule", "image", "listItem", "orderedList", "paragraph", "table", "tableCell",
-      "tableHeader", "tableRow", "text", "video", "workspaceTaskItem", "workspaceTaskList",
+      "audio", "bulletList", "codeBlock", "doc", "documentDate", "fileAttachment", "hardBreak",
+      "heading", "horizontalRule", "image", "listItem", "orderedList", "paragraph", "table",
+      "tableCell", "tableHeader", "tableRow", "text", "video", "workspaceTaskItem", "workspaceTaskList",
     ]);
   });
 
@@ -18,6 +18,16 @@ describe("schema", () => {
     expect(Object.keys(schema.marks).sort()).toEqual([
       "bold", "code", "italic", "link", "strike", "underline",
     ]);
+  });
+
+  it("keeps the calendar entry's id on an inline date chip, between text", () => {
+    const paragraph = schema.nodeFromJSON({
+      type: "paragraph",
+      content: [{ type: "text", text: "Ship on " }, { type: "documentDate", attrs: { dateId: 7 } }],
+    });
+    expect(paragraph.lastChild?.type.name).toBe("documentDate");
+    expect(paragraph.lastChild?.attrs).toEqual({ dateId: 7 });
+    expect(paragraph.lastChild?.isInline).toBe(true);
   });
 
   it("keeps the stable id on headings, which heading links point at", () => {

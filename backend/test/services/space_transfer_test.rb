@@ -182,6 +182,29 @@ class SpaceTransferTest < ActiveSupport::TestCase
     assert_equal document, share.reload.shareable
   end
 
+  test "moving a document leaves its date entries behind in the old Space, unlinked" do
+    document = @source_folder.documents.create!(title: "Plan", created_by: @user)
+    date = @source.document_dates.create!(date: Date.new(2026, 12, 1), label: "Beta", document: document)
+
+    transfer_into(@team_root).move_document(document)
+
+    assert_equal @source.id, date.reload.workspace_id
+    assert_nil date.document_id
+    assert_nil date.folder_id
+  end
+
+  test "moving a folder also detaches the unlinked date entries filed in it" do
+    document = @source_folder.documents.create!(title: "Plan", created_by: @user)
+    linked = @source.document_dates.create!(date: Date.new(2026, 12, 1), document: document)
+    kept = @source.document_dates.create!(date: Date.new(2026, 12, 2), document: document)
+    kept.update!(document: nil)
+
+    transfer_into(@team_root).move_folder(@source_folder)
+
+    assert_equal @team, @source_folder.reload.workspace
+    assert_equal [ nil, nil, nil, nil ], [ linked, kept ].flat_map { |date| date.reload.attributes.values_at("document_id", "folder_id") }
+  end
+
   test "a document can't be moved into the Space it is already in" do
     document = @source_folder.documents.create!(title: "Plan", created_by: @user)
 

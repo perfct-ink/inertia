@@ -4,6 +4,7 @@ import { useLocation, useParams } from 'react-router-dom'
 import * as Y from 'yjs'
 import { HocuspocusProvider } from '@hocuspocus/provider'
 import { useEditor, EditorContent } from '@tiptap/react'
+import type { Editor } from '@tiptap/core'
 import Collaboration from '@tiptap/extension-collaboration'
 import CollaborationCursor from '@tiptap/extension-collaboration-cursor'
 import TiptapDocument from '@tiptap/extension-document'
@@ -57,6 +58,7 @@ import {
   Loader2,
   FileX,
   Paperclip,
+  CalendarPlus,
 } from 'lucide-react'
 import WorkspaceLayout from '@/components/WorkspaceLayout'
 import { useDocument, useUpdateDocument } from '@/api/documents'
@@ -76,11 +78,14 @@ import ParagraphStylePicker from '@/components/ParagraphStylePicker'
 import TableEditor from '@/components/editors/TableEditor'
 import SpreadsheetEditor from '@/components/editors/SpreadsheetEditor'
 import HeadingLinkPicker from '@/components/HeadingLinkPicker'
+import DocumentDateDialog from '@/components/DocumentDateDialog'
+import DocumentDateRemovedDialog from '@/components/DocumentDateRemovedDialog'
 import { HeadingAnchor, assignHeadingIds, linkToHeading } from '@/extensions/HeadingAnchor'
 import Video from '@/extensions/Video'
 import { AudioAttachment, FileAttachment } from '@/extensions/Attachment'
 import { WorkspaceTaskList } from '@/extensions/WorkspaceTaskList'
 import { WorkspaceTaskItem } from '@/extensions/WorkspaceTaskItem'
+import { DocumentDate } from '@/extensions/DocumentDate'
 import './ProseMirror.scss'
 import './DocumentScreen.scss'
 import { useTabsStore } from '@/store/tabs'
@@ -88,6 +93,8 @@ import { useAuthStore } from '@/store/auth'
 import { useNotificationStore } from '@/store/notifications'
 import { usePageTitle } from '@/hooks/usePageTitle'
 import { useFollowDocumentLinks, useScrollToHeading } from '@/hooks/useHeadingLinks'
+import { useScrollToDate } from '@/hooks/useDateLinks'
+import { useDateChips } from '@/hooks/useDateChips'
 import { extractTitle, buildInitialContent, selectionTaskTitle, taskListContent } from '@/data/document'
 import { attachmentContent, pastedFiles, uploadProblem } from '@/data/attachment'
 import { colorForUserId } from '@/util/color'
@@ -197,6 +204,10 @@ export default function DocumentScreen() {
   const pushingTitlesRef = useRef(new Map<number, string>())
   const lastLineIdsRef = useRef<Set<number> | null>(null)
   const [removedLineTasks, setRemovedLineTasks] = useState<Task[]>([])
+  // Date chips (docs/features/document_dates.md). The editor is made below, after this,
+  // so the hook reaches it through a ref.
+  const editorRef = useRef<Editor | null>(null)
+  const dateChips = useDateChips(docId, doc?.title ?? '', editorRef)
 
   const editor = useEditor({
     extensions: [
@@ -215,6 +226,7 @@ export default function DocumentScreen() {
       ListItem,
       WorkspaceTaskList,
       WorkspaceTaskItem,
+      DocumentDate.configure({ onTrigger: dateChips.onTrigger }),
       CodeBlock,
       HorizontalRule.extend({
         addCommands() {
@@ -265,7 +277,10 @@ export default function DocumentScreen() {
     ],
     onUpdate: ({ editor, transaction }) => {
       // Typing counts; content arriving from the collaboration server doesn't.
-      if (!transaction.getMeta('y-sync$')) markTouched(docId)
+      if (!transaction.getMeta('y-sync$')) {
+        markTouched(docId)
+        dateChips.noteEdit(transaction)
+      }
       const content = editor.getJSON() as Record<string, unknown>
       const title = extractTitle(content)
       // Under collaboration, Hocuspocus's onStoreDocument (collab-server/src/
@@ -286,6 +301,8 @@ export default function DocumentScreen() {
       },
     },
   }, [provider])
+
+  editorRef.current = editor
 
   useEffect(() => {
     if (!editor || !doc) return
@@ -337,6 +354,8 @@ export default function DocumentScreen() {
   // Heading links ("#/documents/12#launch-plan"): scroll to the heading once the
   // editor is showing, and open links to documents without reloading the app.
   useScrollToHeading(editor, !isLoading && doc?.doc_type === 'document')
+  // Date links from the calendar ("#date=34") do the same for a date chip.
+  useScrollToDate(editor, !isLoading && doc?.doc_type === 'document')
   const followDocumentLink = useFollowDocumentLinks()
 
   // Only the "leader" among currently-connected collaborators runs
@@ -476,6 +495,7 @@ export default function DocumentScreen() {
         await syncTaskNodes(currentEditor)
         reconcileTaskLines(currentEditor, true)
         syncHeadingIds(currentEditor)
+        dateChips.checkRemoved()
       } catch {
         setSaveStatus('unsaved')
       }
@@ -707,6 +727,11 @@ export default function DocumentScreen() {
             title="Link to a heading"
           />
           <ToolbarBtn
+            icon={<CalendarPlus className="document-toolbar_icon" />}
+            onClick={dateChips.openDialog}
+            title="Add a date (/date or @date)"
+          />
+          <ToolbarBtn
             icon={<Paperclip className="document-toolbar_icon" />}
             onClick={() => fileInputRef.current?.click()}
             title="Insert image, video, audio or file"
@@ -774,6 +799,8 @@ export default function DocumentScreen() {
         onClose={() => { setHeadingLinkContent(null); editor.commands.focus() }}
         onPick={(picked) => { setHeadingLinkContent(null); linkToHeading(editor, picked) }}
       />
+      <DocumentDateDialog {...dateChips.addDialog} />
+      <DocumentDateRemovedDialog {...dateChips.removedDialog} />
       <PromptDialog
         open={linkDialogOpen}
         title="Link"

@@ -1,6 +1,6 @@
 // Schema-only mirror of frontend/src/pages/workspace/DocumentPage.tsx's editor
 // `extensions` array, plus frontend/src/extensions/{WorkspaceTaskList,
-// WorkspaceTaskItem,Video,Attachment}. y-prosemirror's JSON<->Yjs conversion only cares
+// WorkspaceTaskItem,Video,Attachment,DocumentDate}. y-prosemirror's JSON<->Yjs conversion only cares
 // about node/mark SHAPE (name, group, content, attrs) — NodeView renderers,
 // parseHTML/renderHTML, keyboard shortcuts, and toolbar commands are UI
 // concerns and are deliberately omitted here. That's why this list is
@@ -109,11 +109,24 @@ const FileAttachment = Node.create({
   },
 });
 
+// Matches frontend/src/extensions/DocumentDate.tsx exactly (shape only): an
+// inline chip for a date picked in the document, holding only the id of its
+// calendar entry (document_dates row).
+const DocumentDate = Node.create({
+  name: "documentDate",
+  group: "inline",
+  inline: true,
+  atom: true,
+  addAttributes() {
+    return { dateId: { default: null } };
+  },
+});
+
 export const schemaExtensions = [
   CustomDocument, Paragraph, Text, HardBreak,
   Bold, Italic, Underline, Strike, Code,
   Heading, BulletList, OrderedList, ListItem,
-  WorkspaceTaskList, WorkspaceTaskItem,
+  WorkspaceTaskList, WorkspaceTaskItem, DocumentDate,
   CodeBlock, HorizontalRule, Image, Link, Video, AudioAttachment, FileAttachment,
   Table, TableRow, TableCell, TableHeader,
 ];

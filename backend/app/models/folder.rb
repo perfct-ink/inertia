@@ -9,6 +9,8 @@ class Folder < ApplicationRecord
   has_many :documents, dependent: :destroy
   has_many :tasks, dependent: :nullify
   has_many :events, dependent: :destroy
+  # Dates made in documents of this folder stay on the calendar, out of any project.
+  has_many :document_dates, dependent: :nullify
   has_many :epics, dependent: :nullify
   has_many :task_status_settings, dependent: :delete_all
   has_many :shares, as: :shareable, dependent: :destroy

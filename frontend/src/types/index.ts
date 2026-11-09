@@ -337,6 +337,19 @@ export interface WorkspaceEvent {
   updated_at: string
 }
 
+// A date picked or typed in a document (a date chip): its calendar entry.
+// `document_id` is null once the entry was kept after its line was deleted.
+export interface DocumentDate {
+  id: number
+  date: string
+  label: string
+  document_id: number | null
+  document_title: string | null
+  folder_id: number | null
+  created_at: string
+  updated_at: string
+}
+
 // FoldersController#contents — everything scoped to a folder and all of
 // its nested subfolders, in one request.
 export interface FolderContents {
