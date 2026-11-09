@@ -10,7 +10,7 @@ Cross-project dependencies
 
 ## Current state
 
-Not present
+Partly there (checked 2026-11-09): the API already allows a link between any two tasks in the same Space, across projects (`TaskDependency` checks only the workspace). The UI doesn't: a folder's Gantt only draws links with both tasks in the folder, and the dependency editor's task pickers list only that folder's tasks.
 
 ## Requirements / notes
 
