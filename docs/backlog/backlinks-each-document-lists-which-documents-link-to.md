@@ -19,7 +19,7 @@ Section "Document linking, navigation and URLs" of the retired shared backlog.
 
 Requested by Alex on 2026-10-13.
 
-Today: the editor has a plain Link extension (any URL) but no picker for internal documents or headings, and headings have no stable anchors. Routes are flat ids (`/documents/:id`, `/folders/:id`, see `frontend/src/App.tsx`); there are no slugs. Opening a folder shows its contents (`FolderDetailPage.tsx`); a folder has no home document.
+Today (checked 2026-11-09): links between documents exist. The heading link picker (`docs/features/heading_links.md`) inserts ordinary link marks with in-app hrefs `/documents/<id>#<anchor>`, so backlinks can be found by scanning saved content for those hrefs. A `[[` document picker is still `link-to-another-document.md`. Folders have home documents (`docs/features/folder_home_document.md`).
 
 ## Acceptance criteria
 
