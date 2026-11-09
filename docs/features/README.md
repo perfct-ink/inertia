@@ -64,3 +64,4 @@ One file per implemented feature, written from the code (see `docs/rules/feature
 | Data files: filtering, sorting and API enums live in src/data | [data_files.md](data_files.md) |
 | Portfolio: all projects with owner, status, dates, progress, health | [portfolio.md](portfolio.md) |
 | Notifications inbox: per-person inbox, unread badge, task assignment | [notifications_inbox.md](notifications_inbox.md) |
+| CSV and Excel: export Collections and tasks, import records into a Collection from a file | [csv_and_excel.md](csv_and_excel.md) |

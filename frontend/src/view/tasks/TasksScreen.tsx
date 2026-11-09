@@ -51,6 +51,10 @@ import { useBoardStatuses } from '@/hooks/useBoardStatuses'
 import { StatusSettings } from '@/components/workspace/StatusSettings'
 import { BOARD_STATUSES, NEXT_STATUS, TASK_STATUSES, nextStatusLabel } from '@/data/task_status'
 import { flattenFolders } from '@/data/folder'
+import ExportMenu from '@/components/ExportMenu'
+import { tasksToRows } from '@/data/taskCsv'
+import { downloadRows } from '@/util/download'
+import type { ExportFormat } from '@/data/exportFormat'
 
 // Stable default so the server → local sync effect doesn't re-run every render while the query has no data.
 const NO_TASKS: Task[] = []
@@ -566,6 +570,11 @@ export default function TasksScreen() {
     setLocalTasksState(tasks)
   }
 
+  // The tasks the current filters and search show, as a file for a spreadsheet.
+  function exportTasks(format: ExportFormat) {
+    downloadRows(format, 'Tasks', tasksToRows(tasks, { statuses, epics, sprints, milestones, members }), 'tasks')
+  }
+
   function createTaskWith(status: TaskStatus, fields: NewTaskFields) {
     const { estimateHours, storyPoints, ...rest } = fields
     createTask.mutate({ ...rest, estimate_hours: estimateHours, story_points: storyPoints, status, folder_id: filters.folder_id })
@@ -626,6 +635,13 @@ export default function TasksScreen() {
               Filter
               {(filters.folder_id || filters.status || filters.epic_id || filters.sprint_id || filters.assignee_id || filters.kind) && <span className="tasks-filter_dot" />}
             </Button>
+            <ExportMenu
+              onExport={exportTasks}
+              disabled={tasks.length === 0}
+              className="tasks-filter_button"
+              iconClassName="tasks-icon"
+              alignEnd
+            />
           </div>
         </div>
 

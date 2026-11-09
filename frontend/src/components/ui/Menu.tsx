@@ -26,12 +26,14 @@ interface MenuProps {
   triggerClassName?: string
   // Opens the list above the trigger, for a menu at the bottom of the screen.
   above?: boolean
+  // Lines the list's right edge up with the trigger's, for a menu at the right of the screen.
+  alignEnd?: boolean
 }
 
 // A dropdown menu anchored to its trigger. Arrow keys, Home and End move
 // between items, Enter/Space choose one, Escape closes and gives focus back
 // to the trigger, and a click outside closes it.
-export function Menu({ label, children, items, triggerClassName, above }: MenuProps) {
+export function Menu({ label, children, items, triggerClassName, above, alignEnd }: MenuProps) {
   const [open, setOpen] = useState(false)
   const rootRef = useRef<HTMLDivElement>(null)
   const triggerRef = useRef<HTMLButtonElement>(null)
@@ -95,7 +97,7 @@ export function Menu({ label, children, items, triggerClassName, above }: MenuPr
         {children}
       </Button>
       {open && (
-        <ul id={menuId} role="menu" aria-label={label} className={classNames('ui-menu-list', above && 'ui-menu-list--above')}>
+        <ul id={menuId} role="menu" aria-label={label} className={classNames('ui-menu-list', above && 'ui-menu-list--above', alignEnd && 'ui-menu-list--end')}>
           {items.map((item) => (
             <li key={item.key} role="none" className={classNames(item.separatorBefore && 'ui-menu-separator')}>
               <Button

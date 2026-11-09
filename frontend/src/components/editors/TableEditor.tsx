@@ -14,6 +14,7 @@ import { usePageTitle } from '@/hooks/usePageTitle'
 import { flattenFolders } from '@/data/folder'
 import { checkFormula, computeFormulas, formatResult, isFormulaField, type FormulaResult } from '@/data/formula'
 import CollectionMap from './CollectionMap'
+import CollectionCsv from './CollectionCsv'
 import { columnSummary, SUMMARY_LABEL, withUnit, type SummaryKind } from '@/data/tableSummary'
 
 const types: FieldDataType[] = ['text', 'integer', 'number', 'boolean', 'date', 'datetime', 'relation', 'file', 'files', 'formula']
@@ -150,6 +151,7 @@ export default function TableEditor({ doc }: { doc: Document }) {
         {([['grid', 'Grid', TableIcon], ['map', 'Map', MapIcon]] as const).map(([key, label, Icon]) => <Button key={key} aria-pressed={mode === key} onClick={() => setMode(key)}
           className={classNames('table_editor-mode_button', mode === key && 'table_editor-mode_button--active')}><Icon className="table_editor-mode_icon" aria-hidden="true" />{label}</Button>)}
       </div>}
+      <CollectionCsv docId={doc.id} title={title} data={data} />
       <div className="table_editor-summary">{data?.records.length ?? 0} records · {data?.fields.length ?? 0} fields · Dates and times use UTC. Save each record after editing.</div>
       <FormError message={error || (loadError ? errorMessage(loadError) : null)} className="table_editor-error" />
       {isLoading ? <Loader2 className="table_editor-spinner" /> : data && mode === 'map' ? <CollectionMap data={data} /> : data && <div className="table_editor-grid">

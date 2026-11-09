@@ -86,6 +86,11 @@
       @include text('sm');
       @include muted-link;
 
+      // A disabled button (Export with no tasks) is not clickable, so it does not react.
+      &:disabled:hover {
+        color: color(muted-foreground);
+      }
+
       &--active,
       &--active:hover {
         border-color: color(primary);

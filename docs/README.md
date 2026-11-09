@@ -94,6 +94,7 @@ DELETE /api/v1/tables/:id/fields/:field_id
 POST   /api/v1/tables/:id/records
 PATCH  /api/v1/tables/:id/records/:record_id
 DELETE /api/v1/tables/:id/records/:record_id
+POST   /api/v1/tables/:id/import         # records read from a CSV or Excel file (see features/csv_and_excel.md)
 
 GET    /api/v1/documents/:document_id/tasks
 POST   /api/v1/documents/:document_id/tasks

@@ -3,6 +3,7 @@ import { fireEvent, render, screen } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import TasksScreen from './TasksScreen'
 import type { TaskStatusSetting } from '@/types'
+import { downloadRows } from '@/util/download'
 
 jest.mock('@/components/WorkspaceLayout', () => function LayoutMock({ children }: { children: React.ReactNode }) { return <div>{children}</div> })
 // Dragging is not under test; these stand in for dnd-kit so the board renders in jsdom.
@@ -57,6 +58,7 @@ jest.mock('@/components/TaskHistoryDialog', () => function HistoryMock() { retur
 jest.mock('@/api/workspaceMembers', () => ({ useWorkspaceMembers: () => ({ data: [] }) }))
 jest.mock('@/api/sprints', () => ({ useSprints: () => ({ data: [] }) }))
 jest.mock('@/api/milestones', () => ({ useMilestones: () => ({ data: [] }) }))
+jest.mock('@/util/download', () => ({ downloadRows: jest.fn() }))
 
 let mockSettings: TaskStatusSetting[] = []
 jest.mock('@/api/taskStatusSettings', () => ({
@@ -125,4 +127,25 @@ test('viewers do not get the status editor', () => {
   mockRole = 'viewer'
   renderScreen('/tasks?view=kanban')
   expect(screen.queryByRole('button', { name: 'Statuses' })).not.toBeInTheDocument()
+})
+
+test('exports the tasks shown, with the Space\'s status names, as CSV or Excel', () => {
+  mockSettings = [{ id: 1, folder_id: null, status: 'todo', label: 'Queued', color: null }]
+  renderScreen('/tasks?view=backlog')
+  fireEvent.click(screen.getByRole('button', { name: 'Export' }))
+  fireEvent.click(screen.getByRole('menuitem', { name: 'Excel (.xlsx)' }))
+  expect(downloadRows).toHaveBeenCalledTimes(1)
+  const [format, title, rows, fallback] = (downloadRows as jest.Mock).mock.calls[0]
+  expect([format, title, fallback]).toEqual(['xlsx', 'Tasks', 'tasks'])
+  expect(rows.map((row: unknown[]) => [row[0], row[1], row[3]])).toEqual([['ID', 'Title', 'Status'], [1, 'Write copy', 'Queued'], [2, 'Old idea', 'Backlog']])
+
+  fireEvent.click(screen.getByRole('button', { name: 'Export' }))
+  fireEvent.click(screen.getByRole('menuitem', { name: 'CSV (.csv)' }))
+  expect((downloadRows as jest.Mock).mock.calls[1][0]).toBe('csv')
+})
+
+test('export is switched off when no task is shown', () => {
+  mockTasksQuery = { data: [], isLoading: false }
+  renderScreen('/tasks?view=backlog')
+  expect(screen.getByRole('button', { name: 'Export' })).toBeDisabled()
 })

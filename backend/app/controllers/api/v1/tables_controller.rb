@@ -8,6 +8,9 @@ module Api
       before_action :set_table
       rescue_from ActiveRecord::RecordInvalid, with: :invalid_record
       rescue_from ActiveRecord::RecordNotDestroyed, with: :invalid_record
+      rescue_from TableCsvImport::Error do |error|
+        render json: { errors: [ error.message ] }, status: :unprocessable_entity
+      end
       rescue_from ActiveRecord::InvalidForeignKey do
         render json: { errors: [ "This item is still referenced by another collection" ] }, status: :unprocessable_entity
       end
@@ -29,6 +32,12 @@ module Api
 
       def destroy_field
         mutate { @table.table_fields.find(params[:field_id]).destroy! }
+      end
+
+      # Appends records read from a CSV file (new fields are created as needed).
+      # See TableCsvImport. Returns the updated collection like the other edits.
+      def import_records
+        mutate { TableCsvImport.new(@table, columns: import_columns, rows: params[:rows]).run! }
       end
 
       def create_record
@@ -62,6 +71,13 @@ module Api
 
       def field_params
         params.require(:field).permit(:name, :data_type, :relation_table_id, :unit, :formula)
+      end
+
+      # Plain hashes with only the keys an import column may carry.
+      def import_columns
+        columns = params[:columns]
+        return [] unless columns.is_a?(Array)
+        columns.map { |column| column.respond_to?(:permit) ? column.permit(:field_id, :name, :data_type).to_h : column }
       end
 
       def write_values(record)

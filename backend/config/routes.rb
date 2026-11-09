@@ -78,6 +78,7 @@ Rails.application.routes.draw do
       post "tables/:id/records", to: "tables#create_record"
       patch "tables/:id/records/:record_id", to: "tables#update_record"
       delete "tables/:id/records/:record_id", to: "tables#destroy_record"
+      post "tables/:id/import", to: "tables#import_records"
 
       resources :task_fields, only: [ :index, :create, :update, :destroy ]
       put "tasks/:task_id/field_values/:task_field_id", to: "task_field_values#update"
