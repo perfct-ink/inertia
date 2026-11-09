@@ -37,7 +37,7 @@ The Collection editor, `frontend/src/components/editors/TableEditor.tsx` (the re
 
 ## Known limits
 - Results are computed in the browser only. The API, any export and sorting or filtering on the server do not see them (see `docs/backlog/formula-results-in-the-api.md`).
-- Formulas are for Collections only. Tasks have no custom fields yet (`docs/backlog/formula-field-on-tasks.md`).
+- Formulas are for Collections only. Tasks have no custom fields yet (`docs/backlog/custom-fields-on-tasks.md`).
 - References are by exact field name and case sensitive. A formula inside a quoted text that happens to contain `{Old name}` is rewritten on a rename too.
 - A field whose name contains `}` cannot be referred to.
 - Relation fields give the linked record's id, not its label. There are no functions that look inside related records.

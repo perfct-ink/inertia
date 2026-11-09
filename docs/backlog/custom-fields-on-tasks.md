@@ -15,6 +15,8 @@ Today (checked 2026-11-09): Spaces can already define task fields of five kinds 
 
 **Decision (Alex, 2026-11-09 groom): reuse Collection types.** Task fields can use every Collection field type (text, number, date, person, email, money and the rest from `collection-field-types.md`), sharing their validation and formats, so each new type works in both places. Keep the five existing task kinds working.
 
+**Includes Formula** (Alex, 2026-11-09 groom; was `formula-field-on-tasks.md`): a task formula field uses the same language as Collection formula fields (e.g. `DAYS({Due date}, TODAY())`), reusing `frontend/src/util/expression.ts` and `frontend/src/data/formula.ts` without copying them. It can refer to built-in task fields (title, status, due date, assignee) and custom ones, and its result shows in the task list and task detail.
+
 ## Context
 
 Section "Item fields (Monday "column types")" of the retired shared backlog.
