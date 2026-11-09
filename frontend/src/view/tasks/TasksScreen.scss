@@ -151,6 +151,50 @@
       min-width: max-content;
     }
 
+    /* Organized by epic: lanes stack, and the board scrolls sideways as one so
+       the columns of every lane line up. */
+    @at-root .tasks-board--lanes {
+      display: flex;
+      flex-direction: column;
+      gap: space(6);
+
+      .tasks-columns {
+        height: auto;
+      }
+    }
+
+    @at-root .tasks-lane {
+      min-width: max-content;
+    }
+
+    // Stays at the left edge while the lane scrolls sideways on a phone.
+    @at-root .tasks-lane_title {
+      position: sticky;
+      left: space(4);
+      display: flex;
+      align-items: baseline;
+      gap: space(2);
+      width: fit-content;
+      max-width: 90vw;
+      margin-bottom: space(2);
+      font-weight: 600;
+      @include text('sm');
+    }
+
+    @at-root .tasks-lane_name {
+      @include truncate;
+    }
+
+    @at-root .tasks-lanes_toggle {
+      display: flex;
+      align-items: center;
+      gap: space(1.5);
+      cursor: pointer;
+      user-select: none;
+      @include text('sm');
+      @include muted-link;
+    }
+
     @at-root .tasks-column {
       display: flex;
       flex-direction: column;

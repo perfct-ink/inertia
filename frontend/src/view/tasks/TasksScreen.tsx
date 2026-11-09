@@ -14,7 +14,6 @@ import {
   type DragStartEvent,
   type DragOverEvent,
   type DragEndEvent,
-  type UniqueIdentifier,
 } from '@dnd-kit/core'
 import {
   SortableContext,
@@ -26,7 +25,7 @@ import { CSS } from '@dnd-kit/utilities'
 import WorkspaceLayout from '@/components/WorkspaceLayout'
 import SprintHeader from '@/components/SprintHeader'
 import SavedViews from '@/components/SavedViews'
-import { TASK_PRIORITIES, estimateLabel, pointsLabel, priorityLabel, TASK_KINDS, KIND_LABEL, kindOf, parseTaskBoardConfig, type TaskBoardConfig } from '@/data/task'
+import { TASK_PRIORITIES, estimateLabel, pointsLabel, priorityLabel, TASK_KINDS, KIND_LABEL, kindOf, parseTaskBoardConfig, type TaskBoardConfig, epicLanes, epicLaneKey, laneEpicId, boardCellId, parseBoardCell, type EpicLane } from '@/data/task'
 import { RECURRENCE_OPTIONS, recurrenceLabel } from '@/data/recurrence'
 import TaskHistoryDialog from '@/components/TaskHistoryDialog'
 import { TaskDetail } from '@/components/tasks/TaskDetail'
@@ -56,10 +55,6 @@ import { usePaths } from '@/hooks/usePaths'
 
 // Stable default so the server → local sync effect doesn't re-run every render while the query has no data.
 const NO_TASKS: Task[] = []
-
-function isColumnId(id: UniqueIdentifier): id is TaskStatus {
-  return BOARD_STATUSES.includes(id as TaskStatus)
-}
 
 // ── Card ─────────────────────────────────────────────────────────────────────
 
@@ -180,14 +175,16 @@ function SortableCard(props: Omit<CardProps, 'onDelete'>) {
 
 // ── Column ────────────────────────────────────────────────────────────────────
 
-function KanbanColumn({ status, label, color, tasks, children }: {
-  status: TaskStatus
+// One column of the board, or of a swimlane: `cellId` is its drop target (see
+// boardCellId in data/task.ts).
+function KanbanColumn({ cellId, label, color, tasks, children }: {
+  cellId: string
   label: string
   color: TaskStatusColor
   tasks: Task[]
   children: React.ReactNode
 }) {
-  const { setNodeRef } = useDroppable({ id: status })
+  const { setNodeRef } = useDroppable({ id: cellId })
   return (
     <div className="tasks-column">
       <div className="tasks-column_header">
@@ -229,13 +226,15 @@ interface AddTaskInputProps {
   sprints: Sprint[]
   milestones: Milestone[]
   members: WorkspaceMember[]
+  // The epic a new task starts under (the swimlane it is added in).
+  defaultEpicId?: number | null
 }
 
-function AddTaskInput({ onAdd, onCancel, epics, sprints, milestones, members }: AddTaskInputProps) {
+function AddTaskInput({ onAdd, onCancel, epics, sprints, milestones, members, defaultEpicId }: AddTaskInputProps) {
   const [title, setTitle] = useState('')
   const [startDate, setStartDate] = useState('')
   const [dueDate, setDueDate] = useState('')
-  const [epicId, setEpicId] = useState('')
+  const [epicId, setEpicId] = useState(defaultEpicId ? String(defaultEpicId) : '')
   const [sprintId, setSprintId] = useState('')
   const [milestoneId, setMilestoneId] = useState('')
   const [priority, setPriority] = useState<TaskPriority>('none')
@@ -471,7 +470,16 @@ export default function TasksScreen() {
   const updateTask = useUpdateTask()
   const deleteTask = useDeleteTask()
 
-  const [addingTo, setAddingTo] = useState<TaskStatus | null>(null)
+  const [addingTo, setAddingTo] = useState<string | null>(null)
+  // Workboard layout: a swimlane per epic (plus No epic) instead of one board.
+  // Off by default; /tasks?view=kanban&lanes=epic opens it on, and the checkbox
+  // changes it for the visit.
+  const [byEpic, setByEpic] = useState(() => searchParams.get('lanes') === 'epic')
+  const knownEpicIds = useMemo(() => new Set(epics.map((e) => e.id)), [epics])
+  // The lane a card sits in (null on the plain board) and the column it is in:
+  // the status, or lane plus status in a swimlane.
+  const laneOf = (task: Task) => (byEpic ? epicLaneKey(task.epic_id, knownEpicIds) : null)
+  const cellOf = (task: Task) => boardCellId(task.status, laneOf(task))
   const { data: taskFields = [] } = useTaskFields()
   const [managingFields, setManagingFields] = useState(false)
   const [fieldsTaskId, setFieldsTaskId] = useState<number | null>(null)
@@ -524,14 +532,15 @@ export default function TasksScreen() {
     const dragTask = current.find((t) => t.id === dragId)
     if (!dragTask) return
 
-    const targetStatus = isColumnId(overId)
-      ? overId
-      : current.find((t) => t.id === (overId as number))?.status
+    // Over a column, or over a card (then the column that card is in).
+    const overTask = current.find((t) => t.id === overId)
+    const target = parseBoardCell(overId) ?? (overTask ? { status: overTask.status, laneKey: laneOf(overTask) } : null)
 
-    if (!targetStatus || targetStatus === dragTask.status) return
+    if (!target || (target.status === dragTask.status && target.laneKey === laneOf(dragTask))) return
 
+    // Dropped into another swimlane, the card takes that lane's epic.
     setLocalTasks((prev) =>
-      prev.map((t) => (t.id === dragId ? { ...t, status: targetStatus } : t))
+      prev.map((t) => (t.id === dragId ? { ...t, status: target.status, ...(target.laneKey ? { epic_id: laneEpicId(target.laneKey) } : {}) } : t))
     )
   }
 
@@ -539,30 +548,34 @@ export default function TasksScreen() {
     const dragId = active.id as number
     const current = localRef.current
 
-    if (over && !isColumnId(over.id)) {
+    if (over && !parseBoardCell(over.id)) {
       const overId = over.id as number
       const dragTask = current.find((t) => t.id === dragId)
       const overTask = current.find((t) => t.id === overId)
 
-      if (dragTask && overTask && dragTask.status === overTask.status) {
-        const col = current.filter((t) => t.status === dragTask.status)
+      if (dragTask && overTask && cellOf(dragTask) === cellOf(overTask)) {
+        const cell = cellOf(dragTask)
+        const col = current.filter((t) => cellOf(t) === cell)
         const from = col.findIndex((t) => t.id === dragId)
         const to = col.findIndex((t) => t.id === overId)
         if (from !== -1 && to !== -1 && from !== to) {
           const reordered = arrayMove(col, from, to)
           setLocalTasks((prev) => [
-            ...prev.filter((t) => t.status !== dragTask.status),
+            ...prev.filter((t) => cellOf(t) !== cell),
             ...reordered,
           ])
         }
       }
     }
 
-    // Persist status change if it moved columns
+    // Persist what a drop changed: the status, and in a swimlane the epic.
     const original = tasks.find((t) => t.id === dragId)
     const updated = localRef.current.find((t) => t.id === dragId)
-    if (original && updated && original.status !== updated.status) {
-      updateTask.mutate({ id: dragId, status: updated.status })
+    if (original && updated) {
+      const changes: Partial<Task> = {}
+      if (original.status !== updated.status) changes.status = updated.status
+      if (byEpic && (original.epic_id ?? null) !== (updated.epic_id ?? null)) changes.epic_id = updated.epic_id ?? null
+      if (Object.keys(changes).length > 0) updateTask.mutate({ id: dragId, ...changes })
     }
 
     setActiveId(null)
@@ -579,6 +592,55 @@ export default function TasksScreen() {
     createTask.mutate({ ...rest, estimate_hours: estimateHours, story_points: storyPoints, status, folder_id: filters.folder_id })
   }
 
+  // One status column of the board, or of a swimlane. A lane's cards leave out
+  // the epic line (the lane is the epic) and a task added there starts in it.
+  function renderColumn(status: TaskStatus, lane?: EpicLane) {
+    const id = boardCellId(status, lane?.key)
+    const colTasks = localTasks.filter((t) => cellOf(t) === id)
+    return (
+      <KanbanColumn key={id} cellId={id} label={statuses[status].label} color={statuses[status].color} tasks={colTasks}>
+        {colTasks.map((task) => (
+          <SortableCard
+            key={task.id}
+            task={task}
+            onNext={NEXT_STATUS[task.status] ? () => updateTask.mutate({ id: task.id, status: NEXT_STATUS[task.status]! }) : null}
+            nextLabel={nextStatusLabel(statuses, task.status)}
+            onNavigate={() => navigate(paths.document(task.document_id))}
+            onEdit={() => setEditing(task)}
+            epicTitle={!lane && task.epic_id ? epicById.get(task.epic_id)?.title : undefined}
+            fields={taskFields}
+            onEditFields={() => setFieldsTaskId(task.id)}
+            progress={progressByTask.get(task.id)}
+            assignees={assigneesOf(task)}
+            onHistory={() => setHistoryTask(task)}
+          />
+        ))}
+        {addingTo === id ? (
+          <div className="tasks-add_card">
+            <AddTaskInput
+              onAdd={(fields) => { createTaskWith(status, fields); setAddingTo(null) }}
+              onCancel={() => setAddingTo(null)}
+              epics={epics}
+              sprints={sprints}
+              milestones={milestones}
+              members={members}
+              defaultEpicId={lane?.epicId}
+            />
+          </div>
+        ) : (
+          <Button
+            variant="muted"
+            onClick={() => setAddingTo(id)}
+            className="tasks-add_button"
+          >
+            <Plus className="tasks-icon" />
+            Add task
+          </Button>
+        )}
+      </KanbanColumn>
+    )
+  }
+
   return (
     <WorkspaceLayout>
       <div className="view-tasks">
@@ -589,6 +651,12 @@ export default function TasksScreen() {
             <Tab active={view === 'kanban'} onClick={() => navigate('/tasks?view=kanban')}>Workboard</Tab>
           </Tabs>
           <div className="tasks-tools">
+            {view === 'kanban' && (
+              <label className="tasks-lanes_toggle" title="One swimlane per epic, plus a No epic lane">
+                <Input type="checkbox" checked={byEpic} onChange={(e) => setByEpic(e.target.checked)} />
+                Organize by epic
+              </label>
+            )}
             <div className="tasks-search">
               <Search className="tasks-search_icon" />
               <Input
@@ -730,55 +798,23 @@ export default function TasksScreen() {
             onDragEnd={onDragEnd}
             onDragCancel={onDragCancel}
           >
-            <div className="tasks-board">
-              <div className="tasks-columns">
-                {BOARD_STATUSES.map((key) => {
-                  const colTasks = localTasks.filter((t) => t.status === key)
-                  return (
-                    <KanbanColumn key={key} status={key} label={statuses[key].label} color={statuses[key].color} tasks={colTasks}>
-                      {colTasks.map((task) => (
-                        <SortableCard
-                          key={task.id}
-                          task={task}
-                          onNext={NEXT_STATUS[task.status] ? () => updateTask.mutate({ id: task.id, status: NEXT_STATUS[task.status]! }) : null}
-                          nextLabel={nextStatusLabel(statuses, task.status)}
-                          onNavigate={() => navigate(paths.document(task.document_id))}
-                          onEdit={() => setEditing(task)}
-                          epicTitle={task.epic_id ? epicById.get(task.epic_id)?.title : undefined}
-                          fields={taskFields}
-                          onEditFields={() => setFieldsTaskId(task.id)}
-                          progress={progressByTask.get(task.id)}
-                          assignees={assigneesOf(task)}
-                          onHistory={() => setHistoryTask(task)}
-                        />
-                      ))}
-                      {addingTo === key ? (
-                        <div className="tasks-add_card">
-                          <AddTaskInput
-                            onAdd={(fields) => { createTaskWith(key, fields); setAddingTo(null) }}
-                            onCancel={() => setAddingTo(null)}
-                            epics={epics}
-                            sprints={sprints}
-                            milestones={milestones}
-                            members={members}
-                          />
-                        </div>
-                      ) : (
-                        <Button
-                          variant="muted"
-                          onClick={() => setAddingTo(key)}
-                          className="tasks-add_button"
-                        >
-                          <Plus className="tasks-icon" />
-                          Add task
-                        </Button>
-                      )}
-                    </KanbanColumn>
-                  )
-                })}
+            {byEpic ? (
+              <div className="tasks-board tasks-board--lanes">
+                {epicLanes(tasks, epics).map((lane) => (
+                  <section key={lane.key} className="tasks-lane" aria-label={lane.title}>
+                    <h2 className="tasks-lane_title">
+                      <span className="tasks-lane_name">{lane.title}</span>
+                      <span className="tasks-count">{localTasks.filter((t) => laneOf(t) === lane.key).length}</span>
+                    </h2>
+                    <div className="tasks-columns">{BOARD_STATUSES.map((status) => renderColumn(status, lane))}</div>
+                  </section>
+                ))}
               </div>
-            </div>
-
+            ) : (
+              <div className="tasks-board">
+                <div className="tasks-columns">{BOARD_STATUSES.map((status) => renderColumn(status))}</div>
+              </div>
+            )}
             <DragOverlay>
               {activeTask && (
                 <TaskCard

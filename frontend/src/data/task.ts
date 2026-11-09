@@ -1,5 +1,5 @@
 import { formatDistance, parseISO } from 'date-fns'
-import type { Task, TaskKind, TaskPriority } from '@/types'
+import type { Task, TaskKind, TaskPriority, TaskStatus } from '@/types'
 
 // The task statuses the API accepts, in board order (mirrors Task.statuses in the backend).
 export const TASK_STATUSES: Task['status'][] = ['backlog', 'todo', 'in_progress', 'in_review', 'done']
@@ -88,6 +88,51 @@ export function buildTaskTree(tasks: Task[]): TaskNode[] {
     else roots.push(node)
   })
   return roots
+}
+
+// ── Workboard swimlanes (organize by epic) ──────────────────────────────────
+
+export const NO_EPIC_LANE = 'no-epic'
+
+// The lane a task belongs in: its epic's, or No epic when it has none or its
+// epic is not among the known ones (filtered out or deleted).
+export function epicLaneKey(epicId: number | null | undefined, knownEpicIds: ReadonlySet<number>): string {
+  return epicId != null && knownEpicIds.has(epicId) ? `epic-${epicId}` : NO_EPIC_LANE
+}
+
+// The epic a lane stands for; null for the No epic lane.
+export function laneEpicId(laneKey: string): number | null {
+  const match = /^epic-(\d+)$/.exec(laneKey)
+  return match ? Number(match[1]) : null
+}
+
+export interface EpicLane { key: string; title: string; epicId: number | null; tasks: Task[] }
+
+// One lane per epic that has tasks (in the epics' order), then No epic. The
+// No epic lane is always there, even empty: it is where a card is dragged to
+// take it out of its epic, and where a Space with no tasks yet adds one.
+export function epicLanes(tasks: Task[], epics: { id: number; title: string }[]): EpicLane[] {
+  const known = new Set(epics.map((e) => e.id))
+  const lanes: EpicLane[] = epics
+    .map((e) => ({ key: epicLaneKey(e.id, known), title: e.title, epicId: e.id, tasks: tasks.filter((t) => t.epic_id === e.id) }))
+    .filter((lane) => lane.tasks.length > 0)
+  lanes.push({ key: NO_EPIC_LANE, title: 'No epic', epicId: null, tasks: tasks.filter((t) => epicLaneKey(t.epic_id, known) === NO_EPIC_LANE) })
+  return lanes
+}
+
+// A board column's drop target id: the status on the plain board, the lane
+// plus the status ("epic-3|todo") in a swimlane.
+export function boardCellId(status: TaskStatus, laneKey?: string | null): string {
+  return laneKey ? `${laneKey}|${status}` : status
+}
+
+export interface BoardCell { status: TaskStatus; laneKey: string | null }
+
+// Reads a drop target id back; null for anything that is not a column (a card's numeric id).
+export function parseBoardCell(id: string | number): BoardCell | null {
+  if (typeof id !== 'string') return null
+  const [laneKey, status] = id.includes('|') ? id.split('|') : [null, id]
+  return TASK_STATUSES.includes(status as TaskStatus) ? { status: status as TaskStatus, laneKey } : null
 }
 
 export type DueBucket = 'overdue' | 'today' | 'this_week' | 'later' | 'no_date'
