@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Star, ThumbsUp, X } from 'lucide-react'
-import { Button, Input, Select, classNames } from '@/components/ui'
+import { Button, IconButton, Input, Select, classNames } from '@/components/ui'
 import {
   RATING_MAX, MAX_LABEL_LENGTH, addTags, choiceOf, hasVoted, isChecked, nextRating, ratingOf, removeTag, tagsOf, votersOf,
 } from '@/data/taskField'
@@ -67,14 +67,14 @@ function TagsInput({ field, tags, onChange }: { field: TaskField; tags: string[]
           {tags.map((tag) => (
             <li key={tag} className="task_fields-tag">
               <span className="task_fields-tag_text">{tag}</span>
-              <Button
-                variant="ghost"
+              <IconButton
+                fill
                 className="task_fields-tag_remove"
-                aria-label={`Remove tag ${tag}`}
+                label={`Remove tag ${tag}`}
                 onClick={() => onChange(removeTag(tags, tag))}
               >
                 <X className="task_fields-icon task_fields-icon--sm" aria-hidden="true" />
-              </Button>
+              </IconButton>
             </li>
           ))}
         </ul>

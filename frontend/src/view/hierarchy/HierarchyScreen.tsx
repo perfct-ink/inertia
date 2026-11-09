@@ -4,7 +4,7 @@ import {
   type CollisionDetection, type DragEndEvent, type DragMoveEvent,
 } from '@dnd-kit/core'
 import { ChevronRight, Milestone as MilestoneIcon, Flag, Target, CheckSquare, Loader2, Move } from 'lucide-react'
-import { Button, classNames } from '@/components/ui'
+import { IconButton, classNames } from '@/components/ui'
 import WorkspaceLayout from '@/components/WorkspaceLayout'
 import { ProgressBar } from '@/components/Timeline'
 import { donePercent } from '@/data/schedule'
@@ -90,13 +90,13 @@ function HierarchyRow({ node, depth, expanded, drop, onToggle, onMove }: {
         {...listeners}
       >
         {hasChildren ? (
-          <button
+          <IconButton
             onClick={() => onToggle(node.key)}
             className="hierarchy-toggle"
-            aria-label={isOpen ? 'Collapse' : 'Expand'}
+            label={isOpen ? 'Collapse' : 'Expand'}
           >
             <ChevronRight className={classNames('hierarchy-chevron', isOpen && 'hierarchy-chevron--open')} />
-          </button>
+          </IconButton>
         ) : (
           <span className="hierarchy-toggle_spacer" />
         )}
@@ -109,9 +109,9 @@ function HierarchyRow({ node, depth, expanded, drop, onToggle, onMove }: {
         {node.kind === 'milestone' ? (
           <span className="hierarchy-move_spacer" />
         ) : (
-          <Button variant="ghost" className="hierarchy-move" aria-label={`Move ${node.title}`} title="Move" onClick={() => onMove(node.key)}>
+          <IconButton fill className="hierarchy-move" label={`Move ${node.title}`} title="Move" onClick={() => onMove(node.key)}>
             <Move className="hierarchy-move_icon" aria-hidden="true" />
-          </Button>
+          </IconButton>
         )}
       </div>
       {hasChildren && isOpen && node.children.map((child) => (

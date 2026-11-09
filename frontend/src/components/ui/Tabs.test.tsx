@@ -23,17 +23,21 @@ test('tabs are a labelled group of toggle buttons; the active one is pressed', (
   expect(pick).toHaveBeenCalledWith('kanban')
 })
 
-test('a tab never submits a form, and a segmented row has its own class', () => {
+test('a tab never submits a form, and each look has its own class', () => {
   const submit = jest.fn((e: { preventDefault: () => void }) => e.preventDefault())
   render(
     <form onSubmit={submit}>
-      <Tabs label="Type" variant="segmented">
+      <Tabs label="Type" variant="outlined">
         <Tab active>Milestone</Tab>
         <Tab active={false}>Deadline</Tab>
       </Tabs>
+      <Tabs label="Kind" variant="segmented">
+        <Tab active>Task</Tab>
+      </Tabs>
     </form>,
   )
-  expect(screen.getByRole('group', { name: 'Type' })).toHaveClass('ui-tabs', 'ui-tabs--segmented')
+  expect(screen.getByRole('group', { name: 'Type' })).toHaveClass('ui-tabs', 'ui-tabs--outlined')
+  expect(screen.getByRole('group', { name: 'Kind' })).toHaveClass('ui-tabs', 'ui-tabs--segmented')
   expect(screen.getByRole('button', { name: 'Deadline' })).toHaveAttribute('type', 'button')
   fireEvent.click(screen.getByRole('button', { name: 'Deadline' }))
   expect(submit).not.toHaveBeenCalled()

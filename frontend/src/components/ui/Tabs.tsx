@@ -6,9 +6,10 @@ import './Tabs.scss'
 type TabsProps = HTMLAttributes<HTMLDivElement> & {
   // What the tabs choose between ("View", "Group by"), read out with the group.
   label: string
-  // `segmented`: bordered choices that share the row's width, for picking one
-  // value in a form (a type) rather than switching a page's view.
-  variant?: 'segmented'
+  // `segmented`: the choices sit in a shaded tray and the chosen one is raised.
+  // `outlined`: bordered boxes that share the row's width, for picking one value
+  // in a form (a type) rather than switching what a page shows.
+  variant?: 'segmented' | 'outlined'
 }
 
 // A row of Tab buttons that switch what a page shows (List / Timeline).

@@ -1,7 +1,7 @@
 import { flattenFolders } from '@/data/folder'
 import { WorkspaceSwitcher } from '@/components/workspace/WorkspaceSwitcher'
 import { TransferHost } from '@/components/workspace/TransferDialog'
-import { Button, IconButton, Input, Select, DatePicker, Menu } from '@/components/ui'
+import { Button, IconButton, Input, Select, DatePicker, Menu, Tab, Tabs } from '@/components/ui'
 import './Sidebar.scss'
 import { useState, useRef, useEffect } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
@@ -471,22 +471,16 @@ export default function Sidebar() {
       {quickAddOpen && (
         <div className="sidebar-overlay" onClick={() => setQuickAddOpen(false)}>
           <div className="sidebar-dialog" onClick={(e) => e.stopPropagation()}>
-            <div className="sidebar-tabs">
-              <Button
-                onClick={() => setQuickAddType('task')}
-                className={`sidebar-tab${quickAddType === 'task' ? ' sidebar-tab--active' : ''}`}
-              >
+            <Tabs label="Add" variant="segmented">
+              <Tab active={quickAddType === 'task'} onClick={() => setQuickAddType('task')}>
                 <CheckSquare className="sidebar-icon--sm" />
                 Task
-              </Button>
-              <Button
-                onClick={() => setQuickAddType('event')}
-                className={`sidebar-tab${quickAddType === 'event' ? ' sidebar-tab--active' : ''}`}
-              >
+              </Tab>
+              <Tab active={quickAddType === 'event'} onClick={() => setQuickAddType('event')}>
                 <CalendarDays className="sidebar-icon--sm" />
                 Event
-              </Button>
-            </div>
+              </Tab>
+            </Tabs>
 
             <Input
               ref={quickAddInputRef}

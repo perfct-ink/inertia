@@ -98,11 +98,6 @@
       height: space(7);
       padding: 0;
       border-radius: radius('full');
-      color: color(muted-foreground);
-
-      &:hover:not(:disabled) {
-        color: color(foreground);
-      }
     }
 
     // ── Rating ──

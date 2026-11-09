@@ -221,7 +221,7 @@ function EventSidebar({ state, onClose }: { state: SidebarState; onClose: () => 
           </div>
           <div className="events-form-field">
             <label className="events-muted">Type</label>
-            <Tabs label="Type" variant="segmented">
+            <Tabs label="Type" variant="outlined">
               {(['milestone', 'deadline'] as const).map((t) => (
                 <Tab key={t} active={type === t} onClick={() => setType(t)}>
                   <EventTypeIcon type={t} size="xs" />

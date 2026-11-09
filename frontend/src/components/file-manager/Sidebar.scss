@@ -1,7 +1,6 @@
 @use 'tokens' as *;
 @use 'file_manager' as fm;
 
-$shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
 $shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
 
 /* The drawer: static beside the page on md+, a slide-in overlay below. */
@@ -415,36 +414,6 @@ $shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
       background: color(muted);
       font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
       @include text('xs');
-    }
-
-    @at-root .sidebar-tabs {
-      display: flex;
-      gap: space(1);
-      padding: space(0.5);
-      border-radius: radius('lg');
-      background: color(muted);
-    }
-
-    @at-root .sidebar-tab {
-      display: flex;
-      flex: 1 1 0%;
-      align-items: center;
-      justify-content: center;
-      gap: space(1.5);
-      padding: space(1.5) 0;
-      border-radius: radius('md');
-      color: color(muted-foreground);
-      @include text('sm');
-
-      &:hover {
-        color: color(foreground);
-      }
-
-      &--active {
-        background: color(card);
-        box-shadow: $shadow-sm;
-        color: color(foreground);
-      }
     }
   }
 
