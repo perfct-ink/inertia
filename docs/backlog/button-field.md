@@ -1,5 +1,5 @@
 ---
-priority: p1
+priority: p2
 depends_on: [rule-builder-trigger-condition-action]
 ---
 # Button field (runs an automation)
