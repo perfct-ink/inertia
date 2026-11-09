@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_11_07_120001) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_08_290003) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -373,6 +373,43 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_07_120001) do
     t.index ["workspace_id"], name: "index_resource_allocations_on_workspace_id"
   end
 
+  create_table "retro_cards", force: :cascade do |t|
+    t.bigint "retrospective_id", null: false
+    t.bigint "author_id"
+    t.bigint "task_id"
+    t.string "column_key", null: false
+    t.text "body", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["author_id"], name: "index_retro_cards_on_author_id"
+    t.index ["retrospective_id"], name: "index_retro_cards_on_retrospective_id"
+    t.index ["task_id"], name: "index_retro_cards_on_task_id"
+  end
+
+  create_table "retro_votes", force: :cascade do |t|
+    t.bigint "retro_card_id", null: false
+    t.bigint "user_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["retro_card_id", "user_id"], name: "index_retro_votes_on_retro_card_id_and_user_id", unique: true
+    t.index ["user_id"], name: "index_retro_votes_on_user_id"
+  end
+
+  create_table "retrospectives", force: :cascade do |t|
+    t.bigint "workspace_id", null: false
+    t.bigint "folder_id"
+    t.bigint "sprint_id"
+    t.bigint "created_by_id"
+    t.string "title", null: false
+    t.string "template", default: "went_well", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["created_by_id"], name: "index_retrospectives_on_created_by_id"
+    t.index ["folder_id"], name: "index_retrospectives_on_folder_id"
+    t.index ["sprint_id"], name: "index_retrospectives_on_sprint_id"
+    t.index ["workspace_id"], name: "index_retrospectives_on_workspace_id"
+  end
+
   create_table "shares", force: :cascade do |t|
     t.string "token", null: false
     t.integer "permission", default: 0, null: false
@@ -720,6 +757,15 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_07_120001) do
   add_foreign_key "resource_allocations", "folders"
   add_foreign_key "resource_allocations", "users"
   add_foreign_key "resource_allocations", "workspaces"
+  add_foreign_key "retro_cards", "retrospectives"
+  add_foreign_key "retro_cards", "tasks", on_delete: :nullify
+  add_foreign_key "retro_cards", "users", column: "author_id", on_delete: :nullify
+  add_foreign_key "retro_votes", "retro_cards"
+  add_foreign_key "retro_votes", "users", on_delete: :cascade
+  add_foreign_key "retrospectives", "folders", on_delete: :nullify
+  add_foreign_key "retrospectives", "sprints", on_delete: :nullify
+  add_foreign_key "retrospectives", "users", column: "created_by_id", on_delete: :nullify
+  add_foreign_key "retrospectives", "workspaces"
   add_foreign_key "shares", "users", column: "created_by_id"
   add_foreign_key "social_identities", "users"
   add_foreign_key "social_login_attempts", "users"

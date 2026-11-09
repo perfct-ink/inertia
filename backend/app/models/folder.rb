@@ -17,6 +17,7 @@ class Folder < ApplicationRecord
   # nullifies them when the folder goes.
   has_many :initiatives, dependent: :nullify
   has_many :sprints, dependent: :nullify
+  has_many :retrospectives, dependent: :nullify
   has_many :ideas, dependent: :nullify
   has_many :io_nodes, dependent: :nullify
   has_many :objectives, dependent: :nullify

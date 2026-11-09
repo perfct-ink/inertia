@@ -24,6 +24,7 @@ class Workspace < ApplicationRecord
   has_many :baselines, dependent: :destroy
   has_many :milestones, dependent: :destroy
   has_many :sprints, dependent: :destroy
+  has_many :retrospectives, dependent: :destroy
   has_many :objectives, dependent: :destroy
   has_many :resource_allocations, dependent: :destroy
   has_many :project_requests, dependent: :destroy

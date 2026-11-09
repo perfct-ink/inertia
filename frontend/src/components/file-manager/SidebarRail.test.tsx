@@ -29,6 +29,7 @@ test('has a link for the Space pages and every page of a project, and no buttons
   ])
   expect(within(nav).getByRole('link', { name: 'Tasks' })).toHaveAttribute('href', '/tasks?view=backlog')
   expect(within(nav).getByRole('link', { name: 'Roadmap' })).toHaveAttribute('href', '/roadmap')
+  expect(within(nav).getByRole('link', { name: 'Retrospectives' })).toHaveAttribute('href', '/retrospectives')
 })
 
 test('the Inbox link sits with the quick actions', () => {

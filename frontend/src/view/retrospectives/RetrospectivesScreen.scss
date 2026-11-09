@@ -1,0 +1,115 @@
+@use 'tokens' as *;
+
+@layer view {
+  .view-retrospectives {
+    display: flex;
+    flex: 1 1 0%;
+    flex-direction: column;
+    overflow: hidden;
+
+    @at-root .retrospectives-header {
+      @include page-header;
+    }
+
+    @at-root .retrospectives-title {
+      flex: 1 1 0%;
+      font-size: 1.25rem;
+      line-height: 1.75rem;
+      font-weight: 600;
+    }
+
+    @at-root .retrospectives-new {
+      display: flex;
+      align-items: center;
+      gap: space(1);
+    }
+
+    @at-root .retrospectives-icon {
+      width: space(4);
+      height: space(4);
+
+      &--spin {
+        @include spin;
+      }
+    }
+
+    @at-root .retrospectives-body {
+      flex: 1 1 0%;
+      overflow-y: auto;
+    }
+
+    @at-root .retrospectives-list {
+      display: flex;
+      flex-direction: column;
+      gap: space(3);
+      max-width: 42rem;
+      margin-inline: auto;
+      @include page-padding;
+    }
+
+    @at-root .retrospectives-empty {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: space(2);
+      padding: space(10) 0;
+      color: color(muted-foreground);
+      text-align: center;
+      @include text('sm');
+    }
+
+    @at-root .retrospectives-empty_icon {
+      width: space(8);
+      height: space(8);
+      opacity: 0.5;
+    }
+
+    // The whole card is a link to the board, so it reacts to the cursor.
+    @at-root .retrospectives-card {
+      display: flex;
+      flex-direction: column;
+      gap: space(1);
+      padding: space(4);
+      border-width: 1px;
+      border-color: color(border);
+      border-radius: radius('lg');
+      background: color(card);
+      color: color(foreground);
+      text-decoration: none;
+      @include transition(background-color, border-color);
+
+      &:hover {
+        border-color: color(border-strong);
+        background: color(accent);
+      }
+
+      &:focus-visible {
+        @include focus-ring;
+      }
+    }
+
+    @at-root .retrospectives-card_title {
+      font-weight: 600;
+      overflow-wrap: anywhere;
+    }
+
+    @at-root .retrospectives-card_meta {
+      color: color(muted-foreground);
+      @include text('xs');
+    }
+
+    // Create dialog.
+    @at-root .retrospectives-field {
+      display: flex;
+      flex-direction: column;
+      gap: space(1);
+      color: color(muted-foreground);
+      @include text('xs');
+    }
+
+    @at-root .retrospectives-hint {
+      color: color(muted-foreground);
+      @include text('xs');
+    }
+  }
+}
