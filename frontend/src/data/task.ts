@@ -1,3 +1,4 @@
+import { formatDistance, parseISO } from 'date-fns'
 import type { Task, TaskKind, TaskPriority } from '@/types'
 
 // The task statuses the API accepts, in board order (mirrors Task.statuses in the backend).
@@ -242,4 +243,19 @@ export function taskChanges(task: Task, draft: TaskDraft): Partial<Task> {
     if (draft[key] !== before[key]) changes[key] = draft[key] ? Number(draft[key]) : null
   }
   return changes
+}
+
+export type AutoFieldSource = Pick<Task, 'id' | 'created_by_name' | 'created_at' | 'updated_at'>
+
+// The read-only fields the server fills in: item ID, creator, and when the
+// task was created and last updated ("2 days ago"). What the server does not
+// know is null. `now` is passed in so the wording can be tested.
+export function autoFields(task: AutoFieldSource, now: Date = new Date()) {
+  const ago = (iso?: string) => (iso ? formatDistance(parseISO(iso), now, { addSuffix: true }) : null)
+  return {
+    itemId: `#${task.id}`,
+    createdBy: task.created_by_name ?? null,
+    created: ago(task.created_at),
+    updated: ago(task.updated_at),
+  }
 }

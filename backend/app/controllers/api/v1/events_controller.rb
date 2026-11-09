@@ -6,7 +6,7 @@ module Api
       before_action :set_event, only: [ :update, :destroy ]
 
       def index
-        events = in_current_project(current_workspace.events).includes(tasks: :document).order(:date)
+        events = in_current_project(current_workspace.events).includes(tasks: [ :document, :created_by ]).order(:date)
         events = events.where(folder_id: params[:folder_id]) if params[:folder_id]
         render json: EventBlueprint.render(events, view: :with_tasks)
       end
@@ -36,7 +36,7 @@ module Api
       private
 
       def set_event
-        @event = current_workspace.events.includes(tasks: :document).find(params[:id])
+        @event = current_workspace.events.includes(tasks: [ :document, :created_by ]).find(params[:id])
       end
 
       def event_params

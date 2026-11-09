@@ -1,5 +1,5 @@
 import type { Task } from '@/types'
-import { buildTaskTree, taskFolderId, dueBucket, myWork, taskCards, estimateLabel, pointsLabel, priorityLabel, filterByKind, kindOf, elapsedClock, formatMinutes, progressById, subtaskProgress, statusChangeLabel, taskChanges, taskDraft, taskDraftError } from './task'
+import { autoFields, buildTaskTree, taskFolderId, dueBucket, myWork, taskCards, estimateLabel, pointsLabel, priorityLabel, filterByKind, kindOf, elapsedClock, formatMinutes, progressById, subtaskProgress, statusChangeLabel, taskChanges, taskDraft, taskDraftError } from './task'
 
 const task = (id: number, parent_id: number | null = null) => ({ id, title: `T${id}`, parent_id }) as unknown as Task
 
@@ -132,4 +132,14 @@ describe('task detail drafts', () => {
     expect(taskDraftError({ ...taskDraft(base), start_date: '2026-10-25' })).toBe('The due date is before the start date.')
     expect(taskDraftError(taskDraft(base))).toBeNull()
   })
+})
+
+test('autoFields shows the item ID, creator and relative times', () => {
+  const now = new Date('2026-10-21T12:00:00Z')
+  const fields = autoFields({ id: 12, created_by_name: 'Ada', created_at: '2026-10-19T12:00:00Z', updated_at: '2026-10-21T10:00:00Z' }, now)
+  expect(fields).toEqual({ itemId: '#12', createdBy: 'Ada', created: '2 days ago', updated: 'about 2 hours ago' })
+})
+
+test('autoFields leaves out what the server does not know', () => {
+  expect(autoFields({ id: 3 })).toEqual({ itemId: '#3', createdBy: null, created: null, updated: null })
 })

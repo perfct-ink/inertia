@@ -1,0 +1,28 @@
+@use 'tokens' as *;
+
+// The read-only auto fields of a task (item ID, creator, created, last
+// updated): small muted text, wrapping so it fits a 375px screen. Not
+// interactive, so nothing here reacts to the cursor.
+@layer app.components {
+  .task_auto_fields {
+    display: flex;
+    flex-wrap: wrap;
+    gap: space(1) space(4);
+    margin: 0;
+    color: color(muted-foreground);
+    @include text('xs');
+
+    &-row {
+      display: flex;
+      gap: space(1);
+    }
+
+    dt {
+      font-weight: 500;
+    }
+
+    dd {
+      margin: 0;
+    }
+  }
+}
