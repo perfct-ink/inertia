@@ -16,6 +16,8 @@ Partly there (checked 2026-11-09): the API already allows a link between any two
 
 Builds on `docs/features/task_dependencies.md`.
 
+**Decision (Alex, 2026-11-09 groom): ghost bars.** On a project's Gantt, a task from another project that a task here waits on (or that waits on one here) shows as a faded bar labelled with its project's name, and the arrow is drawn to it. Ghost bars are read-only; clicking one opens that task. The dependency editor's task picker can search the whole Space, grouped by project.
+
 ## Context
 
 Section "Portfolio, goals, resources" of the retired shared backlog.
