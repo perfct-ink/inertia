@@ -1,5 +1,5 @@
 ---
-priority: p0
+priority: p3
 depends_on: []
 components: [macos, backend]
 ---
@@ -16,6 +16,8 @@ Named a future stage in `macos/README.md`
 ## Requirements / notes
 
 Same API as web.
+
+Priority p3 (Alex, 2026-11-09 groom): kept, not deleted. The Mac app already shows the web workspace (and its Gantt) in a WKWebView, so a native Gantt is low priority.
 
 ## Open question
 
