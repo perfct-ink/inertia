@@ -73,6 +73,16 @@ module Api
         }
       end
 
+      # Whether the signed-in user can open the folder, and as what: the same
+      # answer as `access` in #contents, without loading anything. Looks in every
+      # Space the user belongs to and in folders shared with them, so it needs no
+      # X-Workspace-Id header (the collab server asks this before it lets
+      # someone into a folder's live room). A folder they can't open is not found.
+      def access
+        folder = find_accessible_folder(params[:id])
+        render json: { id: folder.id, name: folder.name, workspace_id: folder.workspace_id, access: folder_access_json(folder) }
+      end
+
       def create
         shared_parent = shared_parent_folder
         return create_in_shared_folder(shared_parent) if shared_parent

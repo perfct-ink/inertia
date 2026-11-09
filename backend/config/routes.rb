@@ -61,6 +61,7 @@ Rails.application.routes.draw do
         member do
           get :contents
           get :features
+          get :access
         end
         resources :baselines, only: [ :index, :create ]
         # Who is invited to the folder (and so to everything inside it).

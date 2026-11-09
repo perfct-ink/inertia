@@ -16,6 +16,8 @@ import { prosemirrorJSONToYDoc, yDocToProsemirrorJSON } from "y-prosemirror";
 import type { onLoadDocumentPayload, onStoreDocumentPayload } from "@hocuspocus/server";
 import { schema } from "./schema.js";
 import type { AuthContext } from "./auth.js";
+import { editorToken } from "./editors.js";
+import { parseRoom } from "./rooms.js";
 
 const RAILS_INTERNAL_URL = process.env.RAILS_INTERNAL_URL ?? "http://backend:3000";
 const FRAGMENT = "default";
@@ -28,7 +30,10 @@ const EMPTY_DOC_JSON = {
   ],
 };
 
-export async function onLoadDocument({ document, context }: onLoadDocumentPayload<AuthContext>) {
+export async function onLoadDocument({ document, documentName, context }: onLoadDocumentPayload<AuthContext>) {
+  // Folder rooms only carry who is there; they have no content to seed.
+  if (parseRoom(documentName)?.kind !== "document") return;
+
   const fragment = document.getXmlFragment(FRAGMENT);
   if (fragment.length > 0) return; // already seeded by an earlier connection this process
 
@@ -40,18 +45,25 @@ export async function onLoadDocument({ document, context }: onLoadDocumentPayloa
   Y.applyUpdate(document, Y.encodeStateAsUpdate(seeded));
 }
 
-export async function onStoreDocument({ document, documentName, lastContext }: onStoreDocumentPayload<AuthContext>) {
-  const documentId = documentName.replace(/^document-/, "");
+export async function onStoreDocument({ document, documentName }: onStoreDocumentPayload<AuthContext>) {
+  const room = parseRoom(documentName);
+  if (room?.kind !== "document") return;
+  const documentId = room.id;
+
+  // Saved with the token of someone who may edit (see editors.ts). When no
+  // editor ever connected, only people who may read were here, their
+  // connections are read-only and nothing changed: nothing to save.
+  const token = editorToken(documentName);
+  if (!token) return;
+
   const json = yDocToProsemirrorJSON(document, FRAGMENT);
 
-  // lastContext is whichever currently-connected client's onAuthenticate ran
-  // most recently for this document. Any authorized connection's token is
-  // equally valid here: Rails' PATCH only checks workspace ownership, not
-  // per-field authorship, and the Yjs-merged `content` is identical no
-  // matter which authorized client's token stamps the outgoing request.
+  // Any editor's token is equally valid here: Rails' PATCH only checks the
+  // right to edit the document, not per-field authorship, and the Yjs-merged
+  // `content` is identical no matter which editor's token stamps the request.
   const res = await fetch(`${RAILS_INTERNAL_URL}/api/v1/documents/${documentId}`, {
     method: "PATCH",
-    headers: { "Content-Type": "application/json", Authorization: `Bearer ${lastContext.token}` },
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
     body: JSON.stringify({ document: { content: json } }),
   });
 

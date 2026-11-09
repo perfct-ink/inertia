@@ -74,6 +74,46 @@ class SharedFolderAccessTest < ActionDispatch::IntegrationTest
     assert_equal({ "source" => "space", "role" => "admin", "can_write" => true, "can_share" => true }, response.parsed_body["access"])
   end
 
+  # -- Folder access (what the collab server asks before a live folder room) ---
+
+  test "folder access says what the invitation allows, on the folder and below it" do
+    headers = as_guest_with(:editor)
+    [ @launch, @plans ].each do |folder|
+      get "/api/v1/folders/#{folder.id}/access", headers: headers
+      assert_response :success
+      body = response.parsed_body
+      assert_equal [ folder.id, folder.name, @team.id ], body.values_at("id", "name", "workspace_id")
+      assert_equal({ "source" => "folder", "role" => "editor", "can_write" => true, "can_share" => false }, body["access"])
+    end
+  end
+
+  test "folder access is not found outside the share, without an invitation and for the Root" do
+    headers = as_guest_with(:viewer)
+    get "/api/v1/folders/#{@private.id}/access", headers: headers
+    assert_response :not_found
+    get "/api/v1/folders/#{@team.root_folder.id}/access", headers: headers
+    assert_response :not_found
+    get "/api/v1/folders/#{@launch.id}/access", headers: headers_for(@stranger)
+    assert_response :not_found
+  end
+
+  test "folder access needs no Space header for a member and reports their Space role" do
+    get "/api/v1/folders/#{@private.id}/access", headers: headers_for(@member)
+    assert_response :success
+    assert_equal({ "source" => "space", "role" => "member", "can_write" => true, "can_share" => false }, response.parsed_body["access"])
+  end
+
+  test "folder access stops when the invitation is removed, and needs a signed-in user" do
+    invitation = invite(@guest, :viewer)
+    get "/api/v1/folders/#{@launch.id}/access", headers: headers_for(@guest)
+    assert_response :success
+    invitation.destroy!
+    get "/api/v1/folders/#{@launch.id}/access", headers: headers_for(@guest)
+    assert_response :not_found
+    get "/api/v1/folders/#{@launch.id}/access"
+    assert_response :unauthorized
+  end
+
   test "guests cannot rename, archive, delete, copy or move shared folders" do
     headers = as_guest_with(:owner)
     patch "/api/v1/folders/#{@launch.id}", params: { folder: { name: "Mine" } }, headers: headers, as: :json

@@ -1,5 +1,6 @@
 import { Server } from "@hocuspocus/server";
 import { onAuthenticate } from "./auth.js";
+import { afterUnloadDocument, onStateless } from "./roomHooks.js";
 import { onLoadDocument, onStoreDocument } from "./persistence.js";
 
 const server = new Server({
@@ -9,6 +10,8 @@ const server = new Server({
   onAuthenticate,
   onLoadDocument,
   onStoreDocument,
+  onStateless,
+  afterUnloadDocument,
 });
 
 server.listen();

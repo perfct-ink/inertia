@@ -1,19 +1,23 @@
-// Delegates BOTH authentication and authorization to Rails' existing
-// `GET /api/v1/documents/:id` — this service verifies nothing about the JWT
-// itself and holds no secret of its own. A 200 means the token is valid AND
-// the connecting user's workspace owns this document (Rails already does
-// both checks in one query: Document.joins(:folder).where(folders: {
-// workspace_id: current_user.workspace.id})); anything else rejects. This
-// also means any future change to Rails' document-access rules (e.g. wiring
-// the Share model into access) is inherited here automatically, with no
-// collab-server code change.
+// Delegates BOTH authentication and authorization to Rails — this service
+// verifies nothing about the JWT itself and holds no secret of its own. A
+// document room asks `GET /api/v1/documents/:id`, a folder room asks
+// `GET /api/v1/folders/:id/access`; a 200 means the token is valid AND the
+// user may open that document or folder, either as a member of its Space or
+// through an invitation to a folder it is in (see FolderCollaboration in the
+// backend); anything else rejects. So a user who cannot read something in the
+// API cannot join its room, and any future change to Rails' access rules is
+// inherited here with no collab-server code change.
 //
 // Reading is not editing: Rails also says whether the user may EDIT the
 // document (`can_edit`: a Space viewer, or someone invited to a folder as a
 // viewer or commenter, may not). Those connections are opened read-only, so
 // Hocuspocus drops every update they send instead of broadcasting and storing
-// it. Rails must be deployed before this service for `can_edit` to exist.
+// it. Rails must be deployed before this service for `can_edit` to exist; until
+// then everyone is read-only (it fails closed). Folder rooms hold no content, so
+// every connection to one is read-only.
 import type { onAuthenticatePayload } from "@hocuspocus/server";
+import { rememberEditor } from "./editors.js";
+import { parseRoom } from "./rooms.js";
 
 const RAILS_INTERNAL_URL = process.env.RAILS_INTERNAL_URL ?? "http://backend:3000";
 
@@ -30,12 +34,12 @@ export function isReadOnly(doc: Pick<RailsDocument, "can_edit">): boolean {
   return doc.can_edit !== true;
 }
 
-async function fetchDocument(documentId: string, token: string): Promise<RailsDocument> {
-  const res = await fetch(`${RAILS_INTERNAL_URL}/api/v1/documents/${documentId}`, {
+async function fetchFromRails<T>(path: string, token: string): Promise<T> {
+  const res = await fetch(`${RAILS_INTERNAL_URL}${path}`, {
     headers: { Authorization: `Bearer ${token}` },
   });
   if (!res.ok) throw new Error(`Rails returned ${res.status}`);
-  return res.json() as Promise<RailsDocument>;
+  return res.json() as Promise<T>;
 }
 
 export interface AuthContext {
@@ -47,17 +51,27 @@ export interface AuthContext {
 export async function onAuthenticate({ token, documentName, connectionConfig }: onAuthenticatePayload): Promise<AuthContext> {
   if (!token) throw new Error("Unauthorized: no token");
 
-  // Room name convention: `document-${id}` — see the frontend's
-  // HocuspocusProvider setup in DocumentPage.tsx.
-  const documentId = documentName.replace(/^document-/, "");
+  // Room name convention: `document-${id}` / `folder-${id}` — see rooms.ts.
+  const room = parseRoom(documentName);
+  if (!room) throw new Error("Unknown room");
+
+  if (room.kind === "folder") {
+    try {
+      await fetchFromRails(`/api/v1/folders/${room.id}/access`, token);
+    } catch {
+      throw new Error("Unauthorized");
+    }
+    connectionConfig.readOnly = true;
+    return { token, documentId: room.id, initialContent: {} };
+  }
 
   let doc: RailsDocument;
   try {
-    doc = await fetchDocument(documentId, token);
+    doc = await fetchFromRails<RailsDocument>(`/api/v1/documents/${room.id}`, token);
   } catch {
-    // Collapses Rails' 401 (bad/expired token) and 403/404 (not your
-    // workspace, or doesn't exist) into one rejection — the client doesn't
-    // need to distinguish them, it just can't connect either way.
+    // Collapses Rails' 401 (bad/expired token) and 403/404 (no access to
+    // it, or doesn't exist) into one rejection — the client doesn't need to
+    // distinguish them, it just can't connect either way.
     throw new Error("Unauthorized");
   }
 
@@ -69,9 +83,10 @@ export async function onAuthenticate({ token, documentName, connectionConfig }: 
   }
 
   connectionConfig.readOnly = isReadOnly(doc);
+  // Saving uses a token that may write (see editors.ts).
+  if (!connectionConfig.readOnly) rememberEditor(documentName, token);
 
   // Returned here, this becomes `context` for onLoadDocument (this
-  // connection) and — merged across connections as `lastContext` — for
-  // onStoreDocument. See persistence.ts.
-  return { token, documentId, initialContent: doc.content };
+  // connection). See persistence.ts.
+  return { token, documentId: room.id, initialContent: doc.content };
 }
