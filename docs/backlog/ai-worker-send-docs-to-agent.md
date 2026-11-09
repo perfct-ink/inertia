@@ -21,3 +21,7 @@ From a document, folder or task, press **Send to agent**, pick where it goes, an
 - A person can copy a handoff for Claude Code, paste it, and the agent can read the same docs through MCP.
 - Failed API calls show an error.
 - Tests cover the handoff; `docs/features/ai_workers.md` is updated and this file is removed.
+
+## Not merged (2026-11-09)
+
+`backlog/ai-worker-send-docs-to-agent` (2026-10-19) also carries its own agent tokens and MCP server, which main now has from `ai-worker-agent-access` in a different form, and it conflicts in 24 places. Rebuild only the Send to agent part on main, using main's agent tokens and tools.

@@ -27,3 +27,7 @@ Today a task has a fixed field set: title, description, status, due date, assign
 - Anything stated in Requirements / notes (including any named default) is implemented or deliberately changed with the reason recorded.
 - Failed API calls show an error to the user.
 - Tests cover the new behaviour; a feature doc in `docs/features/` is written (or the existing one updated) and this file is removed.
+
+## Not merged (2026-11-09)
+
+`backlog/connect-and-mirror-fields` was waiting on the collection field types, which merged on 2026-11-09. It now conflicts with main in nine places (`TableField`, `TableCell`, `TableEditor`, the schema). Rebuild the Mirror field on main as a `FieldType` entry rather than merging the old branch.

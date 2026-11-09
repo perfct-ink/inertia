@@ -29,3 +29,7 @@ Today a task has a fixed field set: title, description, status, due date, assign
 - Anything stated in Requirements / notes (including any named default) is implemented or deliberately changed with the reason recorded.
 - Failed API calls show an error to the user.
 - Tests cover the new behaviour; a feature doc in `docs/features/` is written (or the existing one updated) and this file is removed.
+
+## Not merged (2026-11-09)
+
+`backlog/custom-fields-on-tasks` is an unfinished WIP from before the collection field types merged; it adds its own `FieldValue` rules, which now duplicate `FieldType` on main. Restart it on main using `FieldType` (`backend/app/models/field_type.rb`, `frontend/src/data/fieldType.ts`). `backlog/custom-fields-on-tasks-v2` is an older WIP of the same task.
