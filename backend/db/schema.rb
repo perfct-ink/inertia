@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_11_07_120001) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_08_130001) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -89,6 +89,13 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_07_120001) do
     t.index ["created_by_id"], name: "index_baselines_on_created_by_id"
     t.index ["folder_id"], name: "index_baselines_on_folder_id"
     t.index ["workspace_id"], name: "index_baselines_on_workspace_id"
+  end
+
+  create_table "document_links", force: :cascade do |t|
+    t.bigint "source_document_id", null: false
+    t.bigint "target_document_id", null: false
+    t.index ["source_document_id", "target_document_id"], name: "index_document_links_on_source_and_target", unique: true
+    t.index ["target_document_id"], name: "index_document_links_on_target_document_id"
   end
 
   create_table "documents", force: :cascade do |t|
@@ -668,6 +675,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_07_120001) do
   add_foreign_key "baselines", "folders"
   add_foreign_key "baselines", "users", column: "created_by_id", on_delete: :nullify
   add_foreign_key "baselines", "workspaces"
+  add_foreign_key "document_links", "documents", column: "source_document_id"
+  add_foreign_key "document_links", "documents", column: "target_document_id"
   add_foreign_key "documents", "documents", column: "parent_feature_id", on_delete: :nullify
   add_foreign_key "documents", "epics", on_delete: :nullify
   add_foreign_key "documents", "folders"

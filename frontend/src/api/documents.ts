@@ -27,6 +27,11 @@ export class DocumentApi extends ApiResource<Document, never, DocumentFields> {
   createIn(folderId: number, data: { title: string; doc_type?: Document['doc_type']; content?: Record<string, unknown> }) {
     return api.post<Document>(`/api/v1/folders/${folderId}/documents`, this.body(data)).then((r) => r.data)
   }
+
+  // The documents in the same Space that link to this one.
+  backlinks(id: number) {
+    return api.get<Document[]>(`${this.url(id)}/backlinks`).then((r) => r.data)
+  }
 }
 
 export const documentApi = new DocumentApi()
@@ -62,6 +67,17 @@ export function useFolderFeatures(folderId: number) {
     queryKey: ['folder-features', folderId],
     queryFn: () => api.get(`/api/v1/folders/${folderId}/features`).then((r) => r.data),
     enabled: !!folderId,
+    staleTime: 0,
+  })
+}
+
+// The documents in the Space that link to this one, refetched each time a document is opened
+// (the links change when other documents are saved, which this page does not see).
+export function useBacklinks(id: number) {
+  return useQuery<Document[]>({
+    queryKey: ['backlinks', id],
+    queryFn: () => documentApi.backlinks(id),
+    enabled: !!id,
     staleTime: 0,
   })
 }

@@ -73,6 +73,7 @@ import DocumentInitiativeBar from '@/components/DocumentInitiativeBar'
 import FeatureBar from '@/components/FeatureBar'
 import DocumentPlanningSummary from '@/components/DocumentPlanningSummary'
 import ParagraphStylePicker from '@/components/ParagraphStylePicker'
+import DocumentBacklinks from '@/components/DocumentBacklinks'
 import TableEditor from '@/components/editors/TableEditor'
 import SpreadsheetEditor from '@/components/editors/SpreadsheetEditor'
 import HeadingLinkPicker from '@/components/HeadingLinkPicker'
@@ -745,6 +746,7 @@ export default function DocumentScreen() {
           <div className={`document-page ${tasksOnly ? 'document-page--tasks_only' : ''}`}>
             <EditorContent editor={editor} />
           </div>
+          <DocumentBacklinks documentId={docId} />
         </div>
       </div>
       <Modal

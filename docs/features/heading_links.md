@@ -32,7 +32,7 @@ Anyone who can edit a document can add heading links to it and (through the edit
 - Clicking any in-app link in the editor navigates away; to edit a link's text use the arrow keys or select it and use the Link button.
 - Ids are stored only after an edit. In a document nobody has edited, two headings with the same text are told apart by order ("-2"), so adding another one above shifts them until the next save.
 - Copying a heading copies its id. The later of two headings with the same id gets a new id on the next save; if the copy sits above the original, links to the original now reach the copy.
-- Headings in a Collection cell or a sheet do not exist, so only documents can be targets. Nothing lists which documents link to a heading (`docs/backlog/backlinks-each-document-lists-which-documents-link-to.md`).
+- Headings in a Collection cell or a sheet do not exist, so only documents can be targets. A document's "Linked from" list (`document_backlinks.md`) includes the documents that link to one of its headings, but does not say which heading.
 - The `Heading` change touches the editor schema (`collab-server/src/schema.ts`), which `backlog/link-to-another-document` also edits (different lines).
 
 ## History
