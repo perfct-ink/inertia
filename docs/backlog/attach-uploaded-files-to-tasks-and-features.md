@@ -10,7 +10,7 @@ Attach uploaded files to tasks and features
 
 ## Requirements / notes
 
-Ties into feature folders (`feature-folder-type.md`).
+A feature is an epic with a requirements document (`features-with-requirements-docs.md`); `feature-folder-type.md` was retired.
 
 ## Context
 
@@ -18,9 +18,9 @@ Section "Files and images in collections" of the retired shared backlog.
 
 Requested by Alex on 2026-10-13: collections should let you upload files or images and keep them there.
 
-Update 2026-10-18: Alex confirmed a collection is what the app calls a table today (see `docs/features/collections.md`). Files and images as a collection *field* are `collection-image-and-file-fields.md`; the items below still cover uploading files into folders.
+Update 2026-10-18: Alex confirmed a collection is what the app calls a table today (see `docs/features/collections.md`). Files and images as a collection *field* have shipped (`collection-image-and-file-fields.md` is gone).
 
-Today: `UploadsController` already stores images and video in ActiveStorage (100 MB cap, images/video only), but only so they can be embedded in a document. An uploaded file isn't an item of its own: it doesn't show in the folder, and nothing lists it.
+Today (checked 2026-11-09): any file type can be uploaded as a folder item (`docs/features/uploaded_files.md`) or embedded in a document (`docs/features/embedded_files.md`). Nothing attaches a file to a task.
 
 ## Acceptance criteria
 
