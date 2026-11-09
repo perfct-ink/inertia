@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { X } from 'lucide-react'
-import { Button, FormError, IconButton, Input, Select } from '@/components/ui'
+import { Button, FormError, Input, Select } from '@/components/ui'
 import SavedViews from '@/components/SavedViews'
 import { Timeline, type TimelineMilestone } from '@/components/Timeline'
 import { useUpdateTask } from '@/api/tasks'
