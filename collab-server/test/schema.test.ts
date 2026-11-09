@@ -25,4 +25,12 @@ describe("schema", () => {
     expect(withId.attrs).toEqual({ level: 2, id: "launch-plan" });
     expect(schema.nodeFromJSON({ type: "heading", attrs: { level: 2 } }).attrs.id).toBeNull();
   });
+
+  it("keeps a paragraph's style, and for a custom style its name and formatting copy", () => {
+    const props = '{"owner":3,"base":"quote","size":20}';
+    const custom = schema.nodeFromJSON({ type: "paragraph", attrs: { style: "custom-7", styleName: "Callout", styleProps: props } });
+    expect(custom.attrs).toEqual({ style: "custom-7", styleName: "Callout", styleProps: props });
+    expect(schema.nodeFromJSON({ type: "paragraph", attrs: { style: "quote" } }).attrs).toEqual({ style: "quote", styleName: null, styleProps: null });
+    expect(schema.nodeFromJSON({ type: "paragraph" }).attrs).toEqual({ style: "body", styleName: null, styleProps: null });
+  });
 });
