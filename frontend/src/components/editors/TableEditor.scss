@@ -77,7 +77,7 @@
 
       // A typed value that does not fit its field's type.
       &[aria-invalid='true'] {
-        border-color: palette('red-500');
+        border-color: color(status-red);
       }
     }
 
