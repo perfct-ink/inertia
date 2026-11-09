@@ -10,6 +10,9 @@
 #     they were in the document being replaced, when the comment is still there.
 #     Delete the comment to delete the block.
 #
+# Links and images are restricted when they come in (see `parse`): a writer cannot plant a
+# `javascript:` link, only keep the addresses the document already had.
+#
 # Covered: headings, paragraphs, bold, italic, underline (<u>), strike, inline
 # code, links, bullet/ordered/task lists (bullet and ordered nest), code blocks,
 # rules, line breaks and images. `unsupported` names what inside those blocks
@@ -21,6 +24,12 @@ module DocumentMarkdown
   # The `style` values of a paragraph besides plain body (frontend/src/data/paragraphStyle.ts).
   PARAGRAPH_STYLES = %w[title subtitle quote caption monospace].freeze
   MAX_HEADING_LEVEL = 5
+  # The most Markdown one edit may carry (characters). Parsing is not free and no real document is near this.
+  MAX_LENGTH = 300_000
+  # Where a new link or image may point: the web, an address, or a path or anchor in the app. Anything
+  # else (javascript:, data:, file:, ...) is dropped on the way in.
+  SAFE_LINK = %r{\A(https?://|mailto:|tel:|/(?!/)|#)}i
+  SAFE_IMAGE = %r{\A(https?://|/(?!/))}i
 
   TASK_COMMENT = /\s*<!--\s*task:(\d+)\s*-->\s*\z/
   HEADING_ID = /\s*<!--\s*id:([\w-]{1,64})\s*-->\s*\z/
@@ -202,12 +211,61 @@ module DocumentMarkdown
 
   # `title` becomes the leading heading when the Markdown doesn't start with one
   # (a document must begin with a heading). `original` is the document's current
-  # content: it supplies the blocks that `<!-- keep:N -->` comments stand for.
+  # content: it supplies the blocks that `<!-- keep:N -->` comments stand for, and
+  # the link and image addresses that stay allowed even when they are not "safe" ones.
   def parse(markdown, title: "Untitled", original: nil)
     context = { kept: blocks_of(original), used: {}, heading_ids: {} }
     blocks = parse_blocks(markdown.to_s.gsub("\r\n", "\n").split("\n"), context)
     blocks.unshift(heading_node(1, title)) unless blocks.first && blocks.first["type"] == "heading"
-    { "type" => "doc", "content" => blocks }
+    { "type" => "doc", "content" => scrub_blocks(blocks, urls_in(original)) }
+  end
+
+  # Every link href and image src in a content tree.
+  def urls_in(node, found = Set.new)
+    case node
+    when Hash
+      found << node.dig("attrs", "href") if node["type"] == "link"
+      found << node.dig("attrs", "src") if node["type"] == "image"
+      node.each_value { |value| urls_in(value, found) }
+    when Array then node.each { |value| urls_in(value, found) }
+    end
+    found
+  end
+
+  # Drops links and images that point somewhere unsafe and are not already in the
+  # document: a link loses its mark (the text stays); an image becomes its alt text.
+  def scrub_blocks(blocks, known)
+    blocks.filter_map do |block|
+      next scrub_node(block, known) unless block["type"] == "image"
+      next block if url_allowed?(block.dig("attrs", "src"), SAFE_IMAGE, known)
+      alt = block.dig("attrs", "alt").to_s
+      { "type" => "paragraph", "content" => [ text_node(alt, []) ] } unless alt.empty?
+    end
+  end
+
+  def scrub_node(node, known)
+    return node unless node.is_a?(Hash)
+    node = node.dup
+    if node["marks"]
+      marks = node["marks"].reject { |mark| mark["type"] == "link" && !url_allowed?(mark.dig("attrs", "href"), SAFE_LINK, known) }
+      marks.empty? ? node.delete("marks") : node["marks"] = marks
+    end
+    if node["content"].is_a?(Array)
+      children = node["content"].filter_map do |child|
+        next scrub_node(child, known) unless child.is_a?(Hash) && child["type"] == "image"
+        next child if url_allowed?(child.dig("attrs", "src"), SAFE_IMAGE, known)
+        alt = child.dig("attrs", "alt").to_s
+        text_node(alt, []) unless alt.empty?
+      end
+      # Text that lost a link mark may now sit next to text with the same marks.
+      children = merge_text(children) if children != node["content"]
+      children.empty? ? node.delete("content") : node["content"] = children
+    end
+    node
+  end
+
+  def url_allowed?(url, safe, known)
+    safe.match?(url.to_s) || known.include?(url)
   end
 
   def heading_node(level, text)

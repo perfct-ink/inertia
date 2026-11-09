@@ -140,6 +140,26 @@ class DocumentMarkdownTest < ActiveSupport::TestCase
     assert_equal %w[heading paragraph image paragraph], nodes.map { |n| n["type"] }
   end
 
+  test "links and images that could run a script are dropped, safe ones stay" do
+    markdown = "# T\n\n[bad](javascript:alert(1)) [web](https://x.test) [mail](mailto:a@x.test) [app](/documents/3#intro) [proto](//evil.test)\n\n![pic](data:image/png;base64,AAAA)\n\n![ok](https://x.test/a.png)\n"
+    nodes = DocumentMarkdown.parse(markdown, title: "T")["content"]
+    links = nodes[1]["content"].filter_map { |n| n.dig("marks", 0, "attrs", "href") }
+    assert_equal %w[https://x.test mailto:a@x.test /documents/3#intro], links
+    assert_includes nodes[1]["content"].map { |n| n["text"] }.join, "bad"
+    assert_equal %w[heading paragraph paragraph image], nodes.map { |n| n["type"] }
+    assert_equal "pic", nodes[2].dig("content", 0, "text")
+    assert_equal "https://x.test/a.png", nodes[3].dig("attrs", "src")
+  end
+
+  test "an address the document already had stays, even an unusual one" do
+    original = doc(heading("T"), paragraph(text("old", { "type" => "link", "attrs" => { "href" => "example.com" } })), { "type" => "image", "attrs" => { "src" => "data:image/png;base64,AAAA", "alt" => "x" } })
+    parsed = round_trip(original)
+    assert_equal "example.com", parsed.dig("content", 1, "content", 0, "marks", 0, "attrs", "href")
+    assert_equal "data:image/png;base64,AAAA", parsed.dig("content", 2, "attrs", "src")
+    fresh = DocumentMarkdown.parse("# T\n\n[new](other.example)\n", title: "T", original: original)
+    assert_nil fresh.dig("content", 1, "content", 0, "marks")
+  end
+
   test "a document must start with a heading, so the title is added when it is missing" do
     nodes = DocumentMarkdown.parse("Just text\n", title: "My doc")["content"]
     assert_equal "heading", nodes.first["type"]
