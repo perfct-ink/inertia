@@ -60,6 +60,7 @@ See [Mac social sign-in](mac-social-sign-in.md) for provider setup steps.
 | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | Google OAuth web client. | Optional; provider is disabled when unset. |
 | `APPLE_CLIENT_ID`, `APPLE_TEAM_ID`, `APPLE_KEY_ID`, `APPLE_PRIVATE_KEY` | Sign in with Apple (Services ID, team, key ID, `.p8` contents). | Optional; provider is disabled when unset. |
 | `ANTHROPIC_API_KEY` | Anthropic API key for AI workers. | Not read yet: the adapter that uses it is not built. Optional; workers stay off without it. |
+| `PUBLIC_FORMS_ENABLED` | `true` lets an admin open a form to anyone with its link (`/f/<token>`, no account), which creates tasks in the Space. | Unset by default: forms stay for signed-in members and every public address is 404. Public responses are capped at 30 per form per hour; there is no per-IP limit. See `docs/features/task_forms.md`. |
 | `REDIS_URL` | Redis connection (development container). | Not used in production. |
 
 ### Frontend (`frontend/`, read at build time by webpack `DefinePlugin`)

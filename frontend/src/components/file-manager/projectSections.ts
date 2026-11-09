@@ -1,6 +1,6 @@
 import type { ComponentType } from 'react'
 import {
-  CalendarDays, CalendarRange, CheckSquare, Flag, Gauge, GanttChart, Goal, Lightbulb, ListTree, Map as MapIcon,
+  CalendarDays, CalendarRange, CheckSquare, Flag, Gauge, GanttChart, Goal, Lightbulb, ListChecks, ListTree, Map as MapIcon,
   Milestone, Network, Rocket, Rows3, Table2, Target, UserCheck, Users,
 } from 'lucide-react'
 
@@ -28,6 +28,7 @@ export const SECTION_GROUPS: { heading: string | null; sections: Section[] }[] =
     { label: 'Pivot', path: '/pivot', icon: Table2 },
     { label: 'Calendar', path: '/calendar', icon: CalendarRange },
     { label: 'Events', path: '/events?view=list', icon: CalendarDays },
+    { label: 'Forms', path: '/forms', icon: ListChecks },
   ] },
   { heading: 'Planning', sections: [
     { label: 'Roadmap', path: '/roadmap', icon: MapIcon },

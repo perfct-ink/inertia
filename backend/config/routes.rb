@@ -139,6 +139,13 @@ Rails.application.routes.draw do
 
       resources :quip_imports, only: [ :index, :create, :show ]
 
+      resources :task_forms, only: [ :index, :create, :update, :destroy ] do
+        resources :submissions, controller: "task_form_submissions", only: [ :index, :create ]
+      end
+      # Fill in a form from its public link (no account); see PublicFormsController.
+      get "public_forms/:token", to: "public_forms#show"
+      post "public_forms/:token/submissions", to: "public_forms#create"
+
       resources :shares, only: [ :create, :show, :destroy ]
       resource :roadmap_share, only: [ :show, :create, :destroy ]
       get "shared/:token", to: "shares#access", as: :shared_access

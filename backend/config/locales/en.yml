@@ -38,6 +38,12 @@ en:
       workspace_membership:
         one: "Space membership"
         other: "Space memberships"
+      task_form:
+        one: "Form"
+        other: "Forms"
+      task_form_submission:
+        one: "Response"
+        other: "Responses"
       team:
         one: "Team"
         other: "Teams"
@@ -81,6 +87,8 @@ en:
       project_request:
         workspace: "Space"
         decision_note: "Reason"
+      task_form:
+        workspace: "Space"
       task_status_setting:
         workspace: "Space"
 

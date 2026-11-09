@@ -34,6 +34,10 @@ import SharedScreen from '@/view/shared/SharedScreen'
 import AppearanceEffect from '@/components/AppearanceEffect'
 import OnboardingSync from '@/components/onboarding/OnboardingSync'
 import InviteScreen from '@/view/invite/InviteScreen'
+import FormsScreen from '@/view/forms/FormsScreen'
+import FormFillScreen from '@/view/form_fill/FormFillScreen'
+import FormBuilderScreen from '@/view/form_builder/FormBuilderScreen'
+import PublicFormScreen from '@/view/public_form/PublicFormScreen'
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
   const token = useAuthStore((s) => s.token)
@@ -73,6 +77,9 @@ export default function App() {
         <Route path="/signup" element={<SignupScreen />} />
         <Route path="/shared/:token" element={<SharedScreen />} />
         <Route path="/invite/:token" element={<InviteScreen />} />
+        {/* A form opened to anyone with its link: no account needed. Only
+            answers when the server allows public forms (docs/features/task_forms.md). */}
+        <Route path="/f/:token" element={<PublicFormScreen />} />
         {/* Rails owns "/" in production for the marketing homepage (see
             backend/app/controllers/marketing_controller.rb and the nginx vhost
             under deploy/) — this route only matters for local dev (no Rails
@@ -286,6 +293,30 @@ export default function App() {
         {/* Project requests is turned off for now; its screen and API stay
             (docs/features/project_intake.md). */}
         <Route path="/project-requests" element={<Navigate to="/space" replace />} />
+        <Route
+          path="/forms"
+          element={
+            <PrivateRoute>
+              <FormsScreen />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/forms/:id"
+          element={
+            <PrivateRoute>
+              <FormFillScreen />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/forms/:id/edit"
+          element={
+            <PrivateRoute>
+              <FormBuilderScreen />
+            </PrivateRoute>
+          }
+        />
         <Route
           path="/folders/:id"
           element={

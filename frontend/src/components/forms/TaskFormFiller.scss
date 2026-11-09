@@ -1,0 +1,41 @@
+@use 'tokens' as *;
+
+@layer app.components {
+  .view-task_form_filler {
+    display: flex;
+    flex-direction: column;
+    gap: space(4);
+    min-width: 0;
+
+    @at-root .task_form_filler-question {
+      display: flex;
+      flex-direction: column;
+      gap: space(1);
+      min-width: 0;
+    }
+
+    @at-root .task_form_filler-label {
+      font-weight: 500;
+      user-select: none;
+      @include text('sm');
+    }
+
+    @at-root .task_form_filler-required {
+      color: palette('red-500');
+    }
+
+    // Off screen rather than display: none, which bots can detect and skip.
+    @at-root .task_form_filler-trap {
+      position: absolute;
+      left: -9999px;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+    }
+
+    @at-root .task_form_filler-actions {
+      display: flex;
+      justify-content: flex-end;
+    }
+  }
+}

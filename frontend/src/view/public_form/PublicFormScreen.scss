@@ -1,0 +1,75 @@
+@use 'tokens' as *;
+
+@layer view {
+  .view-public_form {
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+
+    /* dvh is the visible viewport; 100vh is taller than the screen on phones
+       while the browser toolbar shows, so the page scrolled. */
+    min-height: 100dvh;
+    padding: space(4);
+    background: color(muted);
+
+    @include up('md') {
+      align-items: center;
+      padding: space(8);
+    }
+
+    @at-root .public_form-card {
+      display: flex;
+      flex-direction: column;
+      gap: space(4);
+      width: 100%;
+      max-width: 36rem;
+      min-width: 0;
+      padding: space(5);
+      border-radius: radius('xl');
+      background: color(card);
+      box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+
+      @include up('md') {
+        padding: space(8);
+      }
+    }
+
+    @at-root .public_form-title {
+      @include text('2xl');
+
+      font-weight: 600;
+      letter-spacing: -0.025em;
+      overflow-wrap: anywhere;
+    }
+
+    @at-root .public_form-description {
+      color: color(muted-foreground);
+      overflow-wrap: anywhere;
+      white-space: pre-wrap;
+      @include text('sm');
+    }
+
+    @at-root .public_form-message {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: space(3);
+      color: color(muted-foreground);
+      @include text('sm');
+    }
+
+    @at-root .public_form-spinner {
+      align-self: center;
+      width: space(5);
+      height: space(5);
+      color: color(muted-foreground);
+      @include spin;
+    }
+
+    @at-root .public_form-done {
+      width: space(8);
+      height: space(8);
+      color: palette('green-500');
+    }
+  }
+}
