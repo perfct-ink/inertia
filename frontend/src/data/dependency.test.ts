@@ -1,5 +1,5 @@
-import type { TaskDependency } from '@/types'
-import { DEPENDENCY_KINDS, drivingPath, kindFromSides, linkSides, planReschedule } from './dependency'
+import type { Folder, Task, TaskDependency, TaskLink } from '@/types'
+import { DEPENDENCY_KINDS, NO_PROJECT, drivingPath, externalEnd, kindFromSides, linkCandidates, linkSides, planReschedule, splitDependencies } from './dependency'
 
 const dep = (predecessor_id: number, successor_id: number, kind: TaskDependency['kind'] = 'finish_to_start') =>
   ({ id: predecessor_id * 100 + successor_id, predecessor_id, successor_id, kind, created_at: '' })
@@ -118,4 +118,74 @@ test('kindFromSides is the reverse of linkSides for all four kinds', () => {
     expect(kindFromSides(from, to)).toBe(kind)
   }
   expect(kindFromSides('end', 'start')).toBe('finish_to_start')
+})
+
+describe('links to other projects', () => {
+  const folder = (id: number, name: string, kind: Folder['kind'], children: Folder[] = []) =>
+    ({ id, name, kind, children, documents: [], parent_id: null }) as unknown as Folder
+  const folders = [folder(1, 'Messages', 'project', [folder(2, 'Design', 'folder')]), folder(3, 'Billing', 'project')]
+  const link = (id: number, due_date: string | null, folder_id: number | null, start_date: string | null = null) =>
+    ({ id, title: `T${id}`, status: 'todo', start_date, due_date, folder_id }) as TaskLink
+
+  // The chart holds the task on this side of the link.
+  const chart = (task?: TaskLink) => new Map([[task!.id, task!]])
+
+  test('splitDependencies separates links inside a folder from links to other projects', () => {
+    const ids = new Set([1, 2])
+    const { internal, external } = splitDependencies([dep(1, 2), dep(2, 9), dep(8, 1), dep(8, 9)], ids)
+    expect(internal.map((d) => [d.predecessor_id, d.successor_id])).toEqual([[1, 2]])
+    expect(external.map((d) => [d.predecessor_id, d.successor_id])).toEqual([[2, 9], [8, 1]])
+  })
+
+  test('externalEnd names the other task, its project and which side of the link it is', () => {
+    const waitsOnVendor = { ...dep(8, 1), predecessor: link(8, '2026-11-05', 3), successor: link(1, '2026-11-20', 2, '2026-11-10') }
+    const end = externalEnd(waitsOnVendor, chart(waitsOnVendor.successor), folders)
+    expect(end).toMatchObject({ isPredecessor: true, project: 'Billing', brokenByDays: 0 })
+    expect(end.task?.id).toBe(8)
+
+    const waitedOn = { ...dep(1, 9), predecessor: link(1, '2026-11-05', 2), successor: link(9, '2026-11-20', 3) }
+    expect(externalEnd(waitedOn, chart(waitedOn.predecessor), folders)).toMatchObject({ isPredecessor: false, project: 'Billing' })
+  })
+
+  test('externalEnd reads the task on the chart from the chart, not from the link', () => {
+    // The server's copy says task 1 starts on the 20th; the chart has it moved to the 9th, before the vendor finishes.
+    const stale = { ...dep(8, 1), predecessor: link(8, '2026-11-12', 3), successor: link(1, '2026-11-30', 2, '2026-11-20') }
+    expect(externalEnd(stale, chart(stale.successor), folders).brokenByDays).toBe(0)
+    expect(externalEnd(stale, chart(link(1, '2026-11-25', 2, '2026-11-09')), folders).brokenByDays).toBe(3)
+  })
+
+  test('externalEnd looks up a project through its subfolders, and has none for a task outside any', () => {
+    const inSub = { ...dep(8, 1), predecessor: link(8, null, 2), successor: link(1, null, null) }
+    expect(externalEnd(inSub, chart(inSub.successor), folders).project).toBe('Messages')
+    const loose = { ...dep(8, 1), predecessor: link(8, null, null), successor: link(1, null, 2) }
+    expect(externalEnd(loose, chart(loose.successor), folders).project).toBeNull()
+  })
+
+  test('externalEnd counts the days a link is broken by, by its kind', () => {
+    // The vendor finishes on the 12th but this task starts on the 9th: three days early.
+    const late = { ...dep(8, 1), predecessor: link(8, '2026-11-12', 3, '2026-11-01'), successor: link(1, '2026-11-20', 2, '2026-11-09') }
+    expect(externalEnd(late, chart(late.successor), folders).brokenByDays).toBe(3)
+    expect(externalEnd({ ...late, kind: 'start_to_start' }, chart(late.successor), folders).brokenByDays).toBe(0)
+    // Finishing on the same day the other starts holds.
+    const sameDay = { ...dep(8, 1), predecessor: link(8, '2026-11-09', 3), successor: link(1, '2026-11-20', 2, '2026-11-09') }
+    expect(externalEnd(sameDay, chart(sameDay.successor), folders).brokenByDays).toBe(0)
+    // No dates, nothing to compare.
+    const undated = { ...dep(8, 1), predecessor: link(8, null, 3), successor: link(1, '2026-11-20', 2) }
+    expect(externalEnd(undated, chart(undated.successor), folders).brokenByDays).toBe(0)
+  })
+
+  test('linkCandidates leaves out tasks on the chart and groups the rest by project', () => {
+    const task = (id: number, folder_id: number | null, extra: Partial<Task> = {}) =>
+      ({ id, title: `T${id}`, folder_id, ...extra }) as unknown as Task
+    const found = [
+      task(1, 1), task(2, 3), task(3, 2), task(4, null), task(2, 3),
+      task(5, null, { document: { folder_id: 3 } as unknown as Task['document'] }),
+    ]
+    const groups = linkCandidates(found, folders, new Set([1]))
+    expect(groups.map((g) => [g.project, g.tasks.map((t) => t.id)])).toEqual([
+      ['Billing', [2, 5]],
+      ['Messages', [3]],
+      [NO_PROJECT, [4]],
+    ])
+  })
 })

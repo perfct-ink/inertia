@@ -4,7 +4,8 @@ module Api
       include WorkspaceScoped
 
       def index
-        render json: TaskDependencyBlueprint.render(current_workspace.task_dependencies.order(:id))
+        dependencies = current_workspace.task_dependencies.includes(predecessor: :document, successor: :document).order(:id)
+        render json: TaskDependencyBlueprint.render(dependencies)
       end
 
       def create

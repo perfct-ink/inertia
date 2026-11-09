@@ -41,6 +41,14 @@ class ProjectScopingTest < ActionDispatch::IntegrationTest
     assert_equal [ "Direct", "Through a doc" ], titles("/api/v1/tasks", in_project)
   end
 
+  test "all_projects lists every task in the Space with a project open" do
+    @workspace.tasks.create!(title: "Direct", folder: @project)
+    @workspace.tasks.create!(title: "Elsewhere", folder: @other)
+    assert_equal [ "Direct", "Elsewhere" ], titles("/api/v1/tasks?all_projects=true", in_project)
+    assert_equal [ "Direct" ], titles("/api/v1/tasks?all_projects=false", in_project)
+    assert_equal [ "Direct" ], titles("/api/v1/tasks", in_project)
+  end
+
   test "new records are filed in the selected project" do
     post "/api/v1/sprints", params: { sprint: { title: "S1" } }, headers: in_project, as: :json
     assert_response :created

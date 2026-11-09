@@ -500,6 +500,7 @@ export default function FolderDetailScreen({ id }: { id?: number }) {
               groups={{ initiatives, milestones: allMilestones }}
               epics={epics}
               tasks={tasks}
+              folders={workspace?.folders}
             />
           </div>
         )}

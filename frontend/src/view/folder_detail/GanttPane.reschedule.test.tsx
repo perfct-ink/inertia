@@ -17,7 +17,7 @@ jest.mock('@/components/Timeline', () => ({
 }))
 
 const mockUpdateTask = { mutate: jest.fn() }
-jest.mock('@/api/tasks', () => ({ useUpdateTask: () => mockUpdateTask }))
+jest.mock('@/api/tasks', () => ({ useUpdateTask: () => mockUpdateTask, useTaskSearch: () => ({ data: [], isFetching: false }) }))
 jest.mock('@/api/epics', () => ({ useUpdateEpic: () => ({ mutate: jest.fn() }) }))
 jest.mock('@/api/workspace', () => ({ useUpdateFolder: () => ({ mutate: jest.fn() }), useWorkspace: () => ({ data: { role: 'member' } }) }))
 jest.mock('@/api/savedViews', () => ({

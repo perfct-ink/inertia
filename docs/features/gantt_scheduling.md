@@ -40,6 +40,7 @@ Everything is scoped to the current Space. Task and epic updates need the member
 
 ## Known limits
 - Server enforcement uses the mode of the folder a task sits in directly. A folder's Gantt also lists tasks from its sub-folders and applies the viewed folder's mode in the browser, so set the same mode on a sub-folder if edits made elsewhere should obey it too. A sub-folder that is stricter than the folder being viewed can refuse part of a multi-task shift.
+- Links to tasks in other projects are read by the server too, under the mode of the folder the moved task sits in; the chart's browser-side check only sees its own tasks, so a refusal or a shift across projects comes from the server (see [task_dependencies.md](task_dependencies.md)).
 - Pulling earlier only follows links that were exactly tight before the move. A gap (slack) between two tasks is never closed, and a successor of two predecessors stops at the later one.
 - Changing a task's folder, status or other fields does not re-run the schedule; only date changes do. Tasks created with dates, epic dates and edits to the links themselves are not checked either.
 The zoom and weekend choices are not remembered between visits. Weekends are not skipped, only shaded.
