@@ -1,6 +1,7 @@
 import '@testing-library/jest-dom'
 import { fireEvent, render, screen, within } from '@testing-library/react'
 import type { TaskForm } from '@/types/taskForm'
+import { DEFAULT_BOARD_STATUSES, type BoardStatuses } from '@/data/task_status'
 import FormBuilderScreen from './FormBuilderScreen'
 
 jest.mock('@/components/WorkspaceLayout', () => function LayoutMock({ children }: { children: React.ReactNode }) { return <div>{children}</div> })
@@ -24,11 +25,16 @@ const form = (over: Partial<TaskForm> = {}): TaskForm => ({
 let mockForm: TaskForm
 let mockRole: string | null
 let mockSubmissions: unknown[]
+let mockStatuses: BoardStatuses
+let mockStatusFolders: (number | null | undefined)[]
 const mockUpdate = { mutate: jest.fn(), isPending: false, isError: false, error: null as unknown }
 jest.mock('@/api/taskForms', () => ({
-  useTaskForms: () => ({ data: [mockForm], isLoading: false }),
+  useTaskForm: () => ({ data: mockForm, isLoading: false }),
   useUpdateTaskForm: () => mockUpdate,
   useTaskFormSubmissions: () => ({ data: mockSubmissions, isLoading: false }),
+}))
+jest.mock('@/hooks/useBoardStatuses', () => ({
+  useBoardStatuses: (folderId?: number | null) => { mockStatusFolders.push(folderId); return { statuses: mockStatuses } },
 }))
 jest.mock('@/api/epics', () => ({ useEpics: () => ({ data: [{ id: 4, title: 'Support' }] }) }))
 jest.mock('@/api/workspaceMembers', () => ({ useWorkspaceMembers: () => ({ data: [{ id: 1, role: 'owner', user_id: 7, user: { id: 7, name: 'Mia', email: 'mia@example.com' } }] }) }))
@@ -46,6 +52,8 @@ beforeEach(() => {
   mockForm = form()
   mockRole = 'member'
   mockSubmissions = []
+  mockStatuses = DEFAULT_BOARD_STATUSES
+  mockStatusFolders = []
   mockUpdate.isError = false
   mockUpdate.error = null
 })
@@ -123,7 +131,8 @@ test('a public form shows its link and a copy button', async () => {
   Object.assign(navigator, { clipboard: { writeText } })
   render(<FormBuilderScreen />)
   const link = screen.getByLabelText('Link to share') as HTMLInputElement
-  expect(link.value).toMatch(/#\/f\/tok123$/)
+  expect(link.value).toMatch(/\/f\/tok123$/)
+  expect(link.value).not.toContain('#')
   fireEvent.click(screen.getByRole('button', { name: 'Copy link' }))
   expect(await screen.findByRole('button', { name: 'Copied' })).toBeInTheDocument()
   expect(writeText).toHaveBeenCalledWith(link.value)
@@ -144,6 +153,23 @@ test('lists the responses with who sent them and their answers', () => {
   render(<FormBuilderScreen />)
   expect(screen.getByText('Dark mode', { selector: 'p' })).toBeInTheDocument()
   expect(screen.getByText(/Public link · Nov 2, 2026 · Backlog/)).toBeInTheDocument()
+})
+
+test('the status picker and the responses use the names of the folder the tasks go to', () => {
+  mockStatuses = { ...DEFAULT_BOARD_STATUSES, todo: { label: 'Ready', color: 'blue' }, backlog: { label: 'Inbox', color: 'gray' } }
+  mockSubmissions = [
+    { id: 1, task_id: 5, task_title: 'Dark mode', task_status: 'backlog', submitted_by_name: 'Mia', created_at: '2026-11-02T10:00:00Z', answers: [] },
+  ]
+  render(<FormBuilderScreen />)
+  const options = Array.from(screen.getByLabelText('Status').querySelectorAll('option')).map((o) => o.textContent)
+  expect(options).toEqual(['Inbox', 'Ready', 'In Progress', 'In Review', 'Done'])
+  expect(screen.getByText(/Mia · Nov 2, 2026 · Inbox/)).toBeInTheDocument()
+})
+
+test('choosing a folder asks for that folder’s status names', () => {
+  render(<FormBuilderScreen />)
+  fireEvent.change(screen.getByLabelText('Folder or project'), { target: { value: '11' } })
+  expect(mockStatusFolders).toContain(11)
 })
 
 test('a viewer cannot edit a form', () => {

@@ -139,7 +139,7 @@ Rails.application.routes.draw do
 
       resources :quip_imports, only: [ :index, :create, :show ]
 
-      resources :task_forms, only: [ :index, :create, :update, :destroy ] do
+      resources :task_forms, only: [ :index, :show, :create, :update, :destroy ] do
         resources :submissions, controller: "task_form_submissions", only: [ :index, :create ]
       end
       # Fill in a form from its public link (no account); see PublicFormsController.

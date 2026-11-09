@@ -3,7 +3,7 @@ import { CheckCircle2, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui'
 import WorkspaceLayout from '@/components/WorkspaceLayout'
 import TaskFormFiller from '@/components/forms/TaskFormFiller'
-import { useSubmitTaskForm, useTaskForms } from '@/api/taskForms'
+import { useSubmitTaskForm, useTaskForm } from '@/api/taskForms'
 import { useWorkspace } from '@/api/workspace'
 import { canWriteWorkspace } from '@/api/workspaces'
 import { usePageTitle } from '@/hooks/usePageTitle'
@@ -14,10 +14,9 @@ import './FormFillScreen.scss'
 // task in the Space.
 export default function FormFillScreen() {
   const id = Number(useParams().id)
-  const { data: forms = [], isLoading } = useTaskForms()
+  const { data: form, isLoading } = useTaskForm(id)
   const { data: workspace } = useWorkspace()
   const submit = useSubmitTaskForm(id)
-  const form = forms.find((f) => f.id === id)
   usePageTitle(form?.title ?? 'Form')
 
   return (

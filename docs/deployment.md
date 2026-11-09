@@ -44,6 +44,7 @@ Set these in the resource's **Environment Variables** tab in Coolify. Only `RAIL
 | `COLLAB_URL` | web (build) | Public WebSocket URL, `wss://inertia.it.com/collab`. |
 | `CORS_ORIGINS` | api | Defaults to the public origin plus `capacitor://localhost` (iOS app). |
 | `OAUTH_CALLBACK_BASE_URL`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `APPLE_CLIENT_ID`, `APPLE_TEAM_ID`, `APPLE_KEY_ID`, `APPLE_PRIVATE_KEY` | api | Social sign-in; each provider stays off while its values are empty. |
+| `PUBLIC_FORMS_ENABLED` | api | `false` by default. `true` lets a Space admin open a task form to anyone with its link (`/f/<token>`, no account); until then every public form address is a 404. Public responses are limited per address and per form (see `docs/features/task_forms.md`). |
 
 `APP_URL` and `COLLAB_URL` are build arguments: changing them needs a redeploy, not a restart. Never put a secret in them, since they ship to every browser.
 

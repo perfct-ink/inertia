@@ -77,8 +77,9 @@ describe('answers', () => {
   })
 })
 
-test('the public address uses the hash route', () => {
-  expect(publicFormUrl('abc123', { origin: 'https://inertia.example', pathname: '/' })).toBe('https://inertia.example/#/f/abc123')
+test('the public address is a plain web path', () => {
+  expect(publicFormUrl('https://inertia.example', 'abc123')).toBe('https://inertia.example/f/abc123')
+  expect(publicFormUrl('https://inertia.example', 'a-b_c')).toBe('https://inertia.example/f/a-b_c')
 })
 
 test('a form is open to the Space, public, or closed', () => {

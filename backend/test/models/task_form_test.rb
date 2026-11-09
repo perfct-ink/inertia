@@ -2,13 +2,13 @@ require "test_helper"
 
 class TaskFormTest < ActiveSupport::TestCase
   setup do
-    @previous_public = ENV["PUBLIC_FORMS_ENABLED"]
+    @previous_public = Rails.configuration.x.public_forms_enabled
     @user = User.create!(name: "Pat", email: "pat-taskform@example.com", password: "password123")
     @workspace = @user.workspace
     @form = @workspace.task_forms.create!(title: "Report a bug")
   end
 
-  teardown { ENV["PUBLIC_FORMS_ENABLED"] = @previous_public }
+  teardown { Rails.configuration.x.public_forms_enabled = @previous_public }
 
   test "a new form starts with a title and a details question and gets a token" do
     assert_equal %w[title details], @form.questions.map { |q| q["id"] }
@@ -74,6 +74,16 @@ class TaskFormTest < ActiveSupport::TestCase
     end
   end
 
+  test "the assignee is told about a task made by someone else, not by themselves" do
+    @form.update!(assignee: @user)
+    assert_no_difference "Notification.count" do
+      @form.submit({ "title" => "Mine" }, user: @user)
+    end
+    assert_difference "Notification.count", 1 do
+      @form.submit({ "title" => "From outside" })
+    end
+  end
+
   test "a closed form takes no submissions" do
     @form.update!(enabled: false)
     assert_no_difference "Task.count" do
@@ -83,11 +93,11 @@ class TaskFormTest < ActiveSupport::TestCase
   end
 
   test "public access needs the server switch, and the link changes each time it is turned on" do
-    ENV["PUBLIC_FORMS_ENABLED"] = nil
+    Rails.configuration.x.public_forms_enabled = false
     assert_not @form.update(public_access: true)
     assert_includes @form.errors.full_messages, "Public access isn't available on this server"
 
-    ENV["PUBLIC_FORMS_ENABLED"] = "true"
+    Rails.configuration.x.public_forms_enabled = true
     @form.reload
     first = @form.token
     assert @form.update(public_access: true)
@@ -101,7 +111,7 @@ class TaskFormTest < ActiveSupport::TestCase
 
     @form.update!(enabled: false)
     assert_not @form.public_and_open?
-    ENV["PUBLIC_FORMS_ENABLED"] = nil
+    Rails.configuration.x.public_forms_enabled = false
     @form.update!(enabled: true)
     assert_not @form.public_and_open?
   end

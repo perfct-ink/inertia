@@ -3,7 +3,7 @@ require "test_helper"
 class TaskFormsControllerTest < ActionDispatch::IntegrationTest
   setup do
     @previous_bypass = ENV["BYPASS_AUTH"]
-    @previous_public = ENV["PUBLIC_FORMS_ENABLED"]
+    @previous_public = Rails.configuration.x.public_forms_enabled
     ENV["BYPASS_AUTH"] = "false"
     @owner = User.create!(name: "Owner", email: "owner-forms-api@example.com", password: "password123")
     @member = User.create!(name: "Member", email: "member-forms-api@example.com", password: "password123")
@@ -15,7 +15,7 @@ class TaskFormsControllerTest < ActionDispatch::IntegrationTest
 
   teardown do
     ENV["BYPASS_AUTH"] = @previous_bypass
-    ENV["PUBLIC_FORMS_ENABLED"] = @previous_public
+    Rails.configuration.x.public_forms_enabled = @previous_public
   end
 
   def headers_for(user)
@@ -48,6 +48,38 @@ class TaskFormsControllerTest < ActionDispatch::IntegrationTest
     delete "/api/v1/task_forms/#{id}", headers: headers_for(@member)
     assert_response :no_content
     assert_equal [ "Broken" ], @team.tasks.pluck(:title)
+  end
+
+  test "a form can be read on its own, whichever project is open" do
+    project = @team.folders.create!(name: "Website", kind: :project)
+    form = @team.task_forms.create!(title: "Ask")
+    get "/api/v1/task_forms/#{form.id}", headers: headers_for(@viewer).merge("X-Project-Id" => project.id.to_s)
+    assert_response :success
+    assert_equal "Ask", response.parsed_body["title"]
+    assert_equal 0, response.parsed_body["submissions_count"]
+  end
+
+  test "with a project open, the list is its forms and a new form is filed in it" do
+    project = @team.folders.create!(name: "Website", kind: :project)
+    sub = @team.folders.create!(name: "Docs", parent: project)
+    other = @team.folders.create!(name: "Mobile", kind: :project)
+    @team.task_forms.create!(title: "In project", folder: project)
+    @team.task_forms.create!(title: "In subfolder", folder: sub)
+    @team.task_forms.create!(title: "Elsewhere", folder: other)
+    @team.task_forms.create!(title: "Space wide")
+    scoped = headers_for(@member).merge("X-Project-Id" => project.id.to_s)
+
+    get "/api/v1/task_forms", headers: scoped
+    assert_equal [ "In project", "In subfolder" ], response.parsed_body.map { |f| f["title"] }
+
+    get "/api/v1/task_forms", headers: headers_for(@member)
+    assert_equal 4, response.parsed_body.size
+
+    post "/api/v1/task_forms", params: { task_form: { title: "Made here" } }, headers: scoped, as: :json
+    assert_response :created
+    assert_equal project.id, response.parsed_body["folder_id"]
+    post "/api/v1/task_forms/#{response.parsed_body['id']}/submissions", params: { answers: { title: "Filed" } }, headers: scoped, as: :json
+    assert_equal project.id, @team.tasks.find_by!(title: "Filed").folder_id
   end
 
   test "invalid questions are a 422 with the reasons" do
@@ -110,7 +142,7 @@ class TaskFormsControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "only an admin or owner turns the public link on; any member can turn it off" do
-    ENV["PUBLIC_FORMS_ENABLED"] = "true"
+    Rails.configuration.x.public_forms_enabled = true
     form = @team.task_forms.create!(title: "Ask")
 
     patch "/api/v1/task_forms/#{form.id}", params: { task_form: { public_access: true } }, headers: headers_for(@member), as: :json
@@ -132,7 +164,7 @@ class TaskFormsControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "the public link can't be turned on while the server switch is off" do
-    ENV["PUBLIC_FORMS_ENABLED"] = nil
+    Rails.configuration.x.public_forms_enabled = false
     form = @team.task_forms.create!(title: "Ask")
     patch "/api/v1/task_forms/#{form.id}", params: { task_form: { public_access: true } }, headers: headers_for(@owner), as: :json
     assert_response :unprocessable_entity

@@ -4,8 +4,9 @@
 #
 # Forms are for signed-in Space members. A form can also be opened to anyone
 # holding its link, but only when a Space admin turns `public_access` on AND
-# the server allows it (PUBLIC_FORMS_ENABLED=true); the link is an unguessable
-# token that changes each time public access is switched on.
+# the server allows it (PUBLIC_FORMS_ENABLED=true, read in
+# config/initializers/public_forms.rb); the link is an unguessable token that
+# changes each time public access is switched on.
 class TaskForm < ApplicationRecord
   include SameWorkspace
 
@@ -43,7 +44,7 @@ class TaskForm < ApplicationRecord
 
   # The server-wide switch for public links. Off unless the deployment sets it.
   def self.public_forms_enabled?
-    ENV["PUBLIC_FORMS_ENABLED"] == "true"
+    Rails.configuration.x.public_forms_enabled == true
   end
 
   # Whether the public link currently takes submissions.
@@ -67,6 +68,10 @@ class TaskForm < ApplicationRecord
     task = workspace.tasks.build(parsed.attributes.merge(
       status: default_status, epic_id: epic_id, folder_id: folder_id, assignee_id: assignee_id
     ))
+    # Who made it, for the status history and so a person who fills a form in
+    # is not notified about the task they just made.
+    task.status_changed_by = user
+    task.actor = user
     submission = nil
     transaction do
       task.save!

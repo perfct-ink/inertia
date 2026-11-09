@@ -128,7 +128,7 @@ test('the task pages are listed with their names inside a project, not on the pr
   useProjectStore.setState({ activeProjectId: 2 })
   renderAt('/task-table')
   const tasks = screen.getByRole('navigation', { name: 'Tasks' })
-  ;['Tasks', 'Task table', 'Pivot', 'Calendar', 'Events'].forEach((name) => expect(within(tasks).getByRole('link', { name })).toBeInTheDocument())
+  ;['Tasks', 'Task table', 'Pivot', 'Calendar', 'Events', 'Forms'].forEach((name) => expect(within(tasks).getByRole('link', { name })).toBeInTheDocument())
   expect(within(tasks).getByRole('link', { name: 'Task table' })).toHaveAttribute('aria-current', 'page')
   fireEvent.click(within(tasks).getByRole('link', { name: 'Pivot' }))
   expect(screen.getByTestId('where')).toHaveTextContent('/pivot')

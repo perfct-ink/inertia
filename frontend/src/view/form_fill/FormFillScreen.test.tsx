@@ -17,11 +17,11 @@ const form = (over: Partial<TaskForm> = {}): TaskForm => ({
   ...over,
 })
 
-let mockForms: TaskForm[]
+let mockForm: TaskForm | undefined
 let mockRole: string | null
 let mockSubmit: { mutate: jest.Mock; reset: jest.Mock; isPending: boolean; isSuccess: boolean; isError: boolean; error: unknown; data?: { task_title: string } }
 jest.mock('@/api/taskForms', () => ({
-  useTaskForms: () => ({ data: mockForms, isLoading: false }),
+  useTaskForm: () => ({ data: mockForm, isLoading: false }),
   useSubmitTaskForm: () => mockSubmit,
 }))
 jest.mock('@/api/workspace', () => ({ useWorkspace: () => ({ data: { id: 1, role: mockRole } }) }))
@@ -29,7 +29,7 @@ jest.mock('@/api/workspaces', () => ({ canWriteWorkspace: (role: string | null |
 jest.mock('@/util/errorMessage', () => ({ errorMessage: (e: { message: string }) => e.message }))
 
 beforeEach(() => {
-  mockForms = [form()]
+  mockForm = form()
   mockRole = 'member'
   mockSubmit = { mutate: jest.fn(), reset: jest.fn(), isPending: false, isSuccess: false, isError: false, error: null }
 })
@@ -52,19 +52,19 @@ test('after sending, names the task that was made and offers to fill in again', 
 })
 
 test('a closed form, a viewer and a missing form each get a plain message instead of the form', () => {
-  mockForms = [form({ enabled: false })]
+  mockForm = form({ enabled: false })
   const { unmount } = render(<FormFillScreen />)
   expect(screen.getByRole('status')).toHaveTextContent('is closed')
   expect(screen.queryByRole('button', { name: 'Submit' })).not.toBeInTheDocument()
   unmount()
 
-  mockForms = [form()]
+  mockForm = form()
   mockRole = 'viewer'
   const second = render(<FormFillScreen />)
   expect(screen.getByRole('status')).toHaveTextContent('view-only access')
   second.unmount()
 
-  mockForms = []
+  mockForm = undefined
   render(<FormFillScreen />)
   expect(screen.getByRole('alert')).toHaveTextContent('doesn’t exist')
 })

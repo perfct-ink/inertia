@@ -5,15 +5,16 @@ import { Loader2, Plus } from 'lucide-react'
 import { Button, FormError, Input, Select, Textarea } from '@/components/ui'
 import WorkspaceLayout from '@/components/WorkspaceLayout'
 import { useEpics } from '@/api/epics'
-import { useTaskFormSubmissions, useTaskForms, useUpdateTaskForm } from '@/api/taskForms'
+import { useTaskForm, useTaskFormSubmissions, useUpdateTaskForm } from '@/api/taskForms'
 import { useWorkspace } from '@/api/workspace'
 import { canManageWorkspace, canWriteWorkspace } from '@/api/workspaces'
 import { useWorkspaceMembers } from '@/api/workspaceMembers'
 import { flattenFolders } from '@/data/folder'
 import {
-  MAX_QUESTIONS, PUBLIC_HOURLY_LIMIT, draftFromForm, formInput, moveQuestion, newQuestion, publicFormUrl, takenTargets, type TaskFormDraft,
+  MAX_QUESTIONS, PUBLIC_HOURLY_LIMIT, PUBLIC_IP_HOURLY_LIMIT, draftFromForm, formInput, moveQuestion, newQuestion, publicFormUrl, takenTargets, type TaskFormDraft,
 } from '@/data/taskForm'
-import { DEFAULT_STATUS_LABEL, TASK_STATUSES } from '@/data/task_status'
+import { TASK_STATUSES } from '@/data/task_status'
+import { useBoardStatuses } from '@/hooks/useBoardStatuses'
 import { usePageTitle } from '@/hooks/usePageTitle'
 import { errorMessage } from '@/util/errorMessage'
 import type { TaskStatus, Workspace } from '@/types'
@@ -25,9 +26,8 @@ import './FormBuilderScreen.scss'
 // questions, and the responses so far. Only people who can write open it.
 export default function FormBuilderScreen() {
   const id = Number(useParams().id)
-  const { data: forms = [], isLoading } = useTaskForms()
+  const { data: form, isLoading } = useTaskForm(id)
   const { data: workspace } = useWorkspace()
-  const form = forms.find((f) => f.id === id)
   usePageTitle(form ? `Edit ${form.title}` : 'Edit form')
 
   return (
@@ -50,6 +50,8 @@ function FormBuilder({ form, workspace }: { form: TaskForm; workspace: Workspace
   const { data: epics = [] } = useEpics()
   const { data: members = [] } = useWorkspaceMembers(workspace.id)
   const [draft, setDraft] = useState<TaskFormDraft>(() => draftFromForm(form))
+  // The status names of the folder the tasks will go to (a Space or folder can rename them).
+  const { statuses } = useBoardStatuses(draft.folder_id === '' ? null : Number(draft.folder_id))
   const [saved, setSaved] = useState(false)
   const canManage = canManageWorkspace(workspace.role)
   const folders = flattenFolders(workspace.folders).filter((f) => !f.archived && !f.root)
@@ -94,7 +96,7 @@ function FormBuilder({ form, workspace }: { form: TaskForm; workspace: Workspace
               <label className="form_builder-field">
                 <span>Status</span>
                 <Select value={draft.default_status} onChange={(e) => change({ default_status: e.target.value as TaskStatus })}>
-                  {TASK_STATUSES.map((status) => <option key={status} value={status}>{DEFAULT_STATUS_LABEL[status]}</option>)}
+                  {TASK_STATUSES.map((status) => <option key={status} value={status}>{statuses[status].label}</option>)}
                 </Select>
               </label>
               <label className="form_builder-field">
@@ -158,7 +160,7 @@ function FormBuilder({ form, workspace }: { form: TaskForm; workspace: Workspace
           </div>
         </form>
 
-        <Responses formId={form.id} />
+        <Responses formId={form.id} folderId={form.folder_id} />
       </div>
     </>
   )
@@ -170,7 +172,7 @@ type PublicLinkProps = { form: TaskForm; draft: TaskFormDraft; canManage: boolea
 // where the server allows it; everyone else just sees whether it is on.
 function PublicLink({ form, draft, canManage, onChange }: PublicLinkProps) {
   const [copyState, setCopyState] = useState<'idle' | 'copied' | 'failed'>('idle')
-  const link = form.public_access && form.token ? publicFormUrl(form.token, window.location) : null
+  const link = form.public_access && form.token ? publicFormUrl(window.location.origin, form.token) : null
   const unavailable = !form.public_links_available && !draft.public_access
 
   function copy() {
@@ -203,14 +205,16 @@ function PublicLink({ form, draft, canManage, onChange }: PublicLinkProps) {
       )}
       {copyState === 'failed' && <FormError message="Couldn't copy the link. Select it and copy it by hand." />}
       <p className="form_builder-hint">
-        Anyone with the link can create tasks in this Space, up to {PUBLIC_HOURLY_LIMIT} responses an hour. Turn the option off and on again to get a new link.
+        Anyone with the link can create tasks in this Space: up to {PUBLIC_IP_HOURLY_LIMIT} responses an hour from one address and {PUBLIC_HOURLY_LIMIT} an hour in all.
+        Turn the option off and on again to get a new link.
       </p>
     </section>
   )
 }
 
-function Responses({ formId }: { formId: number }) {
+function Responses({ formId, folderId }: { formId: number; folderId: number | null }) {
   const { data: submissions = [], isLoading } = useTaskFormSubmissions(formId)
+  const { statuses } = useBoardStatuses(folderId)
 
   return (
     <section className="form_builder-section" aria-labelledby="form_builder-responses">
@@ -222,7 +226,7 @@ function Responses({ formId }: { formId: number }) {
           <li key={submission.id} className="form_builder-response">
             <p className="form_builder-response-title">{submission.task_title}</p>
             <p className="form_builder-response-meta">
-              {submission.submitted_by_name ?? 'Public link'} · {format(parseISO(submission.created_at), 'MMM d, yyyy')} · {DEFAULT_STATUS_LABEL[submission.task_status]}
+              {submission.submitted_by_name ?? 'Public link'} · {format(parseISO(submission.created_at), 'MMM d, yyyy')} · {statuses[submission.task_status].label}
             </p>
             <dl className="form_builder-answers">
               {submission.answers.map((answer, index) => (

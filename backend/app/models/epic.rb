@@ -8,6 +8,7 @@ class Epic < ApplicationRecord
   belongs_to :folder, optional: true
   belongs_to :initiative, optional: true
   has_many :tasks, dependent: :nullify
+  has_many :task_forms, dependent: :nullify
 
   validates :title, presence: true
   validates_same_workspace :initiative

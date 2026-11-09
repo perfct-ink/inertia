@@ -20,6 +20,7 @@ class Folder < ApplicationRecord
   has_many :ideas, dependent: :nullify
   has_many :io_nodes, dependent: :nullify
   has_many :objectives, dependent: :nullify
+  has_many :task_forms, dependent: :nullify
   has_many :baselines, dependent: :destroy
 
   # A project is a folder of docs shown on the Projects screen; a feature

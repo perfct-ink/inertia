@@ -2,20 +2,27 @@ module Api
   module V1
     # The forms a Space has that turn answers into tasks. Any member can
     # build and edit forms; switching a form's public link on is for admins
-    # and owners (turning it off is open to any member).
+    # and owners (turning it off is open to any member). With a project open
+    # (X-Project-Id) the list is that project's forms, and a new form is filed
+    # in the project, as with every other list.
     class TaskFormsController < ApplicationController
       include WorkspaceScoped
-      before_action :set_form, only: [ :update, :destroy ]
+      include ProjectScoped
+      before_action :set_form, only: [ :show, :update, :destroy ]
 
       def index
-        forms = current_workspace.task_forms.order(:title, :id).to_a
+        forms = in_current_project(current_workspace.task_forms).order(:title, :id).to_a
         counts = TaskFormSubmission.where(task_form_id: forms.map(&:id)).group(:task_form_id).count
         render json: TaskFormBlueprint.render(forms, counts: counts)
       end
 
+      def show
+        render json: TaskFormBlueprint.render(@form)
+      end
+
       def create
         require_manage_in!(current_workspace.id) if enabling_public_access?(nil)
-        form = current_workspace.task_forms.build(form_params.merge(created_by: current_user))
+        form = file_in_current_project(current_workspace.task_forms.build(form_params.merge(created_by: current_user)))
         if form.save
           render json: TaskFormBlueprint.render(form), status: :created
         else

@@ -56,6 +56,9 @@ services:
       APPLE_TEAM_ID: ${APPLE_TEAM_ID:-}
       APPLE_KEY_ID: ${APPLE_KEY_ID:-}
       APPLE_PRIVATE_KEY: ${APPLE_PRIVATE_KEY:-}
+      # Off: no form can be opened to people without an account. See
+      # docs/features/task_forms.md before turning it on.
+      PUBLIC_FORMS_ENABLED: ${PUBLIC_FORMS_ENABLED:-false}
     volumes:
       - storage:/rails/storage
     # Coolify's own network, where the shared PostgreSQL container lives.

@@ -36,6 +36,17 @@ export const taskFormApi = new TaskFormApi()
 
 // Response counts change whenever a form is filled in, so refetch on visit.
 export const useTaskForms = () => useResourceList(taskFormApi, { staleTime: 0 })
+
+// One form by id. Unlike the list it ignores the open project, so a form's own
+// pages work whichever project is open.
+export function useTaskForm(id: number) {
+  return useQuery<TaskForm>({
+    queryKey: ['task_forms', id],
+    queryFn: () => taskFormApi.find(id),
+    enabled: !!id,
+    staleTime: 0,
+  })
+}
 export const useCreateTaskForm = () => useResourceCreate(taskFormApi)
 export const useUpdateTaskForm = () => useResourceUpdate(taskFormApi)
 export const useDeleteTaskForm = () => useResourceDelete(taskFormApi)

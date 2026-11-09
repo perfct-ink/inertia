@@ -31,8 +31,10 @@ export const TARGET_KINDS: Record<TaskFormTarget, TaskFormQuestionKind[]> = {
 
 export const MAX_QUESTIONS = 20
 
-// Mirrors TaskForm::PUBLIC_HOURLY_LIMIT on the server.
+// Mirror TaskForm::PUBLIC_HOURLY_LIMIT and PublicFormsController::PER_IP_LIMIT
+// on the server: public responses an hour for a whole form, and from one address.
 export const PUBLIC_HOURLY_LIMIT = 30
+export const PUBLIC_IP_HOURLY_LIMIT = 10
 
 // Parts of the task a question of this kind can fill in.
 export function targetsFor(kind: TaskFormQuestionKind): TaskFormTarget[] {
@@ -89,10 +91,10 @@ export function answerProblems(questions: TaskFormQuestion[], answers: TaskFormA
   return problems
 }
 
-// The shareable address of a public form. The app uses hash routing, so the
-// route sits after the "#".
-export function publicFormUrl(token: string, location: Pick<Location, 'origin' | 'pathname'>): string {
-  return `${location.origin}${location.pathname}#/f/${token}`
+// The shareable address of a public form: a plain web path (see
+// docs/features/clean_urls.md); `origin` is passed in (window.location.origin).
+export function publicFormUrl(origin: string, token: string): string {
+  return `${origin}/f/${encodeURIComponent(token)}`
 }
 
 export function formStatusLabel(form: { enabled: boolean; public_access: boolean }): string {
