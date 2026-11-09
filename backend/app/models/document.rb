@@ -35,6 +35,9 @@ class Document < ApplicationRecord
   validate :parent_feature_is_valid
   validate :feature_links_in_same_workspace
 
+  include Sluggable
+  slugged_by :title, within: :folder
+
   before_save :update_content_updated_at, if: :content_changed?
   # A deleted file leaves any collection file fields that held it.
   before_destroy :remove_from_collection_cells, if: -> { doc_type == "file" }

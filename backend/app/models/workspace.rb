@@ -10,6 +10,7 @@ class Workspace < ApplicationRecord
   has_many :task_status_settings, dependent: :delete_all
   has_many :folders, dependent: :destroy
   has_many :documents, through: :folders
+  has_many :path_aliases, dependent: :delete_all
   has_many :task_dependencies, dependent: :delete_all
   has_many :tasks, dependent: :destroy
   has_many :task_fields, dependent: :destroy
@@ -44,6 +45,8 @@ class Workspace < ApplicationRecord
       unless root_folder_id.present?
         root = folders.create!(name: "Root", position: 0)
         folders.where(parent_id: nil).where.not(id: root.id).update_all(parent_id: root.id)
+        # update_all skips callbacks, so the adopted folders get their URL slugs here.
+        folders.where(parent_id: root.id, slug: nil).find_each(&:save!)
         update!(root_folder: root)
       end
       root_folder

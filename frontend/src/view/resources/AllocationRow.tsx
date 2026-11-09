@@ -5,6 +5,7 @@ import { Button, FormError, Input } from '@/components/ui'
 import { useDeleteResourceAllocation, useUpdateResourceAllocation } from '@/api/resourceAllocations'
 import { allocationPeriod, formatHours, HOURS_ERROR, MAX_WEEKLY_HOURS, parseHours } from '@/data/resource'
 import type { ResourceAllocation } from '@/types'
+import { usePaths } from '@/hooks/usePaths'
 
 type AllocationRowProps = {
   allocation: ResourceAllocation
@@ -16,6 +17,7 @@ type AllocationRowProps = {
 // One allocation in a person's list: the project, hours a week and dates.
 // Admins and owners edit it in place; everyone else reads it.
 export default function AllocationRow({ allocation, person, projectName, canManage }: AllocationRowProps) {
+  const paths = usePaths()
   const update = useUpdateResourceAllocation()
   const remove = useDeleteResourceAllocation()
   const [error, setError] = useState('')
@@ -48,7 +50,7 @@ export default function AllocationRow({ allocation, person, projectName, canMana
 
   return (
     <li className="resources-allocation">
-      <Link to={`/folders/${allocation.folder_id}`} className="resources-allocation-project resources-link">{projectName}</Link>
+      <Link to={paths.folder(allocation.folder_id)} className="resources-allocation-project resources-link">{projectName}</Link>
       {canManage ? (
         <div className="resources-allocation-fields">
           <label className="resources-field">

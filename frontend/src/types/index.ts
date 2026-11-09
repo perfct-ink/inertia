@@ -1,6 +1,9 @@
 export interface Document {
   id: number
   title: string
+  // The document's name in its URL, unique within its folder (hierarchical
+  // URLs); optional because only the Space payload and documents API send it.
+  slug?: string | null
   doc_type: 'document' | 'spreadsheet' | 'table' | 'file'
   folder_id: number
   // Who made the file; the "owner" shown and filtered on the All files page.
@@ -37,6 +40,8 @@ export type DependencyMode = 'none' | 'strict' | 'flexible'
 export interface Folder {
   id: number
   name: string
+  // The folder's name in its URL, unique within its parent; null for the Root.
+  slug?: string | null
   // A project is a folder of docs listed on the Projects screen.
   kind: FolderKind
   // A project's emoji, and an uploaded image shown instead when set.

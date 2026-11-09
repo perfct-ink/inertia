@@ -20,7 +20,7 @@ Not access-controlled; this is routing only. Pages behind sign-in still go throu
 
 ## Known limits
 - `/index.html` is redirected in the browser, not by nginx, because the Mac shell loads that path.
-- `hierarchical-urls.md` in the backlog (folder-tree paths) builds on this.
+- Folder and document addresses are hierarchical paths (`/product/requirements`); see `hierarchical_urls.md`. Its catch-all route shows "Page not found" for an unknown path instead of redirecting to `/space`.
 
 ## History
 - Implemented 2026-11-03, fixing `/login` and `/signup` from the marketing site, which opened the app home instead because the web used a hash router.

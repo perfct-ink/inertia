@@ -4,6 +4,7 @@ import { useCreateDocument } from '@/api/documents'
 import { useCreateFolder } from '@/api/folders'
 import { untitledTitle } from '@/data/document'
 import { projectsOf } from '@/data/folder'
+import { idPath } from '@/data/path'
 import { PERSONAL_PROJECT_NAME } from '@/data/project'
 import { useSelectProject } from '@/hooks/useSelectProject'
 import { markUntouched } from '@/store/untouchedDocuments'
@@ -32,6 +33,7 @@ export function useNewDocument() {
     }
     const doc = await create.mutateAsync({ folderId: target, ...(template ? { title: template.title, content: template.content } : { title: untitledTitle(type) }), doc_type: type })
     if (type === 'document') markUntouched(doc.id)
-    navigate(`/documents/${doc.id}`, { state: { focusTitle: true } })
+    // The id path opens at once; ItemRoute swaps in the hierarchical path once the Space tree has the new document.
+    navigate(idPath({ type: 'document', id: doc.id }), { state: { focusTitle: true } })
   }
 }

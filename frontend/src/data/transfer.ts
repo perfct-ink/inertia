@@ -2,6 +2,8 @@
 // dialog uses and where the result lives. The server rules are in
 // backend/app/services/space_transfer.rb.
 
+import { idPath } from './path'
+
 export type TransferMode = 'move' | 'copy'
 export type TransferKind = 'document' | 'folder'
 
@@ -40,7 +42,9 @@ export const transferDone = ({ mode, name }: TransferRequest, spaceName: string)
   `${VERBS[mode].past} "${name}" to ${spaceName}.`
 
 // Where the transferred item opens in the web app.
-export const transferPath = (kind: TransferKind, id: number) => `/${kind === 'folder' ? 'folders' : 'documents'}/${id}`
+// The id path is used: it works before the other Space's tree has loaded, and
+// ItemRoute then swaps it for the hierarchical path.
+export const transferPath = (kind: TransferKind, id: number) => idPath({ type: kind, id })
 
 // Whether a page shows something that a move has just taken out of this Space.
 export function isMovedPage({ kind, id, documentIds }: TransferRequest, pathname: string): boolean {

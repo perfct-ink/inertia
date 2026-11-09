@@ -51,6 +51,7 @@ import { useBoardStatuses } from '@/hooks/useBoardStatuses'
 import { StatusSettings } from '@/components/workspace/StatusSettings'
 import { BOARD_STATUSES, NEXT_STATUS, TASK_STATUSES, nextStatusLabel } from '@/data/task_status'
 import { flattenFolders } from '@/data/folder'
+import { usePaths } from '@/hooks/usePaths'
 
 // Stable default so the server → local sync effect doesn't re-run every render while the query has no data.
 const NO_TASKS: Task[] = []
@@ -407,6 +408,7 @@ function AddTaskInput({ onAdd, onCancel, epics, sprints, milestones, members }: 
 // ── Page ──────────────────────────────────────────────────────────────────────
 
 export default function TasksScreen() {
+  const paths = usePaths()
   usePageTitle('Tasks')
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
@@ -739,7 +741,7 @@ export default function TasksScreen() {
                           task={task}
                           onNext={NEXT_STATUS[task.status] ? () => updateTask.mutate({ id: task.id, status: NEXT_STATUS[task.status]! }) : null}
                           nextLabel={nextStatusLabel(statuses, task.status)}
-                          onNavigate={() => navigate(`/documents/${task.document_id}`)}
+                          onNavigate={() => navigate(paths.document(task.document_id))}
                           onEdit={() => setEditing(task)}
                           epicTitle={task.epic_id ? epicById.get(task.epic_id)?.title : undefined}
                           fields={taskFields}
@@ -832,7 +834,7 @@ export default function TasksScreen() {
                     )}
                     {task.document && (
                       <Button
-                        onClick={() => navigate(`/documents/${task.document_id}`)}
+                        onClick={() => navigate(paths.document(task.document_id))}
                         className="tasks-doc_link tasks-doc_link--row"
                       >
                         {task.document.title}

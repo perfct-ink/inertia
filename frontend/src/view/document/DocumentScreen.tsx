@@ -91,6 +91,7 @@ import { useTabsStore } from '@/store/tabs'
 import { useAuthStore } from '@/store/auth'
 import { useNotificationStore } from '@/store/notifications'
 import { usePageTitle } from '@/hooks/usePageTitle'
+import { idPath } from '@/data/path'
 import { useFollowDocumentLinks, useScrollToHeading } from '@/hooks/useHeadingLinks'
 import { relinkBrokenLink, removeBrokenLink, useBrokenLinks, type BrokenLink } from '@/hooks/useBrokenLinks'
 import { extractTitle, buildInitialContent, selectionTaskTitle, taskListContent } from '@/data/document'
@@ -104,9 +105,11 @@ function Divider() {
   return <div className="document-toolbar_divider" />
 }
 
-export default function DocumentScreen() {
-  const { id: idStr } = useParams<{ id: string }>()
-  const docId = Number(idStr)
+// `id` comes from ItemRoute (the page's address names the document); without
+// it the id is read from a /documents/:id route.
+export default function DocumentScreen({ id }: { id?: number }) {
+  const params = useParams<{ id: string }>()
+  const docId = id ?? Number(params.id)
   const { data: doc, isLoading } = useDocument(docId)
   usePageTitle(doc?.title)
   const updateDocument = useUpdateDocument()
@@ -164,7 +167,8 @@ export default function DocumentScreen() {
     if (!doc) return
     openTab({
       id: String(doc.id),
-      path: `/documents/${doc.id}`,
+      // A tab keeps the id path: it stays right when the document is renamed or moved.
+      path: idPath({ type: 'document', id: doc.id }),
       title: doc.title || 'Untitled',
       docType: doc.doc_type,
     })

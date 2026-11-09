@@ -1,11 +1,10 @@
-import { Routes, Route, Navigate, useParams } from 'react-router-dom'
+import { Routes, Route, Navigate } from 'react-router-dom'
 import { useAuthStore } from '@/store/auth'
 import { usesHashRouter } from '@/util/router'
 import { ToastRegion } from '@/components/ui'
 import LoginScreen from '@/view/login/LoginScreen'
 import SignupScreen from '@/view/signup/SignupScreen'
 import WorkspaceScreen from '@/view/workspace/WorkspaceScreen'
-import DocumentScreen from '@/view/document/DocumentScreen'
 import DocumentsIndexScreen from '@/view/documents_index/DocumentsIndexScreen'
 import TasksScreen from '@/view/tasks/TasksScreen'
 import EventsScreen from '@/view/events/EventsScreen'
@@ -29,10 +28,11 @@ import TaskTableScreen from '@/view/task_table/TaskTableScreen'
 import WorkloadScreen from '@/view/workload/WorkloadScreen'
 import PortfolioScreen from '@/view/portfolio/PortfolioScreen'
 import InboxScreen from '@/view/inbox/InboxScreen'
-import FolderDetailScreen from '@/view/folder_detail/FolderDetailScreen'
+import ItemRoute from '@/view/item/ItemRoute'
 import SharedScreen from '@/view/shared/SharedScreen'
 import AppearanceEffect from '@/components/AppearanceEffect'
 import OnboardingSync from '@/components/onboarding/OnboardingSync'
+import PathSync from '@/components/PathSync'
 import InviteScreen from '@/view/invite/InviteScreen'
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
@@ -54,20 +54,12 @@ function RootRoute() {
   return null
 }
 
-// DocumentScreen owns a per-document Y.Doc/HocuspocusProvider pair for
-// real-time collaboration (see DocumentScreen.tsx) — that binding isn't
-// reactive to a changed id, so navigating between two documents needs a full
-// remount, not just new props. `key={id}` forces that.
-function DocumentRoute() {
-  const { id } = useParams()
-  return <DocumentScreen key={id} />
-}
-
 export default function App() {
   return (
     <>
       <AppearanceEffect />
       <OnboardingSync />
+      <PathSync />
       <Routes>
         <Route path="/login" element={<LoginScreen />} />
         <Route path="/signup" element={<SignupScreen />} />
@@ -101,7 +93,7 @@ export default function App() {
           path="/documents/:id"
           element={
             <PrivateRoute>
-              <DocumentRoute />
+              <ItemRoute type="document" />
             </PrivateRoute>
           }
         />
@@ -290,11 +282,22 @@ export default function App() {
           path="/folders/:id"
           element={
             <PrivateRoute>
-              <FolderDetailScreen />
+              <ItemRoute type="folder" />
             </PrivateRoute>
           }
         />
-        <Route path="*" element={<Navigate to="/space" replace />} />
+        {/* Hierarchical URLs (/acme/product/requirements): any other path is
+            looked up as a folder or document in the Space; ItemRoute shows
+            "not found" when it names nothing. Keep the first segment of every
+            route above in Slug::RESERVED (backend/app/services/slug.rb). */}
+        <Route
+          path="*"
+          element={
+            <PrivateRoute>
+              <ItemRoute />
+            </PrivateRoute>
+          }
+        />
       </Routes>
       <ToastRegion />
     </>

@@ -16,12 +16,14 @@ import { errorMessage } from '@/api/tables'
 import { documentsIn, projectLastModified, projectsOf } from '@/data/folder'
 import { usePageTitle } from '@/hooks/usePageTitle'
 import './ProjectsScreen.scss'
+import { usePaths } from '@/hooks/usePaths'
 
 // The Space's home page (/space): its projects, each with the docs inside it
 // (including docs in its subfolders). A project is a folder with kind
 // "project", so it also shows in the sidebar tree and opens on the folder
 // page, which holds its documents, files, collections, tasks and events.
 export default function ProjectsScreen() {
+  const paths = usePaths()
   usePageTitle('Projects')
   const { data: workspace, isLoading } = useWorkspace()
   const createFolder = useCreateFolder()
@@ -94,7 +96,7 @@ export default function ProjectsScreen() {
                       <ProjectIcon project={project} size="lg" />
                     </Button>
                     <h2 id={`project-${project.id}`} className="projects-card-title">
-                      <Link to={`/folders/${project.id}`} className="projects-card-link">{project.name}</Link>
+                      <Link to={paths.folder(project.id)} className="projects-card-link">{project.name}</Link>
                     </h2>
                     <span className="projects-card-meta">
                       {docs.length} {docs.length === 1 ? 'file' : 'files'}
@@ -108,7 +110,7 @@ export default function ProjectsScreen() {
                     <ul className="projects-docs">
                       {docs.map((doc) => (
                         <li key={doc.id}>
-                          <Link to={`/documents/${doc.id}`} className="projects-doc">
+                          <Link to={paths.document(doc)} className="projects-doc">
                             <DocTypeIcon type={doc.doc_type} className="projects-doc-icon" />
                             <span className="projects-doc-title">{doc.title}</span>
                           </Link>

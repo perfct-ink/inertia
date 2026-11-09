@@ -22,7 +22,7 @@ Browsers (Safari, Chrome, Firefox) keep `⌘N`, `⇧⌘N` and `⌘T` for their o
 
 Notes:
 
-- "Current folder" is the open folder page (`/folders/:id`) or the folder containing the open document. Elsewhere, new documents and sheets go to the first folder, and `⌘T` creates an unscoped task.
+- "Current folder" is the open folder page (a folder path such as `/product`, or `/folders/:id`) or the folder containing the open document. Elsewhere, new documents and sheets go to the first folder, and `⌘T` creates an unscoped task.
 - In a browser `⌘W` closes the browser tab and `⌥⌘W` closes all the other tabs in Safari, so there is no in-app close-tab shortcut there; the cheat sheet leaves it out (`shortcutAvailable`). In the packaged Electron app the native Window menu's `role: 'close'` accelerator still wins; see `frontend/electron/main.cjs`. The Mac app's menu routes `⌘N` and `⌘⇧N` to the page (`macos/Sources/Inertia/InertiaApp.swift`).
 - The browser `⌥⌘T` (new task) is the key the editor comparison below proposes for inserting a table, which isn't bound yet; pick one before binding it.
 - `Esc` also closes the event dialog on the Events page (`EventsPage.tsx`).

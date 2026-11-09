@@ -16,6 +16,7 @@ import { DOC_TYPE_LABELS } from '@/data/document'
 import './DocumentsIndexScreen.scss'
 import { usePageTitle } from '@/hooks/usePageTitle'
 import { lastModified } from '@/data/document'
+import { usePaths } from '@/hooks/usePaths'
 
 type SortKey = FileSortKey
 
@@ -24,6 +25,7 @@ type SortKey = FileSortKey
 export default function DocumentsIndexScreen() {
   usePageTitle('All files')
   const navigate = useNavigate()
+  const paths = usePaths()
   const { data: workspace, isLoading } = useWorkspace()
   const [sortKey, setSortKey] = useState<SortKey>('name')
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc')
@@ -140,13 +142,13 @@ export default function DocumentsIndexScreen() {
                   <div key={doc.id} className="documents_index-row">
                     <DocTypeIcon type={doc.doc_type} className="documents_index-icon" />
                     <Button
-                      onClick={() => navigate(`/documents/${doc.id}`)}
+                      onClick={() => navigate(paths.document(doc))}
                       className="documents_index-link"
                     >
                       {doc.title}
                     </Button>
                     <Button
-                      onClick={() => navigate(`/folders/${doc.folderId}`)}
+                      onClick={() => navigate(paths.folder(doc.folderId))}
                       title={doc.location}
                       className="documents_index-location"
                     >
