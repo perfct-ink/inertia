@@ -1,6 +1,7 @@
 import '@testing-library/jest-dom'
 import { fireEvent, render, screen } from '@testing-library/react'
 import TaskTableScreen from './TaskTableScreen'
+import { useAuthStore } from '@/store/auth'
 
 jest.mock('@/components/WorkspaceLayout', () => function LayoutMock({ children }: { children: React.ReactNode }) { return <div>{children}</div> })
 const mockUpdate = { mutate: jest.fn() }
@@ -17,7 +18,21 @@ jest.mock('@/api/tasks', () => ({
 jest.mock('@/api/epics', () => ({ useEpics: () => ({ data: [{ id: 1, title: 'Onboarding' }] }) }))
 jest.mock('@/api/sprints', () => ({ useSprints: () => ({ data: [] }) }))
 jest.mock('@/api/workspaceMembers', () => ({ useWorkspaceMembers: () => ({ data: [{ user_id: 7, user: { name: 'Sam' } }] }) }))
+const mockCreateView = { mutate: jest.fn(), isPending: false }
+jest.mock('@/api/savedViews', () => ({
+  useSavedViews: () => ({
+    data: [{
+      id: 1, page: 'task_table', name: 'Shipping', shared: false, user_id: 5, owner_name: 'Pat',
+      config: { sortKey: 'title', sortDir: 'desc', groupBy: 'status', query: 'sh', hidden: ['epic', 'title'] },
+    }],
+  }),
+  useCreateSavedView: () => mockCreateView,
+  useUpdateSavedView: () => ({ mutate: jest.fn(), isPending: false }),
+  useDeleteSavedView: () => ({ mutate: jest.fn() }),
+}))
+jest.mock('@/api/workspace', () => ({ useWorkspace: () => ({ data: { role: 'member' } }) }))
 
+beforeEach(() => useAuthStore.setState({ token: 't', user: { id: 5, name: 'Pat', email: 'p@x.co' } }))
 afterEach(() => jest.clearAllMocks())
 
 const titles = () => screen.getAllByRole('textbox').map((i) => (i as HTMLInputElement).defaultValue).filter(Boolean)
@@ -60,4 +75,31 @@ test('sorts by a clicked column, filters, groups and hides columns', () => {
 
   fireEvent.click(screen.getByRole('checkbox', { name: 'Epic' }))
   expect(screen.queryByLabelText('Epic of Ship')).not.toBeInTheDocument()
+})
+
+test('a saved view puts its sort, grouping, filter and hidden columns on the table', () => {
+  render(<TaskTableScreen />)
+  fireEvent.change(screen.getByLabelText('Saved view'), { target: { value: '1' } })
+  expect(screen.getByLabelText('Filter tasks')).toHaveValue('sh')
+  expect(screen.getByLabelText('Group by')).toHaveValue('status')
+  expect(screen.getByRole('columnheader', { name: 'Due' })).toHaveAttribute('aria-sort', 'none')
+  expect(screen.getByRole('columnheader', { name: 'Title' })).toHaveAttribute('aria-sort', 'descending')
+  expect(screen.getByRole('checkbox', { name: 'Epic' })).not.toBeChecked()
+  expect(screen.getByRole('checkbox', { name: 'Title' })).toBeChecked()
+  expect(screen.queryByLabelText('Title of Write spec')).not.toBeInTheDocument()
+  expect(screen.getByLabelText('Title of Ship')).toBeInTheDocument()
+})
+
+test('saves the table\'s current choices as a view', () => {
+  render(<TaskTableScreen />)
+  fireEvent.change(screen.getByLabelText('Filter tasks'), { target: { value: 'ship' } })
+  fireEvent.click(screen.getByRole('button', { name: 'Due' }))
+  fireEvent.click(screen.getByRole('checkbox', { name: 'Sprint' }))
+  fireEvent.click(screen.getByRole('button', { name: 'Save view…' }))
+  fireEvent.change(screen.getByLabelText('View name'), { target: { value: 'Shipping soon' } })
+  fireEvent.click(screen.getByRole('button', { name: 'Save' }))
+  expect(mockCreateView.mutate).toHaveBeenCalledWith(
+    { name: 'Shipping soon', shared: false, config: { sortKey: 'due_date', sortDir: 'desc', groupBy: 'none', query: 'ship', hidden: ['sprint'] } },
+    expect.anything(),
+  )
 })

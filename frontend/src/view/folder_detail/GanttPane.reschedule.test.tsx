@@ -19,7 +19,13 @@ jest.mock('@/components/Timeline', () => ({
 const mockUpdateTask = { mutate: jest.fn() }
 jest.mock('@/api/tasks', () => ({ useUpdateTask: () => mockUpdateTask }))
 jest.mock('@/api/epics', () => ({ useUpdateEpic: () => ({ mutate: jest.fn() }) }))
-jest.mock('@/api/workspace', () => ({ useUpdateFolder: () => ({ mutate: jest.fn() }) }))
+jest.mock('@/api/workspace', () => ({ useUpdateFolder: () => ({ mutate: jest.fn() }), useWorkspace: () => ({ data: { role: 'member' } }) }))
+jest.mock('@/api/savedViews', () => ({
+  useSavedViews: () => ({ data: [] }),
+  useCreateSavedView: () => ({ mutate: jest.fn(), isPending: false }),
+  useUpdateSavedView: () => ({ mutate: jest.fn(), isPending: false }),
+  useDeleteSavedView: () => ({ mutate: jest.fn() }),
+}))
 jest.mock('@/api/taskDependencies', () => ({
   useTaskDependencies: () => ({ data: [{ id: 9, predecessor_id: 1, successor_id: 2, kind: 'finish_to_start', created_at: '' }] }),
   useCreateTaskDependency: () => ({ mutate: jest.fn(), isPending: false, isError: false, error: null }),

@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Loader2, Table as TableIcon } from 'lucide-react'
 import { DatePicker, Input, Select, SortHeader } from '@/components/ui'
+import SavedViews from '@/components/SavedViews'
 import WorkspaceLayout from '@/components/WorkspaceLayout'
 import { useEpics } from '@/api/epics'
 import { useSprints } from '@/api/sprints'
@@ -8,7 +9,7 @@ import { useTasks, useUpdateTask } from '@/api/tasks'
 import { useWorkspaceMembers } from '@/api/workspaceMembers'
 import { PIVOT_DIMENSIONS } from '@/data/pivot'
 import { TASK_STATUSES, STATUS_LABEL } from '@/data/task'
-import { TASK_COLUMNS, taskTableGroups, visibleColumns, type GroupBy, type TaskColumn } from '@/data/taskTable'
+import { TASK_COLUMNS, parseTaskTableConfig, taskTableGroups, visibleColumns, type GroupBy, type TaskColumn, type TaskTableConfig } from '@/data/taskTable'
 import { usePageTitle } from '@/hooks/usePageTitle'
 import { useWorkspaceStore } from '@/store/workspaces'
 import type { Task } from '@/types'
@@ -39,6 +40,16 @@ export default function TaskTableScreen() {
   }
   const groups = taskTableGroups(tasks, { sortKey, sortDir, groupBy, query }, lookups)
   const columns = visibleColumns(hidden)
+  // The screen's choices as a saved view keeps them (hidden columns in table order).
+  const config: TaskTableConfig = { sortKey, sortDir, groupBy, query, hidden: TASK_COLUMNS.map((c) => c.key).filter((key) => hidden.has(key)) }
+
+  function applyView(view: TaskTableConfig) {
+    setSortKey(view.sortKey)
+    setSortDir(view.sortDir)
+    setGroupBy(view.groupBy)
+    setQuery(view.query)
+    setHidden(new Set(view.hidden))
+  }
 
   function sortBy(column: TaskColumn) {
     if (column === sortKey) setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'))
@@ -93,6 +104,7 @@ export default function TaskTableScreen() {
             <option value="none">Nothing</option>
             {PIVOT_DIMENSIONS.map((d) => <option key={d.value} value={d.value}>{d.label}</option>)}
           </Select></label>
+          <SavedViews page="task_table" config={config} parse={parseTaskTableConfig} onApply={applyView} />
         </div>
         <fieldset className="task_table-columns">
           <legend>Columns</legend>

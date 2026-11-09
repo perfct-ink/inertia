@@ -1,0 +1,58 @@
+@use 'tokens' as *;
+
+@layer app.components {
+  .saved_views {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: space(2);
+    min-width: 0;
+
+    @at-root .saved_views-modified {
+      color: color(muted-foreground);
+      user-select: none;
+      @include text('xs');
+    }
+
+    // The Manage menu's trigger, drawn like the other toolbar controls.
+    @at-root .saved_views-trigger {
+      display: inline-flex;
+      align-items: center;
+      gap: space(1);
+      min-height: space(10);
+      padding: space(2) space(3);
+      border-width: 1px;
+      border-color: color(border);
+      border-radius: radius('md');
+      background-color: color(card);
+      color: color(foreground);
+      cursor: pointer;
+      user-select: none;
+      @include text('sm');
+      @include transition(background-color, border-color);
+
+      &:hover {
+        border-color: color(border-strong);
+        background-color: color(muted);
+      }
+    }
+
+    @at-root .saved_views-chevron {
+      width: space(3.5);
+      height: space(3.5);
+    }
+
+    @at-root .saved_views-share {
+      display: flex;
+      align-items: center;
+      gap: space(2);
+      @include text('sm');
+    }
+
+    @at-root .saved_views-help {
+      margin: 0;
+      color: color(muted-foreground);
+      @include text('xs');
+    }
+  }
+}

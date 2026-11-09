@@ -2,10 +2,11 @@ import { useState } from 'react'
 import { addMonths, eachDayOfInterval, endOfMonth, endOfWeek, format, isSameMonth, isToday, startOfMonth, startOfWeek, subMonths } from 'date-fns'
 import { CalendarDays, ChevronLeft, ChevronRight, Loader2 } from 'lucide-react'
 import { Button, Input, classNames } from '@/components/ui'
+import SavedViews from '@/components/SavedViews'
 import WorkspaceLayout from '@/components/WorkspaceLayout'
 import { useEvents } from '@/api/events'
 import { useTasks } from '@/api/tasks'
-import { calendarItems } from '@/data/calendar'
+import { calendarItems, parseCalendarConfig } from '@/data/calendar'
 import { usePageTitle } from '@/hooks/usePageTitle'
 import './CalendarScreen.scss'
 
@@ -29,6 +30,7 @@ export default function CalendarScreen() {
           <h1 className="calendar-title"><CalendarDays className="calendar-icon" aria-hidden="true" /> Calendar</h1>
           <label className="calendar-toggle"><Input type="checkbox" checked={showTasks} onChange={(e) => setShowTasks(e.target.checked)} /> Tasks</label>
           <label className="calendar-toggle"><Input type="checkbox" checked={showEvents} onChange={(e) => setShowEvents(e.target.checked)} /> Events</label>
+          <SavedViews page="calendar" config={{ showTasks, showEvents }} parse={parseCalendarConfig} onApply={(view) => { setShowTasks(view.showTasks); setShowEvents(view.showEvents) }} />
           <div className="calendar-nav">
             <Button onClick={() => setMonth((m) => subMonths(m, 1))} aria-label="Previous month"><ChevronLeft className="calendar-icon" /></Button>
             <span className="calendar-month">{format(month, 'MMMM yyyy')}</span>

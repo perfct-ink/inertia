@@ -1,6 +1,7 @@
 import '@testing-library/jest-dom'
 import { fireEvent, render, screen, within } from '@testing-library/react'
 import PivotScreen from './PivotScreen'
+import { useAuthStore } from '@/store/auth'
 
 jest.mock('@/components/WorkspaceLayout', () => function LayoutMock({ children }: { children: React.ReactNode }) { return <div>{children}</div> })
 jest.mock('@/api/tasks', () => ({
@@ -16,6 +17,19 @@ jest.mock('@/api/tasks', () => ({
 jest.mock('@/api/epics', () => ({ useEpics: () => ({ data: [{ id: 1, title: 'Onboarding' }] }) }))
 jest.mock('@/api/sprints', () => ({ useSprints: () => ({ data: [] }) }))
 jest.mock('@/api/workspaceMembers', () => ({ useWorkspaceMembers: () => ({ data: [{ user_id: 7, user: { name: 'Sam' } }] }) }))
+const mockCreateView = { mutate: jest.fn(), isPending: false }
+jest.mock('@/api/savedViews', () => ({
+  useSavedViews: () => ({
+    data: [{ id: 1, page: 'pivot', name: 'By person', shared: true, user_id: 9, owner_name: 'Sam', config: { rowDim: 'assignee', colDim: 'epic' } }],
+  }),
+  useCreateSavedView: () => mockCreateView,
+  useUpdateSavedView: () => ({ mutate: jest.fn(), isPending: false }),
+  useDeleteSavedView: () => ({ mutate: jest.fn() }),
+}))
+jest.mock('@/api/workspace', () => ({ useWorkspace: () => ({ data: { role: 'member' } }) }))
+
+beforeEach(() => useAuthStore.setState({ token: 't', user: { id: 5, name: 'Pat', email: 'p@x.co' } }))
+afterEach(() => jest.clearAllMocks())
 
 test('counts tasks by epic down the side and status across the top, with totals', () => {
   render(<PivotScreen />)
@@ -30,4 +44,22 @@ test('the dimensions can be changed', () => {
   fireEvent.change(screen.getByLabelText('Rows'), { target: { value: 'assignee' } })
   expect(screen.getByRole('rowheader', { name: 'Sam' })).toBeInTheDocument()
   expect(screen.getByRole('rowheader', { name: 'Unassigned' })).toBeInTheDocument()
+})
+
+test('a view someone shared sets the rows and columns', () => {
+  render(<PivotScreen />)
+  expect(screen.getByRole('option', { name: 'By person (Sam)' })).toBeInTheDocument()
+  fireEvent.change(screen.getByLabelText('Saved view'), { target: { value: '1' } })
+  expect(screen.getByLabelText('Rows')).toHaveValue('assignee')
+  expect(screen.getByLabelText('Columns')).toHaveValue('epic')
+  expect(screen.getByRole('rowheader', { name: 'Sam' })).toBeInTheDocument()
+})
+
+test('saves the current rows and columns as a view', () => {
+  render(<PivotScreen />)
+  fireEvent.change(screen.getByLabelText('Rows'), { target: { value: 'sprint' } })
+  fireEvent.click(screen.getByRole('button', { name: 'Save view…' }))
+  fireEvent.change(screen.getByLabelText('View name'), { target: { value: 'Sprints' } })
+  fireEvent.click(screen.getByRole('button', { name: 'Save' }))
+  expect(mockCreateView.mutate).toHaveBeenCalledWith({ name: 'Sprints', shared: false, config: { rowDim: 'sprint', colDim: 'status' } }, expect.anything())
 })

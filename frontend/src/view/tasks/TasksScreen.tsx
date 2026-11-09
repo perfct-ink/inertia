@@ -25,7 +25,8 @@ import {
 import { CSS } from '@dnd-kit/utilities'
 import WorkspaceLayout from '@/components/WorkspaceLayout'
 import SprintHeader from '@/components/SprintHeader'
-import { TASK_PRIORITIES, estimateLabel, pointsLabel, priorityLabel, TASK_KINDS, KIND_LABEL, kindOf } from '@/data/task'
+import SavedViews from '@/components/SavedViews'
+import { TASK_PRIORITIES, estimateLabel, pointsLabel, priorityLabel, TASK_KINDS, KIND_LABEL, kindOf, parseTaskBoardConfig, type TaskBoardConfig } from '@/data/task'
 import { RECURRENCE_OPTIONS, recurrenceLabel } from '@/data/recurrence'
 import TaskHistoryDialog from '@/components/TaskHistoryDialog'
 import { TaskDetail } from '@/components/tasks/TaskDetail'
@@ -458,6 +459,12 @@ export default function TasksScreen() {
     ...(searchQ.trim() ? { q: searchQ.trim() } : {}),
   }
 
+  // A saved view puts its filters and search text on the board.
+  function applyView({ q, ...saved }: TaskBoardConfig) {
+    setFilters(saved)
+    setSearchQ(q ?? '')
+  }
+
   const { data: tasks = NO_TASKS, isLoading } = useTasks(activeFilters)
   const progressByTask = useMemo(() => progressById(tasks), [tasks])
   const createTask = useCreateTask()
@@ -700,6 +707,7 @@ export default function TasksScreen() {
                 <X className="tasks-icon tasks-icon--sm" /> Clear
               </Button>
             )}
+            <SavedViews page="tasks" config={activeFilters} parse={parseTaskBoardConfig} onApply={applyView} />
           </div>
         )}
 

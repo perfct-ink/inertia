@@ -10,6 +10,25 @@ export const PIVOT_DIMENSIONS: { value: PivotDimension; label: string }[] = [
   { value: 'assignee', label: 'Assignee' },
 ]
 
+// What a saved pivot view stores: the field down the side and across the top.
+export interface PivotConfig {
+  rowDim: PivotDimension
+  colDim: PivotDimension
+}
+
+export const DEFAULT_PIVOT_CONFIG: PivotConfig = { rowDim: 'epic', colDim: 'status' }
+
+// A stored config that may be old or malformed, as a safe one.
+export function parsePivotConfig(raw: unknown): PivotConfig {
+  const value = (raw && typeof raw === 'object' ? raw : {}) as Record<string, unknown>
+  const dimension = (candidate: unknown, fallback: PivotDimension) =>
+    PIVOT_DIMENSIONS.find((d) => d.value === candidate)?.value ?? fallback
+  return {
+    rowDim: dimension(value.rowDim, DEFAULT_PIVOT_CONFIG.rowDim),
+    colDim: dimension(value.colDim, DEFAULT_PIVOT_CONFIG.colDim),
+  }
+}
+
 // Names to show for ids; anything missing falls back to the "none" label.
 export interface PivotLookups {
   epics: Map<number, string>

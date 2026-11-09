@@ -79,6 +79,7 @@
     @at-root .tasks-filters {
       display: flex;
       flex-shrink: 0;
+      flex-wrap: wrap;
       align-items: center;
       gap: space(3);
       padding: space(2) space(6);

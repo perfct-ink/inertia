@@ -13,7 +13,7 @@ Anyone who can open the folder. The view is read-only.
 `frontend/src/data/task.test.ts` (`taskCards`), `frontend/src/view/folder_detail/CardsView.test.tsx`.
 
 ## Known limits
-Cards are tasks only; documents, sheets and Collections are not shown as cards (they are chips above the view). No grouping, filtering, drag or inline edit. Card colours come from the theme tokens only; no cover images.
+Cards are tasks only; documents, sheets and Collections are not shown as cards (they are chips above the view). No grouping, filtering, drag or inline edit, so there is nothing for a saved view to keep yet (see `docs/backlog/saved-views-for-more-pages.md`). Card colours come from the theme tokens only; no cover images.
 
 ## History
 - Implemented 2026-10-19 on branch `backlog/cards-gallery-view`; not merged or deployed.

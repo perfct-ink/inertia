@@ -1,4 +1,4 @@
-import { calendarItems } from './calendar'
+import { DEFAULT_CALENDAR_CONFIG, calendarItems, parseCalendarConfig } from './calendar'
 import type { Task, WorkspaceEvent } from '@/types'
 
 const task = (id: number, title: string, due_date: string | null, status = 'todo') => ({ id, title, due_date, status }) as unknown as Task
@@ -17,4 +17,11 @@ test('either kind can be hidden', () => {
   expect(calendarItems(tasks, events, false, true).get('2026-11-05')?.map((i) => i.kind)).toEqual(['event'])
   expect(calendarItems(tasks, events, true, false).get('2026-11-05')?.map((i) => i.kind)).toEqual(['task'])
   expect(calendarItems(tasks, events, false, false).size).toBe(0)
+})
+
+test('a stored saved-view config is read back, with the default for anything unrecognised', () => {
+  expect(parseCalendarConfig({ showTasks: false, showEvents: true })).toEqual({ showTasks: false, showEvents: true })
+  expect(parseCalendarConfig({ showEvents: false })).toEqual({ showTasks: true, showEvents: false })
+  expect(parseCalendarConfig({ showTasks: 'no', showEvents: 0 })).toEqual(DEFAULT_CALENDAR_CONFIG)
+  expect(parseCalendarConfig(null)).toEqual(DEFAULT_CALENDAR_CONFIG)
 })

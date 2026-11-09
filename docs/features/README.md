@@ -73,3 +73,4 @@ One file per implemented feature, written from the code (see `docs/rules/feature
 | Editor shortcuts: Apple Notes key map from one table, ⌘/ sheet, list moves, checklist keys | [editor_shortcuts.md](editor_shortcuts.md) |
 | Status colors: red/green from Volta, the rest Inertia's own theme tokens, AA-checked text in light and dark | [status_colors.md](status_colors.md) |
 | Rules compliance: the repo audited against every shared rule, what was fixed, what is open | [rules_compliance.md](rules_compliance.md) |
+| Saved views: named sort, grouping and filters per page, private or shared with the Space | [saved_views.md](saved_views.md) |

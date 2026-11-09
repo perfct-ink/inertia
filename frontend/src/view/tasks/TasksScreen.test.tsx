@@ -2,6 +2,7 @@ import '@testing-library/jest-dom'
 import { fireEvent, render, screen } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import TasksScreen from './TasksScreen'
+import { useAuthStore } from '@/store/auth'
 import type { TaskStatusSetting } from '@/types'
 
 jest.mock('@/components/WorkspaceLayout', () => function LayoutMock({ children }: { children: React.ReactNode }) { return <div>{children}</div> })
@@ -36,9 +37,11 @@ const mockTasks = [
   { id: 2, title: 'Old idea', status: 'backlog', epic_id: null, document_id: 1, folder_id: 2 },
 ]
 let mockTasksRenders = 0
+let mockLastFilters: object | undefined
 let mockTasksQuery: { data?: typeof mockTasks, isLoading: boolean } = { data: mockTasks, isLoading: false }
 jest.mock('@/api/tasks', () => ({
-  useTasks: () => {
+  useTasks: (filters?: object) => {
+    mockLastFilters = filters
     // A render loop would spin forever in jsdom; fail fast instead.
     if (++mockTasksRenders > 500) throw new Error('TasksScreen re-rendered in a loop')
     return mockTasksQuery
@@ -48,6 +51,15 @@ jest.mock('@/api/tasks', () => ({
   useDeleteTask: () => mockMutation,
 }))
 jest.mock('@/api/workspace', () => ({ useWorkspace: () => ({ data: mockWorkspace }) }))
+const mockCreateView = { mutate: jest.fn(), isPending: false }
+jest.mock('@/api/savedViews', () => ({
+  useSavedViews: () => ({
+    data: [{ id: 1, page: 'tasks', name: 'Sprint 4 reviews', shared: false, user_id: 5, owner_name: 'Pat', config: { status: 'in_review', sprint_id: 4, q: 'login', kind: 'epic' } }],
+  }),
+  useCreateSavedView: () => mockCreateView,
+  useUpdateSavedView: () => ({ mutate: jest.fn(), isPending: false }),
+  useDeleteSavedView: () => ({ mutate: jest.fn() }),
+}))
 jest.mock('@/api/epics', () => ({ useEpics: () => ({ data: [] }) }))
 jest.mock('@/api/taskFields', () => ({ useTaskFields: () => ({ data: [] }) }))
 jest.mock('@/components/task-fields/TaskFieldsDialog', () => ({ TaskFieldsDialog: () => null }))
@@ -71,10 +83,38 @@ function renderScreen(url: string) {
 
 beforeEach(() => {
   jest.clearAllMocks()
+  useAuthStore.setState({ token: 't', user: { id: 5, name: 'Pat', email: 'p@x.co' } })
   mockRole = 'member'
   mockSettings = []
   mockTasksQuery = { data: mockTasks, isLoading: false }
   mockTasksRenders = 0
+  mockLastFilters = undefined
+})
+
+test('a saved view puts its filters and search text on the board, ignoring what it cannot use', () => {
+  renderScreen('/tasks?view=kanban')
+  fireEvent.click(screen.getByRole('button', { name: 'Filter' }))
+  fireEvent.change(screen.getByLabelText('Saved view'), { target: { value: '1' } })
+  expect(mockLastFilters).toEqual({ status: 'in_review', sprint_id: 4, q: 'login' })
+  expect(screen.getByPlaceholderText('Search tasks…')).toHaveValue('login')
+})
+
+test('saves the board\'s current filters and search as a view', () => {
+  renderScreen('/tasks?view=kanban&epic_id=3')
+  fireEvent.change(screen.getByPlaceholderText('Search tasks…'), { target: { value: 'copy' } })
+  fireEvent.click(screen.getByRole('button', { name: 'Filter' }))
+  fireEvent.click(screen.getByRole('button', { name: 'Save view…' }))
+  fireEvent.change(screen.getByLabelText('View name'), { target: { value: 'Copy in epic 3' } })
+  fireEvent.click(screen.getByRole('button', { name: 'Save' }))
+  expect(mockCreateView.mutate).toHaveBeenCalledWith({ name: 'Copy in epic 3', shared: false, config: { epic_id: 3, q: 'copy' } }, expect.anything())
+})
+
+test('viewers can use and save views too (Alex, 2026-11-09)', () => {
+  mockRole = 'viewer'
+  renderScreen('/tasks?view=kanban')
+  fireEvent.click(screen.getByRole('button', { name: 'Filter' }))
+  expect(screen.getByLabelText('Saved view')).toBeInTheDocument()
+  expect(screen.getByRole('button', { name: 'Save view…' })).toBeInTheDocument()
 })
 
 test('re-rendering while the tasks query is still pending does not loop', () => {

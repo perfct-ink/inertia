@@ -1,7 +1,7 @@
 # Task table
 
 ## What it does
-`/task-table` (sidebar rail "Task table") lists every task in the Space as an editable table. Columns: Title, Status, Start, Due, Assignee, Epic, Sprint. Everything edits in place and saves as you change it (a title saves when you leave the field and is ignored if blank). Click a column header to sort by it (click again to reverse; empty dates and names sort last); "Filter by title" narrows the list; "Group by" splits it under headings by status, epic, sprint or assignee; the Columns checkboxes hide any column except Title. Hiding and sorting are per visit.
+`/task-table` (sidebar rail "Task table") lists every task in the Space as an editable table. Columns: Title, Status, Start, Due, Assignee, Epic, Sprint. Everything edits in place and saves as you change it (a title saves when you leave the field and is ignored if blank). Click a column header to sort by it (click again to reverse; empty dates and names sort last); "Filter by title" narrows the list; "Group by" splits it under headings by status, epic, sprint or assignee; the Columns checkboxes hide any column except Title. Hiding and sorting are per visit unless you save them as a view: the **Saved view** dropdown in the header applies a named set of the sort, grouping, filter and hidden columns, private or shared with the Space (see [saved_views.md](saved_views.md)).
 
 ## API and models
 None new: it reads tasks, epics, sprints and Space members and saves with the normal task update call. Logic is in `frontend/src/data/taskTable.ts` (`taskTableGroups`, `visibleColumns`, reusing `pivotGroup` from `data/pivot.ts`); screen `view/task_table/TaskTableScreen.tsx`. It builds on `backlog/pivot-view` (it imports `data/pivot.ts`), so merge that first.
@@ -10,10 +10,10 @@ None new: it reads tasks, epics, sprints and Space members and saves with the no
 Anyone with write access to the Space can edit; viewers get the same controls but their saves fail with the usual error.
 
 ## Tests
-`frontend/src/data/taskTable.test.ts`, `frontend/src/view/task_table/TaskTableScreen.test.tsx`.
+`frontend/src/data/taskTable.test.ts`, `frontend/src/view/task_table/TaskTableScreen.test.tsx` (including saved views).
 
 ## Known limits
-- No adding or deleting tasks here, no bulk edit, no paging (every task renders), and no saved column or sort choices (see `docs/backlog/saved-views-per-user-and-shared-views-saved-filters.md`).
+- No adding or deleting tasks here, no bulk edit, no paging (every task renders), and the sort, grouping, filter and hidden columns start from the defaults each visit (pick a saved view to restore yours).
 - Only the filter by title: no filter by status, epic or assignee (use the Workboard filters or group by).
 - Fields that live on other branches (priority, estimates, recurrence) are not columns.
 

@@ -1,4 +1,4 @@
-import { pivotGroup, pivotTasks, type PivotLookups } from './pivot'
+import { DEFAULT_PIVOT_CONFIG, parsePivotConfig, pivotGroup, pivotTasks, type PivotLookups } from './pivot'
 import type { Task } from '@/types'
 
 const lookups: PivotLookups = {
@@ -36,4 +36,11 @@ test('an empty list gives an empty table', () => {
   const table = pivotTasks([], 'epic', 'status', lookups)
   expect(table.rows).toEqual([])
   expect(table.total).toBe(0)
+})
+
+test('a stored saved-view config is read back, with the default for anything unrecognised', () => {
+  expect(parsePivotConfig({ rowDim: 'assignee', colDim: 'sprint' })).toEqual({ rowDim: 'assignee', colDim: 'sprint' })
+  expect(parsePivotConfig({ rowDim: 'assignee' })).toEqual({ rowDim: 'assignee', colDim: 'status' })
+  expect(parsePivotConfig({ rowDim: 'colour', colDim: 4 })).toEqual(DEFAULT_PIVOT_CONFIG)
+  expect(parsePivotConfig(undefined)).toEqual(DEFAULT_PIVOT_CONFIG)
 })

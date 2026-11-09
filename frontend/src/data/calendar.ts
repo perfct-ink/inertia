@@ -1,5 +1,23 @@
 import type { Task, WorkspaceEvent } from '@/types'
 
+// What a saved calendar view stores: which kinds of item are shown. The month
+// being looked at is where you are, not a setting, so it is not saved.
+export interface CalendarConfig {
+  showTasks: boolean
+  showEvents: boolean
+}
+
+export const DEFAULT_CALENDAR_CONFIG: CalendarConfig = { showTasks: true, showEvents: true }
+
+// A stored config that may be old or malformed, as a safe one.
+export function parseCalendarConfig(raw: unknown): CalendarConfig {
+  const value = (raw && typeof raw === 'object' ? raw : {}) as Record<string, unknown>
+  return {
+    showTasks: typeof value.showTasks === 'boolean' ? value.showTasks : DEFAULT_CALENDAR_CONFIG.showTasks,
+    showEvents: typeof value.showEvents === 'boolean' ? value.showEvents : DEFAULT_CALENDAR_CONFIG.showEvents,
+  }
+}
+
 export interface CalendarItem {
   key: string
   kind: 'task' | 'event'

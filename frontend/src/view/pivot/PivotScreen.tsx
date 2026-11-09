@@ -1,12 +1,13 @@
 import { useState } from 'react'
 import { Loader2, Table2 } from 'lucide-react'
 import { Select } from '@/components/ui'
+import SavedViews from '@/components/SavedViews'
 import WorkspaceLayout from '@/components/WorkspaceLayout'
 import { useEpics } from '@/api/epics'
 import { useSprints } from '@/api/sprints'
 import { useTasks } from '@/api/tasks'
 import { useWorkspaceMembers } from '@/api/workspaceMembers'
-import { PIVOT_DIMENSIONS, pivotTasks, type PivotDimension } from '@/data/pivot'
+import { PIVOT_DIMENSIONS, parsePivotConfig, pivotTasks, type PivotDimension } from '@/data/pivot'
 import { usePageTitle } from '@/hooks/usePageTitle'
 import { useWorkspaceStore } from '@/store/workspaces'
 import '../planning/PlanningScreen.scss'
@@ -40,6 +41,7 @@ export default function PivotScreen() {
           <label>Columns <Select aria-label="Columns" value={colDim} onChange={(e) => setColDim(e.target.value as PivotDimension)}>
             {PIVOT_DIMENSIONS.map((d) => <option key={d.value} value={d.value}>{d.label}</option>)}
           </Select></label>
+          <SavedViews page="pivot" config={{ rowDim, colDim }} parse={parsePivotConfig} onApply={(view) => { setRowDim(view.rowDim); setColDim(view.colDim) }} />
         </div>
         <div className="planning-body">
           {isLoading && <Loader2 className="planning-spinner" aria-label="Loading" />}
