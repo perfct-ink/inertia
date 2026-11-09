@@ -2,7 +2,6 @@
 priority: p1
 depends_on: []
 components: [frontend]
-branch: backlog/visual-qa-of-every-screen-in-light-and-dark-mode
 status: incomplete
 ---
 # Visual QA of every screen in light and dark mode

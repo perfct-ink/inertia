@@ -2,7 +2,6 @@
 priority: p1
 depends_on: []
 components: [frontend]
-branch: backlog/adopt-volta-components-in-react
 status: incomplete
 ---
 # Adopt Volta for React frontend components

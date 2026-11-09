@@ -2,7 +2,6 @@
 priority: p1
 depends_on: []
 components: [frontend]
-branch: backlog/wcag-keyboard-focus-and-contrast-audit
 status: incomplete
 ---
 # WCAG 2.1 audit: keyboard, focus order and contrast
