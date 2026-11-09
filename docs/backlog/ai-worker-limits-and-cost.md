@@ -20,7 +20,7 @@ Alex, 2026-10-19: "I want to prioritize AI worker." This is the first thing to p
 
 Foundation vs spec: the foundation in `docs/features/ai_workers.md` supports multiple named workers per Space (each with its own instructions and model). The spec's default is **one AI worker per Space, shown as an assignee with an AI badge**. Which of the two to follow is pending Alex's confirmation; until then keep the multi-worker data model and build the single-worker presentation as a default (for example, a Space's first enabled worker) rather than removing workers.
 
-Original row: **Permissions and limits** per Space: which features the worker may change, a monthly usage cap, and who may assign work to it. Owners and managers set these. Ties to per-Space features (`choose-which-features-a-space-uses.md`). (Today: not present.)
+Original row: **Permissions and limits** per Space: which features the worker may change, a monthly usage cap, and who may assign work to it. Owners and managers set these. Ties to per-project features (`choose-which-features-a-project-uses.md`; there is no per-Space feature list). (Today: not present.)
 
 ## Added requirements
 

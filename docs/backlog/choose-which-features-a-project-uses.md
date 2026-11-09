@@ -11,9 +11,9 @@ Each project turns on the features it needs, and the sidebar shows only those pa
 
 ## Current state
 
-An open project shows its files right under the project dropdown, then every page in fixed groups: Overview, All files, My work; Tasks (Tasks, Task table, Pivot, Calendar, Events); Planning (Roadmap, Timeline, Milestones, Initiatives, Epics, Sprints, Hierarchy); Goals (OKRs, Objectives map, Ideas); Delivery (Releases, Resources). See `SECTION_GROUPS` in `frontend/src/components/file-manager/ProjectNav.tsx` and `docs/features/projects.md`. Nothing can be turned off.
+An open project shows its files right under the project dropdown, then every page in fixed groups: Overview, All files, My work; Tasks (Tasks, Task table, Pivot, Calendar, Events); Planning (Roadmap, Timeline, Milestones, Initiatives, Epics, Sprints, Hierarchy); Goals (OKRs, Objectives map, Ideas); Delivery (Resources; Releases was removed 2026-11-07). See `SECTION_GROUPS` in `frontend/src/components/file-manager/ProjectNav.tsx` and `docs/features/projects.md`. Nothing can be turned off.
 
-Related: `choose-which-features-a-space-uses.md` does the same for a whole Space. If both are built, a project can only turn on what its Space uses.
+**Per project only** (Alex, 2026-11-09 groom): features are chosen per project, not per Space. `choose-which-features-a-space-uses.md` was merged into this task and deleted. Project types (`project-types.md`) set a new project's starting features.
 
 ## Requirements / notes
 

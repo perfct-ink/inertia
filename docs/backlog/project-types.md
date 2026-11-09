@@ -14,7 +14,7 @@ Not present. Folders have `kind` (`folder`/`project`) only.
 
 ## Requirements / notes
 
-A type sets the starting template, the default task lists and fields, and the features the Space or project uses (ties to `choose-which-features-a-space-uses.md` and `docs/features/projects.md`). Users can save their own project as a type.
+A type sets the starting template, the default task lists and fields, and the features the project uses (ties to `choose-which-features-a-project-uses.md` and `docs/features/projects.md`). Users can save their own project as a type.
 
 ### Merged: project templates (Alex, 2026-11-09 groom)
 
