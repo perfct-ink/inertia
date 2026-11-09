@@ -1,4 +1,4 @@
-import { Button, Input, StatusDot, classNames, DatePicker } from '@/components/ui'
+import { Button, IconButton, Input, StatusDot, Tab, Tabs, classNames, DatePicker } from '@/components/ui'
 import { useState, useRef, useEffect } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import {
@@ -167,9 +167,9 @@ function EventSidebar({ state, onClose }: { state: SidebarState; onClose: () => 
       <aside className={sidebarClass}>
         <div className="events-sidebar-header">
           <span className="events-sidebar-name">New Event</span>
-          <Button onClick={onClose} aria-label="Close" className="events-close">
+          <IconButton onClick={onClose} label="Close" className="events-close">
             <X className="events-icon" />
-          </Button>
+          </IconButton>
         </div>
         <form onSubmit={submit} className="events-form">
           <Input
@@ -221,19 +221,14 @@ function EventSidebar({ state, onClose }: { state: SidebarState; onClose: () => 
           </div>
           <div className="events-form-field">
             <label className="events-muted">Type</label>
-            <div className="events-form-types">
+            <Tabs label="Type" variant="segmented">
               {(['milestone', 'deadline'] as const).map((t) => (
-                <Button
-                  key={t}
-                  type="button"
-                  onClick={() => setType(t)}
-                  className={classNames('events-type_option', type === t && 'events-type_option--active')}
-                >
+                <Tab key={t} active={type === t} onClick={() => setType(t)}>
                   <EventTypeIcon type={t} size="xs" />
                   {t.charAt(0).toUpperCase() + t.slice(1)}
-                </Button>
+                </Tab>
               ))}
-            </div>
+            </Tabs>
           </div>
           <Button variant="primary"
             type="submit"
@@ -257,9 +252,9 @@ function EventSidebar({ state, onClose }: { state: SidebarState; onClose: () => 
           <EventTypeIcon type={event.event_type} tinted />
           <span className="events-sidebar-name">{event.title}</span>
         </div>
-        <Button onClick={onClose} aria-label="Close" className="events-close events-close--end">
+        <IconButton onClick={onClose} label="Close" className="events-close events-close--end">
           <X className="events-icon" />
-        </Button>
+        </IconButton>
       </div>
 
       <div className="events-sidebar-body">
@@ -298,13 +293,14 @@ function EventSidebar({ state, onClose }: { state: SidebarState; onClose: () => 
                 >
                   {task.title}
                 </span>
-                <Button
+                <IconButton
+                  tone="danger"
                   onClick={() => removeTask.mutate({ eventId: event.id, taskId: task.id })}
-                  aria-label="Remove task"
+                  label="Remove task"
                   className="events-task_remove"
                 >
                   <X className="events-icon events-icon--xs" />
-                </Button>
+                </IconButton>
               </div>
             ))}
             {event.tasks.length === 0 && (
@@ -313,6 +309,7 @@ function EventSidebar({ state, onClose }: { state: SidebarState; onClose: () => 
           </div>
           <div className="events-sidebar-add">
             <Button
+              variant="muted"
               onClick={() => setShowPicker(!showPicker)}
               className="events-add_task"
             >
@@ -367,22 +364,25 @@ function MonthView({ events, onDayClick, onEventClick, selectedDate }: {
   return (
     <div className="events-month">
       <div className="events-month-nav">
-        <Button
+        <IconButton
+          fill
           onClick={() => setMonth((m) => subMonths(m, 1))}
-          aria-label="Previous month"
+          label="Previous month"
           className="events-nav_button"
         >
           <ChevronLeft className="events-icon" />
-        </Button>
+        </IconButton>
         <span className="events-month-label">{format(month, 'MMMM yyyy')}</span>
-        <Button
+        <IconButton
+          fill
           onClick={() => setMonth((m) => addMonths(m, 1))}
-          aria-label="Next month"
+          label="Next month"
           className="events-nav_button"
         >
           <ChevronRight className="events-icon" />
-        </Button>
+        </IconButton>
         <Button
+          variant="muted"
           onClick={() => setMonth(new Date(today.getFullYear(), today.getMonth(), 1))}
           className="events-today"
         >
@@ -537,22 +537,16 @@ export default function EventsScreen() {
           {/* Header */}
           <div className="events-header">
             <h1 className="events-title">Events</h1>
-            <div className="events-switcher">
-              <Button
-                onClick={() => navigate('/events?view=list')}
-                className={classNames('events-switch', view === 'list' && 'events-switch--active')}
-              >
+            <Tabs label="View">
+              <Tab active={view === 'list'} onClick={() => navigate('/events?view=list')}>
                 <LayoutList className="events-icon events-icon--sm" />
                 List
-              </Button>
-              <Button
-                onClick={() => navigate('/events?view=month')}
-                className={classNames('events-switch', view === 'month' && 'events-switch--active')}
-              >
+              </Tab>
+              <Tab active={view === 'month'} onClick={() => navigate('/events?view=month')}>
                 <Calendar className="events-icon events-icon--sm" />
                 Month
-              </Button>
-            </div>
+              </Tab>
+            </Tabs>
             <Button variant="primary"
               onClick={() => openNew()}
               className="events-new"

@@ -295,14 +295,11 @@
       width: 100%;
     }
 
+    // An IconButton (red on hover, filled box) kept at a 40px tap size.
     .resources-remove {
       min-width: space(10);
       min-height: space(10);
-      color: color(muted-foreground);
-
-      &:hover:not(:disabled) {
-        color: palette('red-500');
-      }
+      padding: space(1) space(2);
     }
   }
 }

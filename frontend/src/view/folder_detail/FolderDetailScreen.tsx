@@ -1,4 +1,4 @@
-import { Button, StatusDot, classNames, Select } from '@/components/ui'
+import { Button, IconButton, StatusDot, Tab, Tabs, classNames, Select } from '@/components/ui'
 import { Database } from 'lucide-react'
 import { useState, useMemo } from 'react'
 import { useParams, useNavigate, useSearchParams, useLocation, Link, Navigate } from 'react-router-dom'
@@ -68,14 +68,13 @@ function BoardView({ tasks, statuses, onAdvance }: { tasks: Task[]; statuses: Bo
                     <p className="folder_detail-card-title">{task.title}</p>
                     {NEXT_STATUS[task.status] && (
                       <div className="folder_detail-card-actions">
-                        <Button
+                        <IconButton
                           onClick={() => onAdvance(task)}
                           title={`Move to ${nextStatusLabel(statuses, task.status)}`}
-                          aria-label={`Move to ${nextStatusLabel(statuses, task.status)}`}
-                          className="folder_detail-subtle"
+                          label={`Move to ${nextStatusLabel(statuses, task.status)}`}
                         >
                           <ArrowRight className="folder_detail-icon--sm" />
-                        </Button>
+                        </IconButton>
                       </div>
                     )}
                   </div>
@@ -123,9 +122,9 @@ function TaskListView({ tasks, statuses }: { tasks: Task[]; statuses: BoardStatu
       <div key={node.id}>
         <div className="folder_detail-row" style={{ paddingLeft: `${depth * 20}px` }}>
           {hasChildren ? (
-            <Button onClick={() => toggleCollapse(node.id)} className="folder_detail-subtle folder_detail-shrink" title={isCollapsed ? 'Expand' : 'Collapse'}>
+            <IconButton onClick={() => toggleCollapse(node.id)} className="folder_detail-shrink" title={isCollapsed ? 'Expand' : 'Collapse'} label={isCollapsed ? 'Expand' : 'Collapse'}>
               <ChevronRight className={classNames('folder_detail-icon--xs folder_detail-icon--chevron', !isCollapsed && 'folder_detail-icon--open')} />
-            </Button>
+            </IconButton>
           ) : (
             <span className="folder_detail-row-spacer" />
           )}
@@ -144,13 +143,9 @@ function TaskListView({ tasks, statuses }: { tasks: Task[]; statuses: BoardStatu
       <div className="folder_detail-list">
         <div className="folder_detail-list-toolbar">
           {DEPTH_OPTIONS.map(({ label, maxDepth: value }) => (
-            <Button
-              key={label}
-              onClick={() => setMaxDepth(value)}
-              className={classNames('folder_detail-subtle folder_detail-tab folder_detail-tab--compact', maxDepth === value && 'folder_detail-tab--active')}
-            >
+            <Tab key={label} active={maxDepth === value} onClick={() => setMaxDepth(value)} className="folder_detail-tab--compact">
               {label}
-            </Button>
+            </Tab>
           ))}
         </div>
         <div className="folder_detail-list-rows">
@@ -181,13 +176,13 @@ function CalendarView({ events }: { events: WorkspaceEvent[] }) {
   return (
     <div className="folder_detail-pane">
       <div className="folder_detail-month_nav">
-        <Button onClick={() => setMonth((m) => subMonths(m, 1))} aria-label="Previous month" className="folder_detail-subtle">
+        <IconButton onClick={() => setMonth((m) => subMonths(m, 1))} label="Previous month">
           <ChevronLeft className="folder_detail-icon--md" />
-        </Button>
+        </IconButton>
         <span className="folder_detail-month">{format(month, 'MMMM yyyy')}</span>
-        <Button onClick={() => setMonth((m) => addMonths(m, 1))} aria-label="Next month" className="folder_detail-subtle">
+        <IconButton onClick={() => setMonth((m) => addMonths(m, 1))} label="Next month">
           <ChevronRight className="folder_detail-icon--md" />
-        </Button>
+        </IconButton>
       </div>
       {/* Phone-width agenda — the 7-column grid below gets unusably tiny
           under ~430px (each cell shrinks to ~50px), so below md this
@@ -251,8 +246,8 @@ function CalendarView({ events }: { events: WorkspaceEvent[] }) {
 function ViewLink({ folderId, view, label, navigate }: { folderId: number; view: string; label: string; navigate: (path: string) => void }) {
   return (
     <Button
+      variant="muted"
       onClick={() => navigate(`/folders/${folderId}?view=${view}`)}
-      className="folder_detail-subtle"
     >
       {label} →
     </Button>
@@ -415,27 +410,24 @@ export default function FolderDetailScreen() {
     <WorkspaceLayout>
       <div className="view-folder_detail">
         <div className="folder_detail-header">
-          <Button onClick={() => navigate(-1)} aria-label="Back" className="folder_detail-subtle folder_detail-shrink">
+          <IconButton onClick={() => navigate(-1)} label="Back" className="folder_detail-shrink">
             <ArrowLeft className="folder_detail-icon--md" />
-          </Button>
+          </IconButton>
           <h1 className="folder_detail-title">{folder.name}</h1>
-          <div className="folder_detail-tabs">
+          <Tabs label="View" className="folder_detail-tabs">
             {VIEWS.map(({ key, label, icon: Icon }) => (
-              <Button
-                key={key}
-                onClick={() => navigate(`/folders/${folderId}?view=${key}`)}
-                className={classNames('folder_detail-subtle folder_detail-tab', view === key && 'folder_detail-tab--active')}
-              >
+              <Tab key={key} active={view === key} onClick={() => navigate(`/folders/${folderId}?view=${key}`)}>
                 <Icon className="folder_detail-icon--sm" />
                 {label}
-              </Button>
+              </Tab>
             ))}
-          </div>
+          </Tabs>
           <div className="folder_detail-actions">
             {(view === 'board' || view === 'list') && canWriteWorkspace(workspace?.role) && (
               <Button
+                variant="muted"
                 onClick={() => setShowStatuses(true)}
-                className="folder_detail-subtle folder_detail-action"
+                className="folder_detail-action"
                 title="Rename and recolor the statuses"
               >
                 <Palette className="folder_detail-icon--sm" />
@@ -443,8 +435,9 @@ export default function FolderDetailScreen() {
               </Button>
             )}
             <Button
+              variant="muted"
               onClick={() => updateFolder.mutate({ id: folderId, archived: !folder.archived })}
-              className="folder_detail-subtle folder_detail-action"
+              className="folder_detail-action"
             >
               {folder.archived ? <ArchiveRestore className="folder_detail-icon--sm" /> : <Archive className="folder_detail-icon--sm" />}
               {folder.archived ? 'Unarchive' : 'Archive'}

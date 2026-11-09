@@ -19,11 +19,6 @@
       font-weight: 600;
     }
 
-    @at-root .planning-tabs {
-      display: flex;
-      gap: space(1);
-    }
-
     @at-root .planning-body {
       flex: 1 1 0%;
       overflow-y: auto;
@@ -39,33 +34,9 @@
     }
 
     /* Overrides of ui components use two classes to beat their base styles. */
-    .planning-tab {
-      padding: space(1) space(3);
-      white-space: nowrap;
-      border-radius: radius('md');
-      color: color(muted-foreground);
-      @include text('sm');
-
-      &:hover {
-        color: color(foreground);
-        background: color(accent, 0.5);
-      }
-
-      &--active,
-      &--active:hover {
-        background: color(accent);
-        color: color(foreground);
-      }
-    }
-
     .planning-clear_filter {
-      color: color(muted-foreground);
       text-decoration: underline;
       @include text('xs');
-
-      &:hover {
-        color: color(foreground);
-      }
     }
 
     .planning-new {
@@ -186,14 +157,10 @@
       }
     }
 
+    // An IconButton (muted, red on hover) that shows when its card is hovered.
     .planning-card-delete {
       flex-shrink: 0;
-      color: color(muted-foreground);
       @include reveal-on-hover;
-
-      &:hover {
-        color: palette('red-500');
-      }
     }
 
     @at-root .planning-card:hover .planning-card-delete {

@@ -90,9 +90,9 @@
       user-select: none;
     }
 
+    // A filled IconButton; this sets its size.
     @at-root .folder_item-actions {
-      @include fm.icon_action;
-
+      padding: space(0.5);
       flex-shrink: 0;
       cursor: pointer;
 

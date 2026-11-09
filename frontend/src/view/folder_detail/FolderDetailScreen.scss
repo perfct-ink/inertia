@@ -70,15 +70,6 @@
       }
     }
 
-    /* Quiet text-only / icon-only buttons. */
-    @at-root .folder_detail-subtle {
-      color: color(muted-foreground);
-
-      &:hover:not(:disabled) {
-        color: color(foreground);
-      }
-    }
-
     @at-root .folder_detail-shrink {
       flex-shrink: 0;
     }
@@ -148,32 +139,16 @@
     }
 
     @at-root .folder_detail-tabs {
-      display: flex;
       flex-wrap: wrap;
-      gap: space(1);
       margin-left: space(2);
     }
 
-    @at-root .folder_detail-tab {
-      display: flex;
-      align-items: center;
-      gap: space(1.5);
-      padding: space(1) space(3);
-      border-radius: radius('md');
-      white-space: nowrap;
-      @include text('sm');
-
-      &--compact {
-        display: block;
-        padding: space(0.5) space(2);
-        border-radius: radius('default');
-        @include text('xs');
-      }
-
-      &--active {
-        background: color(accent);
-        color: color(foreground);
-      }
+    // The depth choices of the list view: a smaller Tab.
+    @at-root .folder_detail-tab--compact {
+      display: block;
+      padding: space(0.5) space(2);
+      border-radius: radius('default');
+      @include text('xs');
     }
 
     @at-root .folder_detail-actions {

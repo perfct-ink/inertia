@@ -85,27 +85,6 @@
       font-weight: 600;
     }
 
-    @at-root .events-switcher {
-      display: flex;
-      gap: space(1);
-    }
-
-    & .events-switch {
-      display: flex;
-      align-items: center;
-      gap: space(1.5);
-      padding: space(1) space(3);
-      border-radius: radius('md');
-      @include text('sm');
-      @include muted-link;
-
-      &--active,
-      &--active:hover {
-        background: color(accent);
-        color: color(foreground);
-      }
-    }
-
     & .events-new {
       display: flex;
       align-items: center;
@@ -277,7 +256,6 @@
 
     & .events-close {
       flex-shrink: 0;
-      @include muted-link;
 
       &--end {
         margin-left: space(2);
@@ -290,7 +268,6 @@
       gap: space(1.5);
       padding: space(1) 0;
       @include text('xs');
-      @include muted-link;
     }
 
     & .events-delete {
@@ -335,13 +312,7 @@
 
     & .events-task_remove {
       flex-shrink: 0;
-      color: color(muted-foreground);
       @include reveal-on-hover;
-
-
-      &:hover {
-        color: palette('red-500');
-      }
     }
 
     .events-task:hover .events-task_remove,
@@ -378,11 +349,6 @@
         gap: space(2);
         cursor: pointer;
       }
-
-      &-types {
-        display: flex;
-        gap: space(2);
-      }
     }
 
     & .events-field_input {
@@ -409,27 +375,6 @@
 
     & .events-check {
       border-radius: radius('default');
-    }
-
-    & .events-type_option {
-      display: flex;
-      flex: 1 1 0%;
-      align-items: center;
-      justify-content: center;
-      gap: space(1.5);
-      padding: space(1) space(2);
-      border-width: 1px;
-      border-color: color(border);
-      border-radius: radius('md');
-      @include text('xs');
-      @include muted-link;
-
-      &--active,
-      &--active:hover {
-        border-color: color(accent-foreground, 0.2);
-        background: color(accent);
-        color: color(foreground);
-      }
     }
 
     & .events-create {
@@ -489,12 +434,6 @@
 
     & .events-nav_button {
       padding: space(1);
-      border-radius: radius('default');
-      @include muted-link;
-
-      &:hover {
-        background: color(accent);
-      }
     }
 
     & .events-today {
@@ -502,7 +441,6 @@
       padding: space(1) space(2);
       border-radius: radius('default');
       @include text('xs');
-      @include muted-link;
 
       &:hover {
         background: color(accent);

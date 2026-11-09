@@ -1,7 +1,7 @@
 import { flattenFolders } from '@/data/folder'
 import { WorkspaceSwitcher } from '@/components/workspace/WorkspaceSwitcher'
 import { TransferHost } from '@/components/workspace/TransferDialog'
-import { Button, Input, Select, DatePicker, Menu } from '@/components/ui'
+import { Button, IconButton, Input, Select, DatePicker, Menu } from '@/components/ui'
 import './Sidebar.scss'
 import { useState, useRef, useEffect } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
@@ -273,14 +273,14 @@ export default function Sidebar() {
                   >
                     <Folder className="sidebar-icon--sm sidebar-icon--muted sidebar-icon--shrink" />
                     <span className="sidebar-item_label">{folder.name}</span>
-                    <Button
+                    <IconButton
                       onClick={(e) => { e.stopPropagation(); pinFolder.mutate({ id: folder.id, pinned: false }) }}
                       className="sidebar-unpin"
                       title="Unpin"
-                      aria-label="Unpin"
+                      label="Unpin"
                     >
                       <Pin className="sidebar-icon--xs" />
-                    </Button>
+                    </IconButton>
                   </Button>
                 )
               })}
@@ -299,14 +299,14 @@ export default function Sidebar() {
                       : <FileText className="sidebar-icon--sm sidebar-icon--muted sidebar-icon--shrink" />
                     }
                     <span className="sidebar-item_label">{doc.title}</span>
-                    <Button
+                    <IconButton
                       onClick={(e) => { e.stopPropagation(); pinDocument.mutate({ id: doc.id, pinned: false }) }}
                       className="sidebar-unpin"
                       title="Unpin"
-                      aria-label="Unpin"
+                      label="Unpin"
                     >
                       <Pin className="sidebar-icon--xs" />
-                    </Button>
+                    </IconButton>
                   </Button>
                 )
               })}

@@ -191,6 +191,7 @@ function EpicPlanner({ epic, tasks }: { epic: Epic; tasks: Task[] }) {
                     label={`Remove ${task.title} from the epic`}
                     title="Remove from the epic"
                     tone="danger"
+                    fill
                     className="epic_plan-icon_button"
                   >
                     <X aria-hidden="true" />
@@ -209,6 +210,7 @@ function EpicPlanner({ epic, tasks }: { epic: Epic; tasks: Task[] }) {
                 onClick={() => move(task, task.status)}
                 label={`Add ${task.title} to the epic`}
                 title="Add to the epic"
+                fill
                 className="epic_plan-icon_button"
               >
                 <Plus aria-hidden="true" />

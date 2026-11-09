@@ -199,11 +199,6 @@ $shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
 
     @at-root .sidebar-unpin {
       display: none;
-      color: color(muted-foreground);
-
-      &:hover {
-        color: color(foreground);
-      }
     }
 
     @at-root .sidebar-pinned_item:hover .sidebar-unpin {
@@ -249,13 +244,7 @@ $shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
 
     @at-root .sidebar-unarchive {
       flex-shrink: 0;
-      color: color(muted-foreground);
       @include reveal-on-hover;
-
-
-      &:hover {
-        color: color(foreground);
-      }
     }
 
     @at-root .sidebar-archived_row:hover .sidebar-unarchive {

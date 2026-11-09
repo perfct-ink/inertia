@@ -29,4 +29,22 @@
       color: color(foreground);
     }
   }
+
+  // Segmented: every choice is a bordered box sharing the row's width.
+  .ui-tabs--segmented {
+    gap: space(2);
+
+    .ui-tab {
+      flex: 1 1 0%;
+      justify-content: center;
+      padding: space(1) space(2);
+      border: 1px solid color(border);
+      @include text('xs');
+
+      &--active,
+      &--active:hover:not(:disabled) {
+        border-color: color(accent-foreground, 0.2);
+      }
+    }
+  }
 }

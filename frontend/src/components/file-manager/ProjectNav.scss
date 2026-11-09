@@ -39,8 +39,9 @@
     gap: space(0.5);
   }
 
+  // The tools and the action are filled IconButtons; this sets their size.
   .project_nav-tool {
-    @include fm.icon_action;
+    padding: space(0.5);
 
     &--active {
       background: color(accent);
@@ -117,7 +118,7 @@
   }
 
   .project_nav-action {
-    @include fm.icon_action;
+    padding: space(0.5);
     @include reveal-on-hover;
 
     flex-shrink: 0;

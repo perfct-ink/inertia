@@ -1,4 +1,4 @@
-import { Button, Input } from '@/components/ui'
+import { Button, IconButton, Input } from '@/components/ui'
 import { Database } from 'lucide-react'
 import { useState, useRef, useEffect } from 'react'
 import { useNavigate, useLocation, Link } from 'react-router-dom'
@@ -54,7 +54,8 @@ function ContextMenu({ x, y, items, onClose }: { x: number; y: number; items: Me
 // matching the row's existing group-hover affordances.
 function ActionsButton({ onOpen }: { onOpen: (pos: { x: number; y: number }) => void }) {
   return (
-    <Button
+    <IconButton
+      fill
       onClick={(e) => {
         e.preventDefault()
         e.stopPropagation()
@@ -62,11 +63,11 @@ function ActionsButton({ onOpen }: { onOpen: (pos: { x: number; y: number }) => 
         onOpen({ x: rect.right, y: rect.bottom + 4 })
       }}
       title="More actions"
-      aria-label="More actions"
+      label="More actions"
       className="folder_item-actions"
     >
       <MoreVertical className="folder_item-icon--sm" />
-    </Button>
+    </IconButton>
   )
 }
 

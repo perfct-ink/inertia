@@ -1,13 +1,5 @@
 @use 'tokens' as *;
 
-@mixin icon_button_danger {
-  color: color(muted-foreground);
-
-  &:hover {
-    color: palette('red-500');
-  }
-}
-
 @layer app.components {
   .view-table_editor {
     display: flex;
@@ -45,24 +37,12 @@
     }
 
     @at-root .table_editor-modes {
-      display: flex;
-      gap: space(1);
       padding: space(3) space(6) 0;
     }
 
+    // Grid and Map are Tabs; this keeps them a 40px tap target.
     & .table_editor-mode_button {
-      display: flex;
-      align-items: center;
-      gap: space(1.5);
       min-height: space(10);
-      padding: space(1) space(3);
-      border-radius: radius('md');
-      @include text('sm');
-
-      &:hover:not(:disabled),
-      &--active {
-        background: color(accent);
-      }
     }
 
     @at-root .table_editor-mode_icon {
@@ -210,9 +190,8 @@
       color: color(muted-foreground);
     }
 
+    // Delete buttons are IconButtons (muted, red on hover); this only places them.
     & .table_editor-icon_button {
-      @include icon_button_danger;
-
       &--column {
         margin-left: auto;
       }
@@ -221,16 +200,10 @@
         padding: space(1.5);
       }
 
-      // Adds a field; not destructive, so it takes the accent on hover.
+      // Adds a field; not destructive, so a filled IconButton in its muted tone.
       &--add {
         display: flex;
         padding: space(1.5);
-        border-radius: radius();
-
-        &:hover:not(:disabled) {
-          background: color(accent);
-          color: color(foreground);
-        }
       }
     }
 
