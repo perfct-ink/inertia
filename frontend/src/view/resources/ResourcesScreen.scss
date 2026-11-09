@@ -70,7 +70,7 @@
 
       .resources-icon {
         margin-top: space(0.5);
-        color: color(danger);
+        color: color(status-red-text);
       }
     }
 
@@ -211,7 +211,7 @@
       }
 
       &--over &-note {
-        color: color(danger);
+        color: color(status-red-text);
         font-weight: 600;
       }
     }

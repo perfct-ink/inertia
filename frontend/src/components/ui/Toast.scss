@@ -19,18 +19,14 @@
     gap: space(2);
     padding: space(3);
     border-width: 1px;
-    border-color: palette('red-200');
+    border-color: color(status-red, 0.3);
     border-radius: radius('lg');
-    background: palette('red-50');
-    color: palette('red-900');
+
+    // Opaque: a toast floats over other content.
+    background: tint(status-red, 0.1);
+    color: color(status-red-text);
     box-shadow: 0 10px 15px -3px rgb(0, 0, 0, 0.1), 0 4px 6px -4px rgb(0, 0, 0, 0.1);
     @include text('sm');
-
-    @include dark {
-      border-color: palette('red-900');
-      background: palette('red-950');
-      color: palette('red-200');
-    }
 
     &-message {
       flex: 1 1 0%;

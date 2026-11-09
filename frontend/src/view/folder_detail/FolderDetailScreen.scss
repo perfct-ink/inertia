@@ -76,11 +76,11 @@
       border-radius: radius('full');
 
       &--milestone {
-        background: palette('purple-500');
+        background: color(status-purple);
       }
 
       &--event {
-        background: palette('orange-500');
+        background: color(status-orange);
       }
     }
 

@@ -19,7 +19,7 @@
     }
 
     @at-root .document_summary-overdue {
-      color: palette('red-500');
+      color: color(status-red-text);
       font-weight: 600;
     }
 

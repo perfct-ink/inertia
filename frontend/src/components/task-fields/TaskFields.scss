@@ -120,12 +120,12 @@
 
       &:hover:not(:disabled) {
         background: color(accent);
-        color: palette('yellow-500');
+        color: color(status-yellow);
       }
 
       &--on,
       &--on:hover:not(:disabled) {
-        color: palette('yellow-500');
+        color: color(status-yellow);
       }
 
       &--on .task_fields-icon {

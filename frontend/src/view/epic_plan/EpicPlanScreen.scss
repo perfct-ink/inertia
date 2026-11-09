@@ -98,7 +98,7 @@
     }
 
     @at-root .epic_plan-warning {
-      color: palette('orange-500');
+      color: color(status-orange-text);
       @include text('xs');
     }
 

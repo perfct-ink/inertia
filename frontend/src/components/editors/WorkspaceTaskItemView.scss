@@ -64,7 +64,7 @@
       flex-wrap: wrap;
       align-items: center;
       gap: space(2);
-      color: palette('red-500');
+      color: color(status-red-text);
       @include text('xs');
     }
 

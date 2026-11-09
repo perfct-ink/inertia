@@ -12,7 +12,7 @@
 
 @mixin error_text {
   padding: space(2) space(3);
-  color: palette('red-500');
+  color: color(status-red-text);
   @include text('xs');
 }
 
@@ -28,14 +28,10 @@
 }
 
 @mixin danger_hover {
-  color: palette('red-500');
+  color: color(status-red-text);
 
   &:hover {
-    background: palette('red-50');
-
-    @include dark {
-      background: palette('red-950');
-    }
+    background: color(status-red, 0.1);
   }
 }
 

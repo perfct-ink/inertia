@@ -8,31 +8,31 @@
     border-radius: radius('full');
 
     &--gray {
-      background: palette('zinc-500');
+      background: color(status-gray);
     }
 
     &--blue {
-      background: palette('blue-500');
+      background: color(status-blue);
     }
 
     &--yellow {
-      background: palette('yellow-500');
+      background: color(status-yellow);
     }
 
     &--green {
-      background: palette('green-500');
+      background: color(status-green);
     }
 
     &--orange {
-      background: palette('orange-500');
+      background: color(status-orange);
     }
 
     &--red {
-      background: palette('red-500');
+      background: color(status-red);
     }
 
     &--purple {
-      background: palette('purple-500');
+      background: color(status-purple);
     }
   }
 }

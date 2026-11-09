@@ -21,7 +21,7 @@
     }
 
     @at-root .workload-cell--over {
-      background: palette('red-500', 0.12);
+      background: color(status-red, 0.12);
       font-weight: 600;
     }
 
@@ -30,7 +30,7 @@
       align-items: center;
       justify-content: flex-end;
       gap: space(1);
-      color: palette('red-500');
+      color: color(status-red-text);
       font-weight: 400;
       @include text('xs');
     }

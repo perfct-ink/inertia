@@ -7,7 +7,7 @@
 @layer app.ui {
   .ui-icon_button {
     &.ui-icon_button--danger:hover {
-      color: palette('red-500');
+      color: color(status-red-text);
     }
 
     &--fill {

@@ -36,18 +36,18 @@
       @include text('xs');
 
       &--pending {
-        background: palette('yellow-500', 0.15);
-        color: palette('yellow-500');
+        background: color(status-yellow, 0.15);
+        color: color(status-yellow-text);
       }
 
       &--approved {
-        background: palette('green-500', 0.15);
-        color: palette('green-500');
+        background: color(status-green, 0.15);
+        color: color(status-green-text);
       }
 
       &--declined {
-        background: palette('red-500', 0.15);
-        color: palette('red-500');
+        background: color(status-red, 0.15);
+        color: color(status-red-text);
       }
     }
 

@@ -55,7 +55,7 @@
     }
 
     @at-root .cards_view-due--overdue {
-      color: color(danger);
+      color: color(status-red-text);
       font-weight: 600;
     }
 

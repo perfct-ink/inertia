@@ -39,6 +39,58 @@
   --card: hsl(222deg 28% 13%);
 }
 
+// Status colors: task statuses, health, deadlines, errors, overdue. Inertia sits
+// on top of Volta here (Alex, 2026-11-09): red and green are Volta's danger and
+// success tokens; Volta has no others, so blue, yellow, orange, purple and gray
+// are Inertia's own, defined in this layer and not added to Volta. They follow
+// light and dark but not the accent: a red status stays red in every theme.
+//   --status-<hue>       the fill: dots, bars, borders, icons and tints,
+//                        as color(status-red) or color(status-red, 0.15). A fill
+//                        is at least 3:1 (WCAG 1.4.11) against the page, cards
+//                        and muted surfaces in light and in dark, so yellow,
+//                        orange and green are deeper in light mode (below).
+//   --status-<hue>-text  the hue as text: the fill mixed toward the theme's text
+//                        color until it reads at 4.5:1 or better (WCAG AA) on the
+//                        page, cards and its own tint up to 15% (20% for red and
+//                        purple). Mix percentages are the least that passes;
+//                        statusColors.test.ts re-checks every pair.
+:root {
+  --status-red: var(--v-color-danger);
+  // Light mode: Volta's success nudged 5% toward the text color, to clear 3:1 on
+  // the muted surface (Volta's own is 2.98 there), and a deeper yellow and
+  // orange (the old #eab308 and #f97316 were 1.92 and 2.80 on white).
+  --status-green: color-mix(in srgb, var(--v-color-success) 95%, var(--v-color-trim));
+  --status-yellow: #a67c00;
+  --status-orange: #db5e06;
+  --status-blue: #3b82f6;
+  --status-purple: #a855f7;
+  --status-gray: #71717a;
+  --status-red-text: color-mix(in srgb, var(--status-red) 80%, var(--v-color-trim));
+  --status-green-text: color-mix(in srgb, var(--status-green) 70%, var(--v-color-trim));
+  --status-yellow-text: color-mix(in srgb, var(--status-yellow) 70%, var(--v-color-trim));
+  --status-orange-text: color-mix(in srgb, var(--status-orange) 70%, var(--v-color-trim));
+  --status-blue-text: color-mix(in srgb, var(--status-blue) 65%, var(--v-color-trim));
+  --status-purple-text: color-mix(in srgb, var(--status-purple) 70%, var(--v-color-trim));
+  --status-gray-text: color-mix(in srgb, var(--status-gray) 85%, var(--v-color-trim));
+}
+
+// The text trim is light in dark mode, so the same mix lightens the hue instead
+// of darkening it. The dark fills are the brighter ones (Volta's own green, the
+// original yellow and orange): they are 3.28:1 or better on the dark surfaces,
+// and yellow and orange already read as text there.
+@include volta.dark-scheme {
+  --status-green: var(--v-color-success);
+  --status-yellow: #eab308;
+  --status-orange: #f97316;
+  --status-red-text: color-mix(in srgb, var(--status-red) 65%, var(--v-color-trim));
+  --status-green-text: color-mix(in srgb, var(--status-green) 85%, var(--v-color-trim));
+  --status-yellow-text: var(--status-yellow);
+  --status-orange-text: var(--status-orange);
+  --status-blue-text: color-mix(in srgb, var(--status-blue) 80%, var(--v-color-trim));
+  --status-purple-text: color-mix(in srgb, var(--status-purple) 75%, var(--v-color-trim));
+  --status-gray-text: color-mix(in srgb, var(--status-gray) 70%, var(--v-color-trim));
+}
+
 // Inertia's semantic colors, mapped onto the Volta tokens.
 :root {
   --background: var(--v-color-base);
