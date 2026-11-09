@@ -4,7 +4,7 @@ import {
   Archive, ArchiveRestore, Database, FilePlus, FolderPlus, Table as SheetIcon, ChevronsUpDown, Folder as FolderIcon, FolderKanban, FileText,
   LayoutDashboard, Plus, Smile,
 } from 'lucide-react'
-import { Button, FormError, Input, Menu, PromptDialog, classNames } from '@/components/ui'
+import { Button, FormError, IconButton, Input, Menu, PromptDialog, classNames } from '@/components/ui'
 import ProjectIcon from '@/components/project/ProjectIcon'
 import ProjectIconDialog from '@/components/project/ProjectIconDialog'
 import { useWorkspace } from '@/api/workspace'
@@ -96,9 +96,9 @@ export function ProjectNav() {
   }
 
   const iconButton = (project: Folder) => (
-    <Button title="Change icon" aria-label={`Change icon for ${project.name}`} onClick={() => setIconFor(project)} className="project_nav-action">
+    <IconButton fill title="Change icon" label={`Change icon for ${project.name}`} onClick={() => setIconFor(project)} className="project_nav-action">
       <Smile className="project_nav-icon" />
-    </Button>
+    </IconButton>
   )
 
   return (
@@ -158,18 +158,18 @@ export function ProjectNav() {
                 All files
               </Button>
               <div className="project_nav-tools">
-                <Button title={`New document (${shortcutLabel('⌘N')})`} aria-label="New document" onClick={() => createIn(openProject, 'document')} className="project_nav-tool">
+                <IconButton fill title={`New document (${shortcutLabel('⌘N')})`} label="New document" onClick={() => createIn(openProject, 'document')} className="project_nav-tool">
                   <FilePlus className="project_nav-icon" />
-                </Button>
-                <Button title={`New sheet (${shortcutLabel('⌘⇧N')})`} aria-label="New sheet" onClick={() => createIn(openProject, 'spreadsheet')} className="project_nav-tool">
+                </IconButton>
+                <IconButton fill title={`New sheet (${shortcutLabel('⌘⇧N')})`} label="New sheet" onClick={() => createIn(openProject, 'spreadsheet')} className="project_nav-tool">
                   <SheetIcon className="project_nav-icon" />
-                </Button>
-                <Button title="New Collection" aria-label="New Collection" onClick={() => createIn(openProject, 'table')} className="project_nav-tool">
+                </IconButton>
+                <IconButton fill title="New Collection" label="New Collection" onClick={() => createIn(openProject, 'table')} className="project_nav-tool">
                   <Database className="project_nav-icon" />
-                </Button>
-                <Button title="New folder" aria-label="New folder" onClick={() => setAddingFolder(true)} className="project_nav-tool">
+                </IconButton>
+                <IconButton fill title="New folder" label="New folder" onClick={() => setAddingFolder(true)} className="project_nav-tool">
                   <FolderPlus className="project_nav-icon" />
-                </Button>
+                </IconButton>
               </div>
             </div>
             <FormError message={error} />
@@ -197,21 +197,21 @@ export function ProjectNav() {
           <div className="project_nav-bar">
             <Button onClick={() => navigate('/space')} className="project_nav-label">Projects</Button>
             <div className="project_nav-tools">
-              <Button title="All files" aria-label="All files" onClick={() => { selectProject(null); navigate('/documents') }} className={classNames('project_nav-tool', location.pathname === '/documents' && 'project_nav-tool--active')}>
+              <IconButton fill title="All files" label="All files" onClick={() => { selectProject(null); navigate('/documents') }} className={classNames('project_nav-tool', location.pathname === '/documents' && 'project_nav-tool--active')}>
                 <FileText className="project_nav-icon" />
-              </Button>
-              <Button
+              </IconButton>
+              <IconButton fill
                 title={showArchived ? 'Show projects' : 'Show archived'}
-                aria-label={showArchived ? 'Show projects' : 'Show archived'}
+                label={showArchived ? 'Show projects' : 'Show archived'}
                 aria-pressed={showArchived}
                 onClick={() => setShowArchived((on) => !on)}
                 className={classNames('project_nav-tool', showArchived && 'project_nav-tool--active')}
               >
                 <Archive className="project_nav-icon" />
-              </Button>
-              <Button title="New project" aria-label="New project" onClick={() => setAdding(true)} className="project_nav-tool">
+              </IconButton>
+              <IconButton fill title="New project" label="New project" onClick={() => setAdding(true)} className="project_nav-tool">
                 <Plus className="project_nav-icon" />
-              </Button>
+              </IconButton>
             </div>
           </div>
 
@@ -242,9 +242,9 @@ export function ProjectNav() {
                 <div key={folder.id} className="sidebar-archived_row">
                   {folder.kind === 'project' ? <ProjectIcon project={folder} /> : <FolderIcon className="project_nav-icon" />}
                   <Button onClick={() => navigate(paths.folder(folder.id))} className="sidebar-archived_open">{folder.name}</Button>
-                  <Button onClick={() => updateFolder.mutate({ id: folder.id, archived: false })} title="Unarchive" aria-label={`Unarchive ${folder.name}`} className="sidebar-unarchive">
+                  <IconButton onClick={() => updateFolder.mutate({ id: folder.id, archived: false })} title="Unarchive" label={`Unarchive ${folder.name}`} className="sidebar-unarchive">
                     <ArchiveRestore className="project_nav-icon" />
-                  </Button>
+                  </IconButton>
                 </div>
               ))}
             </div>

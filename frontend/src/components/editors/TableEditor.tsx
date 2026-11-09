@@ -1,4 +1,4 @@
-import { Button, Input, Select, Textarea, FormError, ConfirmDialog, Modal, classNames } from '@/components/ui'
+import { Button, IconButton, Input, Select, Textarea, FormError, ConfirmDialog, Modal, Tab, Tabs } from '@/components/ui'
 import { useEffect, useMemo, useState } from 'react'
 import { useQueries } from '@tanstack/react-query'
 import { Database, Loader2, Map as MapIcon, Pencil, Plus, Table as TableIcon, Trash2 } from 'lucide-react'
@@ -67,7 +67,7 @@ function RecordRow({ record, fields, relations, files, people, busy, onSave, onD
     <td className="table_editor-cell table_editor-cell--actions">
       <div className="table_editor-cell_actions">
         <Button variant="secondary" disabled={busy || (!!record && !dirty)} onClick={save} className="table_editor-save_button">{record ? 'Save' : 'Add record'}</Button>
-        {record && <Button aria-label={`Delete record ${record.id}`} disabled={busy} onClick={onDelete} className="table_editor-icon_button table_editor-icon_button--row"><Trash2 className="table_editor-icon_button_icon" /></Button>}
+        {record && <IconButton tone="danger" label={`Delete record ${record.id}`} disabled={busy} onClick={onDelete} className="table_editor-icon_button table_editor-icon_button--row"><Trash2 className="table_editor-icon_button_icon" /></IconButton>}
       </div>
       <FormError message={error} className="table_editor-row_error" />
     </td>
@@ -157,17 +157,17 @@ export default function TableEditor({ doc }: { doc: Document }) {
         <Input aria-label="Collection title" className="table_editor-title" value={title} onChange={e => setTitle(e.target.value)} onBlur={rename} onKeyDown={e => { if (e.key === 'Enter') e.currentTarget.blur() }} />
         <Button variant="secondary" disabled={busy} onClick={() => fieldForm()} className="table_editor-add_field_button">Add field</Button>
       </div>
-      {data && data.fields.length > 0 && <div className="table_editor-modes" role="group" aria-label="Collection view">
-        {([['grid', 'Grid', TableIcon], ['map', 'Map', MapIcon]] as const).map(([key, label, Icon]) => <Button key={key} aria-pressed={mode === key} onClick={() => setMode(key)}
-          className={classNames('table_editor-mode_button', mode === key && 'table_editor-mode_button--active')}><Icon className="table_editor-mode_icon" aria-hidden="true" />{label}</Button>)}
-      </div>}
+      {data && data.fields.length > 0 && <Tabs label="Collection view" className="table_editor-modes">
+        {([['grid', 'Grid', TableIcon], ['map', 'Map', MapIcon]] as const).map(([key, label, Icon]) => <Tab key={key} active={mode === key} onClick={() => setMode(key)}
+          className="table_editor-mode_button"><Icon className="table_editor-mode_icon" aria-hidden="true" />{label}</Tab>)}
+      </Tabs>}
       <div className="table_editor-summary">{data?.records.length ?? 0} records · {data?.fields.length ?? 0} fields · Dates and times use UTC. Save each record after editing.</div>
       <FormError message={error || (loadError ? errorMessage(loadError) : null)} className="table_editor-error" />
       {isLoading ? <Loader2 className="table_editor-spinner" /> : data && mode === 'map' ? <CollectionMap data={data} people={peopleNames} /> : data && <div className="table_editor-grid">
         <table className="table_editor-table">
           <thead className="table_editor-table_head"><tr><th className="table_editor-column_head table_editor-column_head--id">Record ID</th>
-            {data.fields.map(field => <th key={field.id} className="table_editor-column_head"><div className="table_editor-column_head_main"><Button onClick={() => fieldForm(field)} className="table_editor-column_name_button"><span>{field.name}</span><Pencil className="table_editor-column_edit_icon" /></Button><Button aria-label={`Delete field ${field.name}`} disabled={busy} onClick={() => remove(`fields/${field.id}`, `Delete “${field.name}” and all its values?`)} className="table_editor-icon_button table_editor-icon_button--column"><Trash2 className="table_editor-icon_button_icon table_editor-icon_button_icon--sm" /></Button></div><span className="table_editor-column_type">{fieldTypeText(field)}{field.unit ? ` (${field.unit})` : ''}{field.relation_table_id ? ` → ${tables.find(t => t.id === field.relation_table_id)?.title ?? 'Table'}` : ''}</span>{field.formula && <code className="table_editor-column_formula" title={field.formula}>= {field.formula}</code>}</th>)}
-            <th className="table_editor-column_head table_editor-column_head--add"><Button aria-label="New field" title="Add field" disabled={busy} onClick={() => fieldForm()} className="table_editor-icon_button table_editor-icon_button--add"><Plus className="table_editor-icon_button_icon" /></Button></th>
+            {data.fields.map(field => <th key={field.id} className="table_editor-column_head"><div className="table_editor-column_head_main"><Button onClick={() => fieldForm(field)} className="table_editor-column_name_button"><span>{field.name}</span><Pencil className="table_editor-column_edit_icon" /></Button><IconButton tone="danger" label={`Delete field ${field.name}`} disabled={busy} onClick={() => remove(`fields/${field.id}`, `Delete “${field.name}” and all its values?`)} className="table_editor-icon_button table_editor-icon_button--column"><Trash2 className="table_editor-icon_button_icon table_editor-icon_button_icon--sm" /></IconButton></div><span className="table_editor-column_type">{fieldTypeText(field)}{field.unit ? ` (${field.unit})` : ''}{field.relation_table_id ? ` → ${tables.find(t => t.id === field.relation_table_id)?.title ?? 'Table'}` : ''}</span>{field.formula && <code className="table_editor-column_formula" title={field.formula}>= {field.formula}</code>}</th>)}
+            <th className="table_editor-column_head table_editor-column_head--add"><IconButton fill label="New field" title="Add field" disabled={busy} onClick={() => fieldForm()} className="table_editor-icon_button table_editor-icon_button--add"><Plus className="table_editor-icon_button_icon" /></IconButton></th>
             <th className="table_editor-column_head table_editor-column_head--actions">Actions</th>
           </tr></thead>
           <tbody>{data.fields.length === 0 && <tr><td colSpan={3} className="table_editor-cell table_editor-cell--empty">Add a field to start: text, numbers, dates, booleans, files, a relation to another Collection, or a formula.</td></tr>}

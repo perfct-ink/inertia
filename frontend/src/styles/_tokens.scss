@@ -237,7 +237,8 @@ $breakpoints: (
 $select-chevron-room: space(6);
 
 // A compact field drawn as an underline (dates, statuses and pickers inside
-// cards). Views include it on a class added to a ui Input or Select.
+// cards): the look of `variant="underline"` on the ui Input, Select and
+// Textarea, which include it. Views don't; they pass the variant.
 @mixin field-underline {
   width: auto;
   min-height: 0;
@@ -247,30 +248,13 @@ $select-chevron-room: space(6);
   border-radius: 0;
   background-color: transparent;
 
-  &.ui-date_picker-input,
-  &.ui-select {
-    cursor: pointer;
-  }
-
-  // The calendar mark is for full-size fields.
-  &.ui-date_picker-input {
-    padding-right: 0;
-    background-image: none;
-  }
-
   &:hover:not(:disabled) {
     border-color: color(muted-foreground);
     background-color: transparent;
   }
 
-  &:focus,
-  &.ui-select:focus-within {
+  &:focus {
     border-color: color(primary);
-  }
-
-  &.ui-select {
-    padding-right: space(4);
-    background-position: calc(100% - 6px) 50%, calc(100% - 1px) 50%;
   }
 }
 
@@ -297,6 +281,12 @@ $select-chevron-room: space(6);
   @include up('md') {
     padding: space(6);
   }
+}
+
+// Width and height of an icon or other square mark, e.g. icon-size(space(4)).
+@mixin icon-size($size) {
+  width: $size;
+  height: $size;
 }
 
 // Muted text/icon that turns to full foreground on hover.

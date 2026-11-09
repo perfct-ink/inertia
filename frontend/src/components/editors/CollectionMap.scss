@@ -105,8 +105,7 @@ $tile-size: 256px;
       display: flex;
       align-items: flex-end;
       justify-content: center;
-      width: space(11);
-      height: space(11);
+      @include icon-size(space(11));
       padding: 0;
       color: color(primary);
       transform: translate(-50%, -100%);
@@ -125,8 +124,7 @@ $tile-size: 256px;
     }
 
     @at-root .collection_map-pin_icon {
-      width: space(8);
-      height: space(8);
+      @include icon-size(space(8));
       fill: var(--pin-fill);
       filter: drop-shadow(0 1px 1px rgb(0 0 0 / 0.35));
       @include transition(fill);
@@ -151,8 +149,7 @@ $tile-size: 256px;
     }
 
     @at-root .collection_map-control_icon {
-      width: space(4);
-      height: space(4);
+      @include icon-size(space(4));
     }
 
     /* ── The selected pin's details ──────────────────────────────────────────── */
@@ -195,8 +192,7 @@ $tile-size: 256px;
       flex-shrink: 0;
       align-items: center;
       justify-content: center;
-      width: space(10);
-      height: space(10);
+      @include icon-size(space(10));
       margin: calc(-1 * #{space(2.5)}) calc(-1 * #{space(2.5)}) calc(-1 * #{space(2.5)}) 0;
       border-radius: radius('md');
       color: color(muted-foreground);
@@ -208,8 +204,7 @@ $tile-size: 256px;
     }
 
     @at-root .collection_map-callout_close_icon {
-      width: space(4);
-      height: space(4);
+      @include icon-size(space(4));
     }
 
     @at-root .collection_map-callout_place {
@@ -256,8 +251,7 @@ $tile-size: 256px;
     }
 
     @at-root .collection_map-link_icon {
-      width: space(3);
-      height: space(3);
+      @include icon-size(space(3));
     }
 
     /* ── Side panel ──────────────────────────────────────────────────────────── */
@@ -364,8 +358,7 @@ $tile-size: 256px;
 
     @at-root .collection_map-empty_icon {
       display: block;
-      width: space(8);
-      height: space(8);
+      @include icon-size(space(8));
       margin: 0 auto space(3);
       color: color(muted-foreground);
     }

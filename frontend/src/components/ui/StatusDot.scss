@@ -4,8 +4,7 @@
   .ui-status_dot {
     display: inline-block;
     flex-shrink: 0;
-    width: space(2);
-    height: space(2);
+    @include icon-size(space(2));
     border-radius: radius('full');
 
     &--gray {

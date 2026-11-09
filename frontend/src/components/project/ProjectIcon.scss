@@ -11,14 +11,12 @@
     user-select: none;
 
     &--sm {
-      width: space(4.5);
-      height: space(4.5);
+      @include icon-size(space(4.5));
       font-size: 0.875rem;
     }
 
     &--lg {
-      width: space(8);
-      height: space(8);
+      @include icon-size(space(8));
       border-radius: radius('md');
       font-size: 1.375rem;
     }

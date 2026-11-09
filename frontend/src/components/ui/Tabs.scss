@@ -1,0 +1,74 @@
+@use 'tokens' as *;
+
+// Quiet text tabs: muted until hovered, a filled pill for the one that is
+// showing. Views set a Tab's size or spacing with their own class (a later
+// cascade layer), never its colors.
+@layer app.ui {
+  .ui-tabs {
+    display: flex;
+    gap: space(1);
+  }
+
+  .ui-tab {
+    display: flex;
+    align-items: center;
+    gap: space(1.5);
+    padding: space(1) space(3);
+    border-radius: radius('md');
+    white-space: nowrap;
+    @include text('sm');
+    @include muted-link;
+
+    &:hover:not(:disabled) {
+      background: color(accent, 0.5);
+    }
+
+    &--active,
+    &--active:hover:not(:disabled) {
+      background: color(accent);
+      color: color(foreground);
+    }
+  }
+
+  // Segmented: a shaded tray, the chosen tab raised like a card; the tabs share
+  // the tray's width and only their text reacts to the pointer.
+  .ui-tabs--segmented {
+    padding: space(0.5);
+    border-radius: radius('lg');
+    background: color(muted);
+
+    .ui-tab {
+      flex: 1 1 0%;
+      justify-content: center;
+      padding: space(1.5) 0;
+
+      &:hover:not(:disabled) {
+        background: transparent;
+      }
+
+      &--active,
+      &--active:hover:not(:disabled) {
+        background: color(card);
+        box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+      }
+    }
+  }
+
+  // Outlined: every choice is a bordered box sharing the row's width.
+  .ui-tabs--outlined {
+    gap: space(2);
+
+    .ui-tab {
+      flex: 1 1 0%;
+      justify-content: center;
+      padding: space(1) space(2);
+      border: 1px solid color(border);
+      @include text('xs');
+
+      &--active,
+      &--active:hover:not(:disabled) {
+        border-color: color(accent-foreground, 0.2);
+      }
+    }
+  }
+}

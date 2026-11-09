@@ -13,8 +13,7 @@
     }
 
     @at-root .file_cell-thumb {
-      width: space(10);
-      height: space(10);
+      @include icon-size(space(10));
       border-radius: radius('sm');
       object-fit: cover;
     }

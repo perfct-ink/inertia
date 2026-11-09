@@ -1,8 +1,8 @@
-import { Button, Input, Select } from '@/components/ui'
+import { Button, Input, Select, SortButton, Tab, Tabs } from '@/components/ui'
 import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { format, parseISO } from 'date-fns'
-import { Loader2, ArrowUp, ArrowDown, FolderKanban } from 'lucide-react'
+import { Loader2, FolderKanban } from 'lucide-react'
 import DocTypeIcon from '@/components/DocTypeIcon'
 import { useWorkspace } from '@/api/workspace'
 import WorkspaceLayout from '@/components/WorkspaceLayout'
@@ -71,15 +71,14 @@ export default function DocumentsIndexScreen() {
   }
 
   function SortHeader({ sortKeyName, label, className }: { sortKeyName: SortKey; label: string; className?: string }) {
-    const active = sortKey === sortKeyName
     return (
-      <Button
+      <SortButton
+        direction={sortKey === sortKeyName ? sortDir : null}
         onClick={() => toggleSort(sortKeyName)}
-        className={`documents_index-sort${active ? ' documents_index-sort--active' : ''} ${className ?? ''}`}
+        className={`documents_index-sort ${className ?? ''}`}
       >
         {label}
-        {active && (sortDir === 'asc' ? <ArrowUp className="documents_index-sort_icon" /> : <ArrowDown className="documents_index-sort_icon" />)}
-      </Button>
+      </SortButton>
     )
   }
 
@@ -113,10 +112,10 @@ export default function DocumentsIndexScreen() {
               {members.map((m) => <option key={m.user_id} value={m.user_id}>{m.user.name}</option>)}
             </Select>
           </div>
-          <div className="documents_index-modes" role="group" aria-label="View">
-            <Button aria-pressed={mode === 'list'} onClick={() => setMode('list')}>List</Button>
-            <Button aria-pressed={mode === 'gallery'} onClick={() => setMode('gallery')}>Gallery</Button>
-          </div>
+          <Tabs label="View" className="documents_index-modes">
+            <Tab active={mode === 'list'} onClick={() => setMode('list')}>List</Tab>
+            <Tab active={mode === 'gallery'} onClick={() => setMode('gallery')}>Gallery</Tab>
+          </Tabs>
           {mode === 'gallery' && <FilesGallery documents={sortedDocs} />}
 
           {isLoading && (

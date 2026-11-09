@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react'
 import { Plus, X, Milestone as MilestoneIcon, Loader2 } from 'lucide-react'
-import { Button, HealthBadge, Input, Select, DatePicker } from '@/components/ui'
+import { Button, HealthBadge, IconButton, Input, Select, DatePicker } from '@/components/ui'
 import WorkspaceLayout from '@/components/WorkspaceLayout'
 import { ProgressBar } from '@/components/Timeline'
 import { useMilestones, useCreateMilestone, useUpdateMilestone, useDeleteMilestone } from '@/api/milestones'
@@ -65,13 +65,13 @@ export default function MilestonesScreen() {
                 <div className="milestones-card-top">
                   <h2 className="milestones-card-title">{milestone.title}</h2>
                   <HealthBadge health={milestone.health} />
-                  <Button
+                  <IconButton
                     onClick={() => deleteMilestone.mutate(milestone.id)}
-                    aria-label={`Delete ${milestone.title}`}
-                    className="milestones-card-delete"
+                    label={`Delete ${milestone.title}`}
+                    tone="danger"
                   >
                     <X className="milestones-icon" aria-hidden="true" />
-                  </Button>
+                  </IconButton>
                 </div>
 
                 <div className="milestones-card-fields">
@@ -80,6 +80,7 @@ export default function MilestonesScreen() {
                     <DatePicker
                       value={milestone.target_date ?? ''}
                       onChange={(e) => updateMilestone.mutate({ id: milestone.id, target_date: e.target.value || null })}
+                      variant="underline"
                       className="milestones-date"
                     />
                   </label>
@@ -88,6 +89,7 @@ export default function MilestonesScreen() {
                     <Select
                       value={milestone.status}
                       onChange={(e) => updateMilestone.mutate({ id: milestone.id, status: e.target.value as PlanningStatus })}
+                      variant="underline"
                       className="milestones-status"
                     >
                       {PLANNING_STATUSES.map((status) => <option key={status} value={status}>{status}</option>)}

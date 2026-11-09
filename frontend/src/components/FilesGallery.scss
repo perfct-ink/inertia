@@ -61,8 +61,7 @@
     }
 
     @at-root .files_gallery-icon {
-      width: space(8);
-      height: space(8);
+      @include icon-size(space(8));
       color: color(muted-foreground);
     }
 

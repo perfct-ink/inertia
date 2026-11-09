@@ -3,7 +3,7 @@ import { itemAtPath } from '@/data/path'
 import { usePaths } from '@/hooks/usePaths'
 import { WorkspaceSwitcher } from '@/components/workspace/WorkspaceSwitcher'
 import { TransferHost } from '@/components/workspace/TransferDialog'
-import { Button, Input, Select, DatePicker, Menu } from '@/components/ui'
+import { Button, IconButton, Input, Select, DatePicker, Menu, Tab, Tabs } from '@/components/ui'
 import './Sidebar.scss'
 import { useState, useRef, useEffect } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
@@ -275,14 +275,14 @@ export default function Sidebar() {
                   >
                     <Folder className="sidebar-icon--sm sidebar-icon--muted sidebar-icon--shrink" />
                     <span className="sidebar-item_label">{folder.name}</span>
-                    <Button
+                    <IconButton
                       onClick={(e) => { e.stopPropagation(); pinFolder.mutate({ id: folder.id, pinned: false }) }}
                       className="sidebar-unpin"
                       title="Unpin"
-                      aria-label="Unpin"
+                      label="Unpin"
                     >
                       <Pin className="sidebar-icon--xs" />
-                    </Button>
+                    </IconButton>
                   </Button>
                 )
               })}
@@ -301,14 +301,14 @@ export default function Sidebar() {
                       : <FileText className="sidebar-icon--sm sidebar-icon--muted sidebar-icon--shrink" />
                     }
                     <span className="sidebar-item_label">{doc.title}</span>
-                    <Button
+                    <IconButton
                       onClick={(e) => { e.stopPropagation(); pinDocument.mutate({ id: doc.id, pinned: false }) }}
                       className="sidebar-unpin"
                       title="Unpin"
-                      aria-label="Unpin"
+                      label="Unpin"
                     >
                       <Pin className="sidebar-icon--xs" />
-                    </Button>
+                    </IconButton>
                   </Button>
                 )
               })}
@@ -473,22 +473,16 @@ export default function Sidebar() {
       {quickAddOpen && (
         <div className="sidebar-overlay" onClick={() => setQuickAddOpen(false)}>
           <div className="sidebar-dialog" onClick={(e) => e.stopPropagation()}>
-            <div className="sidebar-tabs">
-              <Button
-                onClick={() => setQuickAddType('task')}
-                className={`sidebar-tab${quickAddType === 'task' ? ' sidebar-tab--active' : ''}`}
-              >
+            <Tabs label="Add" variant="segmented">
+              <Tab active={quickAddType === 'task'} onClick={() => setQuickAddType('task')}>
                 <CheckSquare className="sidebar-icon--sm" />
                 Task
-              </Button>
-              <Button
-                onClick={() => setQuickAddType('event')}
-                className={`sidebar-tab${quickAddType === 'event' ? ' sidebar-tab--active' : ''}`}
-              >
+              </Tab>
+              <Tab active={quickAddType === 'event'} onClick={() => setQuickAddType('event')}>
                 <CalendarDays className="sidebar-icon--sm" />
                 Event
-              </Button>
-            </div>
+              </Tab>
+            </Tabs>
 
             <Input
               ref={quickAddInputRef}

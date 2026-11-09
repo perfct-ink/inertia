@@ -14,8 +14,7 @@
     }
 
     @at-root .document-placeholder_icon {
-      width: space(5);
-      height: space(5);
+      @include icon-size(space(5));
       color: color(muted-foreground);
 
       &--spinning {
@@ -23,8 +22,7 @@
       }
 
       &--missing {
-        width: space(8);
-        height: space(8);
+        @include icon-size(space(8));
         opacity: 0.4;
       }
     }
@@ -64,8 +62,7 @@
     }
 
     @at-root .document-toolbar_icon {
-      width: space(4);
-      height: space(4);
+      @include icon-size(space(4));
     }
 
     @at-root .document-toolbar_style {
@@ -87,20 +84,6 @@
       flex-shrink: 0;
       margin-left: auto;
       padding-right: space(2);
-    }
-
-    @at-root .document-status_spinner {
-      width: space(3.5);
-      height: space(3.5);
-      color: color(muted-foreground);
-      @include spin;
-    }
-
-    @at-root .document-status_dot {
-      width: space(2);
-      height: space(2);
-      border-radius: radius('full');
-      background: color(muted-foreground, 0.6);
     }
 
     @at-root .document-editor_area {

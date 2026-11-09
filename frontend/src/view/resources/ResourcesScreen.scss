@@ -18,29 +18,8 @@
       font-weight: 600;
     }
 
-    @at-root .resources-tabs {
-      display: flex;
-      gap: space(1);
-    }
-
     @at-root .resources-tab {
       min-height: space(10);
-      padding: space(1) space(3);
-      border-radius: radius('md');
-      color: color(muted-foreground);
-      white-space: nowrap;
-      @include text('sm');
-
-      &:hover {
-        background: color(accent, 0.5);
-        color: color(foreground);
-      }
-
-      &--active,
-      &--active:hover {
-        background: color(accent);
-        color: color(foreground);
-      }
     }
 
     @at-root .resources-nav {
@@ -58,8 +37,7 @@
 
     @at-root .resources-icon {
       flex-shrink: 0;
-      width: space(4);
-      height: space(4);
+      @include icon-size(space(4));
 
       &--spin {
         @include spin;
@@ -125,8 +103,7 @@
     }
 
     @at-root .resources-empty_icon {
-      width: space(8);
-      height: space(8);
+      @include icon-size(space(8));
       opacity: 0.5;
     }
 
@@ -316,14 +293,11 @@
       width: 100%;
     }
 
+    // An IconButton (red on hover, filled box) kept at a 40px tap size.
     .resources-remove {
       min-width: space(10);
       min-height: space(10);
-      color: color(muted-foreground);
-
-      &:hover:not(:disabled) {
-        color: palette('red-500');
-      }
+      padding: space(1) space(2);
     }
   }
 }

@@ -19,11 +19,6 @@
       font-weight: 600;
     }
 
-    @at-root .planning-tabs {
-      display: flex;
-      gap: space(1);
-    }
-
     @at-root .planning-body {
       flex: 1 1 0%;
       overflow-y: auto;
@@ -39,33 +34,9 @@
     }
 
     /* Overrides of ui components use two classes to beat their base styles. */
-    .planning-tab {
-      padding: space(1) space(3);
-      white-space: nowrap;
-      border-radius: radius('md');
-      color: color(muted-foreground);
-      @include text('sm');
-
-      &:hover {
-        color: color(foreground);
-        background: color(accent, 0.5);
-      }
-
-      &--active,
-      &--active:hover {
-        background: color(accent);
-        color: color(foreground);
-      }
-    }
-
     .planning-clear_filter {
-      color: color(muted-foreground);
       text-decoration: underline;
       @include text('xs');
-
-      &:hover {
-        color: color(foreground);
-      }
     }
 
     .planning-new {
@@ -77,8 +48,7 @@
     }
 
     @at-root .planning-icon {
-      width: space(4);
-      height: space(4);
+      @include icon-size(space(4));
     }
 
     @at-root .planning-new_card {
@@ -107,8 +77,7 @@
     }
 
     @at-root .planning-spinner {
-      width: space(5);
-      height: space(5);
+      @include icon-size(space(5));
       color: color(muted-foreground);
       @include spin;
     }
@@ -127,8 +96,7 @@
     }
 
     @at-root .planning-empty_icon {
-      width: space(8);
-      height: space(8);
+      @include icon-size(space(8));
       opacity: 0.3;
     }
 
@@ -154,8 +122,7 @@
 
       &-icon {
         flex-shrink: 0;
-        width: space(4);
-        height: space(4);
+        @include icon-size(space(4));
         color: color(muted-foreground);
       }
 
@@ -186,14 +153,10 @@
       }
     }
 
+    // An IconButton (muted, red on hover) that shows when its card is hovered.
     .planning-card-delete {
       flex-shrink: 0;
-      color: color(muted-foreground);
       @include reveal-on-hover;
-
-      &:hover {
-        color: palette('red-500');
-      }
     }
 
     @at-root .planning-card:hover .planning-card-delete {
@@ -201,8 +164,7 @@
     }
 
     @at-root .planning-delete_icon {
-      width: space(3.5);
-      height: space(3.5);
+      @include icon-size(space(3.5));
     }
 
     @at-root .planning-card-dates {

@@ -1,7 +1,6 @@
 @use 'tokens' as *;
 @use 'file_manager' as fm;
 
-$shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
 $shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
 
 /* The drawer: static beside the page on md+, a slide-in overlay below. */
@@ -107,8 +106,7 @@ $shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
 
     @at-root .sidebar-logo {
       flex-shrink: 0;
-      width: space(6);
-      height: space(6);
+      @include icon-size(space(6));
     }
 
     @at-root .sidebar-workspace_name {
@@ -199,11 +197,6 @@ $shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
 
     @at-root .sidebar-unpin {
       display: none;
-      color: color(muted-foreground);
-
-      &:hover {
-        color: color(foreground);
-      }
     }
 
     @at-root .sidebar-pinned_item:hover .sidebar-unpin {
@@ -249,13 +242,7 @@ $shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
 
     @at-root .sidebar-unarchive {
       flex-shrink: 0;
-      color: color(muted-foreground);
       @include reveal-on-hover;
-
-
-      &:hover {
-        color: color(foreground);
-      }
     }
 
     @at-root .sidebar-archived_row:hover .sidebar-unarchive {
@@ -306,8 +293,7 @@ $shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
       align-items: center;
       justify-content: center;
       flex-shrink: 0;
-      width: space(8);
-      height: space(8);
+      @include icon-size(space(8));
       border-radius: radius('full');
       background: color(primary);
       color: color(primary-foreground);
@@ -426,36 +412,6 @@ $shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
       background: color(muted);
       font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
       @include text('xs');
-    }
-
-    @at-root .sidebar-tabs {
-      display: flex;
-      gap: space(1);
-      padding: space(0.5);
-      border-radius: radius('lg');
-      background: color(muted);
-    }
-
-    @at-root .sidebar-tab {
-      display: flex;
-      flex: 1 1 0%;
-      align-items: center;
-      justify-content: center;
-      gap: space(1.5);
-      padding: space(1.5) 0;
-      border-radius: radius('md');
-      color: color(muted-foreground);
-      @include text('sm');
-
-      &:hover {
-        color: color(foreground);
-      }
-
-      &--active {
-        background: color(card);
-        box-shadow: $shadow-sm;
-        color: color(foreground);
-      }
     }
   }
 

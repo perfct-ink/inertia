@@ -61,7 +61,6 @@
   }
 
   .ui-project_icon_dialog-button_icon {
-    width: space(4);
-    height: space(4);
+    @include icon-size(space(4));
   }
 }

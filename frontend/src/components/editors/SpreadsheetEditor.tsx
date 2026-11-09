@@ -1,7 +1,7 @@
 import { useState, useRef, useMemo, useEffect } from 'react'
 import { Workbook } from '@fortune-sheet/react'
 import './SpreadsheetEditor.scss'
-import { Loader2 } from 'lucide-react'
+import { SaveStatus, type SaveState } from '@/components/ui'
 import WorkspaceLayout from '@/components/WorkspaceLayout'
 import { useDocument, useUpdateDocument } from '@/api/documents'
 import { useTabsStore } from '@/store/tabs'
@@ -24,7 +24,7 @@ const EMPTY_SHEETS: Sheet[] = [
 export default function SpreadsheetEditor({ docId }: { docId: number }) {
   const { data: doc } = useDocument(docId)
   const updateDocument = useUpdateDocument()
-  const [saveStatus, setSaveStatus] = useState<'saved' | 'saving' | 'unsaved'>('saved')
+  const [saveStatus, setSaveStatus] = useState<SaveState>('saved')
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
   const pendingRef = useRef<Sheet[] | null>(null)
   const { openTab } = useTabsStore()
@@ -68,10 +68,7 @@ export default function SpreadsheetEditor({ docId }: { docId: number }) {
       <div className="view-spreadsheet">
         <div className="spreadsheet-header">
           <span className="spreadsheet-title">{doc?.title ?? 'Spreadsheet'}</span>
-          <div className="spreadsheet-status">
-            {saveStatus === 'saving' && <Loader2 className="spreadsheet-status_spinner" />}
-            {saveStatus === 'unsaved' && <div className="spreadsheet-status_dot" />}
-          </div>
+          <SaveStatus state={saveStatus} className="spreadsheet-status" />
         </div>
         <div className="spreadsheet-body">
           <Workbook

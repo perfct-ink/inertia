@@ -1,6 +1,6 @@
 import { useState } from 'react'
-import { ArrowDown, ArrowUp, Loader2, Table as TableIcon } from 'lucide-react'
-import { Button, Input, Select } from '@/components/ui'
+import { Loader2, Table as TableIcon } from 'lucide-react'
+import { Input, Select, SortHeader } from '@/components/ui'
 import WorkspaceLayout from '@/components/WorkspaceLayout'
 import { useEpics } from '@/api/epics'
 import { useSprints } from '@/api/sprints'
@@ -117,12 +117,9 @@ export default function TaskTableScreen() {
                 <thead>
                   <tr>
                     {columns.map((column) => (
-                      <th key={column} scope="col" aria-sort={sortKey === column ? (sortDir === 'asc' ? 'ascending' : 'descending') : 'none'}>
-                        <Button variant="unstyled" onClick={() => sortBy(column)}>
-                          {TASK_COLUMNS.find((c) => c.key === column)?.label}
-                          {sortKey === column && (sortDir === 'asc' ? <ArrowUp className="task_table-sort" aria-hidden="true" /> : <ArrowDown className="task_table-sort" aria-hidden="true" />)}
-                        </Button>
-                      </th>
+                      <SortHeader key={column} direction={sortKey === column ? sortDir : null} onSort={() => sortBy(column)}>
+                        {TASK_COLUMNS.find((c) => c.key === column)?.label}
+                      </SortHeader>
                     ))}
                   </tr>
                 </thead>

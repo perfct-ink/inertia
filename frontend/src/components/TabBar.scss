@@ -54,8 +54,7 @@
 
     @at-root .tab_bar-icon {
       flex-shrink: 0;
-      width: space(3.5);
-      height: space(3.5);
+      @include icon-size(space(3.5));
       opacity: 0.6;
     }
 
@@ -84,8 +83,7 @@
     }
 
     @at-root .tab_bar-close_icon {
-      width: space(3);
-      height: space(3);
+      @include icon-size(space(3));
     }
   }
 }

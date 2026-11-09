@@ -27,8 +27,7 @@
 
     &-icon {
       flex-shrink: 0;
-      width: space(8);
-      height: space(8);
+      @include icon-size(space(8));
       color: color(muted-foreground);
     }
 
@@ -72,8 +71,7 @@
 
     &-action_icon {
       flex-shrink: 0;
-      width: space(4);
-      height: space(4);
+      @include icon-size(space(4));
     }
 
     &-player {

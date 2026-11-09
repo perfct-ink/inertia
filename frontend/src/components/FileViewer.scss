@@ -41,8 +41,7 @@
     }
 
     @at-root .file_viewer-icon {
-      width: space(4);
-      height: space(4);
+      @include icon-size(space(4));
     }
 
     @at-root .file_viewer-meta {

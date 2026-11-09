@@ -26,8 +26,7 @@
 
     @at-root .projects-icon {
       flex-shrink: 0;
-      width: space(4);
-      height: space(4);
+      @include icon-size(space(4));
 
       &--spin {
         @include spin;
@@ -60,8 +59,7 @@
     }
 
     @at-root .projects-empty_icon {
-      width: space(8);
-      height: space(8);
+      @include icon-size(space(8));
       opacity: 0.5;
     }
 
@@ -129,8 +127,7 @@
 
     @at-root .projects-doc-icon {
       flex-shrink: 0;
-      width: space(4);
-      height: space(4);
+      @include icon-size(space(4));
       color: color(muted-foreground);
     }
 

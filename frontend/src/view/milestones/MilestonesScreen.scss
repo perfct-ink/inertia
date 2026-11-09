@@ -25,8 +25,7 @@
     }
 
     @at-root .milestones-icon {
-      width: space(4);
-      height: space(4);
+      @include icon-size(space(4));
 
       &--spin {
         @include spin;
@@ -59,8 +58,7 @@
     }
 
     @at-root .milestones-empty_icon {
-      width: space(8);
-      height: space(8);
+      @include icon-size(space(8));
       opacity: 0.5;
     }
 
@@ -87,14 +85,6 @@
       @include truncate;
     }
 
-    @at-root .milestones-card-delete {
-      color: color(muted-foreground);
-
-      &:hover {
-        color: palette('red-500');
-      }
-    }
-
     @at-root .milestones-card-fields {
       display: flex;
       flex-wrap: wrap;
@@ -114,11 +104,9 @@
       @include text('xs');
     }
 
-    // Compact field overrides (two classes beat the shared control styles).
+    // Compact underline fields (variant="underline"): the type size is the view's.
     .milestones-date,
     .milestones-status {
-      @include field-underline;
-
       text-transform: capitalize;
       @include text('sm');
     }

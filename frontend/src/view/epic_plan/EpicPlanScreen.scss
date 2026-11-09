@@ -59,8 +59,7 @@
 
       &_icon {
         flex-shrink: 0;
-        width: space(4);
-        height: space(4);
+        @include icon-size(space(4));
         color: color(muted-foreground);
       }
 
@@ -209,21 +208,17 @@
       }
 
       svg {
-        width: space(4);
-        height: space(4);
+        @include icon-size(space(4));
       }
 
       @media (pointer: coarse) {
-        width: space(10);
-        height: space(10);
+        @include icon-size(space(10));
       }
     }
 
-    /* Compact controls; two classes beat the shared control styles. */
+    /* Compact controls: the underline variant, in smaller type. */
     .epic_plan-status,
     .epic_plan-date {
-      @include field-underline;
-
       @include text('xs');
 
       @media (pointer: coarse) {
@@ -245,30 +240,15 @@
       flex-shrink: 0;
       align-items: center;
       justify-content: center;
-      width: space(8);
-      height: space(8);
-      border-radius: radius('md');
-      color: color(muted-foreground);
-      @include transition(color, background-color);
-
-      &:hover {
-        background: color(accent);
-        color: color(foreground);
-      }
+      @include icon-size(space(8));
 
       svg {
-        width: space(4);
-        height: space(4);
+        @include icon-size(space(4));
       }
 
       @media (pointer: coarse) {
-        width: space(10);
-        height: space(10);
+        @include icon-size(space(10));
       }
-    }
-
-    @at-root .epic_plan-remove:hover {
-      color: palette('red-500');
     }
 
     /* The task following the pointer while it is dragged. */

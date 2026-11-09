@@ -65,6 +65,12 @@
         background: color-mix(in srgb, var(--danger), black 15%);
       }
     }
+
+    // Quiet text (or an icon) that turns to full foreground on hover: "Clear",
+    // "Add task", close and step buttons. Layout and size stay with the caller.
+    &--muted {
+      @include muted-link;
+    }
   }
 
   // The same buttons drawn on an anchor (ButtonLink): centred content, no underline.

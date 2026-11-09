@@ -13,7 +13,7 @@ import {
 import { CSS } from '@dnd-kit/utilities'
 import { format, parseISO } from 'date-fns'
 import { Flag, Loader2, Map as MapIcon, Target } from 'lucide-react'
-import { Button, HealthBadge, Select, classNames } from '@/components/ui'
+import { HealthBadge, Select, Tab, Tabs, classNames } from '@/components/ui'
 import WorkspaceLayout from '@/components/WorkspaceLayout'
 import { ProgressBar } from '@/components/Timeline'
 import RoadmapTimeline from '@/components/RoadmapTimeline'
@@ -48,18 +48,13 @@ export default function RoadmapScreen() {
         <div className="planning-header">
           <h1 className="planning-title">Roadmap</h1>
           <RoadmapShare />
-          <div className="planning-tabs">
+          <Tabs label="Roadmap view">
             {(['timeline', 'board'] as View[]).map((v) => (
-              <Button
-                key={v}
-                onClick={() => navigate(`/roadmap?view=${v}`)}
-                aria-pressed={view === v}
-                className={classNames('planning-tab', view === v && 'planning-tab--active')}
-              >
+              <Tab key={v} active={view === v} onClick={() => navigate(`/roadmap?view=${v}`)}>
                 {v === 'timeline' ? 'Timeline' : 'Now / Next / Later'}
-              </Button>
+              </Tab>
             ))}
-          </div>
+          </Tabs>
         </div>
 
         <div className="planning-body">
@@ -177,6 +172,7 @@ function BoardCardView({ card, onPlace }: { card: BoardCard; onPlace: (card: Boa
         onPointerDown={(e) => e.stopPropagation()}
         onKeyDown={(e) => e.stopPropagation()}
         onChange={(e) => onPlace(card, (e.target.value || null) as RoadmapHorizon | null)}
+        variant="underline"
         className="roadmap-card-horizon"
       >
         <option value="">Automatic ({HORIZON_LABEL[effectiveHorizon({ ...item, horizon: null })]})</option>

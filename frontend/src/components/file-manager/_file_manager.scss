@@ -3,8 +3,7 @@
 /* Patterns shared by Sidebar.scss and FolderItem.scss. */
 
 @mixin icon($n, $muted: true) {
-  width: space($n);
-  height: space($n);
+  @include icon-size(space($n));
 
   @if $muted {
     color: color(muted-foreground);
@@ -25,18 +24,6 @@
 
   &:hover {
     background: color(accent);
-  }
-}
-
-/* Small icon-only button (pin, new document, more actions...). */
-@mixin icon_action {
-  padding: space(0.5);
-  border-radius: radius();
-  color: color(muted-foreground);
-
-  &:hover {
-    background: color(accent);
-    color: color(foreground);
   }
 }
 

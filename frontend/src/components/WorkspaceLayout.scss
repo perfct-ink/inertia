@@ -42,8 +42,7 @@
       }
 
       svg {
-        width: space(5);
-        height: space(5);
+        @include icon-size(space(5));
       }
     }
 

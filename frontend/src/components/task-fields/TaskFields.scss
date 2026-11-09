@@ -52,12 +52,10 @@
 
     &-icon {
       flex-shrink: 0;
-      width: space(4);
-      height: space(4);
+      @include icon-size(space(4));
 
       &--sm {
-        width: space(3);
-        height: space(3);
+        @include icon-size(space(3));
       }
     }
 
@@ -94,15 +92,9 @@
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      width: space(7);
-      height: space(7);
+      @include icon-size(space(7));
       padding: 0;
       border-radius: radius('full');
-      color: color(muted-foreground);
-
-      &:hover:not(:disabled) {
-        color: color(foreground);
-      }
     }
 
     // ── Rating ──
@@ -122,8 +114,7 @@
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      width: space(10);
-      height: space(10);
+      @include icon-size(space(10));
       border-radius: radius('md');
       color: color(muted-foreground);
 

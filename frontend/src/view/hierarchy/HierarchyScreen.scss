@@ -35,8 +35,7 @@
     }
 
     @at-root .hierarchy-spinner {
-      width: space(5);
-      height: space(5);
+      @include icon-size(space(5));
       color: color(muted-foreground);
       @include spin;
     }
@@ -106,13 +105,7 @@
       flex-shrink: 0;
       align-items: center;
       justify-content: center;
-      width: space(5);
-      height: space(5);
-      color: color(muted-foreground);
-
-      &:hover {
-        color: color(foreground);
-      }
+      @include icon-size(space(5));
     }
 
     @at-root .hierarchy-toggle_spacer {
@@ -121,8 +114,7 @@
     }
 
     @at-root .hierarchy-chevron {
-      width: space(3.5);
-      height: space(3.5);
+      @include icon-size(space(3.5));
       @include transition(transform);
 
       &--open {
@@ -131,8 +123,7 @@
     }
 
     @at-root .hierarchy-icon {
-      width: space(4);
-      height: space(4);
+      @include icon-size(space(4));
       flex-shrink: 0;
       color: color(muted-foreground);
     }
@@ -169,18 +160,11 @@
       flex-shrink: 0;
       align-items: center;
       justify-content: center;
-      width: space(8);
-      height: space(8);
+      @include icon-size(space(8));
       padding: 0;
-      color: color(muted-foreground);
-
-      &:hover:not(:disabled) {
-        color: color(foreground);
-      }
 
       @media (pointer: coarse) {
-        width: space(10);
-        height: space(10);
+        @include icon-size(space(10));
       }
     }
 
@@ -194,8 +178,7 @@
     }
 
     @at-root .hierarchy-move_icon {
-      width: space(4);
-      height: space(4);
+      @include icon-size(space(4));
     }
 
     // Labelled fields in the Move dialog.

@@ -1,0 +1,33 @@
+@use 'tokens' as *;
+
+// Layout (margin, padding, where it sits in the header) stays with the
+// caller's class; the marks and their colors are the same everywhere.
+@layer app.ui {
+  .ui-save_status {
+    position: relative;
+    display: flex;
+    align-items: center;
+
+    &-spinner {
+      @include icon-size(space(3.5));
+      color: color(muted-foreground);
+      @include spin;
+    }
+
+    &-dot {
+      @include icon-size(space(2));
+      border-radius: radius('full');
+      background: color(muted-foreground, 0.6);
+    }
+
+    // Read out, never drawn.
+    &-text {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip-path: inset(50%);
+      white-space: nowrap;
+    }
+  }
+}

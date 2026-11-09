@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { X } from 'lucide-react'
-import { Button, FormError, Input } from '@/components/ui'
+import { FormError, IconButton, Input } from '@/components/ui'
 import { useDeleteResourceAllocation, useUpdateResourceAllocation } from '@/api/resourceAllocations'
 import { allocationPeriod, formatHours, HOURS_ERROR, MAX_WEEKLY_HOURS, parseHours } from '@/data/resource'
 import type { ResourceAllocation } from '@/types'
@@ -91,15 +91,16 @@ export default function AllocationRow({ allocation, person, projectName, canMana
               className="resources-date"
             />
           </label>
-          <Button
-            variant="ghost"
-            aria-label={`Remove ${label}`}
+          <IconButton
+            tone="danger"
+            fill
+            label={`Remove ${label}`}
             title="Remove"
             onClick={() => remove.mutate(allocation.id)}
             className="resources-remove"
           >
             <X className="resources-icon" aria-hidden="true" />
-          </Button>
+          </IconButton>
         </div>
       ) : (
         <span className="resources-allocation-period">{formatHours(allocation.hours_per_week)} h/week &middot; {allocationPeriod(allocation)}</span>

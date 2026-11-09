@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react'
 import { Goal, Loader2, Pencil, Plus, X } from 'lucide-react'
-import { Button, FormError, HealthBadge, Input, Select, DatePicker, Textarea } from '@/components/ui'
+import { Button, FormError, HealthBadge, IconButton, Input, Select, DatePicker, Textarea } from '@/components/ui'
 import WorkspaceLayout from '@/components/WorkspaceLayout'
 import { ProgressBar } from '@/components/Timeline'
 import { useCreateObjective, useDeleteObjective, useObjectives, useUpdateObjective } from '@/api/objectives'
@@ -93,18 +93,20 @@ function ObjectiveCard({ objective, initiatives }: { objective: Objective; initi
             aria-label="Objective title"
             defaultValue={objective.title}
             onBlur={(e) => { if (e.target.value !== objective.title) updateObjective.mutate({ id: objective.id, title: e.target.value }) }}
+            variant="underline"
             className="okrs-title_input"
           />
         </h2>
         <HealthBadge health={objective.health} />
         <span className="okrs-score" title="Score (0 to 1)">{formatScore(objective.score)}</span>
-        <Button
+        <IconButton
           onClick={() => deleteObjective.mutate(objective.id)}
-          aria-label={`Delete ${objective.title}`}
-          className="okrs-delete"
+          label={`Delete ${objective.title}`}
+          tone="danger"
+          className="okrs-icon_button"
         >
           <X className="okrs-icon" aria-hidden="true" />
-        </Button>
+        </IconButton>
       </div>
 
       <div className="okrs-period">
@@ -112,6 +114,7 @@ function ObjectiveCard({ objective, initiatives }: { objective: Objective; initi
           aria-label="Period start"
           value={objective.start_date ?? ''}
           onChange={(e) => updateObjective.mutate({ id: objective.id, start_date: e.target.value || null })}
+          variant="underline"
           className="okrs-date"
         />
         <span aria-hidden="true">&rarr;</span>
@@ -119,6 +122,7 @@ function ObjectiveCard({ objective, initiatives }: { objective: Objective; initi
           aria-label="Period end"
           value={objective.target_date ?? ''}
           onChange={(e) => updateObjective.mutate({ id: objective.id, target_date: e.target.value || null })}
+          variant="underline"
           className="okrs-date"
         />
       </div>
@@ -128,6 +132,7 @@ function ObjectiveCard({ objective, initiatives }: { objective: Objective; initi
           aria-label="Status"
           value={objective.status}
           onChange={(e) => updateObjective.mutate({ id: objective.id, status: e.target.value as PlanningStatus })}
+          variant="underline"
           className="okrs-select"
         >
           {Object.entries(PLANNING_STATUS_LABEL).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
@@ -137,6 +142,7 @@ function ObjectiveCard({ objective, initiatives }: { objective: Objective; initi
             aria-label="Owner"
             value={objective.owner_id ?? ''}
             onChange={(e) => updateObjective.mutate({ id: objective.id, owner_id: e.target.value ? Number(e.target.value) : null })}
+            variant="underline"
             className="okrs-select"
           >
             <option value="">No owner</option>
@@ -153,6 +159,7 @@ function ObjectiveCard({ objective, initiatives }: { objective: Objective; initi
           const description = e.target.value.trim() || null
           if (description !== objective.description) updateObjective.mutate({ id: objective.id, description })
         }}
+        variant="underline"
         className="okrs-description"
       />
       <FormError message={updateObjective.isError ? errorMessage(updateObjective.error) : null} />
@@ -181,12 +188,13 @@ function KeyResultRow({ kr, initiative, initiatives }: { kr: KeyResult; initiati
       <div className="okrs-kr-top">
         <span className="okrs-kr-title">{kr.title}</span>
         <span className="okrs-kr-percent">{kr.percent}%</span>
-        <Button onClick={() => setEditing((v) => !v)} aria-label={`Edit key result ${kr.title}`} aria-expanded={editing} className="okrs-delete">
+        {/* Red on hover like the delete button next to it: that is how it looked before it became an IconButton. */}
+        <IconButton onClick={() => setEditing((v) => !v)} label={`Edit key result ${kr.title}`} tone="danger" aria-expanded={editing} className="okrs-icon_button">
           <Pencil className="okrs-icon" aria-hidden="true" />
-        </Button>
-        <Button onClick={() => deleteKeyResult.mutate(kr.id)} aria-label={`Delete key result ${kr.title}`} className="okrs-delete">
+        </IconButton>
+        <IconButton onClick={() => deleteKeyResult.mutate(kr.id)} label={`Delete key result ${kr.title}`} tone="danger" className="okrs-icon_button">
           <X className="okrs-icon" aria-hidden="true" />
-        </Button>
+        </IconButton>
       </div>
       <ProgressBar percent={kr.percent} />
       {editing && <KeyResultEditor kr={kr} initiatives={initiatives} onDone={() => setEditing(false)} />}
@@ -204,6 +212,7 @@ function KeyResultRow({ kr, initiative, initiatives }: { kr: KeyResult; initiati
                   const value = Number(e.target.value)
                   if (e.target.value !== '' && value !== kr.current_value) updateKeyResult.mutate({ id: kr.id, current_value: value })
                 }}
+                variant="underline"
                 className="okrs-number"
               />
               <span>{measure}</span>
@@ -234,17 +243,17 @@ function KeyResultEditor({ kr, initiatives, onDone }: { kr: KeyResult; initiativ
   return (
     <div className="okrs-add">
       <div className="okrs-add-row">
-        <Input aria-label="Key result title" value={title} onChange={(e) => setTitle(e.target.value)} className="okrs-add-title" />
-        <Select aria-label="Measured by" value={source} onChange={(e) => setSource(e.target.value)} className="okrs-add-source">
+        <Input aria-label="Key result title" value={title} onChange={(e) => setTitle(e.target.value)} variant="underline" className="okrs-add-title" />
+        <Select aria-label="Measured by" value={source} onChange={(e) => setSource(e.target.value)} variant="underline" className="okrs-add-source">
           <option value="">A number</option>
           {initiatives.map((i) => <option key={i.id} value={i.id}>Initiative: {i.title}</option>)}
         </Select>
       </div>
       {!source && (
         <div className="okrs-add-row">
-          <Input type="number" aria-label="Start value" value={startValue} onChange={(e) => setStartValue(e.target.value)} className="okrs-number" />
-          <Input type="number" aria-label="Target value" value={target} onChange={(e) => setTarget(e.target.value)} className="okrs-number" />
-          <Input aria-label="Unit" value={unit} onChange={(e) => setUnit(e.target.value)} className="okrs-unit" />
+          <Input type="number" aria-label="Start value" value={startValue} onChange={(e) => setStartValue(e.target.value)} variant="underline" className="okrs-number" />
+          <Input type="number" aria-label="Target value" value={target} onChange={(e) => setTarget(e.target.value)} variant="underline" className="okrs-number" />
+          <Input aria-label="Unit" value={unit} onChange={(e) => setUnit(e.target.value)} variant="underline" className="okrs-unit" />
         </div>
       )}
       <div className="okrs-add-row">
@@ -279,7 +288,7 @@ function CheckInHistory({ kr }: { kr: KeyResult }) {
       {open && (
         <>
           <div className="okrs-add-row">
-            <Input type="number" aria-label={`Check-in value for ${kr.title}`} placeholder="Value" value={value} onChange={(e) => setValue(e.target.value)} className="okrs-number" />
+            <Input type="number" aria-label={`Check-in value for ${kr.title}`} placeholder="Value" value={value} onChange={(e) => setValue(e.target.value)} variant="underline" className="okrs-number" />
             <Input aria-label={`Check-in note for ${kr.title}`} placeholder="Note (optional)" value={note} onChange={(e) => setNote(e.target.value)} />
             <Button variant="secondary" onClick={add} disabled={value === '' || createCheckIn.isPending}>Add check-in</Button>
           </div>
@@ -326,18 +335,19 @@ function AddKeyResult({ objectiveId, initiatives }: { objectiveId: number; initi
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           onKeyDown={(e) => { if (e.key === 'Enter') add() }}
+          variant="underline"
           className="okrs-add-title"
         />
-        <Select aria-label="Measured by" value={source} onChange={(e) => setSource(e.target.value)} className="okrs-add-source">
+        <Select aria-label="Measured by" value={source} onChange={(e) => setSource(e.target.value)} variant="underline" className="okrs-add-source">
           <option value="">A number</option>
           {initiatives.map((i) => <option key={i.id} value={i.id}>Initiative: {i.title}</option>)}
         </Select>
       </div>
       {!source && (
         <div className="okrs-add-row">
-          <Input type="number" aria-label="Start value" placeholder="From" value={startValue} onChange={(e) => setStartValue(e.target.value)} className="okrs-number" />
-          <Input type="number" aria-label="Target value" placeholder="To" value={target} onChange={(e) => setTarget(e.target.value)} className="okrs-number" />
-          <Input aria-label="Unit" placeholder="Unit (%, users…)" value={unit} onChange={(e) => setUnit(e.target.value)} className="okrs-unit" />
+          <Input type="number" aria-label="Start value" placeholder="From" value={startValue} onChange={(e) => setStartValue(e.target.value)} variant="underline" className="okrs-number" />
+          <Input type="number" aria-label="Target value" placeholder="To" value={target} onChange={(e) => setTarget(e.target.value)} variant="underline" className="okrs-number" />
+          <Input aria-label="Unit" placeholder="Unit (%, users…)" value={unit} onChange={(e) => setUnit(e.target.value)} variant="underline" className="okrs-unit" />
         </div>
       )}
       <div className="okrs-add-row">

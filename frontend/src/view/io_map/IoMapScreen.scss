@@ -16,13 +16,11 @@
     }
 
     @at-root .io_map-icon {
-      width: space(4);
-      height: space(4);
+      @include icon-size(space(4));
     }
 
     @at-root .io_map-spinner {
-      width: space(5);
-      height: space(5);
+      @include icon-size(space(5));
     }
 
     @at-root .io_map-empty {
@@ -36,8 +34,7 @@
     }
 
     @at-root .io_map-empty_icon {
-      width: space(8);
-      height: space(8);
+      @include icon-size(space(8));
       opacity: 0.5;
     }
 

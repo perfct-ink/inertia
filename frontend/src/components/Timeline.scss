@@ -177,8 +177,7 @@
       &-link {
         position: absolute;
         top: 50%;
-        width: space(2.5);
-        height: space(2.5);
+        @include icon-size(space(2.5));
         transform: translateY(-50%);
         border: 1px solid color(primary);
         border-radius: radius('full');
@@ -311,8 +310,7 @@
     @at-root .timeline-milestone {
       position: absolute;
       top: 50%;
-      width: space(3.5);
-      height: space(3.5);
+      @include icon-size(space(3.5));
       border: 1px solid color(primary);
       background: color(primary);
       transform: translate(-50%, -50%) rotate(45deg);
