@@ -36,7 +36,7 @@ function cursorIn(text: string) {
 // Types a character the way the browser would: input rules first, then the text itself.
 function type(text: string) {
   const { from, to } = editor.state.selection
-  const handled = editor.view.someProp('handleTextInput', (handler) => handler(editor.view, from, to, text))
+  const handled = editor.view.someProp('handleTextInput', (handler) => handler(editor.view, from, to, text, () => editor.state.tr.insertText(text, from, to)))
   if (!handled) editor.view.dispatch(editor.state.tr.insertText(text, from, to))
 }
 
