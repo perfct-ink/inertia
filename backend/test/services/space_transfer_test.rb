@@ -105,6 +105,43 @@ class SpaceTransferTest < ActiveSupport::TestCase
     assert_equal 0, @team.documents.count
   end
 
+  test "copying a Collection keeps field formats, choices, formulas, auto-numbers and the people who can open the new Space" do
+    teammate = User.create!(name: "Grace", email: "transfer-grace@example.com", password: "password123")
+    stranger = User.create!(name: "Alan", email: "transfer-alan@example.com", password: "password123")
+    other = Workspace.create!(name: "Other", user: @user)
+    [ @team, other ].each { |space| space.memberships.create!(user: teammate, role: :member) }
+    @team.memberships.create!(user: stranger, role: :member)
+    table = table_in(@team.folders.create!(name: "Orders"), "Orders")
+    price = table.table_fields.create!(name: "Price", data_type: "money", display_format: "gbp")
+    stage = table.table_fields.create!(name: "Stage", data_type: "single_select", options: %w[Open Done])
+    table.table_fields.create!(name: "Double", data_type: "formula", formula: "{Price} * 2")
+    table.table_fields.create!(name: "Weight", data_type: "number", unit: "kg")
+    number = table.table_fields.create!(name: "No.", data_type: "auto_number")
+    owner = table.table_fields.create!(name: "Owner", data_type: "person")
+    first = table.table_records.create!
+    second = table.table_records.create!
+    first.table_cells.create!(table_field: price, value: 12.5)
+    first.table_cells.create!(table_field: stage, value: "Done")
+    first.table_cells.create!(table_field: owner, value: teammate.id)
+    second.table_cells.create!(table_field: owner, value: stranger.id)
+    first.table_cells.find_by!(table_field: number).update_columns(value: 7)
+    number.update_columns(next_number: 9)
+
+    copy = SpaceTransfer.new(user: @user, target_folder: other.root_folder).copy_document(table)
+
+    fields = copy.table_fields.index_by(&:name)
+    assert_equal "gbp", fields["Price"].display_format
+    assert_equal %w[Open Done], fields["Stage"].options
+    assert_equal "{Price} * 2", fields["Double"].formula
+    assert_equal "kg", fields["Weight"].unit
+    assert_equal 9, fields["No."].next_number
+    first_copy = copy.table_records.order(:id).first
+    assert_equal 7, first_copy.table_cells.find_by!(table_field: fields["No."]).value
+    assert_equal 2, TableCell.where(table_field: fields["No."]).count
+    assert_equal 12.5, first_copy.table_cells.find_by!(table_field: fields["Price"]).value
+    assert_equal [ teammate.id ], TableCell.where(table_field: fields["Owner"]).map(&:value)
+  end
+
   test "a Collection link survives a copy inside the same Space" do
     _companies, contacts = linked_collections(@source_folder)
     other_folder = @source.folders.create!(name: "Elsewhere")

@@ -18,12 +18,5 @@
       border-radius: radius('sm');
       object-fit: cover;
     }
-
-    @at-root .file_cell-option {
-      display: flex;
-      align-items: center;
-      gap: space(1.5);
-      @include text('xs');
-    }
   }
 }

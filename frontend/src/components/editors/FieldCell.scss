@@ -1,0 +1,25 @@
+@use 'tokens' as *;
+
+// The controls of a Collection's grid cells beyond plain inputs (see FieldCell.tsx).
+@layer app.components {
+  // Said in a read-only cell that has no value yet.
+  .field_cell-placeholder {
+    color: color(muted-foreground);
+  }
+
+  // A color field: the color beside the hex text it is typed as.
+  .field_cell-color {
+    display: flex;
+    align-items: center;
+    gap: space(2);
+  }
+
+  .field_cell-swatch {
+    flex-shrink: 0;
+    width: space(6);
+    height: space(6);
+    border: 1px solid color(border-strong);
+    border-radius: radius('sm');
+    background-color: transparent;
+  }
+}

@@ -1,7 +1,8 @@
-import { Input, Select } from '@/components/ui'
+import { Select } from '@/components/ui'
 import api from '@/lib/api'
 import { filePreview } from '@/data/document'
 import type { Document } from '@/types'
+import ChoiceList from './ChoiceList'
 import './FileCell.scss'
 
 // One cell of a file or files field: thumbnails (images) or names of the chosen
@@ -30,25 +31,14 @@ export default function FileCell({ label, many, value, files, onChange }: {
         ))}
       </div>
       {many ? (
-        <details>
-          <summary>{selected.length === 0 ? 'Choose files' : `${selected.length} chosen`}</summary>
-          <fieldset aria-label={label}>
-            {files.map((f) => (
-              <label key={f.id} className="file_cell-option">
-                <Input
-                  type="checkbox"
-                  checked={selected.includes(f.id)}
-                  onChange={(e) => {
-                    const next = e.target.checked ? [...selected, f.id] : selected.filter((id) => id !== f.id)
-                    onChange(next.length ? next : null)
-                  }}
-                />
-                {f.title}
-              </label>
-            ))}
-            {files.length === 0 && <p>No uploaded files in this Space yet.</p>}
-          </fieldset>
-        </details>
+        <ChoiceList
+          label={label}
+          summary={selected.length === 0 ? 'Choose files' : `${selected.length} chosen`}
+          options={files.map((f) => ({ value: f.id, label: f.title }))}
+          selected={selected}
+          empty="No uploaded files in this Space yet."
+          onChange={(next) => onChange(next.length ? next : null)}
+        />
       ) : (
         <Select aria-label={label} value={selected[0] ?? ''} onChange={(e) => onChange(e.target.value ? Number(e.target.value) : null)}>
           <option value="">{files.length === 0 ? 'No uploaded files yet' : 'No file'}</option>

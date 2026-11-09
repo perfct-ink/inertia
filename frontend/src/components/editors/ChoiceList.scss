@@ -1,0 +1,12 @@
+@use 'tokens' as *;
+
+@layer app.components {
+  .choice_list {
+    @at-root .choice_list-option {
+      display: flex;
+      align-items: center;
+      gap: space(1.5);
+      @include text('xs');
+    }
+  }
+}

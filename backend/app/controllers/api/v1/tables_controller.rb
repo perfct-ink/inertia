@@ -13,9 +13,10 @@ module Api
       end
 
       def show
+        fields = @table.table_fields.order(:id).to_a
         render json: {
-          fields: @table.table_fields.order(:id).as_json(only: [ :id, :name, :data_type, :relation_table_id, :unit, :formula ]),
-          records: @table.table_records.order(:id).includes(:table_cells).map(&:as_table_json)
+          fields: fields.as_json(only: [ :id, :name, :data_type, :relation_table_id, :unit, :formula, :display_format, :options ]),
+          records: @table.table_records.order(:id).includes(:table_cells).map { |record| record.as_table_json(fields) }
         }
       end
 
@@ -61,14 +62,15 @@ module Api
       end
 
       def field_params
-        params.require(:field).permit(:name, :data_type, :relation_table_id, :unit, :formula)
+        params.require(:field).permit(:name, :data_type, :relation_table_id, :unit, :formula, :display_format, options: [])
       end
 
       def write_values(record)
         values = params.require(:record).permit(values: {}).fetch(:values, {})
         values.each do |field_id, value|
           field = @table.table_fields.find(field_id)
-          reject_computed!(field)
+          reject_read_only!(field)
+          value = field.plain_value(value)
           cell = record.table_cells.find_or_initialize_by(table_field: field)
           if value.nil? || value == "" || value == []
             cell.destroy! if cell.persisted?
@@ -78,12 +80,13 @@ module Api
             cell.save!
           end
         end
+        record.touch # an "updated time" field follows any change to a cell
       end
 
-      # A formula field is worked out from the record's other values, so nothing can be written to it.
-      def reject_computed!(field)
-        return unless field.computed?
-        field.errors.add(:base, "#{field.name} is calculated from its formula and cannot be edited")
+      # A formula, a created or updated time and an auto-number are not typed in, so nothing can be written to them.
+      def reject_read_only!(field)
+        return unless field.read_only?
+        field.errors.add(:base, field.computed? ? "#{field.name} is calculated from its formula and cannot be edited" : "#{field.name} is filled in automatically and cannot be edited")
         raise ActiveRecord::RecordInvalid, field
       end
 

@@ -45,7 +45,7 @@ export function TaskFieldInput({ field, task, userId, onChange, onVote }: TaskFi
         />
       )
     case 'rating':
-      return <RatingInput field={field} rating={ratingOf(task, field)} onChange={onChange} />
+      return <RatingInput label={field.name} rating={ratingOf(task, field)} onChange={onChange} />
     case 'vote':
       return <VoteInput field={field} voters={votersOf(task, field)} userId={userId} onVote={onVote} />
   }
@@ -97,10 +97,12 @@ function TagsInput({ field, tags, onChange }: { field: TaskField; tags: string[]
   )
 }
 
-function RatingInput({ field, rating, onChange }: { field: TaskField; rating: number; onChange: TaskFieldInputProps['onChange'] }) {
+// Five stars; the current star again, or Clear, takes the rating away. Also the
+// control of a Collection's Rating field.
+export function RatingInput({ label, rating, onChange }: { label: string; rating: number; onChange: (value: number | null) => void }) {
   return (
     <div className="task_fields-rating">
-      <div role="group" aria-label={field.name} className="task_fields-stars">
+      <div role="group" aria-label={label} className="task_fields-stars">
         {Array.from({ length: RATING_MAX }, (_, i) => i + 1).map((star) => (
           <Button
             key={star}
@@ -114,7 +116,7 @@ function RatingInput({ field, rating, onChange }: { field: TaskField; rating: nu
         ))}
       </div>
       {rating > 0 && (
-        <Button variant="ghost" className="task_fields-touch" aria-label={`Clear ${field.name}`} onClick={() => onChange(null)}>Clear</Button>
+        <Button variant="ghost" className="task_fields-touch" aria-label={`Clear ${label}`} onClick={() => onChange(null)}>Clear</Button>
       )}
     </div>
   )

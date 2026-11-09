@@ -44,7 +44,7 @@ The Collection editor, `frontend/src/components/editors/TableEditor.tsx` (the re
 - Dates are text, so `{Due} - TODAY()` is `#VALUE!`; use `DAYS({Due}, TODAY())`.
 - A text, number or other field that already has values cannot be turned into a formula until its values are cleared (the existing rule for any type change).
 - Deleting a field does not warn that formulas use it.
-- Not designed for the collection-field-types branch yet: when that merges, the type picker, `FIELD_TYPES` and `TableCell` need a `formula` entry (see merge notes in the task file).
+- The field types of [collection_field_types.md](collection_field_types.md) work in formulas as their plain values: money, mileage, percent, rating, month, year and auto-number are numbers, a created or updated time is its ISO text (so `DAYS({Due}, {Created})` works), a person is the member's id and a multi select counts as blank. Results are not written in the field's format.
 
 ## History
 - Implemented 2026-11-01 (not deployed; on branch `backlog/formula-field`).

@@ -454,6 +454,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_07_120001) do
     t.datetime "updated_at", null: false
     t.string "unit"
     t.text "formula"
+    t.string "display_format"
+    t.json "options"
+    t.integer "next_number"
     t.index ["document_id", "name"], name: "index_table_fields_on_document_id_and_name", unique: true
     t.index ["document_id"], name: "index_table_fields_on_document_id"
     t.index ["relation_table_id"], name: "index_table_fields_on_relation_table_id"

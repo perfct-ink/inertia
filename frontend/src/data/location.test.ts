@@ -96,4 +96,17 @@ describe('pinDetails', () => {
     const link = { ...field(6, 'Owner', 'relation'), relation_table_id: 9 }
     expect(pinDetails({ id: 1, values: { 6: 33 } }, [link], where)).toEqual([{ name: 'Owner', value: 'Record #33' }])
   })
+
+  test('writes values in their field format and names people', () => {
+    const price = { ...field(7, 'Price', 'money'), display_format: 'eur' }
+    const lead = field(8, 'Lead', 'person')
+    const labels = field(9, 'Labels', 'multi_select')
+    const record = { id: 1, values: { 7: 1250, 8: 3, 9: ['a', 'b'] } }
+    expect(pinDetails(record, [price, lead, labels], where, { people: new Map([[3, 'Ada Lovelace']]) })).toEqual([
+      { name: 'Price', value: '€1,250.00' },
+      { name: 'Lead', value: 'Ada Lovelace' },
+      { name: 'Labels', value: 'a, b' },
+    ])
+    expect(pinDetails(record, [lead], where)).toEqual([{ name: 'Lead', value: 'Member #3' }])
+  })
 })
