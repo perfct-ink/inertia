@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_11_07_120001) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_08_160002) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -40,6 +40,37 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_07_120001) do
     t.bigint "blob_id", null: false
     t.string "variation_digest", null: false
     t.index ["blob_id", "variation_digest"], name: "index_active_storage_variant_records_uniqueness", unique: true
+  end
+
+  create_table "agent_activities", force: :cascade do |t|
+    t.bigint "agent_token_id", null: false
+    t.bigint "workspace_id", null: false
+    t.string "action", null: false
+    t.string "subject_type"
+    t.bigint "subject_id"
+    t.string "summary"
+    t.datetime "created_at", null: false
+    t.index ["agent_token_id"], name: "index_agent_activities_on_agent_token_id"
+    t.index ["subject_type", "subject_id"], name: "index_agent_activities_on_subject_type_and_subject_id"
+    t.index ["workspace_id", "created_at"], name: "index_agent_activities_on_workspace_id_and_created_at"
+  end
+
+  create_table "agent_tokens", force: :cascade do |t|
+    t.bigint "workspace_id", null: false
+    t.bigint "folder_id"
+    t.bigint "created_by_id"
+    t.string "name", null: false
+    t.string "token_digest", null: false
+    t.string "token_prefix", null: false
+    t.integer "permission", default: 0, null: false
+    t.datetime "revoked_at"
+    t.datetime "last_used_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["created_by_id"], name: "index_agent_tokens_on_created_by_id"
+    t.index ["folder_id"], name: "index_agent_tokens_on_folder_id"
+    t.index ["token_digest"], name: "index_agent_tokens_on_token_digest", unique: true
+    t.index ["workspace_id"], name: "index_agent_tokens_on_workspace_id"
   end
 
   create_table "ai_runs", force: :cascade do |t|
@@ -518,6 +549,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_07_120001) do
     t.integer "from_status"
     t.integer "to_status", null: false
     t.datetime "created_at", null: false
+    t.bigint "agent_token_id"
+    t.index ["agent_token_id"], name: "index_task_status_changes_on_agent_token_id"
     t.index ["changed_by_id"], name: "index_task_status_changes_on_changed_by_id"
     t.index ["task_id", "created_at"], name: "index_task_status_changes_on_task_id_and_created_at"
     t.index ["task_id"], name: "index_task_status_changes_on_task_id"
@@ -659,6 +692,11 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_07_120001) do
 
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
+  add_foreign_key "agent_activities", "agent_tokens", on_delete: :cascade
+  add_foreign_key "agent_activities", "workspaces"
+  add_foreign_key "agent_tokens", "folders", on_delete: :cascade
+  add_foreign_key "agent_tokens", "users", column: "created_by_id", on_delete: :nullify
+  add_foreign_key "agent_tokens", "workspaces"
   add_foreign_key "ai_runs", "ai_workers"
   add_foreign_key "ai_runs", "tasks"
   add_foreign_key "ai_runs", "workspaces"
@@ -740,6 +778,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_07_120001) do
   add_foreign_key "task_fields", "workspaces"
   add_foreign_key "task_participants", "tasks"
   add_foreign_key "task_participants", "users"
+  add_foreign_key "task_status_changes", "agent_tokens", on_delete: :nullify
   add_foreign_key "task_status_changes", "tasks"
   add_foreign_key "task_status_changes", "users", column: "changed_by_id", on_delete: :nullify
   add_foreign_key "task_status_settings", "folders"

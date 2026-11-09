@@ -53,6 +53,10 @@ class Task < ApplicationRecord
   # Who made the change being saved, for the status history (set by the controller).
   attr_accessor :status_changed_by
 
+  # The agent token making the change being saved (set by AgentTools), so the
+  # history names the agent instead of a person.
+  attr_accessor :status_changed_by_agent
+
   after_create { record_status_change(nil) }
   after_update { record_status_change(status_before_last_save) if saved_change_to_status? }
 
@@ -115,7 +119,7 @@ class Task < ApplicationRecord
   end
 
   def record_status_change(from)
-    status_changes.create!(from_status: from, to_status: status, changed_by: status_changed_by)
+    status_changes.create!(from_status: from, to_status: status, changed_by: status_changed_by, agent_token: status_changed_by_agent)
   end
 
   def notify_new_assignee
