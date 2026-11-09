@@ -32,28 +32,22 @@ Tailwind has been removed; the frontend uses SCSS (`frontend/src/styles/` for ap
 
 ## Unverified
 
-Rebuilt 2026-11-07 on `origin/main` from the stopped 2026-11-02 attempt, in the conservative way Alex asked for: only patterns that already exist in three or more places with identical behaviour, one small mechanical replacement per screen, and only on screens that have a test.
+Finished 2026-11-09 after Alex lifted the "conservative" limit and the wait for Volta (see [shared_ui_patterns.md](../features/shared_ui_patterns.md)). All seven patterns are components (or an SCSS mixin) in `components/ui` / `styles/_tokens.scss`, and their local copies are migrated:
 
-**Done** (see [shared_ui_patterns.md](../features/shared_ui_patterns.md)):
+- Underline-only input/select: `variant="underline"` on `Input`, `Select`, `Textarea`, `DatePicker` (Milestones, Sprints, OKRs, Roadmap, Epic planning).
+- Muted-text link: `Button variant="muted"` (Tasks, Events, Folder page, Epics).
+- Icon-size helper: `icon-size` mixin; all 108 remaining identical width/height pairs now use it (its own commit; the compiled CSS is byte-identical).
+- Danger-hover icon button: `IconButton` with `tone="danger"` and `fill` (Tasks, Epics, Initiatives, Ideas, Resources, Events, Folder page, Collection editor, sidebar, Hierarchy, task-field tags and the screens from the first pass).
+- Tab / segmented control: `Tabs` / `Tab` plus `variant="segmented"` (sidebar quick add) and `"outlined"` (Events Type) in ten screens.
+- Sortable table header: `SortHeader` / `SortButton` / `SortArrow` (Task table, Portfolio, All files).
+- Save-status indicator: `SaveStatus` (document and spreadsheet).
 
-- `Button variant="muted"` and `IconButton` (`tone="muted"` or `"danger"`): replace the local muted-until-hovered / red-on-hover icon buttons in Milestones, Sprints, OKRs (delete, and the key result edit pencil, which stays red on hover as it was), the Gantt pane's dependency list and Epic planning.
-- `Tabs` / `Tab`: replace the local copy of the `planning-tab` / `resources-tab` rules in Roadmap, Project requests and Resources.
-- `SortArrow`: the sort direction arrow in Task table, Portfolio and All files.
-- `icon-size($size)` mixin in `_tokens.scss`, used by the Collection editor's and the sidebar's local icon mixins.
+**Decisions for Alex** (small visible differences, listed in the feature doc): inactive tabs on Tasks, Events and the Folder page gain the hover pill the other tabs had; All files List/Gallery and Collection Grid/Map are real Tabs (the active one is visibly filled); the Tasks row's history icon darkens on hover; Hierarchy's chevron gets the shared focus ring. Revert any of them by giving the view a local override.
 
-**Checks run (offline stand-in only):** `JEST_STUB_NET=1 /tmp/runner/all.sh` static checks (babel parse, unused/unresolved imports, sass compile of the changed `.scss`), the pure data/util tests, and the Jest stand-in for `IconButton`, `Tabs`, `SortArrow` and the Milestones, Sprints, OKRs, Project requests, Resources, Task table, Portfolio and All files tests (all pass). The two Gantt pane suites fail in the stand-in exactly as they do on `origin/main`.
+**Left alone on purpose** (details in the feature doc): four underline fields that differ in padding (Planning new, Tasks add row, Events form, task item due date), the Files gallery chips, ghost-based icon buttons, `project_nav-label`, the task item's due button.
 
-**Not run (no network, node_modules, browser):** `npm run lint`, `npx tsc -b`, the real `npm test`, the Epic planning, Roadmap and Hierarchy tests (they need `@dnd-kit`), a browser look. No backend or migration change.
+**Checks run (offline stand-in only):** `JEST_STUB_NET=1 /tmp/runner/all.sh` static checks (babel parse, unused/unresolved imports, sass compile of every changed `.scss`); a before/after compile of all 83 stylesheets for the `icon-size` sweep (identical CSS); the Jest stand-in over all 85 component test files: 72 pass (the 69 that pass on `origin/main` plus the new Epics, Initiatives and Events suites), 8 fail and 5 skip exactly as on `origin/main` (the failures are the known stand-in limits: `api/base`, `api/documents`, `TabBar`, `Select`, `StatusSettings`, `TransferDialog`, both Gantt pane suites); the Tasks and Roadmap suites (skipped there) pass with inert `@dnd-kit` stubs; a partial `tsc --noEmit` (TypeScript 5.9 with React types, no react-query/axios types) shows no error about any changed component, only the cascades from the missing types.
 
-To verify: `cd frontend && npm install && npm run lint && npx tsc -b && npm test`, then in a browser at 375px and desktop, light and dark, compare against `main`: the Roadmap, Project requests and Resources tabs (hover and active), the delete X on a Milestone, Sprint, Objective, key result and Gantt dependency (grey, red on hover), the Epic plan add and remove buttons (grey, darker with a grey background on hover), and the sort arrows (12px).
+**Not run (no network, node_modules, browser):** `npm run lint`, the real `npx tsc -b`, the real `npm test`, the Epic planning and Hierarchy suites (they need the real react-query), a browser look. No backend or migration change.
 
-**Left out on purpose, for a later pass** (other branches are editing these, or they have no test, or the copies are not identical):
-
-- Epics and Initiatives (tabs, delete X; no test, and the Epics page is being edited). Once they use `Tab` and `IconButton`, delete `.planning-tab`, `.planning-tabs` and the colours of `.planning-card-delete` in `view/planning/PlanningScreen.scss`; Ideas shares `.planning-card-delete` and can move with them.
-- Events switcher, Tasks tabs, Folder view tabs and the All files List/Gallery buttons: they have no hover background, or a different look, so using `Tab` would change them. Decide whether `Tab` should gain that hover everywhere, then convert.
-- The Tasks screen's row delete X and "add" icon, the Collection editor's delete buttons (`icon_button_danger` in `TableEditor.scss`), the sidebar's unpin and unarchive buttons and the Folder page's `folder_detail-subtle` buttons: all the same muted/danger pattern, but on screens other branches are editing (or without a test). Use `IconButton` or `Button variant="muted"` and delete the local colour rules.
-- Hierarchy's expand/collapse chevron is a raw `<button>`; moving it to `IconButton` adds the shared focus ring and colour transition, so it is not an identical swap.
-- About 35 more `width`/`height: space(n)` pairs could use `icon-size`.
-- Underline fields that are not `field-underline` copies (Planning add form, Events, Tasks add row, task item due date) differ in padding, outline or size, so they were not merged.
-- Save-status indicator (document and spreadsheet only): two places, below the three-place bar.
-- A full `SortHeader` (button plus `aria-sort`): the three tables style their headers differently; only the arrow was shared.
+To verify: `cd frontend && npm install && npm run lint && npx tsc -b && npm test`, then in a browser at 375px and desktop, light and dark, compare against `main`: the tab rows (Tasks, Events, Folder page, Epics, Initiatives, All files, Collection editor; hover and active), the sidebar's Task/Event switch in the quick-add dialog (tray with a raised active tab), the Events form's Type choice, every delete/remove X (grey, red on hover; hidden until row hover where it was), the sidebar's tool icons and row actions (hover box), the Collection editor's add and delete icons, Hierarchy's chevron and Move, and a tag's remove button.
