@@ -11,8 +11,8 @@ struct AuthScreen<Form: View>: View {
         VStack(spacing: 16) {
             VStack(spacing: 8) {
                 AppLogo()
-                Text("Inertia").font(.largeTitle.bold())
-                Text("Your documents, projects, and tasks.").foregroundStyle(.secondary)
+                Text("Inertia").voltaFont(.twoXL, weight: .semibold).tracking(-0.6).foregroundStyle(Volta.foreground)
+                Text("Your documents, projects, and tasks.").voltaFont(.sm).foregroundStyle(Volta.mutedForeground)
             }
             VStack(spacing: 10) {
                 ForEach(SignInProvider.allCases) { provider in
@@ -24,7 +24,7 @@ struct AuthScreen<Form: View>: View {
             AuthDivider(title: dividerTitle)
             form
             if session.busy { ProgressView() }
-        }.padding(.horizontal, 40).padding(.vertical, 32).frame(width: 400)
+        }.voltaAuthCard()
     }
 }
 

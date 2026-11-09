@@ -14,31 +14,20 @@ struct TaskEditor: View {
                 VStack(alignment: .leading, spacing: 16) {
                     Form {
                         TextField("Title", text: $draft.title)
-                        Picker("Assignee", selection: $draft.assigneeID) {
-                            Text("Unassigned").tag(nil as Int?)
-                            ForEach(board.users) { Text($0.name).tag(Optional($0.id)) }
-                        }
-                        Picker("Column", selection: $draft.columnID) { ForEach(board.columns) { Text($0.title).tag($0.id) } }
-                        Picker("Sprint", selection: $draft.sprintID) {
-                            Text("Unassigned").tag(nil as Int?)
-                            ForEach(board.sprints) { Text($0.title).tag(Optional($0.id)) }
-                        }
-                        Picker("Epic", selection: $draft.epicID) {
-                            Text("Unassigned").tag(nil as Int?)
-                            ForEach(board.epics) { Text($0.title).tag(Optional($0.id)) }
-                        }
-                        GroupBox("Events and milestones") {
+                        VoltaSelect("Assignee", selection: $draft.assigneeID, options: SelectChoices.optional(none: "Unassigned", board.users, id: \.id, label: \.name))
+                        VoltaSelect("Column", selection: $draft.columnID, options: SelectChoices.records(board.columns, id: \.id, label: \.title))
+                        VoltaSelect("Sprint", selection: $draft.sprintID, options: SelectChoices.optional(none: "Unassigned", board.sprints, id: \.id, label: \.title))
+                        VoltaSelect("Epic", selection: $draft.epicID, options: SelectChoices.optional(none: "Unassigned", board.epics, id: \.id, label: \.title))
+                        VoltaPanel("Events and milestones") {
                             ForEach(board.events) { event in
                                 Toggle(event.title, isOn: Binding(get: { eventIDs.contains(event.id) }, set: { selected in
                                     if selected { eventIDs.insert(event.id) } else { eventIDs.remove(event.id) }
                                 }))
                             }
                         }
-                        Picker("Parent task", selection: $draft.parentID) {
-                            Text("None").tag(nil as Int?)
-                            ForEach(board.tasks.filter { $0.id != draft.id }) { Text($0.title).tag(Optional($0.id)) }
-                        }
-                        OptionalTextField(title: "Due date (YYYY-MM-DD)", text: $draft.dueDate)
+                        VoltaSelect("Parent task", selection: $draft.parentID,
+                                    options: SelectChoices.optional(none: "None", board.tasks.filter { $0.id != draft.id }, id: \.id, label: \.title))
+                        OptionalTextField(title: "Due date (YYYY-MM-DD)", text: $draft.dueDate, rule: .isoDate)
                     }
                     NotesEditor(title: "Description", text: $draft.descriptionText, height: 120)
                     TaskCommentsView(comments: $draft.comments, users: board.users)
@@ -67,8 +56,8 @@ struct SprintEditor: View {
             Form {
                 TextField("Name", text: $draft.title)
                 TextField("Goal", text: $draft.goal)
-                OptionalTextField(title: "Start (YYYY-MM-DD)", text: $draft.startDate)
-                OptionalTextField(title: "End (YYYY-MM-DD)", text: $draft.endDate)
+                OptionalTextField(title: "Start (YYYY-MM-DD)", text: $draft.startDate, rule: .isoDate)
+                OptionalTextField(title: "End (YYYY-MM-DD)", text: $draft.endDate, rule: .isoDate)
             }
             ValidationMessage(message: error)
             EditorActions(saveDisabled: draft.title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty, cancel: { dismiss() }) {
@@ -83,19 +72,18 @@ struct ColumnEditor: View {
     @Binding var board: TaskFile
     var body: some View {
         EditorSheet(title: "Workboard Columns", width: 540, height: 350) {
-            Text("Columns map to Inertia task statuses. Done tasks count toward progress.").foregroundStyle(.secondary)
+            Text("Columns map to Inertia task statuses. Done tasks count toward progress.").voltaMuted()
             List {
                 ForEach($board.columns) { $column in
                     HStack {
                         TextField("Column name", text: $column.title)
-                        Picker("Status", selection: Binding(get: { column.status }, set: { board.setColumnStatus(column.id, status: $0) })) {
-                            ForEach(TaskStatus.allCases, id: \.self) { Text($0.label).tag($0) }
-                        }
+                        VoltaSelect("Status", selection: Binding(get: { column.status }, set: { board.setColumnStatus(column.id, status: $0) }),
+                                    options: TaskStatus.allCases.map { SelectOption($0, $0.label) }, hidesTitle: true)
                     }
                 }.onMove { board.columns.move(fromOffsets: $0, toOffset: $1) }
-            }
+            }.voltaList()
             HStack {
-                Button("Add Column") { board.columns.append(BoardColumn(title: "New Column")) }
+                Button("Add Column") { board.columns.append(BoardColumn(title: "New Column")) }.buttonStyle(.volta(.secondary))
                 Spacer()
                 DoneButton()
             }

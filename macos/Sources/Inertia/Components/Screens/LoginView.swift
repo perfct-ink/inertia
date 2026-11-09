@@ -15,9 +15,9 @@ struct LoginView: View {
             }
             .textFieldStyle(InertiaTextFieldStyle(minimumHeight: InertiaTextFieldStyle.loginHeight))
             .disabled(session.busy)
-            Button("Sign In", action: submit).buttonStyle(.borderedProminent)
+            Button("Sign In", action: submit).buttonStyle(.volta(.primary, fullWidth: true))
                 .disabled(session.busy || email.isEmpty || password.isEmpty)
-            Button("Create an account", action: showSignup).buttonStyle(.link)
+            Button("Create an account", action: showSignup).buttonStyle(.voltaLink)
         }
     }
 

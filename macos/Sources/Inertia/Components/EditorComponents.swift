@@ -1,4 +1,5 @@
 import SwiftUI
+import InertiaCore
 
 struct EditorSheet<Content: View>: View {
     let title: String
@@ -15,18 +16,37 @@ struct EditorSheet<Content: View>: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
-            Text(title).font(.title2.bold())
+            Text(title).voltaFont(.xl, weight: .semibold).foregroundStyle(Volta.foreground).accessibilityAddTraits(.isHeader)
             content
-        }.textFieldStyle(InertiaTextFieldStyle()).padding(24).frame(width: width, height: height)
+        }
+        .voltaTheme().padding(24).frame(width: width, height: height)
+        .background(Volta.card)
     }
 }
 
+/// A check a text field applies to what is typed, with the message shown when it fails.
+struct FieldRule {
+    let isValid: (String) -> Bool
+    let message: String
+
+    static let isoDate = FieldRule(isValid: ISODate.isValid, message: "Use a valid date written as YYYY-MM-DD.")
+}
+
+/// A text field for a value that may be empty. A filled field that breaks its rule shows the error
+/// state and a message under it.
 struct OptionalTextField: View {
     let title: String
     @Binding var text: String?
+    var rule: FieldRule?
+
+    private var problem: String? {
+        guard let rule, let text, !text.isEmpty, !rule.isValid(text) else { return nil }
+        return rule.message
+    }
 
     var body: some View {
-        TextField(title, text: Binding(get: { text ?? "" }, set: { text = $0.isEmpty ? nil : $0 }))
+        TextField(title, text: Binding(get: { text ?? "" }, set: { text = $0.isEmpty ? nil : $0 })).voltaInvalid(problem != nil)
+        ValidationMessage(message: problem)
     }
 }
 
@@ -36,15 +56,20 @@ struct NotesEditor: View {
     var height: CGFloat = 100
 
     var body: some View {
-        Text(title).font(.headline)
-        TextEditor(text: $text).frame(height: height).border(.quaternary)
+        Text(title).voltaFont(.sm, weight: .semibold).foregroundStyle(Volta.foreground)
+        VoltaTextArea(title: title, text: $text, minimumHeight: height).frame(height: height)
     }
 }
 
+/// An error under a field (`FormError` in React). It is announced to VoiceOver when it appears.
 struct ValidationMessage: View {
     let message: String?
     var body: some View {
-        if let message { Text(message).foregroundStyle(.red).font(.caption) }
+        if let message {
+            Text(message).voltaFont(.sm).foregroundStyle(Volta.color(.errorText))
+                .accessibilityAddTraits(.isStaticText)
+                .onAppear { AccessibilityNotification.Announcement(message).post() }
+        }
     }
 }
 
@@ -53,8 +78,8 @@ struct CompletionProgress: View {
     let total: Int
 
     var body: some View {
-        ProgressView(value: Double(done), total: Double(max(total, 1)))
-        Text("\(done) of \(total) tasks complete").font(.caption).foregroundStyle(.secondary)
+        ProgressView(value: Double(done), total: Double(max(total, 1))).tint(Volta.accent)
+        Text("\(done) of \(total) tasks complete").voltaCaption()
     }
 }
 

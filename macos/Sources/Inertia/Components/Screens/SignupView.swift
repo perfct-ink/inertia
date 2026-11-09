@@ -24,9 +24,9 @@ struct SignupView: View {
             .textFieldStyle(InertiaTextFieldStyle(minimumHeight: InertiaTextFieldStyle.loginHeight))
             .disabled(session.busy)
             ValidationList(messages: errors[.other] ?? [])
-            Button("Create Account", action: submit).buttonStyle(.borderedProminent)
+            Button("Create Account", action: submit).buttonStyle(.volta(.primary, fullWidth: true))
                 .disabled(session.busy || !canSubmit)
-            Button("Already have an account? Sign in", action: showLogin).buttonStyle(.link)
+            Button("Already have an account? Sign in", action: showLogin).buttonStyle(.voltaLink)
         }
     }
 
