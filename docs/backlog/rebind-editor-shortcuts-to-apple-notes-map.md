@@ -22,7 +22,7 @@ The editor shortcut tasks are one task. This file now also covers:
 - **Mac app Format menu** (was `mac-app-format-menu-shortcuts.md`): the Mac app loads the web editor, so the bindings carry over; add Format menu items showing each shortcut so people can find them.
 - **Dashed list key** for `dashed-list-block.md`, which ships first with a toolbar button.
 
-Kept separate: `paragraph-style-shortcuts.md`, because it is already built on its own branch (`backlog/paragraph-style-shortcuts`) and only waits on checks; merging its file would orphan that branch.
+Kept separate: `paragraph-style-shortcuts.md`, because it is already built on its own branch (`backlog/paragraph-style-shortcuts`) and only waits on checks; merging its file would orphan that branch. `docs/keyboard-shortcuts.md` still lists the three merged files; update that list when this task merges.
 
 ## Context
 
