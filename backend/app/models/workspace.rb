@@ -29,10 +29,32 @@ class Workspace < ApplicationRecord
   has_many :project_requests, dependent: :destroy
   has_many :quip_imports, dependent: :destroy
 
+  # The optional pages a Space can turn off (docs/features/space_features.md), in
+  # sidebar order. Tasks, files, projects and the inbox are always on. Mirrors
+  # WORKSPACE_FEATURES in frontend/src/data/workspaceFeature.ts. A project's own
+  # list (Folder features, if present) can only narrow this one.
+  FEATURES = %w[
+    events
+    roadmap timeline milestones initiatives epics sprints hierarchy
+    okrs objectives_map ideas
+    resources workload
+  ].freeze
+
   validates :name, presence: true
+  before_validation :store_all_features_as_default
+  validate :features_are_known
   after_create :add_creator_as_owner
   after_create :ensure_document_root!
   before_destroy :prepare_destroy, prepend: true
+
+  # The pages this Space shows; a Space that never chose shows all of them.
+  def enabled_features
+    features.nil? ? FEATURES : FEATURES & Array(features)
+  end
+
+  def feature_enabled?(name)
+    enabled_features.include?(name.to_s)
+  end
 
   def ensure_document_root!
     return root_folder if root_folder_id.present?
@@ -70,6 +92,19 @@ class Workspace < ApplicationRecord
   end
 
   private
+
+  # Every page on is the default, so it is stored as NULL: a page added in a
+  # later release then shows in Spaces that never turned anything off.
+  def store_all_features_as_default
+    self.features = nil if features.is_a?(Array) && features.uniq.sort == FEATURES.sort
+  end
+
+  def features_are_known
+    return if features.nil?
+    unless features.is_a?(Array) && (features - FEATURES).empty?
+      errors.add(:features, "can only be #{FEATURES.join(', ')}")
+    end
+  end
 
   def prepare_destroy
     protect_personal

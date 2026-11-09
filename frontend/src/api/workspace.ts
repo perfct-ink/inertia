@@ -1,7 +1,9 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import api from '@/lib/api'
 import { useWorkspaceStore } from '@/store/workspaces'
-import type { Document, Workspace } from '@/types'
+import { useApiMutation } from './base'
+import type { WorkspaceFeature } from '@/data/workspaceFeature'
+import type { Document, Workspace, WorkspaceSummary } from '@/types'
 
 // The singleton resource at /api/v1/workspace: the active workspace
 // (X-Workspace-Id) with its folders and documents. The workspaces the user
@@ -20,6 +22,11 @@ export class ActiveWorkspaceApi {
       return api.get<Workspace>(this.path).then((r) => r.data)
     })
   }
+
+  // Admins and owners only: the pages the active Space shows.
+  updateFeatures(features: WorkspaceFeature[]) {
+    return api.patch<WorkspaceSummary>(this.path, { workspace: { features } }).then((r) => r.data)
+  }
 }
 
 export const activeWorkspaceApi = new ActiveWorkspaceApi()
@@ -30,6 +37,11 @@ export function useWorkspace() {
     queryFn: () => activeWorkspaceApi.find(),
   })
 }
+
+// Saves which optional pages the active Space shows. Refetches the Space and
+// the list of Spaces, which both carry the choice.
+export const useUpdateWorkspaceFeatures = () =>
+  useApiMutation((features: WorkspaceFeature[]) => activeWorkspaceApi.updateFeatures(features), [activeWorkspaceApi.queryKey, 'workspaces'])
 
 // Uploads files of any type into a folder, each as a file item of its own.
 // Refetches even when one fails, so the files that did upload appear.

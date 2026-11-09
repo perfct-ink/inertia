@@ -33,6 +33,7 @@ import GanttPane from './GanttPane'
 import CardsView from './CardsView'
 import { buildTaskTree, type TaskNode } from '@/data/task'
 import { homeDocumentToOpen } from '@/data/folder'
+import { featureOn } from '@/data/workspaceFeature'
 
 const dotClass = (name: string) => `folder_detail-dot folder_detail-dot--${name}`
 
@@ -260,13 +261,16 @@ function ViewLink({ folderId, view, label, navigate }: { folderId: number; view:
 }
 
 function OverviewView({
-  folderId, documents, tasks, epics, events, navigate,
+  folderId, documents, tasks, epics, events, showEpics, showEvents, navigate,
 }: {
   folderId: number
   documents: { id: number; title: string; doc_type: Document['doc_type'] }[]
   tasks: Task[]
   epics: Epic[]
   events: WorkspaceEvent[]
+  // The Space's Epics and Events settings: a section for a page that is off is left out.
+  showEpics: boolean
+  showEvents: boolean
   navigate: (path: string) => void
 }) {
   const todayStr = format(new Date(), 'yyyy-MM-dd')
@@ -326,50 +330,54 @@ function OverviewView({
             of top-level items each rolling up several Tasks' completion
             into one progress bar. Body only shows when there are any; the
             link to Gantt stays regardless, same as Tasks/Events above. */}
-        <section>
-          <div className="folder_detail-section_header">
-            <h2 className="folder_detail-heading">Epics</h2>
-            <ViewLink folderId={folderId} view="gantt" label="Gantt" navigate={navigate} />
-          </div>
-          {epics.length === 0 ? (
-            <p className="folder_detail-note">No epics yet.</p>
-          ) : (
-            <div className="folder_detail-epics">
-              {epics.slice(0, 5).map((epic) => {
-                const percent = donePercent(epic)
-                return (
-                  <div key={epic.id} className="folder_detail-epic">
-                    <span className="folder_detail-epic-title" title={epic.title}>{epic.title}</span>
-                    <div className="folder_detail-epic-bar"><ProgressBar percent={percent} /></div>
-                    <span className="folder_detail-count folder_detail-count--fixed">
-                      {epic.done_tasks_count}/{epic.tasks_count}
-                    </span>
-                  </div>
-                )
-              })}
+        {showEpics && (
+          <section>
+            <div className="folder_detail-section_header">
+              <h2 className="folder_detail-heading">Epics</h2>
+              <ViewLink folderId={folderId} view="gantt" label="Gantt" navigate={navigate} />
             </div>
-          )}
-        </section>
+            {epics.length === 0 ? (
+              <p className="folder_detail-note">No epics yet.</p>
+            ) : (
+              <div className="folder_detail-epics">
+                {epics.slice(0, 5).map((epic) => {
+                  const percent = donePercent(epic)
+                  return (
+                    <div key={epic.id} className="folder_detail-epic">
+                      <span className="folder_detail-epic-title" title={epic.title}>{epic.title}</span>
+                      <div className="folder_detail-epic-bar"><ProgressBar percent={percent} /></div>
+                      <span className="folder_detail-count folder_detail-count--fixed">
+                        {epic.done_tasks_count}/{epic.tasks_count}
+                      </span>
+                    </div>
+                  )
+                })}
+              </div>
+            )}
+          </section>
+        )}
 
-        <section>
-          <div className="folder_detail-section_header">
-            <h2 className="folder_detail-heading">Upcoming Events</h2>
-            <ViewLink folderId={folderId} view="calendar" label="Calendar" navigate={navigate} />
-          </div>
-          {upcomingEvents.length === 0 ? (
-            <p className="folder_detail-note">No upcoming events.</p>
-          ) : (
-            <div className="folder_detail-events">
-              {upcomingEvents.map((event) => (
-                <div key={event.id} className="folder_detail-row folder_detail-row--event">
-                  <span className={dotClass(event.event_type === 'milestone' ? 'milestone' : 'event')} />
-                  <span className="folder_detail-row-title">{event.title}</span>
-                  <span className="folder_detail-count">{format(parseISO(event.date), 'MMM d')}</span>
-                </div>
-              ))}
+        {showEvents && (
+          <section>
+            <div className="folder_detail-section_header">
+              <h2 className="folder_detail-heading">Upcoming Events</h2>
+              <ViewLink folderId={folderId} view="calendar" label="Calendar" navigate={navigate} />
             </div>
-          )}
-        </section>
+            {upcomingEvents.length === 0 ? (
+              <p className="folder_detail-note">No upcoming events.</p>
+            ) : (
+              <div className="folder_detail-events">
+                {upcomingEvents.map((event) => (
+                  <div key={event.id} className="folder_detail-row folder_detail-row--event">
+                    <span className={dotClass(event.event_type === 'milestone' ? 'milestone' : 'event')} />
+                    <span className="folder_detail-row-title">{event.title}</span>
+                    <span className="folder_detail-count">{format(parseISO(event.date), 'MMM d')}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </section>
+        )}
       </div>
     </div>
   )
@@ -420,7 +428,7 @@ export default function FolderDetailScreen() {
           </Button>
           <h1 className="folder_detail-title">{folder.name}</h1>
           <div className="folder_detail-tabs">
-            {VIEWS.map(({ key, label, icon: Icon }) => (
+            {VIEWS.filter(({ key }) => key !== 'calendar' || featureOn(workspace, 'events')).map(({ key, label, icon: Icon }) => (
               <Button
                 key={key}
                 onClick={() => navigate(`/folders/${folderId}?view=${key}`)}
@@ -485,7 +493,10 @@ export default function FolderDetailScreen() {
         )}
 
         {view === 'overview' && (
-          <OverviewView folderId={folderId} documents={documents} tasks={tasks} epics={epics} events={events} navigate={navigate} />
+          <OverviewView
+            folderId={folderId} documents={documents} tasks={tasks} epics={epics} events={events}
+            showEpics={featureOn(workspace, 'epics')} showEvents={featureOn(workspace, 'events')} navigate={navigate}
+          />
         )}
         {view === 'board' && (
           <BoardView

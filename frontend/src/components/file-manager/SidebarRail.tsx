@@ -4,7 +4,7 @@ import { Button, classNames } from '@/components/ui'
 import { isActivePath } from '@/data/project'
 import { useWorkspace } from '@/api/workspace'
 import { useNotifications } from '@/api/notifications'
-import { SECTION_GROUPS, type Section } from './projectSections'
+import { SECTION_GROUPS, sectionsFor, type Section } from './projectSections'
 import './SidebarRail.scss'
 
 // Pages about the Space's projects as a whole, ahead of the open project's
@@ -18,11 +18,12 @@ const SPACE_SECTIONS: Section[] = [
 // when the window is too short for every button.
 export function SidebarRail({ onQuickAdd, onShortcuts }: { onQuickAdd: () => void; onShortcuts: () => void }) {
   const { pathname } = useLocation()
-  const shared = useWorkspace().data?.shared ?? false
+  const { data: workspace } = useWorkspace()
   const unread = useNotifications().data?.unread_count ?? 0
   const inboxActive = isActivePath(pathname, '/inbox')
   const inboxLabel = unread ? `Inbox (${unread} unread)` : 'Inbox'
-  const groups = [SPACE_SECTIONS, ...SECTION_GROUPS.map((g) => g.sections.filter((s) => shared || !s.sharedOnly))]
+  // Pages the Space turned off (Features in the Space menu) are left out.
+  const groups = [SPACE_SECTIONS, ...SECTION_GROUPS.map((g) => sectionsFor(g.sections, workspace))]
     .filter((sections) => sections.length > 0)
 
   return (

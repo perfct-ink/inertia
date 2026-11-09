@@ -2,10 +2,10 @@
 
 ## What it does
 The sidebar header shows "Inertia" with the current Space name as a button (`aria-label` "Space: <name>. Switch space"). Clicking opens a modal titled "Spaces" that lists the user's Spaces with role (or "personal") and a check on the current one. Choosing one switches Space. Under the list are "New space" (opens a name prompt, creates the Space and switches to it), "Members" (opens the members dialog for the current Space) and, in a shared Space, "Teams" (opens the teams dialog, see `teams.md`). Switching behaviour is described in `docs/spaces.md`.
-The sidebar header shows "Inertia" with the current Space name as a button (`aria-label` "Space: <name>. Switch space"). Clicking opens a dropdown menu anchored to the name (the shared `ui-menu`, `components/ui/Menu.tsx`) that lists the user's Spaces with role (or "personal") and a check on the current one. Choosing one switches Space. Below a divider are "New Space..." (opens a name prompt, creates the Space and switches to it) and "Members..." (opens the members dialog for the current Space). Arrow keys, Home and End move between items, Enter chooses, Escape and a click outside close it and Escape returns focus to the name. The menu has `menu`, `menuitem` and `menuitemradio` roles. Switching behaviour is described in `docs/spaces.md`.
+The sidebar header shows "Inertia" with the current Space name as a button (`aria-label` "Space: <name>. Switch space"). Clicking opens a dropdown menu anchored to the name (the shared `ui-menu`, `components/ui/Menu.tsx`) that lists the user's Spaces with role (or "personal") and a check on the current one. Choosing one switches Space. Below a divider are "New Space..." (opens a dialog with a name and a checklist of the optional pages, all on; creates the Space and switches to it), "Members..." (opens the members dialog for the current Space), "Features..." (the optional pages the Space shows, see `space_features.md`) and, in a shared Space, "Teams..." (see `teams.md`). Arrow keys, Home and End move between items, Enter chooses, Escape and a click outside close it and Escape returns focus to the name. The menu has `menu`, `menuitem` and `menuitemradio` roles. Switching behaviour is described in `docs/spaces.md`.
 
 ## API and models
-`useWorkspaces`, `useCreateWorkspace` (`frontend/src/api/workspaces.ts`); see `docs/spaces.md`.
+`useWorkspaces`, `useCreateWorkspace` (`frontend/src/api/workspaces.ts`, takes a name or a name with `features`) and `useUpdateWorkspaceFeatures` (`frontend/src/api/workspace.ts`); see `docs/spaces.md`.
 
 ## Who can view and change
 Any signed-in user switches between their own Spaces and creates new ones. Member management follows `docs/spaces.md`.
@@ -23,6 +23,8 @@ Any signed-in user switches between their own Spaces and creates new ones. Membe
 ## History
 - Implemented before 2026-10-15 (switcher, create, members modal); see `docs/spaces.md`. Committed locally; not pushed or deployed.
 - Not verified: lint, type-check, tests and the screen were not run.
+
+- 2026-11-08: New Space opens a dialog with a features checklist (was a name prompt) and the menu gained Features...; see `space_features.md`.
 
 ## Space name placement (branch `backlog/space-name-prominent-on-every-screen`, not merged)
 The Space name is the prominent line in the sidebar header (semibold, normal size, above the smaller muted "Inertia"), and below the `md` breakpoint the mobile top bar shows the Space name instead of "Inertia" (it falls back to "Inertia" while the Space loads). The Mac app loads the same layout, so it shows the same. Test: `frontend/src/components/WorkspaceLayout.test.tsx`. Not verified: lint, type-check, tests and the browser (light and dark themes, a phone-width viewport, the Mac shell) were not run (no node_modules).

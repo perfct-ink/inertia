@@ -13,7 +13,7 @@ A space holds its own folders (under one permanent Root), documents, tasks, epic
 
 | Table | Purpose |
 | --- | --- |
-| `workspaces` | `name`, `personal`, `user_id` (the creator; access does not depend on it), `root_folder_id`. |
+| `workspaces` | `name`, `personal`, `user_id` (the creator; access does not depend on it), `root_folder_id`, `features` (JSON, nullable: the optional pages the Space shows; NULL means all of them, see `docs/features/space_features.md`). |
 | `workspace_memberships` | `workspace_id`, `user_id`, `role`, `weekly_capacity_hours` (decimal, default 40, 0 to 168; see `features/resource_management.md`). One row per member; unique per workspace and user. |
 | `teams` | `workspace_id`, `name`, `role` (viewer, member or admin; never owner). A group of people that hold one role in the Space together. Names are unique per Space, ignoring case. See `docs/features/teams.md`. |
 | `team_memberships` | `team_id`, `user_id`. One row per person on a team. |
@@ -24,7 +24,7 @@ Roles, from least to most privileged:
 | --- | --- |
 | `viewer` | Read everything in the workspace. |
 | `member` | Also create, edit and delete content. |
-| `admin` | Also rename the workspace, add, change and remove members (not owners) and manage teams. |
+| `admin` | Also rename the workspace, choose which optional pages it shows, add, change and remove members (not owners) and manage teams. |
 | `owner` | Also grant or change the owner role and delete the workspace. |
 
 A person's role in a Space is the highest of their own membership and the roles of the teams they are on (`WorkspaceAccess`). A team never grants `owner`, so ownership always comes from a membership.
@@ -44,7 +44,7 @@ GET    /api/v1/workspaces                      # workspaces the user belongs to,
 POST   /api/v1/workspaces                      # create (caller becomes owner)
 DELETE /api/v1/workspaces/:id                  # owner only; not personal
 GET    /api/v1/workspace                       # the active workspace (header) with its folder tree
-PATCH  /api/v1/workspace                       # rename (admin or owner)
+PATCH  /api/v1/workspace                       # rename and/or { features: [...] } (admin or owner)
 GET    /api/v1/workspaces/:id/folders          # one Space's active folders, flat (to choose a move/copy destination)
 
 POST   /api/v1/documents/:id/copy|move         # { target_folder_id }: into a folder of another Space

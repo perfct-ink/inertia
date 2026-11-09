@@ -34,6 +34,7 @@ One file per implemented feature, written from the code (see `docs/rules/feature
 | Links to headings: stable heading ids, a toolbar picker and in-app jumps | [heading_links.md](heading_links.md) |
 | Configurable statuses: rename and recolor the task statuses per Space or folder | [configurable_statuses.md](configurable_statuses.md) |
 | Uploaded files: any file type as a folder item, with preview and download | [uploaded_files.md](uploaded_files.md) |
+| Space features: choose which optional pages a Space uses (hidden pages leave the rail and quick add) | [space_features.md](space_features.md) |
 | Appearance: light/dark/system and Slack-style colour themes | [appearance.md](appearance.md) |
 | Document breadcrumb: Space > folders > document | [document_breadcrumb.md](document_breadcrumb.md) |
 | My work: my open tasks by due date | [my_work.md](my_work.md) |

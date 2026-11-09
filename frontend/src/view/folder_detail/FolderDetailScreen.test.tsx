@@ -10,8 +10,10 @@ jest.mock('./GanttPane', () => function GanttPaneMock() { return null })
 
 const mockUpdate = { mutate: jest.fn() }
 let mockRole = 'member'
+let mockFeatures: string[] | undefined
 const mockWorkspace = {
   get role() { return mockRole },
+  get features() { return mockFeatures },
   folders: [{ id: 1, name: 'Root', root: true, parent_id: null, documents: [], children: [{ id: 2, name: 'Messages', root: false, parent_id: 1, documents: [], children: [] }] }],
 }
 const task = (id: number, title: string, status: string) => ({ id, title, status, parent_id: null, due_date: null, document_id: 1 })
@@ -50,6 +52,7 @@ function renderScreen(view: string) {
 
 beforeEach(() => {
   mockRole = 'member'
+  mockFeatures = undefined
   mockSettings = []
 })
 
@@ -94,4 +97,21 @@ test('members can open the status editor from the board; viewers and other views
   mockRole = 'member'
   renderScreen('gantt')
   expect(screen.queryByRole('button', { name: 'Statuses' })).not.toBeInTheDocument()
+})
+
+test('the overview shows Epics and Upcoming Events, and a Calendar tab, by default', () => {
+  renderScreen('overview')
+  expect(screen.getByRole('heading', { name: 'Epics' })).toBeInTheDocument()
+  expect(screen.getByRole('heading', { name: 'Upcoming Events' })).toBeInTheDocument()
+  expect(screen.getByRole('button', { name: 'Calendar' })).toBeInTheDocument()
+})
+
+test('the overview leaves out what the Space turned off, but keeps Documents and Tasks', () => {
+  mockFeatures = ['sprints']
+  renderScreen('overview')
+  expect(screen.queryByRole('heading', { name: 'Epics' })).not.toBeInTheDocument()
+  expect(screen.queryByRole('heading', { name: 'Upcoming Events' })).not.toBeInTheDocument()
+  expect(screen.queryByRole('button', { name: 'Calendar' })).not.toBeInTheDocument()
+  expect(screen.getByRole('heading', { name: 'Tasks' })).toBeInTheDocument()
+  expect(screen.getByRole('heading', { name: /Documents/ })).toBeInTheDocument()
 })

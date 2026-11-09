@@ -1,4 +1,5 @@
 import { flattenFolders } from '@/data/folder'
+import { featureOn, quickAddTypes, type WorkspaceFeature } from '@/data/workspaceFeature'
 import { WorkspaceSwitcher } from '@/components/workspace/WorkspaceSwitcher'
 import { TransferHost } from '@/components/workspace/TransferDialog'
 import { Button, Input, Select, DatePicker, Menu } from '@/components/ui'
@@ -36,14 +37,17 @@ import { isElectron } from '@/util/platform'
 import { isShortcut, shortcutAvailable, shortcutKey, shortcutLabel } from '@/util/shortcuts'
 
 // Kept in sync by hand with the onKey handler below — there's only one
-// place global shortcuts are bound, so this is just their display copy.
-const KEYBOARD_SHORTCUTS: { keys: string; label: string }[] = [
-  { keys: '⌘K', label: 'Quick-add a task or event' },
+// place global shortcuts are bound, so this is just their display copy. A
+// shortcut for a page the Space turned off (feature) is left out of the list
+// and does nothing.
+// A shortcut can name a shorter label (taskOnlyLabel) for when Events is off.
+const KEYBOARD_SHORTCUTS: { keys: string; label: string; feature?: WorkspaceFeature; taskOnlyLabel?: string }[] = [
+  { keys: '⌘K', label: 'Quick-add a task or event', taskOnlyLabel: 'Quick-add a task' },
   { keys: '⌘N', label: 'New document in this folder' },
   { keys: '⌘⇧N', label: 'New sheet in this folder' },
   { keys: '⌘T', label: 'New task in this folder' },
-  { keys: '⌘E', label: 'New event' },
-  { keys: '⌘J', label: 'New idea' },
+  { keys: '⌘E', label: 'New event', feature: 'events' },
+  { keys: '⌘J', label: 'New idea', feature: 'ideas' },
   { keys: '⌘W', label: 'Close the active tab' },
   { keys: '⌘/', label: 'Show or hide this list' },
   { keys: 'Esc', label: 'Close a dialog or panel' },
@@ -58,6 +62,8 @@ export default function Sidebar() {
   const navigate = useNavigate()
   const location = useLocation()
   const { data: workspace } = useWorkspace()
+  // What quick add can make: an event only while the Space uses Events.
+  const quickAddTypeList = quickAddTypes(workspace)
   const newDocument = useNewDocument()
   const pinDocument = usePinDocument()
   const pinFolder = usePinFolder()
@@ -92,6 +98,8 @@ export default function Sidebar() {
   const createNewSpreadsheetRef = useRef(createNewSpreadsheet)
   createNewSpreadsheetRef.current = createNewSpreadsheet
   const scopeFolderIdRef = useRef<number | undefined>(undefined)
+  const workspaceRef = useRef(workspace)
+  workspaceRef.current = workspace
   const openQuickAddRef = useRef(openQuickAdd)
   openQuickAddRef.current = openQuickAdd
   const shortcutsOpenRef = useRef(shortcutsOpen)
@@ -163,10 +171,10 @@ export default function Sidebar() {
         navigate(`/tasks?view=backlog&new=1${fid ? `&folder_id=${fid}` : ''}`)
       } else if (isShortcut(e, 'e')) {
         e.preventDefault()
-        navigate('/events?new=1')
+        if (featureOn(workspaceRef.current, 'events')) navigate('/events?new=1')
       } else if (isShortcut(e, 'j')) {
         e.preventDefault()
-        navigate('/ideas?new=1')
+        if (featureOn(workspaceRef.current, 'ideas')) navigate('/ideas?new=1')
       } else if (isShortcut(e, 'k')) {
         e.preventDefault()
         openQuickAddRef.current()
@@ -456,9 +464,9 @@ export default function Sidebar() {
               <h2 className="sidebar-dialog_heading">Keyboard shortcuts</h2>
             </div>
             <div className="sidebar-shortcuts">
-              {KEYBOARD_SHORTCUTS.filter(({ keys }) => shortcutAvailable(keys)).map(({ keys, label }) => (
+              {KEYBOARD_SHORTCUTS.filter(({ keys, feature }) => shortcutAvailable(keys) && featureOn(workspace, feature)).map(({ keys, label, taskOnlyLabel }) => (
                 <div key={keys} className="sidebar-shortcut">
-                  <span>{label}</span>
+                  <span>{taskOnlyLabel && !quickAddTypeList.includes('event') ? taskOnlyLabel : label}</span>
                   <kbd className="sidebar-kbd">{shortcutLabel(keys)}</kbd>
                 </div>
               ))}
@@ -471,22 +479,25 @@ export default function Sidebar() {
       {quickAddOpen && (
         <div className="sidebar-overlay" onClick={() => setQuickAddOpen(false)}>
           <div className="sidebar-dialog" onClick={(e) => e.stopPropagation()}>
-            <div className="sidebar-tabs">
-              <Button
-                onClick={() => setQuickAddType('task')}
-                className={`sidebar-tab${quickAddType === 'task' ? ' sidebar-tab--active' : ''}`}
-              >
-                <CheckSquare className="sidebar-icon--sm" />
-                Task
-              </Button>
-              <Button
-                onClick={() => setQuickAddType('event')}
-                className={`sidebar-tab${quickAddType === 'event' ? ' sidebar-tab--active' : ''}`}
-              >
-                <CalendarDays className="sidebar-icon--sm" />
-                Event
-              </Button>
-            </div>
+            {/* Only worth a tab bar while there is more than a task to make. */}
+            {quickAddTypeList.length > 1 && (
+              <div className="sidebar-tabs">
+                <Button
+                  onClick={() => setQuickAddType('task')}
+                  className={`sidebar-tab${quickAddType === 'task' ? ' sidebar-tab--active' : ''}`}
+                >
+                  <CheckSquare className="sidebar-icon--sm" />
+                  Task
+                </Button>
+                <Button
+                  onClick={() => setQuickAddType('event')}
+                  className={`sidebar-tab${quickAddType === 'event' ? ' sidebar-tab--active' : ''}`}
+                >
+                  <CalendarDays className="sidebar-icon--sm" />
+                  Event
+                </Button>
+              </div>
+            )}
 
             <Input
               ref={quickAddInputRef}
@@ -509,7 +520,7 @@ export default function Sidebar() {
               />
             </label>
 
-            {quickAddType === 'task' && epics.length > 0 && (
+            {quickAddType === 'task' && epics.length > 0 && featureOn(workspace, 'epics') && (
               <label className="sidebar-inline_field">
                 Epic
                 <Select

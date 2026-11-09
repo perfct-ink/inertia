@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_11_07_120001) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_08_030001) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -653,6 +653,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_07_120001) do
     t.datetime "updated_at", null: false
     t.bigint "root_folder_id"
     t.boolean "personal", default: false, null: false
+    t.json "features"
     t.index ["root_folder_id"], name: "index_workspaces_on_root_folder_id", unique: true
     t.index ["user_id"], name: "index_workspaces_on_user_id"
   end

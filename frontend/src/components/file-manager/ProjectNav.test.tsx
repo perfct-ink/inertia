@@ -21,7 +21,8 @@ const mockClient = { resetQueries: mockReset }
 jest.mock('@tanstack/react-query', () => ({ useQueryClient: () => mockClient }))
 
 const doc = { id: 9, title: 'Brief', doc_type: 'document' }
-const mockWorkspace = {
+const mockWorkspace: { features: string[] | undefined; folders: unknown[] } = {
+  features: undefined,
   folders: [{
     id: 1, name: 'Root', root: true, kind: 'folder', documents: [],
     children: [
@@ -47,6 +48,7 @@ function renderAt(path: string) {
 
 beforeEach(() => {
   useProjectStore.setState({ activeProjectId: null })
+  mockWorkspace.features = undefined
   mockReset.mockClear()
 })
 
@@ -132,6 +134,15 @@ test('the task pages are listed with their names inside a project, not on the pr
   expect(within(tasks).getByRole('link', { name: 'Task table' })).toHaveAttribute('aria-current', 'page')
   fireEvent.click(within(tasks).getByRole('link', { name: 'Pivot' }))
   expect(screen.getByTestId('where')).toHaveTextContent('/pivot')
+})
+
+test('the task pages leave out Events when the Space turned it off', () => {
+  mockWorkspace.features = ['sprints']
+  useProjectStore.setState({ activeProjectId: 2 })
+  renderAt('/task-table')
+  const tasks = screen.getByRole('navigation', { name: 'Tasks' })
+  expect(within(tasks).queryByRole('link', { name: 'Events' })).not.toBeInTheDocument()
+  ;['Tasks', 'Task table', 'Pivot', 'Calendar'].forEach((name) => expect(within(tasks).getByRole('link', { name })).toBeInTheDocument())
 })
 
 test('opening a document inside a project opens that project', () => {

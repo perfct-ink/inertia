@@ -70,6 +70,9 @@ export interface WorkspaceSummary {
   name: string
   personal: boolean
   role: WorkspaceRole | null
+  // The optional pages the Space shows, keys of WorkspaceFeature in
+  // data/workspaceFeature.ts. Every one unless it chose; absent from an older server.
+  features?: string[]
 }
 
 export interface Workspace extends WorkspaceSummary {

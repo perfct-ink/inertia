@@ -13,7 +13,7 @@ import { errorMessage } from '@/api/tables'
 import { documentsIn, folderOfDocument, projectOf, projectsOf } from '@/data/folder'
 import { useSelectProject } from '@/hooks/useSelectProject'
 import { useOpenProject } from '@/hooks/useOpenProject'
-import { TASKS_HEADING, TASK_SECTIONS } from './projectSections'
+import { TASKS_HEADING, TASK_SECTIONS, sectionsFor } from './projectSections'
 import { isActivePath } from '@/data/project'
 import { useNewDocument } from '@/hooks/useNewDocument'
 import { shortcutLabel } from '@/util/shortcuts'
@@ -133,7 +133,7 @@ export function ProjectNav() {
           {/* The task pages, only inside a project. */}
           <nav aria-label="Tasks" className="project_nav-tasks">
             <span className="project_nav-label">{TASKS_HEADING}</span>
-            {TASK_SECTIONS.map(({ label, path, icon: Icon }) => {
+            {sectionsFor(TASK_SECTIONS, workspace).map(({ label, path, icon: Icon }) => {
               const active = isActivePath(location.pathname, path)
               return (
                 <Link key={path} to={path} aria-current={active ? 'page' : undefined} className={classNames('project_nav-row', 'project_nav-open', active && 'project_nav-row--active')}>

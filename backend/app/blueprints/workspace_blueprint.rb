@@ -2,6 +2,12 @@ class WorkspaceBlueprint < Blueprinter::Base
   identifier :id
   fields :name, :root_folder_id, :personal
 
+  # The optional pages this Space shows (every one unless it chose), as keys
+  # of Workspace::FEATURES; never null.
+  field :features do |workspace, _options|
+    workspace.enabled_features
+  end
+
   # The signed-in user's role here; callers pass `roles: { workspace_id => role }`.
   field :role do |workspace, options|
     options[:roles]&.dig(workspace.id)

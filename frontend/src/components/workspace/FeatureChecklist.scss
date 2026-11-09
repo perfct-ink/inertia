@@ -1,0 +1,48 @@
+@use 'tokens' as *;
+
+@layer app.components {
+  .feature_checklist {
+    // A long list scrolls inside the dialog instead of running off a short screen.
+    max-height: min(55dvh, 24rem);
+    overflow-y: auto;
+
+    &-group {
+      min-width: 0;
+      margin: 0 0 space(3);
+      padding: 0;
+      border: 0;
+    }
+
+    &-heading {
+      padding: 0;
+      color: color(muted-foreground);
+      user-select: none;
+      @include text('xs');
+
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    // Whole-row targets, 44px tall, so a checkbox is easy to hit on a phone.
+    &-option {
+      display: flex;
+      align-items: center;
+      gap: space(3);
+      min-height: space(11);
+      padding: 0 space(2);
+      border-radius: radius('sm');
+      user-select: none;
+      @include text('sm');
+      @include transition(background-color);
+
+      &--editable {
+        cursor: pointer;
+
+        &:hover {
+          background: color(muted);
+        }
+      }
+    }
+  }
+}
