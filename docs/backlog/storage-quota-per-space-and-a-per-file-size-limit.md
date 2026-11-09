@@ -40,3 +40,10 @@ Ran: the static checker, `data/document.test.ts` (pure) and `CreateItem.test.tsx
 To verify: `cd backend && rails db:migrate && git diff db/schema.rb` (empty), `rails test`; `cd frontend && npm install && npm run lint && npx tsc -b && npm test`; upload a file past a small limit (`Workspace.first.update!(storage_limit_bytes: 20)`) and look at the message and the usage line at 375px and in dark mode.
 
 Known limit (also in the feature doc): two uploads at the same moment can both pass the check. Decision for Alex: the default is 1 GB per Space and the limit has no screen (an operator sets it); say if it should be per plan or editable by Space owners.
+
+## Verified 2026-11-09, not merged
+
+Merged with main on Alex's Mac mini: `rails db:migrate` (no schema diff), `rails test` (765 runs, 0 failures), rubocop, brakeman, `tsc -b` (after typing the workspace mock in `CreateItem.test.tsx`, on this branch), Jest (1323 passed), eslint (0 errors), and the folder page shows "0 B of 1 GB used". The merge only conflicts in `frontend/src/data/document.test.ts` (keep both import lists and both tests).
+
+Held back from main because merging deploys, and the 1 GB default would apply to every existing Space at once: a Space already past 1 GB could not upload anything. Alex to decide the default (or a per-plan or owner-editable limit) before this merges.
+

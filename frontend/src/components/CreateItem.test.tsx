@@ -4,7 +4,7 @@ import CreateItem from './CreateItem'
 const mockCreate = jest.fn().mockResolvedValue({ id: 9 })
 const mockUpload = jest.fn().mockResolvedValue([])
 const mockNavigate = jest.fn()
-const mockWorkspace = {
+const mockWorkspace: { storage?: { used: number; limit: number } } & Record<string, unknown> = {
   id: 1, name: 'Workspace', root_folder_id: 101,
   folders: [{ id: 101, name: 'Root', root: true, archived: false, documents: [], children: [
     { id: 202, name: 'Project', archived: false, documents: [], children: [] },
