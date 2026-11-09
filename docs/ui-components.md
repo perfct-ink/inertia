@@ -54,6 +54,7 @@ The Mac app's SwiftUI screens (sign-in, sign-up, the local task-file window and 
 - `macos/Sources/InertiaCore/VoltaPalette.swift` is the theme in `_theme.scss` as light and dark HSL tokens; `VoltaControlsTests` reads `_theme.scss` and fails if the two differ. When the web theme changes, change the palette in the same commit.
 - `VoltaMetrics.swift` (radius, 150ms, 40pt minimum, type scale) and `VoltaControls.swift` (what each button, link, field, checkbox and surface looks like in each state) are tested data; the SwiftUI controls in `macos/Sources/Inertia/Components/` (`Volta*.swift`, `TextFieldStyle.swift`) only draw them. Change a control's look in its spec and its control, not on a screen.
 - Native screens use `Volta.*` colors and `voltaFont`/`voltaMuted`/`voltaCaption` instead of system colors and fonts, `.volta(...)` buttons instead of bordered or plain ones, `VoltaSelect` instead of `Picker`, and `VoltaPanel` instead of `GroupBox`.
+[volta_parity.md](volta_parity.md) has the rest: which Volta version the tokens were copied from and how they are kept in sync, what importing Volta's components would take, the React-to-Volta-to-native component inventory, and the keyboard, accessibility and narrow-layout findings for each control. In development, `/styleguide` shows every control in its states in a light and a dark panel ([features/component_gallery.md](features/component_gallery.md)); `_theme.scss` lets any element with `data-theme="light"` or `"dark"` pin a theme.
 
 ## API error handling
 

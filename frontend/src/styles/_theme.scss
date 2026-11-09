@@ -2,10 +2,12 @@
 @use 'volta';
 
 // Inertia theme: Volta's tokens set to Inertia's blue palette. A different
-// theme only needs to override these tokens. The native Mac app carries the same
-// values in macos/Sources/InertiaCore/VoltaPalette.swift (a test reads this file
-// and fails when they differ), so change both together.
-:root {
+// theme only needs to override these tokens. The values live in mixins so the
+// root and a subtree that pins a theme (see the end of this file) share them.
+// The native Mac app carries the same values in
+// macos/Sources/InertiaCore/VoltaPalette.swift (a test reads this file and fails
+// when they differ), so change both together.
+@mixin light-tokens {
   --v-accent: hsl(217deg 72% 32%);
   --v-accent-hover: hsl(217deg 72% 27%);
   --v-accent-subtle: hsl(217deg 30% 90%);
@@ -25,7 +27,7 @@
   --card: var(--v-color-base);
 }
 
-@include volta.dark-scheme {
+@mixin dark-tokens {
   color-scheme: dark;
 
   --v-accent: hsl(217deg 72% 42%);
@@ -94,7 +96,7 @@
 }
 
 // Inertia's semantic colors, mapped onto the Volta tokens.
-:root {
+@mixin semantic-colors {
   --background: var(--v-color-base);
   --foreground: var(--v-color-trim);
   --muted: var(--v-color-base-more-subtle);
@@ -109,4 +111,33 @@
   --canvas: var(--v-color-base);
   --card-foreground: var(--v-color-trim);
   --danger: var(--v-color-danger);
+}
+
+:root {
+  @include light-tokens;
+}
+
+@include volta.dark-scheme {
+  @include dark-tokens;
+}
+
+:root {
+  @include semantic-colors;
+}
+
+// A subtree can pin a theme with data-theme="light" or "dark", whatever the
+// page's own theme is (the component gallery shows both side by side). A
+// custom property that points at another (--background: var(--v-color-base))
+// is resolved where it is declared, so the semantic colors are declared again
+// here as well. Popups portalled to <body> (select lists, dialogs, the date
+// picker) are outside the subtree and keep the page's theme.
+[data-theme='light'] {
+  @include light-tokens;
+  @include semantic-colors;
+}
+
+[data-theme='dark'] {
+  @include volta.dark-palette;
+  @include dark-tokens;
+  @include semantic-colors;
 }

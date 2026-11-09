@@ -26,7 +26,7 @@ module Slug
     my-work portfolio calendar timeline inbox ideas workload pivot resources
     task-table sprint-board project-requests plan objectives-map
     features pricing about robots sitemap
-    settings search dashboard dashboards notifications teams reports files new
+    settings search dashboard dashboards notifications teams reports files new styleguide
   ].freeze
 
   module_function

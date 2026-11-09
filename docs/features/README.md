@@ -83,3 +83,4 @@ One file per implemented feature, written from the code (see `docs/rules/feature
 | Links to other documents: `[[` or `@` picker, live titles | [document_links.md](document_links.md) |
 | One lint command: ESLint, Stylelint, RuboCop, Swift warnings | [lint_entry_point.md](lint_entry_point.md) |
 | Local task file: initiatives and milestones | [local_task_file_planning.md](local_task_file_planning.md) |
+| Component gallery: every shared control in its states, in a light and a dark panel, at `/styleguide` in development (Volta parity audit in [../volta_parity.md](../volta_parity.md)) | [component_gallery.md](component_gallery.md) |

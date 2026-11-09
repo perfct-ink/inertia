@@ -1,3 +1,4 @@
+import { Suspense, lazy } from 'react'
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import { useAuthStore } from '@/store/auth'
 import { usesHashRouter } from '@/util/router'
@@ -34,6 +35,13 @@ import AppearanceEffect from '@/components/AppearanceEffect'
 import OnboardingSync from '@/components/onboarding/OnboardingSync'
 import PathSync from '@/components/PathSync'
 import InviteScreen from '@/view/invite/InviteScreen'
+
+// The component gallery (docs/volta_parity.md) is a development tool. The
+// condition is a build-time constant, so a production build leaves out the
+// route and the gallery's chunk.
+const StyleguideScreen = process.env.NODE_ENV !== 'production'
+  ? lazy(() => import('@/view/styleguide/StyleguideScreen'))
+  : null
 
 // Signed-out visitors go to sign-in, which sends them back to the page they asked for.
 function PrivateRoute({ children }: { children: React.ReactNode }) {
@@ -300,6 +308,9 @@ export default function App() {
             </PrivateRoute>
           }
         />
+        {StyleguideScreen && (
+          <Route path="/styleguide" element={<Suspense fallback={null}><StyleguideScreen /></Suspense>} />
+        )}
       </Routes>
       <ToastRegion />
     </>

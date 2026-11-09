@@ -1,0 +1,146 @@
+@use 'tokens' as *;
+
+// The component gallery (/styleguide, development builds only). Every section
+// shows the same examples in two panels that pin a light and a dark theme
+// (data-theme, see styles/_theme.scss).
+@layer view {
+  .view-styleguide {
+    display: block;
+    min-height: 100dvh;
+    padding: space(4);
+    background: color(background);
+    color: color(foreground);
+
+    @include up('md') {
+      padding: space(6);
+    }
+
+    @at-root .styleguide-header {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: space(3) space(6);
+      margin-bottom: space(6);
+    }
+
+    @at-root .styleguide-heading {
+      max-width: 48rem;
+    }
+
+    @at-root .styleguide-title {
+      font-weight: 600;
+      @include text('2xl');
+    }
+
+    @at-root .styleguide-intro {
+      margin-top: space(1);
+      color: color(muted-foreground);
+      @include text('sm');
+    }
+
+    @at-root .styleguide-width {
+      display: flex;
+      flex-direction: column;
+      gap: space(1);
+      font-weight: 500;
+      @include text('sm');
+    }
+
+    @at-root .styleguide-section {
+      margin-bottom: space(8);
+    }
+
+    @at-root .styleguide-section-title {
+      margin-bottom: space(3);
+      font-weight: 600;
+      @include text('xl');
+    }
+
+    @at-root .styleguide-themes {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+      gap: space(4);
+
+      @include up('lg') {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      // Narrow panels stand in for a phone: each is 375px wide at most.
+      // Calendars, lists and dialogs follow the real window, so resize the
+      // window to check those at phone width.
+      &--phone {
+        grid-template-columns: repeat(auto-fit, minmax(0, 375px));
+      }
+    }
+
+    // Pins the theme through the data-theme attribute; the tokens below it
+    // come from that theme, not from the page.
+    @at-root .styleguide-panel {
+      display: flex;
+      flex-direction: column;
+      gap: space(4);
+      min-width: 0;
+      padding: space(4);
+      border: 1px solid color(border);
+      border-radius: radius('lg');
+      background: color(background);
+      color: color(foreground);
+    }
+
+    @at-root .styleguide-panel-title {
+      color: color(muted-foreground);
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      @include text('xs');
+    }
+
+    @at-root .styleguide-example {
+      display: flex;
+      flex-direction: column;
+      gap: space(2);
+      min-width: 0;
+    }
+
+    @at-root .styleguide-example-label {
+      color: color(muted-foreground);
+      @include text('xs');
+    }
+
+    @at-root .styleguide-example-items {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: space(2) space(3);
+      min-width: 0;
+    }
+
+    // The state a keyboard user sees: the same ring as :focus / :focus-visible.
+    @at-root .styleguide-state--focus {
+      border-color: color(primary);
+      @include focus-ring;
+    }
+
+    @at-root .styleguide-status {
+      display: inline-flex;
+      align-items: center;
+      gap: space(2);
+      @include text('sm');
+    }
+
+    @at-root .styleguide-swatch {
+      display: inline-flex;
+      align-items: center;
+      gap: space(2);
+      @include text('xs');
+    }
+
+    @at-root .styleguide-swatch-chip {
+      width: space(6);
+      height: space(6);
+      border: 1px solid color(border-strong);
+      border-radius: radius('md');
+    }
+  }
+}
