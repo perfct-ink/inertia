@@ -1,5 +1,6 @@
 require "test_helper"
 require "socket"
+require "net/http"
 
 # Runs HttpTransport against a throwaway server on 127.0.0.1 (no external
 # network): a real socket is the only way to see chunked reads and timeouts.

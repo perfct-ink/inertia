@@ -67,10 +67,10 @@ class SluggableTest < ActiveSupport::TestCase
     product = folder("Product")
     spec = document("Specs", product)
 
-    product.update!(name: "Roadmap")
+    product.update!(name: "Strategy")
 
-    assert_equal "roadmap", product.reload.slug
-    assert_equal [ "roadmap", "specs" ], spec.reload.path_segments
+    assert_equal "strategy", product.reload.slug
+    assert_equal [ "strategy", "specs" ], spec.reload.path_segments
     assert_includes aliases, "product"
     assert_includes aliases, "product/specs"
     assert_equal product, PathAlias.find_by(workspace_id: @workspace.id, path: "product").target
@@ -78,11 +78,11 @@ class SluggableTest < ActiveSupport::TestCase
   end
 
   test "a document keeps its slug when only its content changes" do
-    doc = document("Plan", @root)
+    doc = document("Brief", @root)
     assert_no_difference -> { PathAlias.count } do
       doc.update!(content: { "type" => "doc" })
     end
-    assert_equal "plan", doc.reload.slug
+    assert_equal "brief", doc.reload.slug
   end
 
   test "renaming a document remembers its old path" do
@@ -143,16 +143,16 @@ class SluggableTest < ActiveSupport::TestCase
 
   test "a document moved to another space keeps no alias there" do
     other = User.create!(name: "Other", email: "slug-other@example.com", password: "password123")
-    doc = document("Plan", @root)
+    doc = document("Brief", @root)
     doc.update!(folder: other.workspace.root_folder)
 
-    assert_equal "plan", doc.reload.slug
+    assert_equal "brief", doc.reload.slug
     assert_empty PathAlias.where(workspace_id: other.workspace.id)
     assert_empty aliases
   end
 
   test "a slug already used in the folder is rejected" do
-    doc = document("Plan", @root)
+    doc = document("Brief", @root)
     other = document("Other", @root)
 
     other.slug = doc.slug
@@ -162,7 +162,7 @@ class SluggableTest < ActiveSupport::TestCase
   end
 
   test "slugs only contain lowercase letters, digits and hyphens" do
-    doc = document("Plan", @root)
+    doc = document("Brief", @root)
     doc.slug = "Not Valid!"
     assert_not doc.valid?
   end

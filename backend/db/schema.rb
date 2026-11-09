@@ -366,6 +366,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_08_170001) do
     t.datetime "updated_at", null: false
     t.index ["user_id", "name"], name: "index_paragraph_styles_on_user_id_and_name", unique: true
     t.index ["user_id"], name: "index_paragraph_styles_on_user_id"
+  end
+
   create_table "path_aliases", force: :cascade do |t|
     t.bigint "workspace_id", null: false
     t.string "path", null: false
