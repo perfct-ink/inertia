@@ -27,8 +27,7 @@
 
     @at-root .auth-logo {
       display: block;
-      width: space(14);
-      height: space(14);
+      @include icon-size(space(14));
       margin-right: auto;
       margin-left: auto;
       border-radius: radius('xl');

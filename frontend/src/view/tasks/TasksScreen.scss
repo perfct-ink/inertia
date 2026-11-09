@@ -34,8 +34,7 @@
       position: absolute;
       top: 50%;
       left: space(2);
-      width: space(3.5);
-      height: space(3.5);
+      @include icon-size(space(3.5));
       color: color(muted-foreground);
       transform: translateY(-50%);
       pointer-events: none;
@@ -43,17 +42,14 @@
 
     @at-root .tasks-icon {
       flex-shrink: 0;
-      width: space(3.5);
-      height: space(3.5);
+      @include icon-size(space(3.5));
 
       &--sm {
-        width: space(3);
-        height: space(3);
+        @include icon-size(space(3));
       }
 
       &--md {
-        width: space(4);
-        height: space(4);
+        @include icon-size(space(4));
       }
     }
 
@@ -75,8 +71,7 @@
     }
 
     @at-root .tasks-filter_dot {
-      width: space(1.5);
-      height: space(1.5);
+      @include icon-size(space(1.5));
       border-radius: radius('full');
       background: color(primary);
     }
@@ -113,8 +108,7 @@
     }
 
     @at-root .tasks-spinner {
-      width: space(5);
-      height: space(5);
+      @include icon-size(space(5));
       color: color(muted-foreground);
       @include spin;
     }
@@ -291,8 +285,7 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      width: space(6);
-      height: space(6);
+      @include icon-size(space(6));
       border-radius: radius('full');
       background: color(primary, 0.15);
       color: color(primary);

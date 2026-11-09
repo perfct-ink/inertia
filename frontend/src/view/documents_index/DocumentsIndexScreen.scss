@@ -49,8 +49,7 @@
     }
 
     @at-root .documents_index-spinner {
-      width: space(5);
-      height: space(5);
+      @include icon-size(space(5));
       color: color(muted-foreground);
       @include spin;
     }
@@ -99,8 +98,7 @@
 
     @at-root .documents_index-icon {
       flex-shrink: 0;
-      width: space(4);
-      height: space(4);
+      @include icon-size(space(4));
       color: color(muted-foreground);
     }
 
@@ -118,8 +116,7 @@
     }
 
     @at-root .documents_index-sort_icon {
-      width: space(3);
-      height: space(3);
+      @include icon-size(space(3));
     }
 
     @at-root .documents_index-col--name {

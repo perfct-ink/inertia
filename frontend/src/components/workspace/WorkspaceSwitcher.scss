@@ -35,8 +35,7 @@
 
     &-icon {
       flex-shrink: 0;
-      width: space(3.5);
-      height: space(3.5);
+      @include icon-size(space(3.5));
     }
   }
 }

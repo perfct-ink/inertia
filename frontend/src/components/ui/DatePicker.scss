@@ -56,14 +56,12 @@
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      width: space(10);
-      height: space(10);
+      @include icon-size(space(10));
       padding: 0;
       color: color(muted-foreground);
 
       svg {
-        width: space(4);
-        height: space(4);
+        @include icon-size(space(4));
       }
 
       &:hover:not(:disabled) {

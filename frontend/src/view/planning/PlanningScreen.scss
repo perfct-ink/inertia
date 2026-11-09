@@ -48,8 +48,7 @@
     }
 
     @at-root .planning-icon {
-      width: space(4);
-      height: space(4);
+      @include icon-size(space(4));
     }
 
     @at-root .planning-new_card {
@@ -78,8 +77,7 @@
     }
 
     @at-root .planning-spinner {
-      width: space(5);
-      height: space(5);
+      @include icon-size(space(5));
       color: color(muted-foreground);
       @include spin;
     }
@@ -98,8 +96,7 @@
     }
 
     @at-root .planning-empty_icon {
-      width: space(8);
-      height: space(8);
+      @include icon-size(space(8));
       opacity: 0.3;
     }
 
@@ -125,8 +122,7 @@
 
       &-icon {
         flex-shrink: 0;
-        width: space(4);
-        height: space(4);
+        @include icon-size(space(4));
         color: color(muted-foreground);
       }
 
@@ -168,8 +164,7 @@
     }
 
     @at-root .planning-delete_icon {
-      width: space(3.5);
-      height: space(3.5);
+      @include icon-size(space(3.5));
     }
 
     @at-root .planning-card-dates {

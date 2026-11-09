@@ -46,8 +46,7 @@
     }
 
     &-icon {
-      width: space(4);
-      height: space(4);
+      @include icon-size(space(4));
     }
 
     &-add {

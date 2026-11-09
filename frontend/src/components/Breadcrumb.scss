@@ -22,8 +22,7 @@
     }
 
     @at-root .ui-breadcrumb-separator {
-      width: space(3.5);
-      height: space(3.5);
+      @include icon-size(space(3.5));
       flex-shrink: 0;
     }
 

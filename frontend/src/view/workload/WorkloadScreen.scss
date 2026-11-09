@@ -36,8 +36,7 @@
     }
 
     @at-root .workload-icon {
-      width: space(3);
-      height: space(3);
+      @include icon-size(space(3));
     }
   }
 }

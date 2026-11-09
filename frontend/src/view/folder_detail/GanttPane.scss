@@ -60,8 +60,7 @@
     }
 
     @at-root .gantt_pane-icon {
-      width: space(3.5);
-      height: space(3.5);
+      @include icon-size(space(3.5));
     }
 
     .gantt_pane-remove {

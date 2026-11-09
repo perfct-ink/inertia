@@ -25,8 +25,7 @@
     }
 
     @at-root .sprints-icon {
-      width: space(4);
-      height: space(4);
+      @include icon-size(space(4));
 
       &--spin {
         @include spin;
@@ -59,8 +58,7 @@
     }
 
     @at-root .sprints-empty_icon {
-      width: space(8);
-      height: space(8);
+      @include icon-size(space(8));
       opacity: 0.5;
     }
 

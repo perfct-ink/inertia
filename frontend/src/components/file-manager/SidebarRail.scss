@@ -70,8 +70,7 @@
       align-items: center;
       justify-content: center;
       flex-shrink: 0;
-      width: space(10);
-      height: space(10);
+      @include icon-size(space(10));
       border-radius: radius('lg');
       color: color(muted-foreground);
       @include transition(background-color, color);
@@ -85,8 +84,7 @@
 
     &_icon {
       flex-shrink: 0;
-      width: space(5);
-      height: space(5);
+      @include icon-size(space(5));
     }
   }
 }
