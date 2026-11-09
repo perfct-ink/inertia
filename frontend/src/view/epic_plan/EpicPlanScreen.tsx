@@ -15,7 +15,7 @@ import {
 } from '@dnd-kit/core'
 import { format, parseISO } from 'date-fns'
 import { GripVertical, ListChecks, Loader2, Plus, Target, X } from 'lucide-react'
-import { Button, Input, Select, classNames } from '@/components/ui'
+import { Button, IconButton, Input, Select, classNames } from '@/components/ui'
 import WorkspaceLayout from '@/components/WorkspaceLayout'
 import { ProgressBar } from '@/components/Timeline'
 import { useEpics, useUpdateEpic } from '@/api/epics'
@@ -183,14 +183,15 @@ function EpicPlanner({ epic, tasks }: { epic: Epic; tasks: Task[] }) {
                     onChange={(e) => save(task, { due_date: e.target.value || null })}
                     className="epic_plan-date"
                   />
-                  <Button
+                  <IconButton
                     onClick={() => move(task, UNPLANNED)}
-                    aria-label={`Remove ${task.title} from the epic`}
+                    label={`Remove ${task.title} from the epic`}
                     title="Remove from the epic"
-                    className="epic_plan-icon_button epic_plan-remove"
+                    tone="danger"
+                    className="epic_plan-icon_button"
                   >
                     <X aria-hidden="true" />
-                  </Button>
+                  </IconButton>
                 </PlanTask>
               ))}
             </StatusSection>
@@ -201,14 +202,14 @@ function EpicPlanner({ epic, tasks }: { epic: Epic; tasks: Task[] }) {
           {unplanned.map((task) => (
             <PlanTask key={task.id} task={task}>
               <span className="epic_plan-task_status">{STATUS_LABEL[task.status]}</span>
-              <Button
+              <IconButton
                 onClick={() => move(task, task.status)}
-                aria-label={`Add ${task.title} to the epic`}
+                label={`Add ${task.title} to the epic`}
                 title="Add to the epic"
-                className="epic_plan-icon_button epic_plan-add"
+                className="epic_plan-icon_button"
               >
                 <Plus aria-hidden="true" />
-              </Button>
+              </IconButton>
             </PlanTask>
           ))}
         </BacklogPane>

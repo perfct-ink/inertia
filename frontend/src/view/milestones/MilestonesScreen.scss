@@ -87,14 +87,6 @@
       @include truncate;
     }
 
-    @at-root .milestones-card-delete {
-      color: color(muted-foreground);
-
-      &:hover {
-        color: palette('red-500');
-      }
-    }
-
     @at-root .milestones-card-fields {
       display: flex;
       flex-wrap: wrap;

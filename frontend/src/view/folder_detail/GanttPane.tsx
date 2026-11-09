@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { X } from 'lucide-react'
-import { Button, FormError, Input, Select } from '@/components/ui'
+import { Button, FormError, IconButton, Input, Select } from '@/components/ui'
 import { Timeline, type TimelineMilestone } from '@/components/Timeline'
 import { useUpdateTask } from '@/api/tasks'
 import { useUpdateEpic } from '@/api/epics'
@@ -206,13 +206,14 @@ function DependencyEditor({ tasks, dependencies }: { tasks: Task[]; dependencies
               <strong>{titles.get(d.successor_id)}</strong> waits on <strong>{titles.get(d.predecessor_id)}</strong>
               <span className="gantt_pane-muted"> · {DEPENDENCY_LABEL[d.kind]}</span>
             </span>
-            <Button
+            <IconButton
               onClick={() => deleteDependency.mutate(d.id)}
-              aria-label={`Remove dependency of ${titles.get(d.successor_id)} on ${titles.get(d.predecessor_id)}`}
+              label={`Remove dependency of ${titles.get(d.successor_id)} on ${titles.get(d.predecessor_id)}`}
+              tone="danger"
               className="gantt_pane-remove"
             >
               <X className="gantt_pane-icon" aria-hidden="true" />
-            </Button>
+            </IconButton>
           </li>
         ))}
       </ul>

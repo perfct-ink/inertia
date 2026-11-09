@@ -1,0 +1,12 @@
+@use 'tokens' as *;
+
+// The muted tone is Button's `muted` variant (muted, full foreground on hover);
+// this adds the red hover for destructive icons. The doubled class lifts it
+// above `.ui-button--muted:hover` however the stylesheets are ordered.
+@layer app.ui {
+  .ui-icon_button {
+    &.ui-icon_button--danger:hover {
+      color: palette('red-500');
+    }
+  }
+}

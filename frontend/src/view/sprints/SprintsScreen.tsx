@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react'
 import { Plus, X, Rocket, Loader2 } from 'lucide-react'
-import { Button, Input, Modal, Select, DatePicker } from '@/components/ui'
+import { Button, IconButton, Input, Modal, Select, DatePicker } from '@/components/ui'
 import WorkspaceLayout from '@/components/WorkspaceLayout'
 import { ProgressBar } from '@/components/Timeline'
 import { useSprints, useCreateSprint, useUpdateSprint, useDeleteSprint, useStartSprint, useCloseSprint } from '@/api/sprints'
@@ -72,13 +72,13 @@ export default function SprintsScreen() {
               <div key={sprint.id} className="sprints-card">
                 <div className="sprints-card-top">
                   <h2 className="sprints-card-title">{sprint.title}</h2>
-                  <Button
+                  <IconButton
                     onClick={() => deleteSprint.mutate(sprint.id)}
-                    aria-label={`Delete ${sprint.title}`}
-                    className="sprints-card-delete"
+                    label={`Delete ${sprint.title}`}
+                    tone="danger"
                   >
                     <X className="sprints-icon" aria-hidden="true" />
-                  </Button>
+                  </IconButton>
                 </div>
 
                 <Input

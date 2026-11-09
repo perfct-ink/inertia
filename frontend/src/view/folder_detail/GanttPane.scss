@@ -66,11 +66,6 @@
 
     .gantt_pane-remove {
       padding: space(1);
-      color: color(muted-foreground);
-
-      &:hover {
-        color: palette('red-500');
-      }
     }
 
     @at-root .gantt_pane-form {

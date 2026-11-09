@@ -1,8 +1,8 @@
-import { Button, Input, Select } from '@/components/ui'
+import { Button, Input, Select, SortArrow } from '@/components/ui'
 import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { format, parseISO } from 'date-fns'
-import { Loader2, ArrowUp, ArrowDown, FolderKanban } from 'lucide-react'
+import { Loader2, FolderKanban } from 'lucide-react'
 import DocTypeIcon from '@/components/DocTypeIcon'
 import { useWorkspace } from '@/api/workspace'
 import WorkspaceLayout from '@/components/WorkspaceLayout'
@@ -76,7 +76,7 @@ export default function DocumentsIndexScreen() {
         className={`documents_index-sort${active ? ' documents_index-sort--active' : ''} ${className ?? ''}`}
       >
         {label}
-        {active && (sortDir === 'asc' ? <ArrowUp className="documents_index-sort_icon" /> : <ArrowDown className="documents_index-sort_icon" />)}
+        {active && <SortArrow direction={sortDir} />}
       </Button>
     )
   }

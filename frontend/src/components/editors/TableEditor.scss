@@ -1,10 +1,5 @@
 @use 'tokens' as *;
 
-@mixin icon($size) {
-  width: $size;
-  height: $size;
-}
-
 @mixin icon_button_danger {
   color: color(muted-foreground);
 
@@ -29,7 +24,7 @@
     }
 
     @at-root .table_editor-header_icon {
-      @include icon(space(5));
+      @include icon-size(space(5));
 
       color: color(muted-foreground);
     }
@@ -71,7 +66,7 @@
     }
 
     @at-root .table_editor-mode_icon {
-      @include icon(space(4));
+      @include icon-size(space(4));
     }
 
     @at-root .table_editor-summary {
@@ -123,7 +118,7 @@
     }
 
     @at-root .table_editor-spinner {
-      @include icon(space(5));
+      @include icon-size(space(5));
 
       display: block;
       margin: space(8) auto 0;
@@ -210,7 +205,7 @@
     }
 
     @at-root .table_editor-column_edit_icon {
-      @include icon(space(3));
+      @include icon-size(space(3));
 
       color: color(muted-foreground);
     }
@@ -240,10 +235,10 @@
     }
 
     @at-root .table_editor-icon_button_icon {
-      @include icon(space(4));
+      @include icon-size(space(4));
 
       &--sm {
-        @include icon(space(3.5));
+        @include icon-size(space(3.5));
       }
     }
 

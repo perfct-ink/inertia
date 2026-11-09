@@ -3,7 +3,7 @@ import { classNames } from './classNames'
 import './Button.scss'
 
 type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
-  variant?: 'unstyled' | 'primary' | 'secondary' | 'ghost' | 'destructive'
+  variant?: 'unstyled' | 'primary' | 'secondary' | 'ghost' | 'destructive' | 'muted'
 }
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button(

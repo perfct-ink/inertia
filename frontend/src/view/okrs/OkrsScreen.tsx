@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react'
 import { Goal, Loader2, Pencil, Plus, X } from 'lucide-react'
-import { Button, FormError, HealthBadge, Input, Select, DatePicker, Textarea } from '@/components/ui'
+import { Button, FormError, HealthBadge, IconButton, Input, Select, DatePicker, Textarea } from '@/components/ui'
 import WorkspaceLayout from '@/components/WorkspaceLayout'
 import { ProgressBar } from '@/components/Timeline'
 import { useCreateObjective, useDeleteObjective, useObjectives, useUpdateObjective } from '@/api/objectives'
@@ -98,13 +98,14 @@ function ObjectiveCard({ objective, initiatives }: { objective: Objective; initi
         </h2>
         <HealthBadge health={objective.health} />
         <span className="okrs-score" title="Score (0 to 1)">{formatScore(objective.score)}</span>
-        <Button
+        <IconButton
           onClick={() => deleteObjective.mutate(objective.id)}
-          aria-label={`Delete ${objective.title}`}
-          className="okrs-delete"
+          label={`Delete ${objective.title}`}
+          tone="danger"
+          className="okrs-icon_button"
         >
           <X className="okrs-icon" aria-hidden="true" />
-        </Button>
+        </IconButton>
       </div>
 
       <div className="okrs-period">
@@ -181,12 +182,13 @@ function KeyResultRow({ kr, initiative, initiatives }: { kr: KeyResult; initiati
       <div className="okrs-kr-top">
         <span className="okrs-kr-title">{kr.title}</span>
         <span className="okrs-kr-percent">{kr.percent}%</span>
-        <Button onClick={() => setEditing((v) => !v)} aria-label={`Edit key result ${kr.title}`} aria-expanded={editing} className="okrs-delete">
+        {/* Red on hover like the delete button next to it: that is how it looked before it became an IconButton. */}
+        <IconButton onClick={() => setEditing((v) => !v)} label={`Edit key result ${kr.title}`} tone="danger" aria-expanded={editing} className="okrs-icon_button">
           <Pencil className="okrs-icon" aria-hidden="true" />
-        </Button>
-        <Button onClick={() => deleteKeyResult.mutate(kr.id)} aria-label={`Delete key result ${kr.title}`} className="okrs-delete">
+        </IconButton>
+        <IconButton onClick={() => deleteKeyResult.mutate(kr.id)} label={`Delete key result ${kr.title}`} tone="danger" className="okrs-icon_button">
           <X className="okrs-icon" aria-hidden="true" />
-        </Button>
+        </IconButton>
       </div>
       <ProgressBar percent={kr.percent} />
       {editing && <KeyResultEditor kr={kr} initiatives={initiatives} onDone={() => setEditing(false)} />}

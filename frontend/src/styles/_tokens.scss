@@ -299,6 +299,12 @@ $select-chevron-room: space(6);
   }
 }
 
+// Width and height of an icon or other square mark, e.g. icon-size(space(4)).
+@mixin icon-size($size) {
+  width: $size;
+  height: $size;
+}
+
 // Muted text/icon that turns to full foreground on hover.
 @mixin muted-link {
   color: color(muted-foreground);

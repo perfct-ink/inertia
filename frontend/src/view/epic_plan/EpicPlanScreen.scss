@@ -248,12 +248,10 @@
       width: space(8);
       height: space(8);
       border-radius: radius('md');
-      color: color(muted-foreground);
       @include transition(color, background-color);
 
       &:hover {
         background: color(accent);
-        color: color(foreground);
       }
 
       svg {
@@ -265,10 +263,6 @@
         width: space(10);
         height: space(10);
       }
-    }
-
-    @at-root .epic_plan-remove:hover {
-      color: palette('red-500');
     }
 
     /* The task following the pointer while it is dragged. */

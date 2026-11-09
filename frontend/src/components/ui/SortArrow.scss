@@ -1,0 +1,7 @@
+@use 'tokens' as *;
+
+@layer app.ui {
+  .ui-sort_arrow {
+    @include icon-size(space(3));
+  }
+}
