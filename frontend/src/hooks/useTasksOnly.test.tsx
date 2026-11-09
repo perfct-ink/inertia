@@ -13,7 +13,8 @@ test('a document that is not a feature starts unfolded and is not remembered', (
   expect(result.current[0]).toBe(false)
   act(() => result.current[1]())
   expect(result.current[0]).toBe(true)
-  expect(localStorage.length).toBe(0)
+  // The auth store persists itself, so only the tasks-only keys are checked.
+  expect(Object.keys(localStorage).filter((k) => k.startsWith('inertia-tasks-only:'))).toEqual([])
 })
 
 test('a feature remembers the choice for this person', () => {

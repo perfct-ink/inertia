@@ -94,6 +94,12 @@ cd backend && DATABASE_URL="$SCRATCH_DATABASE_URL" RAILS_ENV=production rails db
 
 Then open a few features in the scratch app's Features page and check their documents. Production gets the migration on deploy (`db:prepare` on boot); take a backup first.
 
+### Verified on 2026-11-09 (merged with main on Alex's Mac mini)
+
+Merged with main (one conflict in `space_transfer.rb`, both constants kept) and ran: `rails test` (511 runs, 0 failures), rubocop, brakeman, `tsc -b`, Jest (889 passed after fixing `useTasksOnly.test.tsx`, which counted the auth store's own persisted key), eslint (0 errors), `db:migrate` with no `schema.rb` diff, and the data migration on a local database with three epics (one with a folder, two without, in two Spaces): it made 3 documents and 2 Personal Projects, and a rerun made nothing. In the browser, "New feature" on the Features page made the feature and opened its document in the Personal Project.
+
+**Held back from main:** pushing main deploys, and Rails runs this data migration on boot against production. The production dry run below (on a restored backup) is Alex's to run or waive before this merges.
+
 ### Checks
 
 Ran: `ruby -c` on the changed Ruby and tests, the static checker, the pure data tests, and in a Jest stand-in: `useNewFeature`, `useNewDocument`, `useTasksOnly`, `FeatureProgress`, `CreateItem`, `ProjectNav`, `SidebarRail`, `EpicsScreen`, `feature.test.ts`.
