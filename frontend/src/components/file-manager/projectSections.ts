@@ -1,7 +1,7 @@
 import type { ComponentType } from 'react'
 import {
   CalendarDays, CalendarRange, CheckSquare, Flag, Gauge, GanttChart, Goal, Lightbulb, ListTree, Map as MapIcon,
-  Milestone, Network, Rocket, Rows3, Table2, Target, UserCheck, Users,
+  LayoutDashboard, Milestone, Network, Rocket, Rows3, Table2, Target, UserCheck, Users,
 } from 'lucide-react'
 
 export type Section = {
@@ -20,6 +20,7 @@ export const TASKS_HEADING = 'Tasks'
 // (SidebarRail).
 export const SECTION_GROUPS: { heading: string | null; sections: Section[] }[] = [
   { heading: null, sections: [
+    { label: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
     { label: 'My work', path: '/my-work', icon: UserCheck, sharedOnly: true },
   ] },
   { heading: TASKS_HEADING, sections: [

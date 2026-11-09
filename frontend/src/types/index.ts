@@ -250,6 +250,8 @@ export interface Initiative {
   description: string | null
   status: PlanningStatus
   owner_id: number | null
+  // The folder (project) it is filed in, if any.
+  folder_id?: number | null
   milestone_id: number | null
   start_date: string | null
   target_date: string | null
@@ -315,6 +317,8 @@ export interface Sprint {
   goal: string | null
   status: PlanningStatus
   owner_id: number | null
+  // The folder (project) it is filed in, if any.
+  folder_id?: number | null
   start_date: string | null
   end_date: string | null
   tasks_count: number

@@ -62,6 +62,12 @@ export function boardColumns(
   return columns
 }
 
+// How many board cards sit in each Now / Next / Later column.
+export function horizonCounts(initiatives: Initiative[], epics: Epic[], today: Date = new Date()): Record<RoadmapHorizon, number> {
+  const columns = boardColumns(initiatives, epics, today)
+  return { now: columns.now.length, next: columns.next.length, later: columns.later.length }
+}
+
 export interface RoadmapLane {
   key: string
   milestone: Milestone | null
