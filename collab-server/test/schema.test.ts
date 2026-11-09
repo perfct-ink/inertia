@@ -33,4 +33,11 @@ describe("schema", () => {
     expect(schema.nodeFromJSON({ type: "paragraph", attrs: { style: "quote" } }).attrs).toEqual({ style: "quote", styleName: null, styleProps: null });
     expect(schema.nodeFromJSON({ type: "paragraph" }).attrs).toEqual({ style: "body", styleName: null, styleProps: null });
   });
+
+  it("keeps the style of a bullet list, and a list with none is a plain bullet list", () => {
+    const item = { type: "listItem", content: [{ type: "paragraph" }] };
+    const dashed = schema.nodeFromJSON({ type: "bulletList", attrs: { listStyle: "dashed" }, content: [item] });
+    expect(dashed.attrs).toEqual({ listStyle: "dashed" });
+    expect(schema.nodeFromJSON({ type: "bulletList", content: [item] }).attrs).toEqual({ listStyle: "bullet" });
+  });
 });

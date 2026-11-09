@@ -67,3 +67,4 @@ One file per implemented feature, written from the code (see `docs/rules/feature
 | Notifications inbox: per-person inbox, unread badge, task assignment | [notifications_inbox.md](notifications_inbox.md) |
 | Task auto fields: item ID, creator, created and last updated in the task detail dialog only (not the task table) | [task_auto_fields.md](task_auto_fields.md) |
 | Agent access: MCP server and REST for outside agents, owner-made scoped tokens, every change attributed to the agent | [agent_access.md](agent_access.md) |
+| Dashed list: Apple Notes' third list style, a toolbar button, a bullet-list style attribute | [dashed_list.md](dashed_list.md) |
