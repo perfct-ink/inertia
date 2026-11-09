@@ -1,8 +1,9 @@
+import type { JsonNode } from './document'
 import { BROKEN_LINK_TITLE, brokenLinkMessage, brokenLinks, documentLinksIn, linkedDocumentIds, linkLookup, linkSpanAt } from './brokenLink'
 
 const link = (href: string, text = 'a link') => ({ type: 'text', text, marks: [{ type: 'link', attrs: { href } }] })
-const paragraph = (...content: unknown[]) => ({ type: 'paragraph', content })
-const doc = (...content: unknown[]) => ({ type: 'doc', content })
+const paragraph = (...content: JsonNode[]): JsonNode => ({ type: 'paragraph', content })
+const doc = (...content: JsonNode[]): JsonNode => ({ type: 'doc', content })
 const heading = (text: string, id: string | null = null) => ({ id, text, level: 2 })
 
 test('documentLinksIn finds in-app document links once each and ignores other links', () => {
