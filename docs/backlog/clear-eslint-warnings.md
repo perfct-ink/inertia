@@ -1,6 +1,7 @@
 ---
 priority: p1
 depends_on: []
+status: incomplete
 ---
 # Clear ESLint warnings deliberately
 
@@ -23,3 +24,7 @@ Tailwind has been removed; the frontend uses SCSS (`frontend/src/styles/` for ap
 - `npm run lint` reports no warnings from the React Compiler rules (`react-hooks` `refs`, `set-state-in-effect`, `static-components`) or `exhaustive-deps`, and those rules are raised from warnings to errors so new code can't add them back.
 - Each fixed component keeps its behaviour: its tests pass, and components without tests get one before the fix.
 - `make test` and `make typecheck` pass.
+
+## Not started
+
+An earlier session had no `node_modules` or network, so it could not list the warnings and left this alone rather than guess at fixes to working code. With the dependencies installed, `cd frontend && npm run lint` lists them (79 warnings, 0 errors on main on 2026-11-09). Fix one component at a time, one commit each with its test, running `npm run lint`, `npx tsc -b` and `npm test` after every fix, and remove this file when none of those four rules warns.
