@@ -177,6 +177,10 @@ class AgentToolsTest < ActiveSupport::TestCase
     document = make_document(@plans, "Plan")
     refused(@token, "edit_document", id: document.id, markdown: "x" * (DocumentMarkdown::MAX_LENGTH + 1))
 
+    lines = Array.new(AgentTools::Documents::MAX_NEW_TASKS + 1) { |i| "- [ ] Task #{i}" }
+    error = refused(@token, "edit_document", id: document.id, markdown: "# Plan\n\n#{lines.join("\n")}\n")
+    assert_match(/at most #{AgentTools::Documents::MAX_NEW_TASKS} tasks/, error.message)
+    assert_equal 0, @space.tasks.where(document_id: document.id).count
     run_tool(@token, "edit_document", id: document.id, markdown: "# Plan\n\n[click](javascript:alert(1))\n")
     link_marks = document.reload.content["content"].last["content"].flat_map { |n| Array(n["marks"]) }
     assert_empty link_marks

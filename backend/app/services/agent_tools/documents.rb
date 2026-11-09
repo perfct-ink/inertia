@@ -2,6 +2,8 @@ module AgentTools
   # Folders, documents (as Markdown) and text edits.
   module Documents
     MAX_LISTED = 200
+    # Task lines without an id in one edit each become a task; cap how many.
+    MAX_NEW_TASKS = 100
     # Longest text one replace_text call may swap in (characters).
     MAX_REPLACEMENT = 20_000
 
@@ -112,6 +114,7 @@ module AgentTools
               changes[:updated] += 1
             end
           elsif title.present?
+            raise AgentTools::Error, "One edit can create at most #{MAX_NEW_TASKS} tasks; split it up" if changes[:created] >= MAX_NEW_TASKS
             task = token.workspace.tasks.build(title: title, document: document, status: checked ? :done : :backlog)
             task.status_changed_by_agent = token
             task.save!

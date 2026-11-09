@@ -146,7 +146,8 @@ class McpControllerTest < ActionDispatch::IntegrationTest
 
     get "/api/v1/tasks", headers: agent_headers(@plain)
     assert_response :unauthorized
-    get "/api/v1/documents/#{make_document(@plans, 'Plan').id}", headers: agent_headers(@plain)
+    document = make_document(@plans, "Plan")
+    get "/api/v1/documents/#{document.id}", headers: agent_headers(@plain)
     assert_response :unauthorized
   end
 
