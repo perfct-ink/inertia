@@ -14,9 +14,7 @@ import Italic from '@tiptap/extension-italic'
 import Underline from '@tiptap/extension-underline'
 import Strike from '@tiptap/extension-strike'
 import Code from '@tiptap/extension-code'
-import BulletList from '@tiptap/extension-bullet-list'
 import OrderedList from '@tiptap/extension-ordered-list'
-import ListItem from '@tiptap/extension-list-item'
 import CodeBlock from '@tiptap/extension-code-block'
 import HorizontalRule from '@tiptap/extension-horizontal-rule'
 import { TextSelection } from '@tiptap/pm/state'
@@ -73,12 +71,15 @@ import DocumentInitiativeBar from '@/components/DocumentInitiativeBar'
 import FeatureBar from '@/components/FeatureBar'
 import DocumentPlanningSummary from '@/components/DocumentPlanningSummary'
 import ParagraphStylePicker from '@/components/ParagraphStylePicker'
+import DashedListButton from '@/components/DashedListButton'
+import ToolbarBtn from '@/components/DocumentToolbarButton'
 import TableEditor from '@/components/editors/TableEditor'
 import SpreadsheetEditor from '@/components/editors/SpreadsheetEditor'
 import HeadingLinkPicker from '@/components/HeadingLinkPicker'
 import { HeadingAnchor, assignHeadingIds, linkToHeading } from '@/extensions/HeadingAnchor'
 import Video from '@/extensions/Video'
 import { AudioAttachment, FileAttachment } from '@/extensions/Attachment'
+import { DashedList, StyledListItem } from '@/extensions/DashedList'
 import { WorkspaceTaskList } from '@/extensions/WorkspaceTaskList'
 import { WorkspaceTaskItem } from '@/extensions/WorkspaceTaskItem'
 import './ProseMirror.scss'
@@ -94,34 +95,6 @@ import { colorForUserId } from '@/util/color'
 
 // Enforce: document always starts with a heading followed by body content
 const CustomDocument = TiptapDocument.extend({ content: 'heading block*' })
-
-function ToolbarBtn({
-  icon,
-  onClick,
-  active,
-  disabled,
-  title,
-}: {
-  icon: React.ReactNode
-  onClick: () => void
-  active?: boolean
-  disabled?: boolean
-  title: string
-}) {
-  return (
-    <Button
-      type="button"
-      title={title}
-      aria-label={title}
-      aria-pressed={active}
-      disabled={disabled}
-      onClick={onClick}
-      className={`document-toolbar_button ${active ? 'document-toolbar_button--active' : ''}`}
-    >
-      {icon}
-    </Button>
-  )
-}
 
 function Divider() {
   return <div className="document-toolbar_divider" />
@@ -210,9 +183,9 @@ export default function DocumentScreen() {
       Strike,
       Code,
       HeadingAnchor.configure({ levels: [1, 2, 3, 4, 5] as (1 | 2 | 3 | 4 | 5 | 6)[] }),
-      BulletList,
+      DashedList,
       OrderedList,
-      ListItem,
+      StyledListItem,
       WorkspaceTaskList,
       WorkspaceTaskItem,
       CodeBlock,
@@ -634,9 +607,10 @@ export default function DocumentScreen() {
           <ToolbarBtn
             icon={<List className="document-toolbar_icon" />}
             onClick={() => editor.chain().focus().toggleBulletList().run()}
-            active={editor.isActive('bulletList')}
+            active={editor.isActive('bulletList', { listStyle: 'bullet' })}
             title="Bullet list"
           />
+          <DashedListButton editor={editor} />
           <ToolbarBtn
             icon={<ListOrdered className="document-toolbar_icon" />}
             onClick={() => editor.chain().focus().toggleOrderedList().run()}

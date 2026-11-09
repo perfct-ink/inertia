@@ -25,4 +25,11 @@ describe("schema", () => {
     expect(withId.attrs).toEqual({ level: 2, id: "launch-plan" });
     expect(schema.nodeFromJSON({ type: "heading", attrs: { level: 2 } }).attrs.id).toBeNull();
   });
+
+  it("keeps the style of a bullet list, and a list with none is a plain bullet list", () => {
+    const item = { type: "listItem", content: [{ type: "paragraph" }] };
+    const dashed = schema.nodeFromJSON({ type: "bulletList", attrs: { listStyle: "dashed" }, content: [item] });
+    expect(dashed.attrs).toEqual({ listStyle: "dashed" });
+    expect(schema.nodeFromJSON({ type: "bulletList", content: [item] }).attrs).toEqual({ listStyle: "bullet" });
+  });
 });

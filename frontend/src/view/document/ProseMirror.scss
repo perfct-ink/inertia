@@ -73,6 +73,24 @@
       list-style: disc;
     }
 
+    // A dashed list (data/listStyle.ts) shows an en dash where the bullet would be.
+    // The dash is drawn by hand because Safari ignores `content` on ::marker; it is
+    // a pseudo-element, so it can't be selected, and it takes the text colour in
+    // light and dark. Written after the rule above, which has the same weight.
+    ul[data-list-style='dashed'] {
+      list-style: none;
+
+      > li {
+        position: relative;
+
+        &::before {
+          content: '\2013';
+          position: absolute;
+          left: space(-4);
+        }
+      }
+    }
+
     ol {
       padding-left: space(5);
       list-style: decimal;

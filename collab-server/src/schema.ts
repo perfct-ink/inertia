@@ -1,6 +1,6 @@
 // Schema-only mirror of frontend/src/pages/workspace/DocumentPage.tsx's editor
 // `extensions` array, plus frontend/src/extensions/{WorkspaceTaskList,
-// WorkspaceTaskItem,Video,Attachment}. y-prosemirror's JSON<->Yjs conversion only cares
+// WorkspaceTaskItem,Video,Attachment,DashedList}. y-prosemirror's JSON<->Yjs conversion only cares
 // about node/mark SHAPE (name, group, content, attrs) — NodeView renderers,
 // parseHTML/renderHTML, keyboard shortcuts, and toolbar commands are UI
 // concerns and are deliberately omitted here. That's why this list is
@@ -22,7 +22,7 @@ import Underline from "@tiptap/extension-underline";
 import Strike from "@tiptap/extension-strike";
 import Code from "@tiptap/extension-code";
 import BaseHeading from "@tiptap/extension-heading";
-import BulletList from "@tiptap/extension-bullet-list";
+import BaseBulletList from "@tiptap/extension-bullet-list";
 import OrderedList from "@tiptap/extension-ordered-list";
 import ListItem from "@tiptap/extension-list-item";
 import CodeBlock from "@tiptap/extension-code-block";
@@ -52,6 +52,16 @@ const Heading = BaseHeading.extend({
 const Paragraph = TiptapParagraph.extend({
   addAttributes() {
     return { style: { default: "body" } };
+  },
+});
+
+// Matches frontend/src/extensions/DashedList.ts (shape only): a bullet list with a
+// `listStyle` ("bullet" or "dashed", frontend/src/data/listStyle.ts). Without the
+// attribute here, seeding a document from Rails' JSON would drop the dashes, so
+// deploy this server together with the frontend.
+const BulletList = BaseBulletList.extend({
+  addAttributes() {
+    return { listStyle: { default: "bullet" } };
   },
 });
 
