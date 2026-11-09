@@ -271,6 +271,11 @@ $shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
       flex-direction: column;
       gap: space(4);
       width: space(96);
+      max-width: calc(100vw - #{space(8)});
+
+      // A long list (the shortcuts sheet) scrolls inside the dialog instead of off a short screen.
+      max-height: calc(100dvh - #{space(8)});
+      overflow-y: auto;
       padding: space(5);
       border-width: 1px;
       border-radius: radius('xl');

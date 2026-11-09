@@ -41,6 +41,7 @@ import { isMac } from '@/util/platform'
 import { clashForAction, documentShortcutRows, EDITOR_COMMAND_EVENT } from '@/data/editorShortcut'
 
 import { KEYBOARD_SHORTCUTS } from '@/data/shortcut'
+import { styleShortcutRows } from '@/data/paragraphStyleShortcut'
 
 // The extra top padding/drag-region reserve room for macOS's traffic
 // lights, which only exist in the packaged Electron app's frameless
@@ -477,6 +478,13 @@ export default function Sidebar() {
                 <div key={label} className="sidebar-shortcut">
                   <span>{label}</span>
                   <kbd className="sidebar-kbd">{keys}</kbd>
+                </div>
+              ))}
+              {/* Paragraph styles (data/paragraphStyleShortcut.ts); the headings are listed above. */}
+              {styleShortcutRows().filter(({ label }) => !label.startsWith('Heading')).map(({ keys, label }) => (
+                <div key={`style-${label}`} className="sidebar-shortcut">
+                  <span>{label} style</span>
+                  <kbd className="sidebar-kbd">{platformKeys(keys, isMac)}</kbd>
                 </div>
               ))}
             </div>

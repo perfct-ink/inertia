@@ -1,5 +1,5 @@
 import '@testing-library/jest-dom'
-import { fireEvent, render, screen } from '@testing-library/react'
+import { fireEvent, render, screen, within } from '@testing-library/react'
 import type { Editor } from '@tiptap/react'
 import { useAuthStore } from '@/store/auth'
 import { snapshotAttrs } from '@/data/customParagraphStyle'
@@ -197,4 +197,16 @@ test('the Manage list closes without changing anything', () => {
   fireEvent.click(screen.getByRole('button', { name: 'Close list' }))
   expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
   expect(calls).toEqual([])
+})
+
+test('each style that has a key shows it beside its name in the list, and Caption shows none', () => {
+  const { editor } = fakeEditor({ type: { name: 'paragraph' }, attrs: { style: 'body' } })
+  const { container } = render(<ParagraphStylePicker editor={editor} />)
+  fireEvent.click(container.querySelector('.ui-select') as HTMLElement)
+  const hints = (name: string) => within(within(screen.getByRole('listbox')).getByRole('option', { name })).queryByText(/[⌘⌥⇧]/)?.textContent
+  expect(hints('Title')).toBe('⌘⌥7')
+  expect(hints('Heading 1')).toBe('⌘⌥1')
+  expect(hints('Body')).toBe('⌘⌥0')
+  expect(hints('Monospace')).toBe('⌘⇧M')
+  expect(hints('Caption')).toBeUndefined()
 })

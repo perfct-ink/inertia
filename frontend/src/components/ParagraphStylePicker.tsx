@@ -5,12 +5,15 @@ import CustomStyleDialog from '@/components/CustomStyleDialog'
 import CustomStylesDialog from '@/components/CustomStylesDialog'
 import { useParagraphStyles } from '@/api/paragraphStyles'
 import { useAuthStore } from '@/store/auth'
-import { PARAGRAPH_STYLES, styleById, styleOfBlock, type ParagraphStyleId } from '@/data/paragraphStyle'
+import { PARAGRAPH_STYLES, styleOfBlock, type ParagraphStyleId } from '@/data/paragraphStyle'
 import {
-  NO_CUSTOM_COPY, customStyleIdOfKey, customStyleKey, readSnapshot, startingFormat,
+  customStyleIdOfKey, customStyleKey, readSnapshot, startingFormat,
   type CustomParagraphStyle,
 } from '@/data/customParagraphStyle'
 import { applyCustomParagraphStyle } from '@/util/customParagraphStyleCommand'
+import { applyParagraphStyle } from '@/util/paragraphStyleCommand'
+import { shortcutOfStyle } from '@/data/paragraphStyleShortcut'
+import { shortcutLabel } from '@/util/shortcuts'
 
 // The options that open the style forms; they are commands, not styles.
 const NEW_STYLE = 'new-style'
@@ -67,19 +70,12 @@ export default function ParagraphStylePicker({ editor }: { editor: Editor }) {
     return () => { editor.off('selectionUpdate', refresh); editor.off('transaction', refresh) }
   }, [editor])
 
-  function apply(id: ParagraphStyleId) {
-    const style = styleById(id)
-    const chain = editor.chain().focus()
-    if (style.heading) chain.setHeading({ level: style.heading }).run()
-    else chain.setParagraph().updateAttributes('paragraph', { style: style.paragraphStyle, ...NO_CUSTOM_COPY }).run()
-  }
-
   function choose(key: string) {
     if (key === NEW_STYLE) return setCreating(startingPoint(editor))
     if (key === MANAGE_STYLES) return setManaging(true)
     const custom = customStyles.find((style) => customStyleKey(style.id) === key)
     if (custom) applyCustomParagraphStyle(editor, custom, userId)
-    else apply(key as ParagraphStyleId)
+    else applyParagraphStyle(editor, key as ParagraphStyleId)
   }
 
   // A custom style the person doesn't have (someone else's, or deleted since) is
@@ -94,7 +90,10 @@ export default function ParagraphStylePicker({ editor }: { editor: Editor }) {
       <Select aria-label="Paragraph style" value={shown} onChange={(e) => choose(e.target.value)} className="document-toolbar_style">
         {shown === '' && <option value="">Style</option>}
         {isTheirs && <option value={value}>{copyName || 'Custom style'}</option>}
-        {PARAGRAPH_STYLES.map((style) => <option key={style.id} value={style.id}>{style.label}</option>)}
+        {PARAGRAPH_STYLES.map((style) => {
+          const keys = shortcutOfStyle(style.id)?.keys
+          return <option key={style.id} value={style.id} data-hint={keys && shortcutLabel(keys)}>{style.label}</option>
+        })}
         {customStyles.length > 0 && (
           <optgroup label="My styles">
             {customStyles.map((style) => <option key={style.id} value={customStyleKey(style.id)}>{style.name}</option>)}
