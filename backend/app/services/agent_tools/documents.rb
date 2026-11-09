@@ -2,6 +2,8 @@ module AgentTools
   # Folders, documents (as Markdown) and text edits.
   module Documents
     MAX_LISTED = 200
+    # Longest text one replace_text call may swap in (characters).
+    MAX_REPLACEMENT = 20_000
 
     def self.tool(**options)
       AgentTools::Tool.new(**options)
@@ -59,6 +61,9 @@ module AgentTools
 
     def self.edit_document(token, args)
       document = AgentTools.document!(token, args["id"], types: %w[document])
+      markdown = args["markdown"].to_s
+      raise AgentTools::Error, "The Markdown is too long (at most #{DocumentMarkdown::MAX_LENGTH} characters)" if markdown.size > DocumentMarkdown::MAX_LENGTH
+
       document.lock!
       if args["base_updated_at"].present? && AgentTools.timestamp(document.updated_at) != args["base_updated_at"].to_s
         raise AgentTools::Error, "“#{document.title}” changed since you read it (#{AgentTools.timestamp(document.updated_at)}); read it again and redo your edit"
@@ -66,12 +71,19 @@ module AgentTools
       blocked = DocumentMarkdown.unsupported(document.content)
       raise AgentTools::Error, "This document has #{blocked.to_sentence} that Markdown cannot hold; use replace_text instead" unless blocked.empty?
 
-      content = DocumentMarkdown.parse(args["markdown"].to_s, title: document.title, original: document.content)
+      content = DocumentMarkdown.parse(markdown, title: document.title, original: document.content)
       changes = link_task_lines(token, document, content)
-      document.title = DocumentMarkdown.plain_text(content["content"].first).strip.presence || document.title
+      document.title = title_from(content, document.title)
       document.update!(content: content)
       AgentTools.record_activity(token, "edited_document", document, "Rewrote “#{document.title}”#{task_summary(changes)}")
       { id: document.id, title: document.title, updated_at: AgentTools.timestamp(document.updated_at), tasks_created: changes[:created], tasks_updated: changes[:updated] }
+    end
+
+    # A document is titled by its first heading (the editor does the same).
+    def self.title_from(content, fallback)
+      first = Array(content["content"]).first
+      return fallback unless first.is_a?(Hash) && first["type"] == "heading"
+      DocumentMarkdown.plain_text(first).strip.presence || fallback
     end
 
     def self.task_summary(changes)
@@ -116,7 +128,9 @@ module AgentTools
     def self.replace_text(token, args)
       document = AgentTools.document!(token, args["id"], types: %w[document])
       find = args["find"].to_s
+      replacement = args["replace"].to_s
       raise AgentTools::Error, "Say what to find" if find.empty?
+      raise AgentTools::Error, "The replacement is too long (at most #{MAX_REPLACEMENT} characters)" if replacement.size > MAX_REPLACEMENT
 
       document.lock!
       count = 0
@@ -125,13 +139,16 @@ module AgentTools
         next unless node.is_a?(Hash)
         if node["type"] == "text" && node["text"].to_s.include?(find)
           count += node["text"].scan(find).size
-          node["text"] = node["text"].gsub(find) { args["replace"].to_s }
+          node["text"] = node["text"].gsub(find) { replacement }
         end
         Array(node["content"]).each(&walk)
+        # Replacing text with nothing must not leave an empty text node (the editor refuses those).
+        node["content"].reject! { |child| child.is_a?(Hash) && child["type"] == "text" && child["text"].to_s.empty? } if node["content"].is_a?(Array)
       end
       walk.call(content)
       raise AgentTools::Error, "“#{find}” was not found in the document (it must sit inside one run of text)" if count.zero?
 
+      document.title = title_from(content, document.title)
       document.update!(content: content)
       AgentTools.record_activity(token, "edited_document", document, "Replaced “#{find}” (#{count}×) in “#{document.title}”")
       { id: document.id, replaced: count, updated_at: AgentTools.timestamp(document.updated_at) }

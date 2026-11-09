@@ -104,9 +104,9 @@ class AgentToken < ApplicationRecord
     workspace.tasks.where("tasks.folder_id IN (?) OR tasks.document_id IN (?)", ids, Document.where(folder_id: ids).select(:id))
   end
 
-  # The documents, sheets and Collections the token reaches (uploaded files are not included).
+  # The documents and Collections the token reaches (spreadsheets and uploaded files are not included).
   def documents
-    Document.where(folder_id: folder_ids, doc_type: %w[document spreadsheet table])
+    Document.where(folder_id: folder_ids, doc_type: %w[document table])
   end
 
   private

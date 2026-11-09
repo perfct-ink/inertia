@@ -44,11 +44,15 @@ module AgentTools
 
   # The document, sheet or Collection with this id if the token reaches it.
   # A missing one and one outside the token's reach look the same.
-  def self.document!(token, id, types: %w[document table])
+  def self.document!(token, id, types: %w[document])
     document = token.documents.find_by(id: integer(id))
-    raise Error, "Document #{id} not found" unless document && types.include?(document.doc_type)
+    raise Error, "Document #{id} not found" unless document
+    raise Error, "“#{document.title}” is a #{TYPE_NAMES.fetch(document.doc_type)}, not a #{TYPE_NAMES.fetch(types.first)}" unless types.include?(document.doc_type)
     document
   end
+
+  # What agents call each kind of document (users see tables as Collections).
+  TYPE_NAMES = { "document" => "document", "table" => "Collection" }.freeze
 
   def self.folder!(token, id)
     folder_id = integer(id)

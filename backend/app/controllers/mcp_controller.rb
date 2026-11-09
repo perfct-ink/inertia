@@ -66,7 +66,7 @@ class McpController < ActionController::API
     { content: [ { type: "text", text: e.message } ], isError: true }
   rescue StandardError => e
     # A bug on our side: log the class only (messages can quote content), tell the agent nothing more.
-    Rails.logger.error("MCP tool #{params['name']} failed: #{e.class}")
+    Rails.logger.error("MCP tool #{params['name'].to_s.first(60).inspect} failed: #{e.class}")
     { content: [ { type: "text", text: "The tool failed on the server. Try again, or tell the Space owner." } ], isError: true }
   end
 

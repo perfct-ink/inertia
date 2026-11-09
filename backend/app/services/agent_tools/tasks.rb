@@ -3,6 +3,8 @@ module AgentTools
   # (or, for a folder token, in the folder, below it, or on a document in it).
   module Tasks
     MAX_LISTED = 200
+    MAX_TITLE = 500
+    MAX_DESCRIPTION = 20_000
     STATUSES = Task.statuses.keys.freeze
 
     def self.tool(**options)
@@ -51,9 +53,13 @@ module AgentTools
 
     # The attributes an agent may set, checked.
     def self.attributes_from(args)
+      title = args["title"].presence&.to_s&.strip
+      description = args["description"].to_s if args.key?("description")
+      raise AgentTools::Error, "The title is too long (at most #{MAX_TITLE} characters)" if title && title.size > MAX_TITLE
+      raise AgentTools::Error, "The description is too long (at most #{MAX_DESCRIPTION} characters)" if description && description.size > MAX_DESCRIPTION
       {
-        "title" => args["title"].presence&.to_s&.strip,
-        "description" => (args["description"].to_s if args.key?("description")),
+        "title" => title,
+        "description" => description,
         "status" => status!(args["status"]),
         "start_date" => AgentTools.date!(args["start_date"], "start_date"),
         "due_date" => AgentTools.date!(args["due_date"], "due_date")
@@ -96,7 +102,15 @@ module AgentTools
       update = Scheduling::TaskUpdate.new(task)
       raise AgentTools::Error, update.errors.to_sentence unless update.call(changes)
 
-      AgentTools.record_activity(token, "updated_task", task, "Updated “#{task.title}” (#{changes.keys.to_sentence})")
+      moved = update.rescheduled
+      # A flexible folder moves the tasks that wait on this one. Those must also be ones the token
+      # reaches; otherwise this is refused (and rolled back), never done quietly outside its folder.
+      if token.folder && moved.any? { |other| !token.tasks.exists?(id: other.id) }
+        raise AgentTools::Error, "Changing those dates would also move tasks outside the folder this token is limited to; change them in the app"
+      end
+
+      also = moved.empty? ? "" : ", and moved #{moved.size} dependent task#{'s' unless moved.size == 1}"
+      AgentTools.record_activity(token, "updated_task", task, "Updated “#{task.title}” (#{changes.keys.to_sentence}#{also})")
       task_json(task)
     end
   end

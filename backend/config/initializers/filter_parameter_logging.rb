@@ -5,5 +5,7 @@
 # See the ActiveSupport::ParameterFilter documentation for supported notations and behaviors.
 Rails.application.config.filter_parameters += [
   :passw, :email, :secret, :token, :_key, :crypt, :salt, :certificate, :otp, :ssn,
-  :code, :state, :nonce
+  :code, :state, :nonce,
+  # Agent calls carry document text (POST /mcp, POST /api/v1/agent/tools/:name).
+  :markdown, :arguments
 ]

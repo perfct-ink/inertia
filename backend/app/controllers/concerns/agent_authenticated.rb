@@ -16,6 +16,7 @@ module AgentAuthenticated
   attr_reader :agent_token
 
   def authenticate_agent!
+    response.set_header("Cache-Control", "no-store")
     plain = request.authorization.to_s[/\ABearer\s+(\S+)\z/, 1]
     @agent_token = AgentToken.authenticate(plain)
     return if @agent_token
