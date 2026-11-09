@@ -16,7 +16,7 @@ import { Flag, Loader2, Map as MapIcon, Target } from 'lucide-react'
 import { Button, HealthBadge, Select, classNames } from '@/components/ui'
 import WorkspaceLayout from '@/components/WorkspaceLayout'
 import { ProgressBar } from '@/components/Timeline'
-import RoadmapTimeline from '@/components/RoadmapTimeline'
+import { EditableRoadmapTimeline } from '@/components/RoadmapTimeline'
 import RoadmapShare from '@/components/RoadmapShare'
 import { useMilestones } from '@/api/milestones'
 import { useInitiatives, useUpdateInitiative } from '@/api/initiatives'
@@ -78,7 +78,7 @@ export default function RoadmapScreen() {
 
           {!isLoading && (initiatives.length > 0 || epics.length > 0) && (
             view === 'timeline'
-              ? <RoadmapTimeline milestones={milestones} initiatives={initiatives} epics={epics} />
+              ? <EditableRoadmapTimeline milestones={milestones} initiatives={initiatives} epics={epics} />
               : <RoadmapBoard initiatives={initiatives} epics={epics} />
           )}
         </div>

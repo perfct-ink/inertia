@@ -255,6 +255,56 @@ export function shiftedRange(startDate: string, endDate: string, mode: DragMode,
   return { start: startDate, end: fmt(moved < start ? start : moved) }
 }
 
+export type DateRange = { start: string; end: string }
+
+// What one key press does to a focused bar: arrows are a day, Page Up/Down a
+// week (earlier/later); no modifier moves the bar, Shift resizes its end,
+// Alt its start. Anything else (including Ctrl/Cmd combinations, which are
+// browser shortcuts, and Shift+Alt) is not ours: null.
+export const BAR_KEY_WEEK_DAYS = 7
+export function barKeyAction(e: { key: string; shiftKey?: boolean; altKey?: boolean; ctrlKey?: boolean; metaKey?: boolean }): { mode: DragMode; delta: number } | null {
+  const steps: Record<string, number> = { ArrowLeft: -1, ArrowRight: 1, PageUp: -BAR_KEY_WEEK_DAYS, PageDown: BAR_KEY_WEEK_DAYS }
+  const delta = steps[e.key]
+  if (delta === undefined || e.ctrlKey || e.metaKey || (e.shiftKey && e.altKey)) return null
+  return { mode: e.shiftKey ? 'end' : e.altKey ? 'start' : 'move', delta }
+}
+
+// A bar's dates while it is being changed (dragged or moved by keys). `base`
+// is the item's saved dates when the edit began, so the edit is dropped once
+// the saved dates change (the save landed, or something else moved the item).
+export interface LiveEdit { key: string; range: DateRange; base: DateRange }
+
+type Drawn = { key?: string; id: number; start_date: string; target_date: string }
+export const rowKeyOf = (row: { key?: string; id: number }): string => row.key ?? String(row.id)
+
+// The dates a row is drawn at: the live edit's, while it still applies.
+export function drawnRange(row: Drawn, live: LiveEdit | null): DateRange {
+  const saved = { start: row.start_date, end: row.target_date }
+  return live && live.key === rowKeyOf(row) && live.base.start === saved.start && live.base.end === saved.end ? live.range : saved
+}
+
+// A Scheduled row key is `<kind>-<id>` (milestone-3, initiative-5, epic-2, task-9).
+export type RowKind = 'milestone' | 'initiative' | 'epic' | 'task'
+export function rowKeyParts(key: string | undefined): { kind: RowKind; id: number } | null {
+  const match = /^(milestone|initiative|epic|task)-(\d+)$/.exec(key ?? '')
+  return match ? { kind: match[1] as RowKind, id: Number(match[2]) } : null
+}
+
+// Whether a bar on the Space-wide timelines (Epics, Initiatives, Roadmap) can
+// be moved: an epic always, an initiative only when it has dates of its own (a
+// bar without them is a roll-up of the epics under it, so there is nothing of
+// its own to change). Milestone rows are diamonds' roll-ups and task rows keep
+// their folder's dependency mode, so both stay put here.
+export function planningRowMovable(
+  row: { key?: string },
+  initiatives: { id: number; start_date: string | null; target_date: string | null }[],
+): boolean {
+  const parts = rowKeyParts(row.key)
+  if (parts?.kind === 'epic') return true
+  if (parts?.kind !== 'initiative') return false
+  return initiatives.some((i) => i.id === parts.id && Boolean(i.start_date && i.target_date))
+}
+
 
 // ── Gantt zoom ───────────────────────────────────────────────────────────────
 

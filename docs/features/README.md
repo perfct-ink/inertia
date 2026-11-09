@@ -4,7 +4,7 @@ One file per implemented feature, written from the code (see `docs/rules/feature
 
 | Feature | Doc |
 | --- | --- |
-| Gantt scheduling: milestones, grouping, today line, drag to reschedule, dependency modes | [gantt_scheduling.md](gantt_scheduling.md) |
+| Gantt scheduling: milestones, grouping, today line, drag or keyboard rescheduling (also on the Epics, Initiatives and Roadmap timelines), dependency modes | [gantt_scheduling.md](gantt_scheduling.md) |
 | Moving items between levels of the planning hierarchy, in order, by drag or the Move button | [hierarchy_reparenting.md](hierarchy_reparenting.md) |
 | Initiative and task planning fields | [planning_fields.md](planning_fields.md) |
 | AI workers (foundation, no model connected yet) | [ai_workers.md](ai_workers.md) |

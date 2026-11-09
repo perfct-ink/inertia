@@ -69,6 +69,20 @@ With the map itself focused (Collection page, **Map** view; `frontend/src/compon
 | `+` / `-` | Zoom in / out |
 | `Esc` | Close the selected pin's details |
 
+## Gantt and timeline bars
+
+With a bar focused (Tab to it; the folder Gantt, the Epics and Initiatives Timeline tabs and the Roadmap timeline; `frontend/src/components/Timeline.tsx`, `hooks/useBarKeyboard.ts`, keys in `barKeyAction` in `data/schedule.ts`). Only bars that can be dragged take these keys. `⌘` and `Ctrl` combinations are left to the browser.
+
+| Keys | Action |
+|------|--------|
+| `←` / `→` | Move the bar a day earlier / later |
+| `Page Up` / `Page Down` | Move the bar a week earlier / later |
+| `Shift` + `←` / `→` | Shorten / lengthen the bar by moving its end |
+| `Alt` + `←` / `→` | Move the start of the bar earlier / later |
+| `Shift` or `Alt` + `Page Up` / `Page Down` | Same, a week at a time |
+| `Enter` | Save now (otherwise it saves 600 ms after the last key, or when you leave the bar) |
+| `Esc` | Drop a move that has not been saved |
+
 ## macOS app
 
 Defined in `macos/Sources/Inertia`.
