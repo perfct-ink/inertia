@@ -1,6 +1,6 @@
 # Apple and Google sign-in for the Mac app
 
-The native login screen offers **Continue with Apple**, **Continue with Google**, and email/password sign-in. Provider sign-in uses `ASWebAuthenticationSession`, then returns to the app's `com.inertia.native` callback scheme. The backend validates the provider's signed ID token and exchanges a short-lived, one-use, PKCE-bound code for the normal Inertia JWT. Provider credentials and private keys stay on the server. No Inertia bearer token goes into a URL.
+The native sign-in and sign-up screens offer **Continue with Apple**, **Continue with Google**, and email/password sign-in. Provider sign-in uses `ASWebAuthenticationSession`, then returns to the app's `com.inertia.native` callback scheme. The backend validates the provider's signed ID token and exchanges a short-lived, one-use, PKCE-bound code for the normal Inertia JWT. Provider credentials and private keys stay on the server. No Inertia bearer token goes into a URL.
 
 ## Configure the backend
 

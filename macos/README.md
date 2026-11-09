@@ -10,7 +10,7 @@ First stage of the gradual SwiftUI migration, requiring macOS 14+ and Xcode's Sw
 
 The Mac app opens native sign-in followed by **Documents, Sheets & Tables** in the existing React workspace. Its sidebar, tabs, projects, documents, task views, and calendar all use the same components and layout as the web app in an isolated WKWebView. The Mac shell does not create a separate workspace or sidebar layout. Use `make dev-electron` for Electron development.
 
-The login screen supports Apple and Google through the system browser, as well as email/password. Provider credentials must be configured on the backend; see [sign-in setup](../docs/mac-social-sign-in.md).
+A signed-out app opens on a native sign-up screen (name, email, password, or Apple and Google); "Already have an account? Sign in" switches to the sign-in screen and back, with no browser involved for email accounts. Both screens support Apple and Google through the system browser, as well as email/password. See [Mac app sign-up](../docs/features/mac_app_sign_up.md). Provider credentials must be configured on the backend; see [sign-in setup](../docs/mac-social-sign-in.md).
 
 For the local development API, use `admin` / `admin` as a shortcut to the seeded test workspace. The existing `test@example.com` / `password123` login also works. Run `make db-seed` if the test account has not been created.
 

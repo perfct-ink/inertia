@@ -2,6 +2,8 @@
 priority: p1
 depends_on: []
 components: [macos, backend]
+branch: backlog/mac-app-create-account
+status: incomplete
 ---
 # Create an account from the Mac app
 
@@ -24,3 +26,16 @@ A new user can sign up inside the Mac app, without being sent to a browser.
 - A duplicate email shows the API's error and keeps the entered email.
 - No browser opens during email sign-up.
 - Tests cover the session sign-up call and error mapping.
+
+## Unverified
+Built on branch `backlog/mac-app-create-account` (see `docs/features/mac_app_sign_up.md`): a separate `SignupView`, a sign-in-only `LoginView`, `Signup`/`AuthClient` in InertiaCore, inline messages per field, and a backend contract test. The web link was already gone on main.
+
+Ran here: `cd macos && swift build --disable-sandbox --target InertiaCore -Xswiftc -warnings-as-errors`; a `swiftc -typecheck` of every SwiftUI app file against the built InertiaCore module (with `@State` swapped for a same-shaped wrapper); the new and existing `RequestsTests`/`SignupTests` cases under an XCTest stand-in compiled with InertiaCore.
+
+Not run (no Xcode, XCTest, gems or database here), run these on a Mac with Xcode:
+```sh
+make test-native-mac            # SignupTests, RequestsTests
+make build-mac                  # the SwiftUI app target
+cd backend && rails test test/controllers/signup_api_test.rb
+```
+Then open the app signed out: the sign-up screen shows first; create an account with a new email and land signed in, in the first Space; sign up again with the same email and see "Email has already been taken" under the email field with the email kept; try a 3-character password; switch to sign-in and back; sign out and confirm the sign-in screen shows; check light and dark mode and that Apple/Google still work.
