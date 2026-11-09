@@ -17,6 +17,11 @@ Not present (Quip import only)
 
 Nested objects or arrays can become a related collection (`collection-one-to-many-relationships.md`). Can import into a new collection or append to an existing one, matching keys to field names. Pairs with CSV import and JSON/YAML export later.
 
+### Decisions (Alex, 2026-11-09 groom)
+
+- **Nested values: offer a choice.** For each key whose values are nested objects or lists, the import preview offers two options: make it **another Collection** (records created there and linked from this one), or keep it as **JSON text** in a text field.
+- A nested single object can link with today's relation field (many-to-one). A nested list needs `collection-one-to-many-relationships.md` (p2); how to handle lists until that ships is still open.
+
 ## Context
 
 Section "Collections: field types, relationships, import" of the retired shared backlog.
