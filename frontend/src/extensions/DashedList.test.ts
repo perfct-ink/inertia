@@ -48,7 +48,8 @@ test('a dashed list keeps its style in the document and in the HTML, and a bulle
   createEditor(doc(list('dashed', item('One')), list('bullet', item('Two'))))
   expect(blocks().map((block) => block.attrs)).toEqual([{ listStyle: 'dashed' }, { listStyle: 'bullet' }])
   const html = editor.getHTML()
-  expect(html).toContain('<ul data-list-style="dashed">')
+  expect(html).toContain('data-list-style="dashed"')
+  expect(html).toContain('role="list"')
   expect(html).not.toContain('data-list-style="bullet"')
 })
 

@@ -17,10 +17,12 @@ export function listStyleOf(value: unknown): ListStyle {
   return value === 'dashed' ? 'dashed' : DEFAULT_LIST_STYLE
 }
 
-// The attributes written on the list's HTML element.
+// The attributes written on the list's HTML element. A dashed list is drawn without
+// the browser's own markers (`list-style: none`), which makes Safari with VoiceOver
+// stop treating it as a list, so it says `role="list"` itself.
 export function listStyleHtmlAttributes(style: unknown): Record<string, string> {
   const known = listStyleOf(style)
-  return known === DEFAULT_LIST_STYLE ? {} : { [LIST_STYLE_HTML_ATTRIBUTE]: known }
+  return known === DEFAULT_LIST_STYLE ? {} : { [LIST_STYLE_HTML_ATTRIBUTE]: known, role: 'list' }
 }
 
 // What choosing a list style does, given the innermost list around the cursor

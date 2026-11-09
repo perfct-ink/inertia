@@ -10,7 +10,7 @@ test('a list without a style, or with an unknown one, is a plain bullet list', (
 })
 
 test('only a dashed list writes an attribute to its HTML', () => {
-  expect(listStyleHtmlAttributes('dashed')).toEqual({ 'data-list-style': 'dashed' })
+  expect(listStyleHtmlAttributes('dashed')).toEqual({ 'data-list-style': 'dashed', role: 'list' })
   expect(listStyleHtmlAttributes('bullet')).toEqual({})
   expect(listStyleHtmlAttributes(undefined)).toEqual({})
 })
