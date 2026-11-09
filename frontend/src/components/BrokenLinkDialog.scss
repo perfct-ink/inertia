@@ -1,0 +1,21 @@
+@use 'tokens' as *;
+
+@layer app.components {
+  .broken_link_dialog {
+    // The linked text, so it is clear which link this is.
+    &-text {
+      margin-top: space(3);
+      padding: space(2) space(3);
+      border-radius: radius('md');
+      background: color(muted);
+      color: color(foreground);
+      text-decoration: line-through;
+      @include truncate;
+    }
+
+    // Three buttons wrap onto a second row on a phone instead of overflowing.
+    &-actions {
+      flex-wrap: wrap;
+    }
+  }
+}

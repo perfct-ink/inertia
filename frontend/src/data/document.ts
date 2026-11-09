@@ -1,6 +1,12 @@
 import type { Document } from '@/types'
 
-export interface JsonNode { type?: string; text?: string; attrs?: Record<string, unknown>; content?: JsonNode[] }
+export interface JsonNode {
+  type?: string
+  text?: string
+  attrs?: Record<string, unknown>
+  content?: JsonNode[]
+  marks?: { type: string; attrs?: Record<string, unknown> }[]
+}
 
 // A document always starts with a heading; its text is the document title.
 export function extractTitle(json: Record<string, unknown>): string {

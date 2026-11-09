@@ -1,6 +1,8 @@
 ---
 priority: p1
 depends_on: []
+branch: backlog/broken-link-handling
+status: incomplete
 ---
 # Broken-link handling when a target doc or heading is deleted
 
@@ -28,3 +30,6 @@ Today (checked 2026-11-09): document and heading links exist through the heading
 - Anything stated in Requirements / notes (including any named default) is implemented or deliberately changed with the reason recorded.
 - Failed API calls show an error to the user.
 - Tests cover the new behaviour; a feature doc in `docs/features/` is written (or the existing one updated) and this file is removed.
+
+## Cut off (2026-11-09)
+The agent working this task was stopped by the daily API cost limit before it finished, and its last uncommitted edits were committed here as they were. Treat the branch as unfinished: the code may not build or pass tests, no checks were run on the last edits, and the Unverified section (what was run, what to run) is not written yet. Resume by reading `git log` and the diff against `origin/main`, finish the requirements above, then write the Unverified section.

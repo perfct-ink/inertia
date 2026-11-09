@@ -113,6 +113,27 @@
       color: palette('blue-500');
       text-decoration: underline;
       cursor: pointer;
+
+      // The link line gives way to the strike-through on a broken link's text.
+      &:has(.document-link--broken) {
+        text-decoration: none;
+      }
+    }
+
+    // A link whose target document or heading was deleted (extensions/BrokenLinks.ts
+    // adds the class): struck through in the danger colour, mixed toward the text
+    // colour so it stays readable on both the light and the dark page. Clicking it
+    // opens the fix dialog, so it reacts to the cursor; the tint is a background
+    // only, so nothing shifts.
+    .document-link--broken {
+      border-radius: radius('sm');
+      color: color-mix(in srgb, var(--danger) 75%, var(--foreground));
+      text-decoration: line-through;
+      @include transition(background-color);
+
+      &:hover {
+        background: color(danger, 0.12);
+      }
     }
 
     ul[data-type='workspaceTaskList'] {

@@ -76,7 +76,9 @@ import ParagraphStylePicker from '@/components/ParagraphStylePicker'
 import TableEditor from '@/components/editors/TableEditor'
 import SpreadsheetEditor from '@/components/editors/SpreadsheetEditor'
 import HeadingLinkPicker from '@/components/HeadingLinkPicker'
+import BrokenLinkDialog from '@/components/BrokenLinkDialog'
 import { HeadingAnchor, assignHeadingIds, linkToHeading } from '@/extensions/HeadingAnchor'
+import { BrokenLinks } from '@/extensions/BrokenLinks'
 import Video from '@/extensions/Video'
 import { AudioAttachment, FileAttachment } from '@/extensions/Attachment'
 import { WorkspaceTaskList } from '@/extensions/WorkspaceTaskList'
@@ -88,6 +90,7 @@ import { useAuthStore } from '@/store/auth'
 import { useNotificationStore } from '@/store/notifications'
 import { usePageTitle } from '@/hooks/usePageTitle'
 import { useFollowDocumentLinks, useScrollToHeading } from '@/hooks/useHeadingLinks'
+import { relinkBrokenLink, removeBrokenLink, useBrokenLinks, type BrokenLink } from '@/hooks/useBrokenLinks'
 import { extractTitle, buildInitialContent, selectionTaskTitle, taskListContent } from '@/data/document'
 import { attachmentContent, pastedFiles, uploadProblem } from '@/data/attachment'
 import { colorForUserId } from '@/util/color'
@@ -144,6 +147,11 @@ export default function DocumentScreen() {
   const [tasksOnly, setTasksOnly] = useState(false)
   // The document's content while the "Link to a heading" dialog is open (null when closed).
   const [headingLinkContent, setHeadingLinkContent] = useState<Record<string, unknown> | null>(null)
+  // The broken link the fix dialog is about, and the one the picker is finding a new target for.
+  const [brokenLink, setBrokenLink] = useState<BrokenLink | null>(null)
+  const [relinking, setRelinking] = useState<BrokenLink | null>(null)
+  // True once the collaboration server has sent the document, so its links can be checked.
+  const [synced, setSynced] = useState(false)
   const [saveStatus, setSaveStatus] = useState<'saved' | 'saving' | 'unsaved'>('saved')
   const pendingRef = useRef<{ title?: string; content?: Record<string, unknown> }>({})
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
@@ -167,6 +175,14 @@ export default function DocumentScreen() {
 
   useEffect(() => {
     return () => provider?.destroy()
+  }, [provider])
+
+  useEffect(() => {
+    setSynced(Boolean(provider?.isSynced))
+    if (!provider) return
+    const onSynced = () => setSynced(true)
+    provider.on('synced', onSynced)
+    return () => { provider.off('synced', onSynced) }
   }, [provider])
 
   // Open/update tab when doc loads
@@ -210,6 +226,7 @@ export default function DocumentScreen() {
       Strike,
       Code,
       HeadingAnchor.configure({ levels: [1, 2, 3, 4, 5] as (1 | 2 | 3 | 4 | 5 | 6)[] }),
+      BrokenLinks,
       BulletList,
       OrderedList,
       ListItem,
@@ -338,6 +355,9 @@ export default function DocumentScreen() {
   // editor is showing, and open links to documents without reloading the app.
   useScrollToHeading(editor, !isLoading && doc?.doc_type === 'document')
   const followDocumentLink = useFollowDocumentLinks()
+  // Links whose document or heading was deleted show struck through; clicking one
+  // (or the Link button with the caret in one) opens the dialog to fix it.
+  const brokenLinks = useBrokenLinks(editor, docId, !isLoading && doc?.doc_type === 'document' && synced)
 
   // Only the "leader" among currently-connected collaborators runs
   // syncTaskNodes — with real-time editing, two people finishing an
@@ -548,6 +568,8 @@ export default function DocumentScreen() {
     )
   }
 
+  const brokenAtCaret = brokenLinks.atCaret()
+
   return (
     <WorkspaceLayout>
       <div className="view-document">
@@ -697,9 +719,9 @@ export default function DocumentScreen() {
           />
           <ToolbarBtn
             icon={<LinkIcon className="document-toolbar_icon" />}
-            onClick={() => setLinkDialogOpen(true)}
+            onClick={() => (brokenAtCaret ? setBrokenLink(brokenAtCaret) : setLinkDialogOpen(true))}
             active={editor.isActive('link')}
-            title="Link"
+            title={brokenAtCaret ? 'Fix broken link' : 'Link'}
           />
           <ToolbarBtn
             icon={<Hash className="document-toolbar_icon" />}
@@ -735,6 +757,12 @@ export default function DocumentScreen() {
           onDrop={handleEditorDrop}
           onDragOver={(e) => e.preventDefault()}
           onClick={(e) => {
+            const clickedBroken = brokenLinks.fromClick(e)
+            if (clickedBroken) {
+              e.preventDefault()
+              setBrokenLink(clickedBroken)
+              return
+            }
             if (followDocumentLink(e)) return
             if (!(e.target as HTMLElement).closest('.ProseMirror')) {
               editor.commands.focus('end')
@@ -769,10 +797,29 @@ export default function DocumentScreen() {
       </Modal>
       <HeadingLinkPicker
         open={headingLinkContent !== null}
+        title={relinking ? 'Pick a new target' : undefined}
         currentDocumentId={docId}
         currentContent={headingLinkContent}
-        onClose={() => { setHeadingLinkContent(null); editor.commands.focus() }}
-        onPick={(picked) => { setHeadingLinkContent(null); linkToHeading(editor, picked) }}
+        onClose={() => { setHeadingLinkContent(null); setRelinking(null); editor.commands.focus() }}
+        onPick={(picked) => {
+          setHeadingLinkContent(null)
+          if (relinking) relinkBrokenLink(editor, relinking, picked)
+          else linkToHeading(editor, picked)
+          setRelinking(null)
+        }}
+      />
+      <BrokenLinkDialog
+        link={brokenLink}
+        onClose={() => { setBrokenLink(null); editor.commands.focus() }}
+        onRemove={() => {
+          if (brokenLink) removeBrokenLink(editor, brokenLink)
+          setBrokenLink(null)
+        }}
+        onPickTarget={() => {
+          setRelinking(brokenLink)
+          setBrokenLink(null)
+          setHeadingLinkContent(editor.getJSON() as Record<string, unknown>)
+        }}
       />
       <PromptDialog
         open={linkDialogOpen}
