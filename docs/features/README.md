@@ -72,3 +72,4 @@ One file per implemented feature, written from the code (see `docs/rules/feature
 | Shared UI patterns: IconButton, Tabs (segmented, outlined), muted Button, SortHeader, SaveStatus, underline fields, icon-size | [shared_ui_patterns.md](shared_ui_patterns.md) |
 | Editor shortcuts: Apple Notes key map from one table, ⌘/ sheet, list moves, checklist keys | [editor_shortcuts.md](editor_shortcuts.md) |
 | Status colors: red/green from Volta, the rest Inertia's own theme tokens, AA-checked text in light and dark | [status_colors.md](status_colors.md) |
+| Rules compliance: the repo audited against every shared rule, what was fixed, what is open | [rules_compliance.md](rules_compliance.md) |

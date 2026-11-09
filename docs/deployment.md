@@ -86,6 +86,8 @@ Production moved from the DigitalOcean managed MySQL cluster to `inertia_product
 
 In Coolify, the resource's **Deployments** tab can redeploy any earlier successful deployment. Migrations don't roll back automatically, so keep schema changes backward compatible or plan their reversal.
 
+Two shipped migrations cannot be reversed by `rails db:rollback`: `20260611051106_add_workspace_id_to_tasks` and `20261021000001_create_task_participants` run a data backfill with a bare `execute` inside `change`, so rolling back past them raises `ActiveRecord::IrreversibleMigration`. They are not edited, since they have already run. If production ever needs to go back past either one, the recovery is to redeploy the earlier release and restore the database from the backup taken before the deploy (take one before any risky migration), not to run `db:rollback`.
+
 ## Running the production stack locally
 
 `make build-coolify` builds the three production images. To run them, supply `RAILS_MASTER_KEY` (or `SECRET_KEY_BASE`, `JWT_SECRET_KEY` and a `DATABASE_URL` for a local PostgreSQL), create the external network once with `docker network create coolify`, and publish `web`'s port 80.

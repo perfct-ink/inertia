@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { X } from 'lucide-react'
-import { FormError, IconButton, Input } from '@/components/ui'
+import { DatePicker, FormError, IconButton, Input } from '@/components/ui'
 import { useDeleteResourceAllocation, useUpdateResourceAllocation } from '@/api/resourceAllocations'
 import { allocationPeriod, formatHours, HOURS_ERROR, MAX_WEEKLY_HOURS, parseHours } from '@/data/resource'
 import type { ResourceAllocation } from '@/types'
@@ -71,9 +71,8 @@ export default function AllocationRow({ allocation, person, projectName, canMana
           </label>
           <label className="resources-field">
             <span>From</span>
-            <Input
+            <DatePicker
               key={`start-${allocation.start_date}-${version}`}
-              type="date"
               aria-label={`Start date for ${label}`}
               defaultValue={allocation.start_date ?? ''}
               onChange={(e) => commitDate('start_date', e.target.value)}
@@ -82,9 +81,8 @@ export default function AllocationRow({ allocation, person, projectName, canMana
           </label>
           <label className="resources-field">
             <span>Until</span>
-            <Input
+            <DatePicker
               key={`end-${allocation.end_date}-${version}`}
-              type="date"
               aria-label={`End date for ${label}`}
               defaultValue={allocation.end_date ?? ''}
               onChange={(e) => commitDate('end_date', e.target.value)}

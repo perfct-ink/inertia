@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Input, Select, Button, FormError } from '@/components/ui'
+import { DatePicker, Input, Select, Button, FormError } from '@/components/ui'
 import { useCreateInitiative, useInitiatives, useUpdateInitiative } from '@/api/initiatives'
 import { useUpdateDocument } from '@/api/documents'
 import { errorMessage } from '@/util/errorMessage'
@@ -45,15 +45,13 @@ export default function DocumentInitiativeBar({ doc }: { doc: Document }) {
       </Select>
       {initiative ? (
         <>
-          <Input
-            type="date"
+          <DatePicker
             aria-label="Initiative start"
             value={initiative.start_date ?? ''}
             onChange={(e) => updateInitiative.mutate({ id: initiative.id, start_date: e.target.value || null }, { onError: (err) => setError(errorMessage(err)) })}
           />
           <span aria-hidden="true">&rarr;</span>
-          <Input
-            type="date"
+          <DatePicker
             aria-label="Initiative end"
             value={initiative.target_date ?? ''}
             onChange={(e) => updateInitiative.mutate({ id: initiative.id, target_date: e.target.value || null }, { onError: (err) => setError(errorMessage(err)) })}

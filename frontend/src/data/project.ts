@@ -38,6 +38,15 @@ export function projectStatusLabel(status: ProjectStatus | undefined): string {
 
 export type PortfolioSortKey = 'name' | 'owner' | 'status' | 'target_date' | 'percent'
 
+// The sortable columns of the portfolio table, in order.
+export const PORTFOLIO_COLUMNS: { key: PortfolioSortKey; label: string }[] = [
+  { key: 'name', label: 'Project' },
+  { key: 'owner', label: 'Owner' },
+  { key: 'status', label: 'Status' },
+  { key: 'target_date', label: 'Dates' },
+  { key: 'percent', label: 'Progress' },
+]
+
 // Portfolio rows ordered by a column, ascending or descending; empty owners and
 // dates sort last. A copy: the input is not changed.
 export function sortPortfolio<T extends { name: string; owner_name: string | null; project_status: ProjectStatus; target_date: string | null; percent: number }>(

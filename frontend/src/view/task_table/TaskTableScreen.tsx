@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Loader2, Table as TableIcon } from 'lucide-react'
-import { Input, Select, SortHeader } from '@/components/ui'
+import { DatePicker, Input, Select, SortHeader } from '@/components/ui'
 import WorkspaceLayout from '@/components/WorkspaceLayout'
 import { useEpics } from '@/api/epics'
 import { useSprints } from '@/api/sprints'
@@ -62,9 +62,9 @@ export default function TaskTableScreen() {
           {TASK_STATUSES.map((s) => <option key={s} value={s}>{STATUS_LABEL[s]}</option>)}
         </Select>
       case 'start_date':
-        return <Input type="date" aria-label={`Start of ${task.title}`} value={task.start_date ?? ''} onChange={(e) => save(task, { start_date: e.target.value || null })} />
+        return <DatePicker aria-label={`Start of ${task.title}`} value={task.start_date ?? ''} onChange={(e) => save(task, { start_date: e.target.value || null })} />
       case 'due_date':
-        return <Input type="date" aria-label={`Due date of ${task.title}`} value={task.due_date ?? ''} onChange={(e) => save(task, { due_date: e.target.value || null })} />
+        return <DatePicker aria-label={`Due date of ${task.title}`} value={task.due_date ?? ''} onChange={(e) => save(task, { due_date: e.target.value || null })} />
       case 'assignee':
         return <Select aria-label={`Assignee of ${task.title}`} value={task.assignee_id ?? ''} onChange={(e) => save(task, { assignee_id: idOrNull(e.target.value) })}>
           <option value="">Unassigned</option>

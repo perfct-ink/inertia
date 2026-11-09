@@ -94,6 +94,7 @@ function HierarchyRow({ node, depth, expanded, drop, onToggle, onMove }: {
             onClick={() => onToggle(node.key)}
             className="hierarchy-toggle"
             label={isOpen ? 'Collapse' : 'Expand'}
+            aria-expanded={isOpen}
           >
             <ChevronRight className={classNames('hierarchy-chevron', isOpen && 'hierarchy-chevron--open')} />
           </IconButton>

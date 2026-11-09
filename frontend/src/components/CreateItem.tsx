@@ -1,7 +1,7 @@
 import { Button, Input, Select, FormError } from '@/components/ui'
 import { useRef, useState } from 'react'
 import { useUploadFiles, useWorkspace } from '@/api/workspace'
-import { errorMessage } from '@/api/tables'
+import { errorMessage } from '@/util/errorMessage'
 import { flattenFolders } from '@/data/folder'
 import { DOC_TYPE_LABELS } from '@/data/document'
 import { DOCUMENT_TEMPLATES, type DocumentTemplate } from '@/data/documentTemplate'

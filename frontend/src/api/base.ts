@@ -8,6 +8,12 @@ import api from '@/lib/api'
 // `ApiResource` with its path and Rails param key, adds any calls specific to
 // the model, and exports the hooks the views use.
 
+// The absolute URL of a path the API returned (an uploaded file's `url`), so an
+// <img> or download link reaches the API host rather than the page's own.
+export function apiUrl(path: string) {
+  return `${api.defaults.baseURL ?? ''}${path}`
+}
+
 // A TanStack Query key, or just its root ("epics" is ["epics"]).
 type InvalidateKey = string | readonly unknown[]
 

@@ -32,7 +32,7 @@ import { donePercent, milestoneMarkers } from '@/data/schedule'
 import { BOARD_STATUSES, NEXT_STATUS, nextStatusLabel, type BoardStatuses } from '@/data/task_status'
 import GanttPane from './GanttPane'
 import CardsView from './CardsView'
-import { buildTaskTree, type TaskNode } from '@/data/task'
+import { buildTaskTree, TASK_LIST_DEPTHS, type TaskNode } from '@/data/task'
 import { homeDocumentToOpen } from '@/data/folder'
 
 const dotClass = (name: string) => `folder_detail-dot folder_detail-dot--${name}`
@@ -95,12 +95,6 @@ function BoardView({ tasks, statuses, onAdvance }: { tasks: Task[]; statuses: Bo
 // Levels 1–2 / All levels" cutoff for hiding whole tiers at once, and a
 // per-task collapse arrow for folding just one subtree. ────────────────────
 
-const DEPTH_OPTIONS: { label: string; maxDepth: number | null }[] = [
-  { label: 'Level 1 only', maxDepth: 0 },
-  { label: 'Levels 1–2', maxDepth: 1 },
-  { label: 'All levels', maxDepth: null },
-]
-
 function TaskListView({ tasks, statuses }: { tasks: Task[]; statuses: BoardStatuses }) {
   const [collapsed, setCollapsed] = useState<Set<number>>(new Set())
   const [maxDepth, setMaxDepth] = useState<number | null>(null)
@@ -143,7 +137,7 @@ function TaskListView({ tasks, statuses }: { tasks: Task[]; statuses: BoardStatu
     <div className="folder_detail-pane folder_detail-pane--list">
       <div className="folder_detail-list">
         <div className="folder_detail-list-toolbar">
-          {DEPTH_OPTIONS.map(({ label, maxDepth: value }) => (
+          {TASK_LIST_DEPTHS.map(({ label, maxDepth: value }) => (
             <Tab key={label} active={maxDepth === value} onClick={() => setMaxDepth(value)} className="folder_detail-tab--compact">
               {label}
             </Tab>

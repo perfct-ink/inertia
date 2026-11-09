@@ -2,7 +2,7 @@
 
 Document editor, file manager, and task tracker. Rails API + React frontend.
 
-Docs index: [spaces](spaces.md), [services and configuration](services.md), [UI components](ui-components.md), [keyboard shortcuts](keyboard-shortcuts.md), [getting started checklist](onboarding.md), [rules](rules/), [features](features/README.md), [backlog](backlog/) (one file per task).
+Docs index: [architecture](architecture.md), [spaces](spaces.md), [services and configuration](services.md), [UI components](ui-components.md), [keyboard shortcuts](keyboard-shortcuts.md), [getting started checklist](onboarding.md), [rules](rules/), [features](features/README.md), [backlog](backlog/) (one file per task).
 
 Create Documents, Sheets, or Collections from the file list, folder overview, or sidebar. Collections have named fields with text, integer, number, boolean, date, datetime, or relation datatypes. Relation fields link to one record in another Space collection using a database foreign key; multiple records can reference the same record. Collection records are saved individually, and dates/times are entered in UTC. Clear a field's values before changing its datatype. Referenced records and collections must be unlinked before deletion.
 
@@ -46,10 +46,18 @@ Overrides: `LIVE_DB_SSH_HOST` (default `general`) and `LIVE_DB_PORT` (default `1
 
 ```
 inertia/
-├── backend/      # Rails 7 API
-├── frontend/     # React + webpack frontend
-└── docker-compose.yml
+├── backend/         # Rails 8 JSON API + the public marketing pages
+├── frontend/        # React + SCSS web app (webpack; Electron and Capacitor iOS shells)
+├── collab-server/   # Real-time collaborative editing (Yjs / Hocuspocus)
+├── macos/           # Native SwiftUI Mac app
+├── docs/            # Documentation, rules (synced) and the backlog
+├── scripts/         # Make helpers and the pre-commit hook
+├── examples/        # A sample .inertia-tasks file
+├── docker-compose.yml          # Local development
+└── docker-compose.coolify.yml  # Production (see deployment.md)
 ```
+
+How the pieces connect, with a diagram, is in [architecture.md](architecture.md).
 
 ### Marketing pages
 
@@ -118,6 +126,6 @@ Production runs on **Coolify**: one Docker Compose resource (`docker-compose.coo
 
 Run `make dev-all` to start the local API and web services, build the native app, and open it connected to localhost. Service logs stream until the app closes; the services stay running afterward. `make dev-mac` only builds and opens the native app, for when the services are already running. The Mac shell provides native sign-in and file handling, then loads the existing React workspace, including its sidebar and tabs, in WKWebView. Use `make dev-electron` for Electron development, or `make dev-native-mac` to build and open the native app with production endpoints. See [macOS setup and current scope](../macos/README.md) and [UI component organization](ui-components.md); run `make test-native-mac` for its tests.
 
-Native Inertia also opens **`.inertia-tasks` files**: portable local files using the existing Task, Epic, Event, and User entities, with Workboards and optional sprint/comment extensions. Use File → New/Open/Save in the native app. See the [file format](task-file-format.md) and [sample file](examples/Launch.inertia-tasks).
+Native Inertia also opens **`.inertia-tasks` files**: portable local files using the existing Task, Epic, Event, and User entities, with Workboards and optional sprint/comment extensions. Use File → New/Open/Save in the native app. See the [file format](task-file-format.md) and [sample file](../examples/Launch.inertia-tasks).
 
 See [Storage options: database, blobs, and user-owned files](storage-options.md) for the proposed storage direction and iCloud Drive/Dropbox tradeoffs.

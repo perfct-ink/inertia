@@ -184,7 +184,7 @@
         background: color(background);
         cursor: crosshair;
         opacity: 0;
-        transition: opacity 0.15s;
+        @include transition(opacity);
 
         &--start {
           left: calc(-1 * #{space(3)});

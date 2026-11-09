@@ -39,6 +39,14 @@ export function taskFolderId(task: Pick<Task, 'folder_id' | 'document'>): number
   return task.folder_id ?? task.document?.folder_id ?? null
 }
 
+// The levels of subtasks a folder's List view can show at once: just the
+// top-level tasks, two levels, or everything (maxDepth null).
+export const TASK_LIST_DEPTHS: { label: string; maxDepth: number | null }[] = [
+  { label: 'Level 1 only', maxDepth: 0 },
+  { label: 'Levels 1–2', maxDepth: 1 },
+  { label: 'All levels', maxDepth: null },
+]
+
 // Nests tasks under their parent task to any depth. A task whose parent is
 // not in the list (e.g. filtered out) becomes a root.
 export function buildTaskTree(tasks: Task[]): TaskNode[] {

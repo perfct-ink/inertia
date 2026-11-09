@@ -1,16 +1,12 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import api from '@/lib/api'
+import { apiUrl } from '@/api/base'
 import DocTypeIcon from '@/components/DocTypeIcon'
 import { Button, classNames } from '@/components/ui'
-import { filePreview, formatBytes, galleryFiles, type GalleryFilter } from '@/data/document'
+import { filePreview, formatBytes, galleryFiles, GALLERY_FILTERS, type GalleryFilter } from '@/data/document'
 import type { Document } from '@/types'
 import './FilesGallery.scss'
 import { usePaths } from '@/hooks/usePaths'
-
-const FILTERS: { value: GalleryFilter; label: string }[] = [
-  { value: 'all', label: 'All' }, { value: 'image', label: 'Images' }, { value: 'video', label: 'Videos' }, { value: 'pdf', label: 'PDFs' }, { value: 'other', label: 'Other' },
-]
 
 // A grid of the Space's uploaded files: image thumbnails, an icon for the rest,
 // filterable by kind. Opening a card opens the file viewer.
@@ -19,12 +15,11 @@ export default function FilesGallery({ documents }: { documents: Document[] }) {
   const paths = usePaths()
   const [filter, setFilter] = useState<GalleryFilter>('all')
   const files = galleryFiles(documents, filter)
-  const base = api.defaults.baseURL ?? ''
 
   return (
     <div className="files_gallery">
       <div className="files_gallery-filters" role="group" aria-label="Show">
-        {FILTERS.map(({ value, label }) => (
+        {GALLERY_FILTERS.map(({ value, label }) => (
           <Button key={value} aria-pressed={filter === value} onClick={() => setFilter(value)} className={classNames('files_gallery-filter', filter === value && 'files_gallery-filter--active')}>{label}</Button>
         ))}
       </div>
@@ -34,7 +29,7 @@ export default function FilesGallery({ documents }: { documents: Document[] }) {
           <Button key={doc.id} variant="unstyled" className="files_gallery-card" onClick={() => navigate(paths.document(doc))} aria-label={`Open ${doc.title}`}>
             <span className="files_gallery-thumb">
               {filePreview(doc.file?.content_type) === 'image' && doc.file
-                ? <img src={`${base}${doc.file.url}`} alt="" loading="lazy" />
+                ? <img src={apiUrl(doc.file.url)} alt="" loading="lazy" />
                 : <DocTypeIcon type="file" className="files_gallery-icon" />}
             </span>
             <span className="files_gallery-name">{doc.title}</span>

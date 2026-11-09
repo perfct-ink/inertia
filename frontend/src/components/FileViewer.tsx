@@ -6,7 +6,7 @@ import { useMoveDocument, useUpdateDocument } from '@/api/documents'
 import { useReplaceFile, useWorkspace } from '@/api/workspace'
 import { errorMessage } from '@/util/errorMessage'
 import { flattenFolders } from '@/data/folder'
-import api from '@/lib/api'
+import { apiUrl } from '@/api/base'
 import { filePreview, formatBytes } from '@/data/document'
 import { usePageTitle } from '@/hooks/usePageTitle'
 import type { Document } from '@/types'
@@ -25,7 +25,7 @@ export default function FileViewer({ doc }: { doc: Document }) {
   const [error, setError] = useState<string | null>(null)
   const folders = flattenFolders(workspace?.folders ?? []).filter((f) => !f.archived)
   const file = doc.file
-  const url = file ? `${api.defaults.baseURL ?? ''}${file.url}` : ''
+  const url = file ? apiUrl(file.url) : ''
   const preview = filePreview(file?.content_type)
 
   function rename() {

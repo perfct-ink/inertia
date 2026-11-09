@@ -1,5 +1,5 @@
 import { Select } from '@/components/ui'
-import api from '@/lib/api'
+import { apiUrl } from '@/api/base'
 import { filePreview } from '@/data/document'
 import type { Document } from '@/types'
 import ChoiceList from './ChoiceList'
@@ -15,7 +15,6 @@ export default function FileCell({ label, many, value, files, onChange }: {
   files: Document[]
   onChange: (value: number | number[] | null) => void
 }) {
-  const base = api.defaults.baseURL ?? ''
   const selected = many ? (Array.isArray(value) ? value : []) : value == null || Array.isArray(value) ? [] : [value]
   const chosen = files.filter((f) => selected.includes(f.id))
 
@@ -25,7 +24,7 @@ export default function FileCell({ label, many, value, files, onChange }: {
         {chosen.map((f) => (
           <span key={f.id} title={f.title} className="file_cell-item">
             {f.file && filePreview(f.file.content_type) === 'image'
-              ? <img src={`${base}${f.file.url}`} alt={f.title} className="file_cell-thumb" />
+              ? <img src={apiUrl(f.file.url)} alt={f.title} className="file_cell-thumb" />
               : <span>{f.title}</span>}
           </span>
         ))}

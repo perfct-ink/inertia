@@ -6,19 +6,11 @@ import { HealthBadge, SortHeader } from '@/components/ui'
 import WorkspaceLayout from '@/components/WorkspaceLayout'
 import { ProgressBar } from '@/components/Timeline'
 import { usePortfolio } from '@/api/portfolio'
-import { projectStatusLabel, sortPortfolio, type PortfolioSortKey } from '@/data/project'
+import { PORTFOLIO_COLUMNS, projectStatusLabel, sortPortfolio, type PortfolioSortKey } from '@/data/project'
 import { usePageTitle } from '@/hooks/usePageTitle'
 import { usePaths } from '@/hooks/usePaths'
 import '../planning/PlanningScreen.scss'
 import './PortfolioScreen.scss'
-
-const COLUMNS: { key: PortfolioSortKey; label: string }[] = [
-  { key: 'name', label: 'Project' },
-  { key: 'owner', label: 'Owner' },
-  { key: 'status', label: 'Status' },
-  { key: 'target_date', label: 'Dates' },
-  { key: 'percent', label: 'Progress' },
-]
 
 const date = (value: string | null) => (value ? format(parseISO(value), 'MMM d, yyyy') : '')
 
@@ -56,7 +48,7 @@ export default function PortfolioScreen() {
             <table className="portfolio-table">
               <thead>
                 <tr>
-                  {COLUMNS.map(({ key, label }) => (
+                  {PORTFOLIO_COLUMNS.map(({ key, label }) => (
                     <SortHeader key={key} direction={sortKey === key ? sortDir : null} onSort={() => sortBy(key)}>
                       {label}
                     </SortHeader>

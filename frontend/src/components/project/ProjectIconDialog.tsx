@@ -3,7 +3,7 @@ import { ImagePlus } from 'lucide-react'
 import { Button, FormError, Input, Modal, classNames } from '@/components/ui'
 import { useUpdateFolder } from '@/api/folders'
 import { uploadFile } from '@/api/uploads'
-import { errorMessage } from '@/api/tables'
+import { errorMessage } from '@/util/errorMessage'
 import { PROJECT_EMOJIS } from '@/data/project'
 import type { Folder } from '@/types'
 import ProjectIcon from './ProjectIcon'
@@ -74,10 +74,11 @@ export default function ProjectIconDialog({ project, onClose }: { project: Folde
           <FormError message={error} />
 
           <div className="ui-project_icon_dialog-actions">
-            <input
+            <Input
               ref={fileRef}
               type="file"
               accept="image/*"
+              aria-label="Choose an image"
               hidden
               onChange={(e) => { upload(e.target.files?.[0]); e.target.value = '' }}
             />

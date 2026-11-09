@@ -5,6 +5,8 @@ Every call the web app makes to the Rails API goes through `frontend/src/lib/api
 
 - `api/base.ts`: `ApiResource<Model, CreateInput, UpdateInput>`, the base class, with `list`, `find`, `create`, `update` and `destroy`. A model's class passes its path (`/api/v1/epics`), the Rails param key the body is wrapped in (`epic`, or `null` to send the fields as the body) and the root of its query keys (`epics`). The same file has the hook helpers the model files use: `useApiMutation` (call, then refetch the listed queries) and `useResourceList`, `useResourceFind`, `useResourceCreate`, `useResourceUpdate`, `useResourceDelete`.
 - One file and one class per model, each exporting an instance and the hooks the views use: `epics.ts` (`EpicApi`), `initiatives.ts`, `milestones.ts`, `sprints.ts`, `objectives.ts`, `keyResults.ts`, `tasks.ts`, `taskDependencies.ts`, `events.ts`, `documents.ts`, `folders.ts`, `workspaces.ts`, `workspaceMembers.ts`, `tables.ts`, `quipImports.ts`, and `workspace.ts` (`ActiveWorkspaceApi`, the singleton `/api/v1/workspace`).
+- `auth.ts` (`AuthApi`): sign-in, sign-up and sign-out, with the `useLogin` and `useSignup` hooks the login and sign-up screens call. It is not a resource, so it does not extend `ApiResource`; the sign-in and sign-up calls are `silent`, because the form shows a refusal itself.
+- `apiUrl(path)` in `base.ts` turns a path the API returned (an uploaded file's `url`) into an absolute URL on the API host, so components do not read the HTTP client's `baseURL`.
 - Model-specific calls are methods on the class: `TaskApi.create` accepts camelCase fields and posts under a document when given one, `EventApi.addTask`/`removeTask`, `DocumentApi.createIn(folderId, ...)`, `FolderApi.contents(id)`, `TableApi.edit(...)`.
 
 The hook names, their arguments and what each one refetches are the same as before the refactor, so the views did not change. What moved: the folder hooks (`useCreateFolder`, `useUpdateFolder`, `usePinFolder`, `useDeleteFolder`, `useArchivedFolders`, `useFolderContents`) from `workspace.ts` to `folders.ts`; the document hooks (`useCreateDocument`, `useDeleteDocument`, `usePinDocument`, `useMoveDocument`) from `workspace.ts` to `documents.ts`; the member hooks from `workspaces.ts` to `workspaceMembers.ts`; and the key result hooks from `objectives.ts` to `keyResults.ts`. Imports and the tests' module mocks were updated to match.
@@ -30,7 +32,6 @@ Every view and component that reads or writes data, through the hooks above.
 `frontend/src/api/base.test.tsx` covers the class (paths, bodies with and without a param key) and the hooks (query keys, the default `staleTime` kept, create/update/delete refetching the right queries, nothing refetched after a failure). The existing view tests mock these modules by path; the ones for the moved hooks (`CreateItem`, `GettingStarted`, `OkrsScreen`, `ProjectsScreen`) were pointed at the new modules.
 
 ## Known limits
-- `tables.ts` still re-exports `errorMessage` for the components that import it from there; they should import `@/util/errorMessage` (not changed here).
 - Cache keys are unchanged, including the singular `document`/`table` roots; the model files, not the base, decide what each change refetches.
 
 ## History
@@ -38,3 +39,4 @@ Every view and component that reads or writes data, through the hooks above.
 - Not verified: `npm run lint`, `tsc`, the Jest suite (including the new `base.test.tsx`) and the app in a browser were not run (no `node_modules`). Run offline: a syntax, import and undefined-name check of every changed file.
 
 - Merged to main 2026-11-02 after running, merged with main: `rails db:migrate` (schema diff clean), `rails test`, `npm run lint`, `tsc -b`, Jest, and the collab-server tests, all passing. Not checked in a browser.
+- 2026-11-09 (rules compliance audit, see [rules_compliance.md](rules_compliance.md)): the login, sign-up and sign-out calls moved out of the views into `auth.ts`, the three components that built file URLs from the client's `baseURL` use `apiUrl`, and the components that imported `errorMessage` from `@/api/tables` import `@/util/errorMessage` (the re-export is gone). Tests: `api/auth.test.ts`. Run through the Jest stand-in only; `npm run lint`, `tsc` and the real Jest run did not run.

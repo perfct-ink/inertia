@@ -1,8 +1,7 @@
 import { Button, Input, FormError } from '@/components/ui'
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
-import { useMutation } from '@tanstack/react-query'
-import api from '@/lib/api'
+import { signupErrors, useSignup } from '@/api/auth'
 import { useAuthStore } from '@/store/auth'
 import { useOnboardingStore } from '@/store/onboarding'
 import AuthLayout from '@/components/auth/AuthLayout'
@@ -15,16 +14,13 @@ export default function SignupScreen() {
   const [form, setForm] = useState({ name: '', email: '', password: '' })
   const [errors, setErrors] = useState<string[]>([])
 
-  const signup = useMutation({
-    mutationFn: (data: typeof form) =>
-      api.post('/api/v1/auth/signup', { user: data }, { silent: true }),
-    onSuccess: (res) => {
-      const token = res.headers['authorization']?.replace('Bearer ', '')
-      setAuth(token, res.data.user)
-      useOnboardingStore.getState().start(res.data.user.id)
+  const signup = useSignup({
+    onSuccess: ({ token, user }) => {
+      setAuth(token, user)
+      useOnboardingStore.getState().start(user.id)
       navigate('/space')
     },
-    onError: (err: { response?: { data?: { errors?: string[] } } }) => setErrors(err.response?.data?.errors ?? ['Something went wrong']),
+    onError: (err) => setErrors(signupErrors(err)),
   })
 
   return (

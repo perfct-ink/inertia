@@ -1,5 +1,5 @@
 import type { Task } from '@/types'
-import { autoFields, buildTaskTree, taskFolderId, dueBucket, myWork, taskCards, estimateLabel, pointsLabel, priorityLabel, filterByKind, kindOf, elapsedClock, formatMinutes, progressById, subtaskProgress, statusChangeLabel, taskChanges, taskDraft, taskDraftError } from './task'
+import { autoFields, buildTaskTree, TASK_LIST_DEPTHS, taskFolderId, dueBucket, myWork, taskCards, estimateLabel, pointsLabel, priorityLabel, filterByKind, kindOf, elapsedClock, formatMinutes, progressById, subtaskProgress, statusChangeLabel, taskChanges, taskDraft, taskDraftError } from './task'
 
 const task = (id: number, parent_id: number | null = null) => ({ id, title: `T${id}`, parent_id }) as unknown as Task
 
@@ -142,4 +142,8 @@ test('autoFields shows the item ID, creator and relative times', () => {
 
 test('autoFields leaves out what the server does not know', () => {
   expect(autoFields({ id: 3 })).toEqual({ itemId: '#3', createdBy: null, created: null, updated: null })
+})
+
+test('the list depth options run from top-level tasks only to all levels', () => {
+  expect(TASK_LIST_DEPTHS.map((d) => d.maxDepth)).toEqual([0, 1, null])
 })

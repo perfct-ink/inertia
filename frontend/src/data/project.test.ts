@@ -1,4 +1,4 @@
-import { isActivePath, projectIconOf, sortPortfolio } from './project'
+import { isActivePath, PORTFOLIO_COLUMNS, projectIconOf, sortPortfolio } from './project'
 
 test('an image wins over an emoji; neither means the default icon', () => {
   expect(projectIconOf({ icon: '🚀', image_url: 'https://x.test/a.png' })).toEqual({ image: 'https://x.test/a.png' })
@@ -32,4 +32,8 @@ test('sortPortfolio orders by each column and leaves blanks last', () => {
   expect(sortPortfolio(rows, 'status', 'asc').map((r) => r.name)).toEqual(['C', 'A', 'B'])
   expect(sortPortfolio(rows, 'percent', 'desc').map((r) => r.name)).toEqual(['C', 'B', 'A'])
   expect(rows.map((r) => r.name)).toEqual(['B', 'A', 'C'])
+})
+
+test('the portfolio columns are the sort keys, in table order', () => {
+  expect(PORTFOLIO_COLUMNS.map((c) => c.key)).toEqual(['name', 'owner', 'status', 'target_date', 'percent'])
 })

@@ -6,7 +6,7 @@ import { ChevronRight, Folder, FolderKanban, FileText, TableIcon, Pin, CheckSqua
 import { useCreateFolder, useDeleteFolder, usePinFolder, useUpdateFolder } from '@/api/folders'
 import { useCreateDocument, useDeleteDocument, usePinDocument, useUpdateDocument } from '@/api/documents'
 import { useUploadFiles } from '@/api/workspace'
-import { errorMessage } from '@/api/tables'
+import { errorMessage } from '@/util/errorMessage'
 import { documentsIn } from '@/data/folder'
 import { idPath } from '@/data/path'
 import type { TransferRequest } from '@/data/transfer'
@@ -241,7 +241,7 @@ export function FolderItem({ folder, depth = 0, bare = false, hideProjects = fal
                 key={doc.id}
                 to={paths.document(doc)}
                 className={`folder_item-row folder_item-row--doc${active ? ' folder_item-row--active' : ''}`}
-                style={{ paddingLeft: `${36 + indent}px`, paddingRight: '8px' }}
+                style={{ paddingLeft: `${36 + indent}px` }}
                 onContextMenu={(e) => { e.preventDefault(); e.stopPropagation(); setDocCtx({ x: e.clientX, y: e.clientY, doc }) }}
               >
                 {doc.doc_type === 'table'
