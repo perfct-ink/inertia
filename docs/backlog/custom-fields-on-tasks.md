@@ -11,7 +11,7 @@ components: [backend]
 
 ## Requirements / notes
 
-Pushback in the Jira doc still applies; Monday parity requires it.
+Today (checked 2026-11-09): Spaces can already define task fields of five kinds (tags, dropdown, checkbox, rating, vote) in their own `task_fields` / `task_field_values` tables (`docs/features/task_fields.md`), not the Collection `table_fields` type system. What's missing is the other common kinds: text, number, date, person, URL and so on.
 
 ## Context
 
