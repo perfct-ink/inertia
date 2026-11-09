@@ -7,6 +7,6 @@ class ProjectTypeBlueprint < Blueprinter::Base
   field :key
   field :starts_with do |project_type, _options|
     template = project_type.template || {}
-    { documents: Array(template["documents"]).size, collections: Array(template["collections"]).size, tasks: Array(template["tasks"]).size }
+    %w[folders documents collections tasks].to_h { |part| [ part.to_sym, Array(template[part]).size ] }
   end
 end

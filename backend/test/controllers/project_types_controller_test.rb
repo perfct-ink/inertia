@@ -30,12 +30,31 @@ class ProjectTypesControllerTest < ActionDispatch::IntegrationTest
     body = response.parsed_body
     assert_equal "custom_#{body['id']}", body["key"]
     assert_equal({ "name" => "Release", "description" => "Songs", "icon" => "🎵" }, body.slice("name", "description", "icon"))
-    assert_equal({ "documents" => 1, "collections" => 0, "tasks" => 1 }, body["starts_with"])
+    assert_equal({ "folders" => 0, "documents" => 1, "collections" => 0, "tasks" => 1 }, body["starts_with"])
     assert_not_includes body.keys, "template"
 
     get "/api/v1/project_types", headers: headers_for(@viewer)
     assert_response :success
     assert_equal [ "Release" ], response.parsed_body.map { |t| t["name"] }
+  end
+
+  test "a saved type is a template of the project's structure, without its people or what was done in it" do
+    nested = @team.folders.create!(name: "Artwork", parent: @project)
+    nested.documents.create!(title: "Cover brief", created_by: @viewer)
+    table = @project.documents.create!(title: "Tracks", doc_type: :table, created_by: @user)
+    table.table_fields.create!(name: "Title", data_type: "text")
+    table.table_records.create!
+    @project.update!(owner: @user, start_date: Date.new(2026, 3, 1))
+    @team.tasks.create!(title: "Mix", folder: nested, assignee: @viewer, status: :done)
+
+    save_type
+    assert_response :created
+    assert_equal({ "folders" => 1, "documents" => 2, "collections" => 1, "tasks" => 2 }, response.parsed_body["starts_with"])
+
+    template = ProjectType.last.template
+    assert_equal [ { "name" => "Artwork", "parent" => nil } ], template["folders"]
+    assert_equal [ [ "Master", nil ], [ "Mix", 0 ] ], template["tasks"].map { |t| [ t["title"], t["folder"] ] }
+    assert_no_match(/#{@viewer.email}|#{@viewer.name}|2026|done/, template.to_json)
   end
 
   test "only a project can be saved, and the name must be new" do

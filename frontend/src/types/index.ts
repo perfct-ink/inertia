@@ -71,7 +71,7 @@ export interface SavedProjectType {
   name: string
   description: string | null
   icon: string | null
-  starts_with: { documents: number; collections: number; tasks: number }
+  starts_with: { folders?: number; documents: number; collections: number; tasks: number }
   created_at: string
 }
 

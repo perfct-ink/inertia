@@ -10,10 +10,14 @@ import type { Folder, ProjectTypeKey, SavedProjectType } from '@/types'
 export type CollectionFieldType = 'text' | 'integer' | 'number' | 'boolean' | 'date' | 'datetime'
 
 // What a new project starts with; the same shape the server stores for a saved type.
+// `folders` are subfolders (a `parent` is the position of an earlier folder, none
+// is the project); `folder` on a document, Collection or task is the position of
+// the folder it sits in, none is the project itself.
 export interface ProjectTemplate {
-  documents: { title: string; doc_type?: 'document' | 'spreadsheet'; content: Json }[]
-  collections: { title: string; fields: { name: string; data_type: CollectionFieldType }[] }[]
-  tasks: { title: string }[]
+  folders?: { name: string; parent?: number | null }[]
+  documents: { title: string; doc_type?: 'document' | 'spreadsheet'; content: Json; folder?: number | null }[]
+  collections: { title: string; fields: { name: string; data_type: CollectionFieldType }[]; folder?: number | null }[]
+  tasks: { title: string; folder?: number | null }[]
 }
 
 export interface ProjectTypeDef {
@@ -170,21 +174,23 @@ export function projectTypeLabel(key: ProjectTypeKey | undefined, saved: SavedPr
 }
 
 export interface StartCounts {
+  folders?: number
   documents: number
   collections: number
   tasks: number
 }
 
 export function countsOf(template: ProjectTemplate): StartCounts {
-  return { documents: template.documents.length, collections: template.collections.length, tasks: template.tasks.length }
+  return { folders: template.folders?.length ?? 0, documents: template.documents.length, collections: template.collections.length, tasks: template.tasks.length }
 }
 
 const plural = (n: number, one: string) => `${n} ${one}${n === 1 ? '' : 's'}`
 
 // "2 documents, 1 Collection, 5 tasks": what a project of the type starts with;
 // empty for a type that starts empty.
-export function describeStart({ documents, collections, tasks }: StartCounts): string {
+export function describeStart({ folders = 0, documents, collections, tasks }: StartCounts): string {
   return [
+    folders > 0 && plural(folders, 'folder'),
     documents > 0 && plural(documents, 'document'),
     collections > 0 && plural(collections, 'Collection'),
     tasks > 0 && plural(tasks, 'task'),

@@ -100,6 +100,31 @@ class FolderProjectTypesTest < ActionDispatch::IntegrationTest
     assert_equal [ "Record" ], @space.tasks.where(folder_id: project.id).pluck(:title)
   end
 
+  test "a project made from a saved type has the subfolders, documents and tasks, and none of the source's people or records" do
+    source = @space.folders.create!(name: "Album", kind: :project, owner: @user, project_status: :active)
+    nested = @space.folders.create!(name: "Artwork", parent: source)
+    nested.documents.create!(title: "Cover brief", created_by: @user)
+    sheet = source.documents.create!(title: "Tracks", doc_type: :table, created_by: @user)
+    field = sheet.table_fields.create!(name: "Title", data_type: "text")
+    record = sheet.table_records.create!
+    TableCell.create!(table_record_id: record.id, table_field_id: field.id, value: "Intro")
+    @space.tasks.create!(title: "Sketch", folder: nested, status: :done, assignee: @user)
+    post "/api/v1/project_types", params: { project_type: { name: "Release", from_folder_id: source.id } }, headers: @headers, as: :json
+    key = response.parsed_body["key"]
+
+    create_folder({ name: "Second album", kind: "project", project_type: key })
+    assert_response :created
+
+    project = Folder.find(response.parsed_body["id"])
+    assert_nil project.owner_id
+    assert_equal "planned", project.project_status
+    artwork = project.children.find_by!(name: "Artwork")
+    assert_equal [ "Cover brief" ], artwork.documents.map(&:title)
+    assert_equal [ "Title" ], project.documents.find_by!(title: "Tracks").table_fields.pluck(:name)
+    assert_equal 0, TableRecord.where(document_id: project.documents.select(:id)).count
+    assert_equal [ [ "Sketch", "backlog", nil ] ], @space.tasks.where(folder_id: artwork.id).pluck(:title, :status, :assignee_id)
+  end
+
   test "a project's type can be changed later without adding anything" do
     project = @space.folders.create!(name: "Album", kind: :project)
 
