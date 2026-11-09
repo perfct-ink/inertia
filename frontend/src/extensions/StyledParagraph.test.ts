@@ -9,7 +9,7 @@ function createEditor(content: unknown) {
   editor = new Editor({ extensions: [TiptapDocument, StyledParagraph, Text], content: content as never })
   return editor
 }
-function withAttrs(attrs: Record<string, unknown>) {
+function withAttrs(attrs: object) {
   return { type: 'doc', content: [{ type: 'paragraph', attrs, content: [{ type: 'text', text: 'Hello' }] }] }
 }
 afterEach(() => editor.destroy())
@@ -22,7 +22,8 @@ test('a paragraph in a custom style is drawn from the copy of the style it carri
   expect(paragraph().getAttribute('data-style')).toBe('custom-7')
   expect(paragraph().getAttribute('data-style-base')).toBe('quote')
   expect(paragraph().getAttribute('style')).toContain('font-size: 20px')
-  expect(paragraph().getAttribute('style')).toContain('color: #2563eb')
+  // The DOM normalises colours, so the value is read back from the element's style.
+  expect(paragraph().style.color).toBe('rgb(37, 99, 235)')
 })
 
 test('the document keeps the style, its name and the copy of its formatting', () => {
@@ -59,7 +60,9 @@ test('a leftover copy on a paragraph that is no longer in a custom style is not 
 test('unsafe values in a copy never reach the page', () => {
   const styleProps = JSON.stringify({ owner: 1, base: 'quote', properties: { color: 'red; background: url(x)', size: 20 } })
   createEditor(withAttrs({ style: 'custom-7', styleName: 'x', styleProps }))
-  expect(paragraph().getAttribute('style')).toBe('font-size: 20px')
+  expect(paragraph().style.fontSize).toBe('20px')
+  expect(paragraph().style.color).toBe('')
+  expect(paragraph().style.background).toBe('')
 })
 
 test('the copy survives copying and pasting the paragraph as HTML', () => {
