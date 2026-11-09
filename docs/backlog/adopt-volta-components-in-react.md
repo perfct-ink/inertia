@@ -15,7 +15,9 @@ Token styling is already in place; adoption of the actual Volta components remai
 
 ### Decision (Alex, 2026-11-09 groom)
 
-Inertia depends on Volta **pulled from GitHub** (`github:kriogenx0/volta` in `frontend/package.json`), not npm and not copied styles. Checked 2026-11-09: Volta 2.0.0 points `main` at `components/compiled/components.js`, which isn't committed, and has no `prepare` script or tags, so a git install gets no build. Volta needs a `prepare` script (npm runs it on git installs) or committed build output before Inertia can install it. How to pin the version is still open.
+Inertia depends on Volta **pulled from GitHub** (`github:kriogenx0/volta` in `frontend/package.json`), not npm and not copied styles. **Pin to a tagged Volta release** (Alex: "Volta should release a version"), e.g. `github:kriogenx0/volta#v3.0.0`, not a branch.
+
+Blocked on Volta (checked 2026-11-09): Volta's `main` is at 3.0.0 (`master`, the GitHub default branch, is still 2.0.0) and has no tags. `package.json` points at `components/compiled/components.js` and lists it in `files`, but the build output isn't committed and there is no `prepare` script, so a git install gets no components. Volta first needs to cut a release: a `v3.0.0` tag whose install builds (a `prepare` script) or carries the built files.
 
 ## Context
 
