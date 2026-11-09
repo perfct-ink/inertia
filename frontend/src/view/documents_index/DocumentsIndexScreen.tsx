@@ -1,4 +1,4 @@
-import { Button, Input, Select, SortArrow } from '@/components/ui'
+import { Button, Input, Select, SortButton } from '@/components/ui'
 import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { format, parseISO } from 'date-fns'
@@ -69,15 +69,14 @@ export default function DocumentsIndexScreen() {
   }
 
   function SortHeader({ sortKeyName, label, className }: { sortKeyName: SortKey; label: string; className?: string }) {
-    const active = sortKey === sortKeyName
     return (
-      <Button
+      <SortButton
+        direction={sortKey === sortKeyName ? sortDir : null}
         onClick={() => toggleSort(sortKeyName)}
-        className={`documents_index-sort${active ? ' documents_index-sort--active' : ''} ${className ?? ''}`}
+        className={`documents_index-sort ${className ?? ''}`}
       >
         {label}
-        {active && <SortArrow direction={sortDir} />}
-      </Button>
+      </SortButton>
     )
   }
 

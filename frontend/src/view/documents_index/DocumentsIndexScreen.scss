@@ -107,9 +107,6 @@
     }
 
     .documents_index-sort {
-      display: flex;
-      align-items: center;
-      gap: space(1);
       color: color(muted-foreground);
       font-weight: 600;
       letter-spacing: 0.05em;
@@ -117,7 +114,7 @@
       @include text('xs');
 
       &:hover,
-      &--active {
+      &.ui-sort_button--active {
         color: color(foreground);
       }
     }

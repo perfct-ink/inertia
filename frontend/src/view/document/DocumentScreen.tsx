@@ -1,4 +1,4 @@
-import { Button, Input, Modal, PromptDialog } from '@/components/ui'
+import { Button, Input, Modal, PromptDialog, SaveStatus, type SaveState } from '@/components/ui'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useLocation, useParams } from 'react-router-dom'
 import * as Y from 'yjs'
@@ -144,7 +144,7 @@ export default function DocumentScreen() {
   const [tasksOnly, setTasksOnly] = useState(false)
   // The document's content while the "Link to a heading" dialog is open (null when closed).
   const [headingLinkContent, setHeadingLinkContent] = useState<Record<string, unknown> | null>(null)
-  const [saveStatus, setSaveStatus] = useState<'saved' | 'saving' | 'unsaved'>('saved')
+  const [saveStatus, setSaveStatus] = useState<SaveState>('saved')
   const pendingRef = useRef<{ title?: string; content?: Record<string, unknown> }>({})
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
   const { openTab } = useTabsStore()
@@ -718,10 +718,7 @@ export default function DocumentScreen() {
             hidden
             onChange={handleFileInputChange}
           />
-          <div className="document-status">
-            {saveStatus === 'saving' && <Loader2 className="document-status_spinner" />}
-            {saveStatus === 'unsaved' && <div className="document-status_dot" />}
-          </div>
+          <SaveStatus state={saveStatus} className="document-status" />
         </div>
 
         <DocumentInitiativeBar doc={doc} />

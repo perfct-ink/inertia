@@ -89,20 +89,6 @@
       padding-right: space(2);
     }
 
-    @at-root .document-status_spinner {
-      width: space(3.5);
-      height: space(3.5);
-      color: color(muted-foreground);
-      @include spin;
-    }
-
-    @at-root .document-status_dot {
-      width: space(2);
-      height: space(2);
-      border-radius: radius('full');
-      background: color(muted-foreground, 0.6);
-    }
-
     @at-root .document-editor_area {
       flex: 1 1 0%;
       overflow-y: auto;

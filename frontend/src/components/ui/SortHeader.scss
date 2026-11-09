@@ -1,0 +1,12 @@
+@use 'tokens' as *;
+
+// The sort button is plain text with an arrow; color and type size come from
+// the header it sits in. Pressing it has the same hover and focus as any Button.
+@layer app.ui {
+  .ui-sort_button {
+    display: inline-flex;
+    align-items: center;
+    gap: space(1);
+    text-align: inherit;
+  }
+}

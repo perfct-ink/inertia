@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { format, parseISO } from 'date-fns'
 import { Briefcase, Loader2 } from 'lucide-react'
-import { Button, HealthBadge, SortArrow } from '@/components/ui'
+import { HealthBadge, SortHeader } from '@/components/ui'
 import WorkspaceLayout from '@/components/WorkspaceLayout'
 import { ProgressBar } from '@/components/Timeline'
 import { usePortfolio } from '@/api/portfolio'
@@ -55,12 +55,9 @@ export default function PortfolioScreen() {
               <thead>
                 <tr>
                   {COLUMNS.map(({ key, label }) => (
-                    <th key={key} scope="col" aria-sort={sortKey === key ? (sortDir === 'asc' ? 'ascending' : 'descending') : 'none'}>
-                      <Button variant="unstyled" onClick={() => sortBy(key)}>
-                        {label}
-                        {sortKey === key && <SortArrow direction={sortDir} />}
-                      </Button>
-                    </th>
+                    <SortHeader key={key} direction={sortKey === key ? sortDir : null} onSort={() => sortBy(key)}>
+                      {label}
+                    </SortHeader>
                   ))}
                   <th scope="col">Health</th>
                 </tr>
