@@ -84,6 +84,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_08_160002) do
     t.datetime "finished_at"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.integer "input_tokens"
+    t.integer "output_tokens"
     t.index ["ai_worker_id"], name: "index_ai_runs_on_ai_worker_id"
     t.index ["task_id"], name: "index_ai_runs_on_task_id"
     t.index ["workspace_id"], name: "index_ai_runs_on_workspace_id"

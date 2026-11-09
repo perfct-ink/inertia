@@ -56,6 +56,10 @@ services:
       APPLE_TEAM_ID: ${APPLE_TEAM_ID:-}
       APPLE_KEY_ID: ${APPLE_KEY_ID:-}
       APPLE_PRIVATE_KEY: ${APPLE_PRIVATE_KEY:-}
+      # AI workers call Anthropic only while this is set (config/initializers/
+      # ai_workers.rb). Mark it as a secret in Coolify; leave it empty to keep
+      # workers off.
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
     volumes:
       - storage:/rails/storage
     # Coolify's own network, where the shared PostgreSQL container lives.
