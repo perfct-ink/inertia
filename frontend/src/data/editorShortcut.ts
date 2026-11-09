@@ -20,9 +20,12 @@ export interface EditorShortcut {
 }
 
 // The keystrokes EditorShortcuts binds, in the order the doc and the cheat sheet
-// list them. The code block takes ⌘⌥⇧C (Slack's key for it) because Notes' ⌘⇧M is
-// "Monospaced", which is the Monospace paragraph style here (Alex, 2026-11-06,
-// RESERVED_KEYS below), and TipTap's own ⌘⌥C is the browsers' inspector.
+// list them. The code block takes Notes' own ⌘⇧M ("Monospaced"): the Monospace
+// paragraph style and the code block are the same thing (Alex, 2026-11-09, backlog
+// task code-blocks-with-language-and-syntax-highlighting). The paragraph-style
+// keys (paragraph-style-shortcuts) bind ⌘⇧M too; when that branch merges, the
+// Monospace style must BE the code block, not a second thing on the same key.
+// TipTap's own ⌘⌥C is the browsers' inspector, so it is dropped (REPLACED_DEFAULTS).
 export const EDITOR_SHORTCUTS: EditorShortcut[] = [
   { action: 'strike', label: 'Strikethrough', keys: '⌘⇧X', tiptap: 'Mod-Shift-x' },
   { action: 'bulletList', label: 'Bulleted list', keys: '⌘⇧7', tiptap: 'Mod-Shift-7' },
@@ -33,7 +36,7 @@ export const EDITOR_SHORTCUTS: EditorShortcut[] = [
   { action: 'outdent', label: 'Outdent list item', keys: '⌘[', tiptap: 'Mod-[' },
   { action: 'moveUp', label: 'Move list item up', keys: '⌃⌘↑', tiptap: 'Ctrl-Meta-ArrowUp' },
   { action: 'moveDown', label: 'Move list item down', keys: '⌃⌘↓', tiptap: 'Ctrl-Meta-ArrowDown' },
-  { action: 'codeBlock', label: 'Code block', keys: '⌘⌥⇧C', tiptap: 'Mod-Alt-Shift-c' },
+  { action: 'codeBlock', label: 'Code block', keys: '⌘⇧M', tiptap: 'Mod-Shift-m' },
   { action: 'clearFormatting', label: 'Clear formatting', keys: '⌘\\', tiptap: 'Mod-\\' },
 ]
 
@@ -84,12 +87,13 @@ export interface ReservedKey {
 }
 
 // Keys another backlog task binds. They stay out of the table, and a test fails if
-// the table takes one, so those tasks find them free.
+// the table takes one, so those tasks find them free. (⌘⇧M was on this list for
+// Monospace until Alex made the Monospace style and the code block one thing on
+// 2026-11-09; the table now owns it, and a test pins that.)
 export const RESERVED_KEYS: ReservedKey[] = [
   { keys: '⌘⌥7', tiptap: 'Mod-Alt-7', for: 'Title style', task: 'paragraph-style-shortcuts' },
   { keys: '⌘⌥8', tiptap: 'Mod-Alt-8', for: 'Subtitle style', task: 'paragraph-style-shortcuts' },
   { keys: '⌘⌥9', tiptap: 'Mod-Alt-9', for: 'Quote style', task: 'paragraph-style-shortcuts' },
-  { keys: '⌘⇧M', tiptap: 'Mod-Shift-m', for: 'Monospace style', task: 'paragraph-style-shortcuts' },
   { keys: '⌘⇧8', tiptap: 'Mod-Shift-8', for: 'Dashed list', task: 'dashed-list-block' },
   { keys: '⌘K', tiptap: 'Mod-k', for: 'Insert link', task: 'editor-vs-global-shortcut-clashes' },
   { keys: '⌥⌘T', tiptap: 'Mod-Alt-t', for: 'Insert table', task: 'editor-vs-global-shortcut-clashes' },

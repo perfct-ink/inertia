@@ -76,12 +76,15 @@ test('⌘⇧X strikes through; TipTap\'s ⌘⇧S no longer does', () => {
   expect(editor.isActive('strike')).toBe(true)
 })
 
-test('⌘⌥⇧C makes a code block; TipTap\'s ⌘⌥C no longer does', () => {
+test('⌘⇧M makes a code block and again takes it back; TipTap\'s ⌘⌥C and the old ⌘⌥⇧C do nothing', () => {
   createEditor('<p>one</p>')
   expect(press({ ...letter('c'), ...MOD, altKey: true })).toBe(false)
+  expect(press({ ...shiftLetter('c'), ...MOD, altKey: true })).toBe(false)
   expect(editor.isActive('codeBlock')).toBe(false)
-  expect(press({ ...shiftLetter('c'), ...MOD, altKey: true })).toBe(true)
+  expect(press({ ...shiftLetter('m'), ...MOD })).toBe(true)
   expect(editor.isActive('codeBlock')).toBe(true)
+  expect(press({ ...shiftLetter('m'), ...MOD })).toBe(true)
+  expect(editor.isActive('codeBlock')).toBe(false)
 })
 
 test('the code block keeps its other keys (Backspace in an empty one turns it back)', () => {

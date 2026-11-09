@@ -39,8 +39,9 @@ test('each key runs its command', () => {
   keymap['Mod-Shift-x']()
   keymap['Mod-Shift-7']()
   keymap['Mod-Shift-9']()
-  keymap['Mod-Alt-Shift-c']()
+  keymap['Mod-Shift-m']()
   expect(calls).toEqual(['toggleStrike', 'toggleBulletList', 'toggleOrderedList', 'toggleCodeBlock'])
+  expect(keymap['Mod-Alt-Shift-c']).toBeUndefined()
 })
 
 test('clear formatting drops marks and resets blocks', () => {

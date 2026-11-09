@@ -43,10 +43,16 @@ test('duplicateKeys reports a repeated key', () => {
   expect(duplicateKeys(['Mod-a', 'Mod-b', 'Mod-a'])).toEqual(['Mod-a'])
 })
 
-test('the code block does not take Monospace\'s ⌘⇧M', () => {
-  expect(keysOf('codeBlock')).toBe('⌘⌥⇧C')
-  expect(RESERVED_KEYS.find((r) => r.for === 'Monospace style')?.keys).toBe('⌘⇧M')
-  expect(EDITOR_SHORTCUTS.map((s) => s.tiptap)).not.toContain('Mod-Shift-m')
+test('the code block takes Notes\' ⌘⇧M, the Monospace style\'s key, and the temporary ⌘⌥⇧C is gone', () => {
+  // Alex, 2026-11-09: Monospace and the code block are one thing, so one key. This is the one
+  // key lifted from the reserved list on purpose.
+  expect(keysOf('codeBlock')).toBe('⌘⇧M')
+  expect(EDITOR_SHORTCUTS.find((s) => s.action === 'codeBlock')?.tiptap).toBe('Mod-Shift-m')
+  expect(RESERVED_KEYS.map((r) => r.tiptap)).not.toContain('Mod-Shift-m')
+  expect(allEditorKeys().filter((key) => key === 'Mod-Shift-m')).toHaveLength(1)
+  expect(allEditorKeys()).not.toContain('Mod-Alt-Shift-c')
+  expect(documentShortcutRows().map((r) => r.keys)).not.toContain('⌘⌥⇧C')
+  expect(titleWithShortcut('Code block', 'codeBlock')).toBe('Code block (⌘⇧M)')
 })
 
 test('the keys other tasks bind are left free', () => {
@@ -101,4 +107,5 @@ test('docs/keyboard-shortcuts.md lists every editor shortcut with its keys', () 
     expect(doc).toContain(keys)
   }
   for (const reserved of RESERVED_KEYS) expect(doc).toContain(reserved.keys)
+  expect(doc).not.toContain('⌘⌥⇧C')
 })
