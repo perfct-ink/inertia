@@ -12,7 +12,7 @@ browser ──https──▶ Coolify proxy (Traefik, TLS)
                         ▼
                   web (nginx :80) ── static webpack build
                    ├── / /features /pricing /about /robots.txt /sitemap.xml,
-                   │   /api/*, /rails/active_storage/*  ──▶ api (Rails :3000) ──▶ shared PostgreSQL
+                   │   /api/*, /mcp, /rails/active_storage/*  ──▶ api (Rails :3000) ──▶ shared PostgreSQL
                    └── /collab (WebSocket)              ──▶ collab (Hocuspocus :1234) ──▶ api
 ```
 

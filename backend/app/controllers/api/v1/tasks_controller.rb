@@ -61,7 +61,7 @@ module Api
 
       # The task's status changes, oldest first.
       def status_changes
-        render json: TaskStatusChangeBlueprint.render(current_workspace.tasks.find(params[:id]).status_changes.includes(:changed_by))
+        render json: TaskStatusChangeBlueprint.render(current_workspace.tasks.find(params[:id]).status_changes.includes(:changed_by, :agent_token))
       end
 
       def destroy

@@ -11,6 +11,8 @@ class Folder < ApplicationRecord
   has_many :events, dependent: :destroy
   has_many :epics, dependent: :nullify
   has_many :task_status_settings, dependent: :delete_all
+  # An agent token limited to this folder goes with it (it must never widen to the Space).
+  has_many :agent_tokens, dependent: :destroy
   has_many :shares, as: :shareable, dependent: :destroy
   has_many :resource_allocations, dependent: :destroy
   # Planning records filed under this project (ProjectItem); the database
