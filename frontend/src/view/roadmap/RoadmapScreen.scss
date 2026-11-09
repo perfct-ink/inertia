@@ -148,10 +148,8 @@
       }
     }
 
-    // Compact select (two classes beat the shared control styles).
+    // Compact underline select (variant="underline"): the type size is the view's.
     .roadmap-card-horizon {
-      @include field-underline;
-
       @include text('xs');
     }
   }

@@ -80,6 +80,7 @@ export default function MilestonesScreen() {
                     <DatePicker
                       value={milestone.target_date ?? ''}
                       onChange={(e) => updateMilestone.mutate({ id: milestone.id, target_date: e.target.value || null })}
+                      variant="underline"
                       className="milestones-date"
                     />
                   </label>
@@ -88,6 +89,7 @@ export default function MilestonesScreen() {
                     <Select
                       value={milestone.status}
                       onChange={(e) => updateMilestone.mutate({ id: milestone.id, status: e.target.value as PlanningStatus })}
+                      variant="underline"
                       className="milestones-status"
                     >
                       {PLANNING_STATUSES.map((status) => <option key={status} value={status}>{status}</option>)}

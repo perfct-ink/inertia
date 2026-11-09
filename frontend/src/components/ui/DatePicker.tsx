@@ -1,17 +1,17 @@
 import {
   forwardRef, useCallback, useEffect, useId, useLayoutEffect, useRef, useState,
-  type ChangeEvent, type FocusEvent, type InputHTMLAttributes, type KeyboardEvent, type MouseEvent,
+  type ChangeEvent, type FocusEvent, type KeyboardEvent, type MouseEvent,
 } from 'react'
 import { createPortal } from 'react-dom'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { addDays, addMonths, clampToRange, dayLabel, isValidISODate, monthGrid, monthLabel, outOfRange, parseISODate, weekdayHeadings } from '@/util/calendar'
 import { todayISO } from '@/util/date'
 import { Button } from './Button'
-import { Input } from './Input'
+import { Input, type InputProps } from './Input'
 import { classNames } from './classNames'
 import './DatePicker.scss'
 
-type DatePickerProps = Omit<InputHTMLAttributes<HTMLInputElement>, 'type' | 'inputMode'>
+type DatePickerProps = Omit<InputProps, 'type' | 'inputMode'>
 
 const WEEK_STARTS_ON = 0
 const POPUP_GAP = 4

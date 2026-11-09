@@ -172,6 +172,7 @@ function BoardCardView({ card, onPlace }: { card: BoardCard; onPlace: (card: Boa
         onPointerDown={(e) => e.stopPropagation()}
         onKeyDown={(e) => e.stopPropagation()}
         onChange={(e) => onPlace(card, (e.target.value || null) as RoadmapHorizon | null)}
+        variant="underline"
         className="roadmap-card-horizon"
       >
         <option value="">Automatic ({HORIZON_LABEL[effectiveHorizon({ ...item, horizon: null })]})</option>

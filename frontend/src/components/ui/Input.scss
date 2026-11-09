@@ -16,6 +16,10 @@
       opacity: 0.5;
     }
 
+    &--underline {
+      @include field-underline;
+    }
+
     // Checkboxes and radios keep a compact size but are drawn by the app.
     &--checkable {
       @include checkable;

@@ -6,8 +6,8 @@
 // (and above a modal, z-index 50). Colors come from the theme, so light and
 // dark both work.
 @layer app.ui {
-  // Calendar mark at the right edge of a full-size field. Compact underline
-  // fields (field-underline) drop it.
+  // Calendar mark at the right edge of a full-size field. The underline
+  // variant drops it.
   .ui-date_picker-input {
     padding-right: space(9);
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%23808080' stroke-width='1.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='2' y='3' width='12' height='11' rx='1.5'/%3E%3Cpath d='M2 6.5h12M5.5 1.5v3M10.5 1.5v3'/%3E%3C/svg%3E");
@@ -15,6 +15,11 @@
     background-repeat: no-repeat;
     background-size: space(4) space(4);
     cursor: pointer;
+
+    &.ui-input--underline {
+      padding-right: 0;
+      background-image: none;
+    }
   }
 
   .ui-date_picker {

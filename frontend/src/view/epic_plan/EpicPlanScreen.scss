@@ -219,11 +219,9 @@
       }
     }
 
-    /* Compact controls; two classes beat the shared control styles. */
+    /* Compact controls: the underline variant, in smaller type. */
     .epic_plan-status,
     .epic_plan-date {
-      @include field-underline;
-
       @include text('xs');
 
       @media (pointer: coarse) {

@@ -162,6 +162,7 @@ function EpicPlanner({ epic, tasks }: { epic: Epic; tasks: Task[] }) {
                     aria-label={`Status of ${task.title}`}
                     value={task.status}
                     onChange={(e) => move(task, e.target.value as TaskStatus)}
+                    variant="underline"
                     className="epic_plan-status"
                   >
                     {PLAN_STATUSES.map((s) => <option key={s.key} value={s.key}>{s.label}</option>)}
@@ -172,6 +173,7 @@ function EpicPlanner({ epic, tasks }: { epic: Epic; tasks: Task[] }) {
                     value={task.start_date ?? ''}
                     max={task.due_date ?? undefined}
                     onChange={(e) => save(task, { start_date: e.target.value || null })}
+                    variant="underline"
                     className="epic_plan-date"
                   />
                   <span className="epic_plan-arrow" aria-hidden="true">&rarr;</span>
@@ -181,6 +183,7 @@ function EpicPlanner({ epic, tasks }: { epic: Epic; tasks: Task[] }) {
                     value={task.due_date ?? ''}
                     min={task.start_date ?? undefined}
                     onChange={(e) => save(task, { due_date: e.target.value || null })}
+                    variant="underline"
                     className="epic_plan-date"
                   />
                   <IconButton
@@ -255,6 +258,7 @@ function PlanSummary({ epic, plan, initiative, milestone }: { epic: Epic; plan: 
             value={epic.start_date ?? ''}
             max={epic.target_date ?? undefined}
             onChange={(e) => updateEpic.mutate({ id: epic.id, start_date: e.target.value || null })}
+            variant="underline"
             className="epic_plan-date"
           />
         </label>
@@ -265,6 +269,7 @@ function PlanSummary({ epic, plan, initiative, milestone }: { epic: Epic; plan: 
             value={epic.target_date ?? ''}
             min={epic.start_date ?? undefined}
             onChange={(e) => updateEpic.mutate({ id: epic.id, target_date: e.target.value || null })}
+            variant="underline"
             className="epic_plan-date"
           />
         </label>

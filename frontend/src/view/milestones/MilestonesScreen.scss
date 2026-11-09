@@ -106,11 +106,9 @@
       @include text('xs');
     }
 
-    // Compact field overrides (two classes beat the shared control styles).
+    // Compact underline fields (variant="underline"): the type size is the view's.
     .milestones-date,
     .milestones-status {
-      @include field-underline;
-
       text-transform: capitalize;
       @include text('sm');
     }

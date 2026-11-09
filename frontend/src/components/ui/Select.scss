@@ -45,6 +45,18 @@
       pointer-events: none;
     }
 
+    // The underline variant keeps the chevron, moved in to the line's end.
+    &--underline {
+      @include field-underline;
+
+      padding-right: space(4);
+      background-position: calc(100% - 6px) 50%, calc(100% - 1px) 50%;
+
+      &:focus-within {
+        border-color: color(primary);
+      }
+    }
+
     // Holds the value, the focus and the label; the face is what people see.
     &-native {
       position: absolute;

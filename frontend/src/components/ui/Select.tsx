@@ -50,8 +50,13 @@ function pickNativeValue(select: HTMLSelectElement, value: string) {
 // Clicking the face, or Arrow keys, Enter or Space on the focused select,
 // opens the list; Arrow keys, Home, End and typing move through it, Enter or
 // Space picks, and Escape, Tab or a click outside closes it.
-export const Select = forwardRef<HTMLSelectElement, SelectHTMLAttributes<HTMLSelectElement>>(function Select(
-  { className, style, title, children, value, defaultValue, onChange, onKeyDown, disabled, ...props }, ref
+type SelectProps = SelectHTMLAttributes<HTMLSelectElement> & {
+  // `underline`: a compact dropdown drawn as a line, for statuses and pickers inside cards.
+  variant?: 'underline'
+}
+
+export const Select = forwardRef<HTMLSelectElement, SelectProps>(function Select(
+  { className, style, title, children, value, defaultValue, onChange, onKeyDown, disabled, variant, ...props }, ref
 ) {
   const selectRef = useRef<HTMLSelectElement>(null)
   const faceRef = useRef<HTMLDivElement>(null)
@@ -137,7 +142,7 @@ export const Select = forwardRef<HTMLSelectElement, SelectHTMLAttributes<HTMLSel
       <Popover.Anchor asChild>
         <div
           ref={faceRef}
-          className={classNames('ui-select', open && 'ui-select--open', disabled && 'ui-select--disabled', className)}
+          className={classNames('ui-select', variant && `ui-select--${variant}`, open && 'ui-select--open', disabled && 'ui-select--disabled', className)}
           style={style}
           title={title}
           onMouseDown={(e) => e.preventDefault()}

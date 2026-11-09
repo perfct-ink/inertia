@@ -95,6 +95,7 @@ export default function SprintsScreen() {
                     <DatePicker
                       value={sprint.start_date ?? ''}
                       onChange={(e) => updateSprint.mutate({ id: sprint.id, start_date: e.target.value || null })}
+                      variant="underline"
                       className="sprints-date"
                     />
                   </label>
@@ -103,6 +104,7 @@ export default function SprintsScreen() {
                     <DatePicker
                       value={sprint.end_date ?? ''}
                       onChange={(e) => updateSprint.mutate({ id: sprint.id, end_date: e.target.value || null })}
+                      variant="underline"
                       className="sprints-date"
                     />
                   </label>

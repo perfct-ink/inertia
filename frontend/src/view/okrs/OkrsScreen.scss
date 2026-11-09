@@ -175,7 +175,7 @@
       }
     }
 
-    // Compact field overrides (two classes beat the shared control styles).
+    // Compact underline fields (variant="underline"): the type size is the view's.
     .okrs-date,
     .okrs-select,
     .okrs-title_input,
@@ -184,8 +184,6 @@
     .okrs-unit,
     .okrs-add-title,
     .okrs-add-source {
-      @include field-underline;
-
       @include text('sm');
     }
 
