@@ -83,7 +83,7 @@ Defined in `macos/Sources/Inertia`.
 
 Requested by Alex, 2026-10-18: document formatting uses the same keystrokes as Google Docs and Apple Notes; where they conflict, Apple Notes wins. Everything above is what the code does today; this table is the proposal. Both apps' bindings are from training knowledge (mid-2026) and need checking against each app's menus before building. Mac keys; `⌘` is `Ctrl` elsewhere.
 
-The work is split into tasks in `docs/backlog/`: `rebind-editor-shortcuts-to-apple-notes-map.md` (the table), `editor-vs-global-shortcut-clashes.md`, `dashed-list-block.md`, `mac-app-format-menu-shortcuts.md`, `windows-linux-editor-shortcuts.md`, and `paragraph-style-keystrokes.md`. When a binding is built, move it from this table into the tables above.
+The work is split into tasks in `docs/backlog/`: `rebind-editor-shortcuts-to-apple-notes-map.md` (the table, clashes with global keys, Windows/Linux keys and the Mac Format menu), `paragraph-style-shortcuts.md`, `dashed-list-block.md` and `paragraph-style-keystrokes.md`. When a binding is built, move it from this table into the tables above.
 
 | Action | Apple Notes | Google Docs | Inertia should use | Today |
 | --- | --- | --- | --- | --- |

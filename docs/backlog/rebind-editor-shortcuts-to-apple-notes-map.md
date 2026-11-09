@@ -13,6 +13,17 @@ components: [frontend, backend]
 
 One shortcut table in code that the editor, the `⌘/` cheat sheet and `docs/keyboard-shortcuts.md` all read, so they can't drift.
 
+### Merged in (Alex, 2026-11-09 groom)
+
+The editor shortcut tasks are one task. This file now also covers:
+
+- **Clashes with global shortcuts** (was `editor-vs-global-shortcut-clashes.md`): `⌘K` (quick-add) and `⌘E` (new event; also inline code today). Default: inside the document editor the formatting meaning wins (`⌘K` = link); quick-add moves to another key or works from outside the editor only.
+- **Windows/Linux** (was `windows-linux-editor-shortcuts.md`): `Ctrl` for `⌘`; check each against browser-reserved keys (e.g. `Ctrl+Shift+N`, `Ctrl+Shift+T`).
+- **Mac app Format menu** (was `mac-app-format-menu-shortcuts.md`): the Mac app loads the web editor, so the bindings carry over; add Format menu items showing each shortcut so people can find them.
+- **Dashed list key** for `dashed-list-block.md`, which ships first with a toolbar button.
+
+Kept separate: `paragraph-style-shortcuts.md`, because it is already built on its own branch (`backlog/paragraph-style-shortcuts`) and only waits on checks; merging its file would orphan that branch.
+
 ## Context
 
 Section "Document shortcuts match Apple Notes and Google Docs" of the retired shared backlog.
