@@ -35,7 +35,7 @@ Rules enforced in `WorkspaceMembership` / `Workspace`: a workspace always keeps 
 
 The client sends `X-Workspace-Id: <id>` (see `frontend/src/lib/api.ts`). Without it the server uses the user's personal workspace. A workspace the user does not belong to, by membership or through a team, answers 404. `WorkspaceScoped` (`backend/app/controllers/concerns/workspace_scoped.rb`) resolves it and requires the `member` role for every write (anything but GET/HEAD).
 
-Lookups that start from a record id (`documents`, `tables`, `shares`) search all of the user's workspaces and check the role of the record's own workspace. This keeps the collab server working: it calls `GET /api/v1/documents/:id` with only the user's token.
+Lookups that start from a record id (`documents`, `tables`, `shares`) search all of the user's workspaces and check the role of the record's own workspace. `GET /api/v1/paths` (hierarchical URLs, [features/hierarchical_urls.md](features/hierarchical_urls.md)) does too: the workspace named by the header first, then the user's others by id, and a path in a workspace the user cannot reach is the same 404 as a path that names nothing. This keeps the collab server working: it calls `GET /api/v1/documents/:id` with only the user's token.
 
 ## API
 
