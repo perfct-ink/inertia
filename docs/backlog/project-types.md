@@ -16,6 +16,10 @@ Not present. Folders have `kind` (`folder`/`project`) only.
 
 A type sets the starting template, the default task lists and fields, and the features the Space or project uses (ties to `choose-which-features-a-space-uses.md` and `docs/features/projects.md`). Users can save their own project as a type.
 
+### Merged: project templates (Alex, 2026-11-09 groom)
+
+`project-and-item-templates.md` (p2, "Board / item templates: project, roadmap and sprint templates") was merged into this task. A saved project type and a project template are the same thing: saving a project as a type is how you make a project template. Roadmap and sprint templates from that task are not covered yet; a later task can add them if needed.
+
 ## Context
 
 Section "Requirement docs, project types, releases and recurring work" of the retired shared backlog.
