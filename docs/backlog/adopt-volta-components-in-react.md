@@ -13,6 +13,10 @@ components: [frontend]
 
 Token styling is already in place; adoption of the actual Volta components remains.  Use Volta as the shared component foundation through `frontend/src/components/ui`, migrating existing controls and recurring patterns centrally. Preserve HTML props, refs, accessibility, responsive layouts, light/dark themes and the 40-pixel minimum for text fields. Reuse the existing React layout and sidebar across web and the Mac WKWebView shell.
 
+### Decision (Alex, 2026-11-09 groom)
+
+Inertia depends on Volta **pulled from GitHub** (`github:kriogenx0/volta` in `frontend/package.json`), not npm and not copied styles. Checked 2026-11-09: Volta 2.0.0 points `main` at `components/compiled/components.js`, which isn't committed, and has no `prepare` script or tags, so a git install gets no build. Volta needs a `prepare` script (npm runs it on git installs) or committed build output before Inertia can install it. How to pin the version is still open.
+
 ## Context
 
 Section "Design system: Volta" of the retired shared backlog.
