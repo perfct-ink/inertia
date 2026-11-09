@@ -91,3 +91,12 @@ export function contrastRatio(a: Rgb, b: Rgb): number {
   const [light, dark] = [luminance(a), luminance(b)].sort((x, y) => y - x)
   return (light + 0.05) / (dark + 0.05)
 }
+
+// Hue on the color wheel in degrees, 0 to 360 (red 0, yellow 60, green 120).
+export function hueDegrees([r, g, b]: Rgb): number {
+  const max = Math.max(r, g, b)
+  const spread = max - Math.min(r, g, b)
+  if (spread === 0) return 0
+  const sector = max === r ? ((g - b) / spread) % 6 : max === g ? (b - r) / spread + 2 : (r - g) / spread + 4
+  return (sector * 60 + 360) % 360
+}

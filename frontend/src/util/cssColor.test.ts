@@ -1,4 +1,4 @@
-import { contrastRatio, mixColors, parseColor } from './cssColor'
+import { contrastRatio, hueDegrees, mixColors, parseColor } from './cssColor'
 
 const round = (rgb: number[]) => rgb.map((channel) => Math.round(channel))
 
@@ -50,5 +50,26 @@ describe('contrastRatio', () => {
     // #767676 on white is the textbook lightest gray that still passes AA.
     expect(contrastRatio(parseColor('#767676'), parseColor('#fff'))).toBeCloseTo(4.54, 2)
     expect(contrastRatio(parseColor('#eab308'), parseColor('#fff'))).toBeCloseTo(1.92, 2)
+  })
+})
+
+describe('hueDegrees', () => {
+  it('puts the primaries and secondaries where the color wheel does', () => {
+    expect(hueDegrees([255, 0, 0])).toBe(0)
+    expect(hueDegrees([255, 255, 0])).toBe(60)
+    expect(hueDegrees([0, 255, 0])).toBe(120)
+    expect(hueDegrees([0, 255, 255])).toBe(180)
+    expect(hueDegrees([0, 0, 255])).toBe(240)
+    expect(hueDegrees([255, 0, 255])).toBe(300)
+  })
+
+  it('wraps a magenta-leaning red below 360, and gives grays 0', () => {
+    expect(hueDegrees([255, 0, 128])).toBeCloseTo(330, 0)
+    expect(hueDegrees([128, 128, 128])).toBe(0)
+  })
+
+  it('reads the status yellow and orange', () => {
+    expect(hueDegrees(parseColor('#eab308'))).toBeCloseTo(45.4, 1)
+    expect(hueDegrees(parseColor('#db5e06'))).toBeCloseTo(24.8, 1)
   })
 })

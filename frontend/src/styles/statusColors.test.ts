@@ -1,7 +1,7 @@
 import { readdirSync, readFileSync, statSync } from 'fs'
 import { join } from 'path'
 import { TASK_STATUS_COLORS } from '@/data/task_status'
-import { contrastRatio, mixColors, parseColor } from '@/util/cssColor'
+import { contrastRatio, hueDegrees, mixColors, parseColor } from '@/util/cssColor'
 import type { CssVars, Rgb } from '@/util/cssColor'
 
 // Guards the status colors (docs/features/status_colors.md): every configurable
@@ -19,9 +19,12 @@ const AA_GRAPHIC = 3
 const DEFAULT_TINT = 15
 const MAX_TINT: Record<string, number> = { red: 20, purple: 20 }
 
-// Fills that do not reach 3:1 on a white page, kept as they were before the move
-// to tokens; each is a dot, a bar with a text label, or an icon beside a name.
-const LOW_CONTRAST_FILLS_LIGHT = ['yellow', 'orange']
+// The surfaces a fill is drawn on. Every fill reaches 3:1 on each, in both themes.
+const SURFACES = ['--background', '--card', '--muted']
+
+// A fill darkened for contrast still has to read as its hue, in degrees on the
+// color wheel (yellow 45, orange 25 before they were deepened).
+const HUE_RANGE: Record<string, [number, number]> = { yellow: [40, 55], orange: [18, 35] }
 
 function stripComments(css: string): string {
   return css.replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '')
@@ -69,8 +72,11 @@ describe('status color tokens', () => {
 
   it('takes red and green from Volta and defines the rest in the theme', () => {
     expect(light['--status-red']).toBe('var(--v-color-danger)')
-    expect(light['--status-green']).toBe('var(--v-color-success)')
-    for (const hue of ['yellow', 'orange', 'blue', 'purple', 'gray']) expect(light[`--status-${hue}`]).toMatch(/^#[0-9a-f]{6}$/i)
+    expect(light['--status-green']).toContain('var(--v-color-success)')
+    expect(dark['--status-green']).toBe('var(--v-color-success)')
+    for (const [, vars] of THEMES) {
+      for (const hue of ['yellow', 'orange', 'blue', 'purple', 'gray']) expect(vars[`--status-${hue}`]).toMatch(/^#[0-9a-f]{6}$/i)
+    }
   })
 
   describe.each(THEMES)('text on the %s theme', (_name, vars) => {
@@ -85,11 +91,22 @@ describe('status color tokens', () => {
     })
   })
 
-  describe.each(THEMES)('fills on the %s theme', (name, vars) => {
-    it.each(TASK_STATUS_COLORS)('%s is told apart from the page at 3:1 unless it is a known exception', (hue) => {
-      const ratio = contrastRatio(color(vars, `--status-${hue}`), color(vars, '--background'))
-      const known = name === 'light' && LOW_CONTRAST_FILLS_LIGHT.includes(hue)
-      expect(ratio >= AA_GRAPHIC).toBe(!known)
+  describe.each(THEMES)('fills on the %s theme', (_name, vars) => {
+    it.each(TASK_STATUS_COLORS)('%s is told apart from the page, cards and muted surfaces at 3:1', (hue) => {
+      const fill = color(vars, `--status-${hue}`)
+      const tooWeak = SURFACES.flatMap((surface) => {
+        const ratio = contrastRatio(fill, color(vars, surface))
+        return ratio < AA_GRAPHIC ? [`${surface} ${ratio.toFixed(2)}`] : []
+      })
+      expect(tooWeak).toEqual([])
+    })
+  })
+
+  describe.each(THEMES)('hues on the %s theme', (_name, vars) => {
+    it.each(Object.entries(HUE_RANGE))('%s keeps its hue after being darkened', (hue, [from, to]) => {
+      const degrees = hueDegrees(color(vars, `--status-${hue}`))
+      expect(degrees).toBeGreaterThanOrEqual(from)
+      expect(degrees).toBeLessThanOrEqual(to)
     })
   })
 })
