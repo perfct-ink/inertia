@@ -62,6 +62,8 @@ One file per implemented feature, written from the code (see `docs/rules/feature
 | Invite people to a Space by link, without an account | [space_invitations.md](space_invitations.md) |
 | Folder home document: a folder opens on its home page | [folder_home_document.md](folder_home_document.md) |
 | Paragraph styles: Title, Subtitle, Headings, Body, Quote, Caption, Monospace + picker; your own custom styles (create, edit, delete, same look for everyone) | [paragraph_styles.md](paragraph_styles.md) |
+| Folder home document: a folder opens on its home page; without one, the folder page lists the folders and documents directly inside it (one level) | [folder_home_document.md](folder_home_document.md) |
+| Paragraph styles: Title, Subtitle, Headings, Body, Quote, Caption, Monospace + picker | [paragraph_styles.md](paragraph_styles.md) |
 | Data files: filtering, sorting and API enums live in src/data | [data_files.md](data_files.md) |
 | Portfolio: all projects with owner, status, dates, progress, health | [portfolio.md](portfolio.md) |
 | Notifications inbox: per-person inbox, unread badge, task assignment | [notifications_inbox.md](notifications_inbox.md) |

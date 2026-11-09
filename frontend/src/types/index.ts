@@ -373,10 +373,13 @@ export interface WorkspaceEvent {
   updated_at: string
 }
 
-// FoldersController#contents — everything scoped to a folder and all of
-// its nested subfolders, in one request.
+// FoldersController#contents — one folder's page in one request. `folders` and
+// `documents` are the ones directly inside it (one level, not everything
+// nested); `tasks`, `events` and `epics` roll up the folder and every
+// subfolder nested under it.
 export interface FolderContents {
   folder: Folder
+  folders: Folder[]
   documents: Document[]
   tasks: Task[]
   events: WorkspaceEvent[]

@@ -2,7 +2,7 @@ import { Button, IconButton, Input } from '@/components/ui'
 import { Database } from 'lucide-react'
 import { useState, useRef, useEffect } from 'react'
 import { useNavigate, useLocation, Link } from 'react-router-dom'
-import { ChevronRight, Folder, FolderKanban, FileText, TableIcon, Pin, CheckSquare, CalendarDays, MoreVertical, Layers } from 'lucide-react'
+import { ChevronRight, FileText, TableIcon, Pin, CheckSquare, CalendarDays, MoreVertical } from 'lucide-react'
 import { useCreateFolder, useDeleteFolder, usePinFolder, useUpdateFolder } from '@/api/folders'
 import { useCreateDocument, useDeleteDocument, usePinDocument, useUpdateDocument } from '@/api/documents'
 import { useUploadFiles } from '@/api/workspace'
@@ -14,6 +14,7 @@ import { usePaths } from '@/hooks/usePaths'
 import { useTransferTargets } from '@/hooks/useTransferTargets'
 import { useTransferStore } from '@/store/transfer'
 import type { Folder as FolderType, Document } from '@/types'
+import { folderIconOf } from './folderIcon'
 import './FolderItem.scss'
 
 // ── Context menu ─────────────────────────────────────────────────────────────
@@ -133,7 +134,7 @@ export function FolderItem({ folder, depth = 0, bare = false, hideProjects = fal
   const indent = level * 12
   const isProject = folder.kind === 'project'
   const isFeature = folder.kind === 'feature'
-  const FolderIcon = isProject ? FolderKanban : isFeature ? Layers : Folder
+  const FolderIcon = folderIconOf(folder.kind)
 
   const transferItems = (describe: () => Omit<TransferRequest, 'mode'>): MenuItem[] => canTransfer ? [
     { label: 'Move to Space…', action: () => openTransfer({ mode: 'move', ...describe() }) },
