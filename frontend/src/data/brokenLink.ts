@@ -78,6 +78,36 @@ export function brokenLinks(links: DocumentLink[], lookup: LinkLookup): Map<stri
   return broken
 }
 
+// One inline piece of a text block (a run of text, an image...): how many
+// positions it takes up and the href of the link it carries, null for none.
+export interface InlineRun {
+  size: number
+  href: string | null
+}
+
+// Where the link with `href` that touches `offset` starts and ends, as offsets
+// into the block the runs came from, or null when no such link is there. Runs
+// that carry the same href side by side (bold text inside a link) are one link;
+// a different href next to it is another link. The editor's own mark range finder
+// treats any two adjacent links as one and can miss a link when the position is
+// at its very start, so the editor asks this instead.
+export function linkSpanAt(runs: readonly InlineRun[], offset: number, href: string): { from: number; to: number } | null {
+  let at = 0
+  let span: { from: number; to: number } | null = null
+  const touches = () => span !== null && offset >= span.from && offset <= span.to
+  for (const run of runs) {
+    const end = at + run.size
+    if (run.href === href) {
+      span = { from: span ? span.from : at, to: end }
+    } else {
+      if (touches()) return span
+      span = null
+    }
+    at = end
+  }
+  return touches() ? span : null
+}
+
 // What the dialog tells the user about a broken link.
 export function brokenLinkMessage(reason: BrokenReason): string {
   return reason === 'document'

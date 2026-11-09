@@ -28,9 +28,12 @@ export class DocumentApi extends ApiResource<Document, never, DocumentFields> {
     return api.post<Document>(`/api/v1/folders/${folderId}/documents`, this.body(data)).then((r) => r.data)
   }
 
-  // Which of these documents exist, with their headings, in one request.
+  // Which of these documents exist, with their headings, in one request. A
+  // failure shows the usual error notice; the links are then left unmarked.
   linkTargets(ids: number[]) {
-    return api.get<DocumentLinkTarget[]>(`${this.path}/link_targets`, { params: { ids: ids.join(',') } }).then((r) => r.data)
+    return api
+      .get<DocumentLinkTarget[]>(`${this.path}/link_targets`, { params: { ids: ids.join(',') }, failureContext: 'Could not check the links in this document' })
+      .then((r) => r.data)
   }
 }
 

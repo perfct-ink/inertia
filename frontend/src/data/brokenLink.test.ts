@@ -1,4 +1,4 @@
-import { BROKEN_LINK_TITLE, brokenLinkMessage, brokenLinks, documentLinksIn, linkedDocumentIds, linkLookup } from './brokenLink'
+import { BROKEN_LINK_TITLE, brokenLinkMessage, brokenLinks, documentLinksIn, linkedDocumentIds, linkLookup, linkSpanAt } from './brokenLink'
 
 const link = (href: string, text = 'a link') => ({ type: 'text', text, marks: [{ type: 'link', attrs: { href } }] })
 const paragraph = (...content: unknown[]) => ({ type: 'paragraph', content })
@@ -73,4 +73,34 @@ test('the messages say what is gone', () => {
   expect(brokenLinkMessage('document')).toMatch(/document/)
   expect(brokenLinkMessage('heading')).toMatch(/heading/)
   expect(BROKEN_LINK_TITLE).toMatch(/Broken link/)
+})
+
+// "Say " (4) + a link of two pieces "plain" (5) and "bold" (4) + " and " (5) + another link "next" (4).
+const RUNS = [
+  { size: 4, href: null },
+  { size: 5, href: '/documents/2#a' },
+  { size: 4, href: '/documents/2#a' },
+  { size: 5, href: null },
+  { size: 4, href: '/documents/3' },
+]
+
+test('linkSpanAt covers every piece of one link, from its first position to its last', () => {
+  expect(linkSpanAt(RUNS, 4, '/documents/2#a')).toEqual({ from: 4, to: 13 })
+  expect(linkSpanAt(RUNS, 8, '/documents/2#a')).toEqual({ from: 4, to: 13 })
+  expect(linkSpanAt(RUNS, 13, '/documents/2#a')).toEqual({ from: 4, to: 13 })
+  expect(linkSpanAt(RUNS, 20, '/documents/3')).toEqual({ from: 18, to: 22 })
+})
+
+test('linkSpanAt finds nothing away from the link, or for another href', () => {
+  expect(linkSpanAt(RUNS, 2, '/documents/2#a')).toBeNull()
+  expect(linkSpanAt(RUNS, 16, '/documents/2#a')).toBeNull()
+  expect(linkSpanAt(RUNS, 8, '/documents/3')).toBeNull()
+  expect(linkSpanAt([], 0, '/documents/2#a')).toBeNull()
+})
+
+test('linkSpanAt keeps two links side by side apart when their hrefs differ', () => {
+  const touching = [{ size: 3, href: '/documents/2' }, { size: 3, href: '/documents/3' }]
+  expect(linkSpanAt(touching, 3, '/documents/2')).toEqual({ from: 0, to: 3 })
+  expect(linkSpanAt(touching, 3, '/documents/3')).toEqual({ from: 3, to: 6 })
+  expect(linkSpanAt(touching, 5, '/documents/2')).toBeNull()
 })

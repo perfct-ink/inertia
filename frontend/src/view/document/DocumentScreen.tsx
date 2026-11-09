@@ -357,7 +357,9 @@ export default function DocumentScreen() {
   const followDocumentLink = useFollowDocumentLinks()
   // Links whose document or heading was deleted show struck through; clicking one
   // (or the Link button with the caret in one) opens the dialog to fix it.
-  const brokenLinks = useBrokenLinks(editor, docId, !isLoading && doc?.doc_type === 'document' && synced)
+  // A collaborative document is checked once the server has sent it; one without a
+  // provider (no collaboration server) is complete as soon as it loads.
+  const brokenLinks = useBrokenLinks(editor, docId, !isLoading && doc?.doc_type === 'document' && (!provider || synced))
 
   // Only the "leader" among currently-connected collaborators runs
   // syncTaskNodes — with real-time editing, two people finishing an

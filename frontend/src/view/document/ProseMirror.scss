@@ -127,7 +127,7 @@
     // only, so nothing shifts.
     .document-link--broken {
       border-radius: radius('sm');
-      color: color-mix(in srgb, var(--danger) 75%, var(--foreground));
+      color: color-mix(in srgb, color(danger) 75%, color(foreground));
       text-decoration: line-through;
       @include transition(background-color);
 

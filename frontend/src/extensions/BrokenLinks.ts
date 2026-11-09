@@ -1,8 +1,8 @@
-import { Extension, getMarkRange, type Editor } from '@tiptap/core'
+import { Extension, type Editor } from '@tiptap/core'
 import type { Node as ProseMirrorNode } from '@tiptap/pm/model'
 import { Plugin, PluginKey } from '@tiptap/pm/state'
 import { Decoration, DecorationSet } from '@tiptap/pm/view'
-import { BROKEN_LINK_TITLE } from '@/data/brokenLink'
+import { BROKEN_LINK_TITLE, linkSpanAt, type InlineRun } from '@/data/brokenLink'
 import { documentPath, type HeadingLink } from '@/data/heading'
 
 // Marks links whose target document or heading is gone (see data/brokenLink.ts
@@ -14,13 +14,19 @@ export const BROKEN_LINK_CLASS = 'document-link--broken'
 
 export const brokenLinksKey = new PluginKey<ReadonlySet<string>>('brokenLinks')
 
+// The href of the link mark on a node, or null when it has none.
+function linkHrefOf(node: ProseMirrorNode): string | null {
+  const href = node.marks.find((mark) => mark.type.name === 'link')?.attrs.href
+  return typeof href === 'string' ? href : null
+}
+
 // The decorations for every run of text whose link mark has a broken href.
 function brokenLinkDecorations(doc: ProseMirrorNode, hrefs: ReadonlySet<string>): DecorationSet {
   const decorations: Decoration[] = []
   doc.descendants((node, pos) => {
     if (!node.isText) return
-    const href = node.marks.find((mark) => mark.type.name === 'link')?.attrs.href
-    if (typeof href === 'string' && hrefs.has(href)) {
+    const href = linkHrefOf(node)
+    if (href !== null && hrefs.has(href)) {
       decorations.push(Decoration.inline(pos, pos + node.nodeSize, { class: BROKEN_LINK_CLASS, title: BROKEN_LINK_TITLE }))
     }
   })
@@ -63,15 +69,20 @@ export interface LinkRange {
   text: string
 }
 
-// The whole link at `pos` if it still carries `href` (the document may have
-// changed since the link was clicked), or null.
+// The whole link with `href` that touches `pos`, or null when there is none
+// there any more (the document may have changed since the link was clicked).
 export function linkRangeAt(editor: Editor, pos: number, href: string): LinkRange | null {
-  const { doc, schema } = editor.state
+  const { doc } = editor.state
   if (pos < 0 || pos > doc.content.size) return null
-  const range = getMarkRange(doc.resolve(pos), schema.marks.link)
-  if (!range) return null
-  const current = doc.nodeAt(range.from)?.marks.find((mark) => mark.type === schema.marks.link)?.attrs.href
-  return current === href ? { ...range, text: doc.textBetween(range.from, range.to) } : null
+  const $pos = doc.resolve(pos)
+  const runs: InlineRun[] = []
+  $pos.parent.forEach((child) => runs.push({ size: child.nodeSize, href: linkHrefOf(child) }))
+  const start = $pos.start()
+  const span = linkSpanAt(runs, pos - start, href)
+  if (!span) return null
+  const from = start + span.from
+  const to = start + span.to
+  return { from, to, text: doc.textBetween(from, to) }
 }
 
 // Points a link at another heading or document, keeping its text.
