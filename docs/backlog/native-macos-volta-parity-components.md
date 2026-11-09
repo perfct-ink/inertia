@@ -13,6 +13,8 @@ components: [macos, frontend]
 
 Create reusable SwiftUI controls in `macos/Sources/Inertia/Components/` that match the Volta-backed React components as closely as possible: typography, colors, spacing, sizing, icons, control variants, focus/disabled/error states and light/dark themes. Preserve native keyboard and accessibility behavior and the 40-point minimum for text fields. Apply them to native screens and editors; retain the shared React online layout/sidebar.
 
+Merged in (Alex, 2026-11-09 groom): `native-macos-volta-colors.md`. The native SwiftUI screens (login, local task files) use system colors today; they switch to Volta's colors, with Inertia's own tokens on top, as part of this task.
+
 ## Context
 
 Section "Design system: Volta" of the retired shared backlog.
