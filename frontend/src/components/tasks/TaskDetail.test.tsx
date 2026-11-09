@@ -41,3 +41,28 @@ test('a failed save shows an error and keeps the dialog open', () => {
   expect(screen.getByRole('alert')).toHaveTextContent('Unable to save')
   expect(onClose).not.toHaveBeenCalled()
 })
+
+test('picking a check-in schedule makes the task ongoing and sends both', () => {
+  mockUpdate.mutate.mockImplementation((_data, { onSuccess }) => onSuccess())
+  render(<TaskDetail task={task} onClose={jest.fn()} />)
+  expect(screen.getByLabelText('Check-in schedule')).toHaveValue('')
+  fireEvent.change(screen.getByLabelText('Check-in schedule'), { target: { value: 'FREQ=WEEKLY' } })
+  fireEvent.click(screen.getByRole('button', { name: 'Save' }))
+  expect(mockUpdate.mutate).toHaveBeenCalledWith({ id: 1, ongoing: true, check_in_recurrence: 'FREQ=WEEKLY' }, expect.anything())
+})
+
+test('choosing "Not ongoing" turns an ongoing task back into an ordinary one', () => {
+  mockUpdate.mutate.mockImplementation((_data, { onSuccess }) => onSuccess())
+  render(<TaskDetail task={{ ...task, ongoing: true, check_in_recurrence: 'FREQ=MONTHLY' } as Task} onClose={jest.fn()} />)
+  expect(screen.getByLabelText('Check-in schedule')).toHaveValue('FREQ=MONTHLY')
+  fireEvent.change(screen.getByLabelText('Check-in schedule'), { target: { value: '' } })
+  fireEvent.click(screen.getByRole('button', { name: 'Save' }))
+  expect(mockUpdate.mutate).toHaveBeenCalledWith({ id: 1, ongoing: false }, expect.anything())
+})
+
+test('an ongoing task cannot be saved as Done', () => {
+  render(<TaskDetail task={{ ...task, ongoing: true, check_in_recurrence: 'FREQ=WEEKLY' } as Task} onClose={jest.fn()} />)
+  fireEvent.change(screen.getByLabelText('Task status'), { target: { value: 'done' } })
+  expect(screen.getByRole('alert')).toHaveTextContent("can't be Done")
+  expect(screen.getByRole('button', { name: 'Save' })).toBeDisabled()
+})

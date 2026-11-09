@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_11_07_120001) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_08_180002) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -466,6 +466,17 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_07_120001) do
     t.index ["document_id"], name: "index_table_records_on_document_id"
   end
 
+  create_table "task_check_ins", force: :cascade do |t|
+    t.bigint "task_id", null: false
+    t.bigint "author_id"
+    t.integer "status", null: false
+    t.text "note"
+    t.datetime "created_at", null: false
+    t.index ["author_id"], name: "index_task_check_ins_on_author_id"
+    t.index ["task_id", "created_at"], name: "index_task_check_ins_on_task_id_and_created_at"
+    t.index ["task_id"], name: "index_task_check_ins_on_task_id"
+  end
+
   create_table "task_dependencies", force: :cascade do |t|
     t.bigint "workspace_id", null: false
     t.bigint "predecessor_id", null: false
@@ -561,12 +572,18 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_07_120001) do
     t.integer "story_points"
     t.integer "actual_story_points"
     t.integer "kind", default: 0, null: false
+    t.boolean "ongoing", default: false, null: false
+    t.string "check_in_recurrence"
+    t.integer "check_in_status"
+    t.datetime "last_check_in_at"
+    t.datetime "check_in_requested_at"
     t.index ["assignee_id"], name: "index_tasks_on_assignee_id"
     t.index ["document_id"], name: "index_tasks_on_document_id"
     t.index ["epic_id"], name: "index_tasks_on_epic_id"
     t.index ["folder_id"], name: "index_tasks_on_folder_id"
     t.index ["kind"], name: "index_tasks_on_kind"
     t.index ["milestone_id"], name: "index_tasks_on_milestone_id"
+    t.index ["ongoing"], name: "index_tasks_on_ongoing"
     t.index ["parent_id"], name: "index_tasks_on_parent_id"
     t.index ["sprint_id"], name: "index_tasks_on_sprint_id"
     t.index ["status"], name: "index_tasks_on_status"
@@ -732,6 +749,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_07_120001) do
   add_foreign_key "table_fields", "documents"
   add_foreign_key "table_fields", "documents", column: "relation_table_id"
   add_foreign_key "table_records", "documents"
+  add_foreign_key "task_check_ins", "tasks"
+  add_foreign_key "task_check_ins", "users", column: "author_id", on_delete: :nullify
   add_foreign_key "task_dependencies", "tasks", column: "predecessor_id"
   add_foreign_key "task_dependencies", "tasks", column: "successor_id"
   add_foreign_key "task_dependencies", "workspaces"

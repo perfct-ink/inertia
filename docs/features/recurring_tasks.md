@@ -19,7 +19,7 @@ Same as any task in the Space.
 - No way to set or change the rule on an existing task (there is no task detail view yet; see `docs/backlog/task-detail-edit-milestone.md`), and the UI does not choose `recurrence_from`.
 - Subtasks, dependencies and AI runs are not copied to the next occurrence.
 - Tasks completed by other routes that skip callbacks do not spawn.
-- Ongoing tasks with check-ins are separate (`docs/backlog/ongoing-tasks-with-check-ins.md`).
+- Ongoing tasks with check-ins are separate ([ongoing_tasks.md](ongoing_tasks.md)): they reuse the Repeat picker (`RecurrencePicker`) and the `Recurrence` rules for their check-in schedule, but a task that is ongoing never completes, so its own repeat rule never fires.
 
 ## History
 - Implemented 2026-10-19 on branch `backlog/recurring-tasks`. Not merged or deployed.

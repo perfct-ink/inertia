@@ -1,7 +1,9 @@
 import { Button, Input, Select, StatusDot, classNames, DatePicker } from '@/components/ui'
+import { RecurrencePicker } from '@/components/tasks/RecurrencePicker'
+import { CheckInStatusBadge } from '@/components/tasks/CheckInStatusBadge'
 import { useState, useRef, useEffect, useMemo } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { Plus, X, ArrowRight, Play, Loader2, Search, Filter, Target, SlidersHorizontal, Palette, Repeat, History, Pencil } from 'lucide-react'
+import { Plus, X, ArrowRight, Play, Loader2, Search, Filter, Target, SlidersHorizontal, Palette, Repeat, History, Pencil, MessageSquarePlus } from 'lucide-react'
 import {
   DndContext,
   DragOverlay,
@@ -25,9 +27,11 @@ import {
 import { CSS } from '@dnd-kit/utilities'
 import WorkspaceLayout from '@/components/WorkspaceLayout'
 import SprintHeader from '@/components/SprintHeader'
-import { TASK_PRIORITIES, estimateLabel, pointsLabel, priorityLabel, TASK_KINDS, KIND_LABEL, kindOf } from '@/data/task'
-import { RECURRENCE_OPTIONS, recurrenceLabel } from '@/data/recurrence'
+import { TASK_PRIORITIES, estimateLabel, pointsLabel, priorityLabel, TASK_KINDS, KIND_LABEL, kindOf, canMoveTo } from '@/data/task'
+import { checkInLabel } from '@/data/checkIn'
+import { recurrenceLabel } from '@/data/recurrence'
 import TaskHistoryDialog from '@/components/TaskHistoryDialog'
+import TaskCheckInDialog from '@/components/TaskCheckInDialog'
 import { TaskDetail } from '@/components/tasks/TaskDetail'
 import { useTasks, useCreateTask, useUpdateTask, useDeleteTask, type TaskFilters } from '@/api/tasks'
 import { useWorkspace } from '@/api/workspace'
@@ -77,9 +81,23 @@ interface CardProps {
   fields?: TaskField[]
   onEditFields?: () => void
   onHistory?: () => void
+  // Opens the check-in box of an ongoing task.
+  onCheckIn?: () => void
 }
 
-function TaskCard({ task, onNext, nextLabel, onNavigate, onEdit, epicTitle, assignees = [], progress, overlay, onHistory, fields = [], onEditFields }: Omit<CardProps, 'onDelete'>) {
+// "Ongoing · weekly" and the latest check-in's status; in red as "Check-in overdue" once its day has passed.
+function CheckInMeta({ task }: { task: Task }) {
+  const label = checkInLabel(task)
+  if (!label) return null
+  return (
+    <>
+      <span className={classNames('tasks-meta', task.check_in_stale && 'tasks-meta--stale')}>{label}</span>
+      {task.check_in_status && <CheckInStatusBadge status={task.check_in_status} />}
+    </>
+  )
+}
+
+function TaskCard({ task, onNext, nextLabel, onNavigate, onEdit, epicTitle, assignees = [], progress, overlay, onHistory, onCheckIn, fields = [], onEditFields }: Omit<CardProps, 'onDelete'>) {
   return (
     <div className={classNames('tasks-card', overlay && 'tasks-card--overlay')}>
       <div className="tasks-card_title_row">
@@ -118,6 +136,7 @@ function TaskCard({ task, onNext, nextLabel, onNavigate, onEdit, epicTitle, assi
         {priorityLabel(task.priority) && <span className={`tasks-priority tasks-priority--${task.priority}`}>{priorityLabel(task.priority)}</span>}
         {pointsLabel(task) && <span className="tasks-meta">{pointsLabel(task)}</span>}
         {estimateLabel(task.estimate_hours) && <span className="tasks-meta">{estimateLabel(task.estimate_hours)}</span>}
+        <CheckInMeta task={task} />
         {recurrenceLabel(task.recurrence) && (
           <span className="tasks-repeat" title={`Repeats: ${recurrenceLabel(task.recurrence)}`}>
             <Repeat className="tasks-icon tasks-icon--sm" aria-hidden="true" />
@@ -141,6 +160,11 @@ function TaskCard({ task, onNext, nextLabel, onNavigate, onEdit, epicTitle, assi
               aria-label={`Edit fields of ${task.title}`}
             >
               <SlidersHorizontal className="tasks-icon" />
+            </Button>
+          )}
+          {task.ongoing && onCheckIn && !overlay && (
+            <Button onClick={onCheckIn} className="tasks-next" title="Check in" aria-label={`Check in on ${task.title}`}>
+              <MessageSquarePlus className="tasks-icon" />
             </Button>
           )}
           {onHistory && !overlay && (
@@ -216,6 +240,7 @@ interface NewTaskFields {
   estimateHours?: number
   storyPoints?: number
   recurrence?: string
+  checkInRecurrence?: string
   kind: TaskKind
   assignee_ids: number[]
   watcher_ids: number[]
@@ -241,6 +266,7 @@ function AddTaskInput({ onAdd, onCancel, epics, sprints, milestones, members }: 
   const [estimate, setEstimate] = useState('')
   const [points, setPoints] = useState('')
   const [recurrence, setRecurrence] = useState('')
+  const [checkInRecurrence, setCheckInRecurrence] = useState('')
   const [kind, setKind] = useState<TaskKind>('task')
   const [assigneeIds, setAssigneeIds] = useState<number[]>([])
   const [watcherIds, setWatcherIds] = useState<number[]>([])
@@ -260,6 +286,7 @@ function AddTaskInput({ onAdd, onCancel, epics, sprints, milestones, members }: 
         estimateHours: estimate === '' ? undefined : Number(estimate),
         storyPoints: points === '' ? undefined : Number(points),
         recurrence: recurrence || undefined,
+        checkInRecurrence: checkInRecurrence || undefined,
         kind,
         assignee_ids: assigneeIds,
         watcher_ids: watcherIds,
@@ -334,15 +361,22 @@ function AddTaskInput({ onAdd, onCancel, epics, sprints, milestones, members }: 
         onBlur={handleBlur}
         className="tasks-add_field"
       />
-      <Select
+      <RecurrencePicker
+        emptyLabel="Does not repeat"
         aria-label="Repeat"
         value={recurrence}
         onChange={(e) => setRecurrence(e.target.value)}
         onBlur={handleBlur}
         className="tasks-add_field tasks-add_field--select"
-      >
-        {RECURRENCE_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
-      </Select>
+      />
+      <RecurrencePicker
+        emptyLabel="Not ongoing"
+        aria-label="Ongoing: check in on a schedule"
+        value={checkInRecurrence}
+        onChange={(e) => setCheckInRecurrence(e.target.value)}
+        onBlur={handleBlur}
+        className="tasks-add_field tasks-add_field--select"
+      />
       <Select
         aria-label="Type"
         value={kind}
@@ -469,6 +503,7 @@ export default function TasksScreen() {
   const [fieldsTaskId, setFieldsTaskId] = useState<number | null>(null)
   const fieldsTask = tasks.find((t) => t.id === fieldsTaskId) ?? null
   const [historyTask, setHistoryTask] = useState<Task | null>(null)
+  const [checkInTask, setCheckInTask] = useState<Task | null>(null)
   const [editing, setEditing] = useState<Task | null>(null)
 
   useEffect(() => {
@@ -520,7 +555,7 @@ export default function TasksScreen() {
       ? overId
       : current.find((t) => t.id === (overId as number))?.status
 
-    if (!targetStatus || targetStatus === dragTask.status) return
+    if (!targetStatus || targetStatus === dragTask.status || !canMoveTo(dragTask, targetStatus)) return
 
     setLocalTasks((prev) =>
       prev.map((t) => (t.id === dragId ? { ...t, status: targetStatus } : t))
@@ -567,8 +602,11 @@ export default function TasksScreen() {
   }
 
   function createTaskWith(status: TaskStatus, fields: NewTaskFields) {
-    const { estimateHours, storyPoints, ...rest } = fields
-    createTask.mutate({ ...rest, estimate_hours: estimateHours, story_points: storyPoints, status, folder_id: filters.folder_id })
+    const { estimateHours, storyPoints, checkInRecurrence, ...rest } = fields
+    createTask.mutate({
+      ...rest, estimate_hours: estimateHours, story_points: storyPoints, status, folder_id: filters.folder_id,
+      ...(checkInRecurrence ? { ongoing: true, check_in_recurrence: checkInRecurrence } : {}),
+    })
   }
 
   return (
@@ -737,7 +775,7 @@ export default function TasksScreen() {
                         <SortableCard
                           key={task.id}
                           task={task}
-                          onNext={NEXT_STATUS[task.status] ? () => updateTask.mutate({ id: task.id, status: NEXT_STATUS[task.status]! }) : null}
+                          onNext={NEXT_STATUS[task.status] && canMoveTo(task, NEXT_STATUS[task.status]!) ? () => updateTask.mutate({ id: task.id, status: NEXT_STATUS[task.status]! }) : null}
                           nextLabel={nextStatusLabel(statuses, task.status)}
                           onNavigate={() => navigate(`/documents/${task.document_id}`)}
                           onEdit={() => setEditing(task)}
@@ -747,6 +785,7 @@ export default function TasksScreen() {
                           progress={progressByTask.get(task.id)}
                           assignees={assigneesOf(task)}
                           onHistory={() => setHistoryTask(task)}
+                          onCheckIn={() => setCheckInTask(task)}
                         />
                       ))}
                       {addingTo === key ? (
@@ -830,6 +869,7 @@ export default function TasksScreen() {
                         {epicById.get(task.epic_id)!.title}
                       </span>
                     )}
+                    <CheckInMeta task={task} />
                     {task.document && (
                       <Button
                         onClick={() => navigate(`/documents/${task.document_id}`)}
@@ -847,6 +887,11 @@ export default function TasksScreen() {
                           className="tasks-row_action tasks-row_action--fields"
                         >
                           <SlidersHorizontal className="tasks-icon" />
+                        </Button>
+                      )}
+                      {task.ongoing && (
+                        <Button onClick={() => setCheckInTask(task)} title="Check in" aria-label={`Check in on ${task.title}`} className="tasks-row_action">
+                          <MessageSquarePlus className="tasks-icon" />
                         </Button>
                       )}
                       <Button onClick={() => setHistoryTask(task)} title="Status history" aria-label={`Status history of ${task.title}`} className="tasks-row_action">
@@ -890,6 +935,7 @@ export default function TasksScreen() {
         />
       </div>
       <TaskHistoryDialog task={historyTask} onClose={() => setHistoryTask(null)} />
+      <TaskCheckInDialog key={checkInTask?.id} task={checkInTask} onClose={() => setCheckInTask(null)} />
       {editing && <TaskDetail key={editing.id} task={editing} onClose={() => setEditing(null)} />}
     </WorkspaceLayout>
   )

@@ -85,6 +85,10 @@ Rails.application.routes.draw do
       resources :tasks, only: [ :index, :create, :update, :destroy ] do
         resources :time_entries, only: [ :index, :create ]
         get :status_changes, on: :member
+        member do
+          get :check_ins
+          post :check_ins, action: :create_check_in
+        end
       end
       resources :time_entries, only: [ :destroy ] do
         member { post :stop }

@@ -1,5 +1,5 @@
 import type { Task } from '@/types'
-import { buildTaskTree, taskFolderId, dueBucket, myWork, taskCards, estimateLabel, pointsLabel, priorityLabel, filterByKind, kindOf, elapsedClock, formatMinutes, progressById, subtaskProgress, statusChangeLabel, taskChanges, taskDraft, taskDraftError } from './task'
+import { buildTaskTree, taskFolderId, dueBucket, myWork, taskCards, estimateLabel, pointsLabel, priorityLabel, filterByKind, kindOf, elapsedClock, formatMinutes, progressById, subtaskProgress, statusChangeLabel, taskChanges, taskDraft, taskDraftError, canMoveTo } from './task'
 
 const task = (id: number, parent_id: number | null = null) => ({ id, title: `T${id}`, parent_id }) as unknown as Task
 
@@ -131,5 +131,34 @@ describe('task detail drafts', () => {
     expect(taskDraftError({ ...taskDraft(base), title: '  ' })).toBe('A task needs a title.')
     expect(taskDraftError({ ...taskDraft(base), start_date: '2026-10-25' })).toBe('The due date is before the start date.')
     expect(taskDraftError(taskDraft(base))).toBeNull()
+  })
+
+  test('picking a check-in schedule makes the task ongoing; clearing it sends only the flag', () => {
+    const on = { ...taskDraft(base), check_in_recurrence: 'FREQ=WEEKLY' }
+    expect(taskChanges(base, on)).toEqual({ ongoing: true, check_in_recurrence: 'FREQ=WEEKLY' })
+    const ongoing = { ...base, ongoing: true, check_in_recurrence: 'FREQ=WEEKLY' } as Task
+    expect(taskDraft(ongoing).check_in_recurrence).toBe('FREQ=WEEKLY')
+    expect(taskChanges(ongoing, taskDraft(ongoing))).toEqual({})
+    expect(taskChanges(ongoing, { ...taskDraft(ongoing), check_in_recurrence: 'FREQ=MONTHLY' })).toEqual({ ongoing: true, check_in_recurrence: 'FREQ=MONTHLY' })
+    expect(taskChanges(ongoing, { ...taskDraft(ongoing), check_in_recurrence: '' })).toEqual({ ongoing: false })
+  })
+
+  test('a task that is not ongoing has no schedule, even if it kept an old one', () => {
+    expect(taskDraft({ ...base, ongoing: false, check_in_recurrence: 'FREQ=WEEKLY' } as Task).check_in_recurrence).toBe('')
+  })
+
+  test('an ongoing task can not be saved as Done', () => {
+    const on = { ...taskDraft(base), check_in_recurrence: 'FREQ=WEEKLY' }
+    expect(taskDraftError(on)).toBeNull()
+    expect(taskDraftError({ ...on, status: 'done' })).toMatch(/can't be Done/)
+    expect(taskDraftError({ ...taskDraft(base), status: 'done' })).toBeNull()
+  })
+})
+
+describe('ongoing tasks', () => {
+  test('an ongoing task can not move to Done, any other task can', () => {
+    expect(canMoveTo({ ongoing: true }, 'done')).toBe(false)
+    expect(canMoveTo({ ongoing: true }, 'in_review')).toBe(true)
+    expect(canMoveTo({}, 'done')).toBe(true)
   })
 })

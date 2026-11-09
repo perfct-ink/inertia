@@ -63,6 +63,22 @@ module Api
         render json: TaskStatusChangeBlueprint.render(current_workspace.tasks.find(params[:id]).status_changes.includes(:changed_by))
       end
 
+      # The task's check-ins, oldest first.
+      def check_ins
+        render json: TaskCheckInBlueprint.render(current_workspace.tasks.find(params[:id]).check_ins.includes(:author))
+      end
+
+      # POST { check_in: { status, note } } answers a check-in request.
+      def create_check_in
+        task = current_workspace.tasks.find(params[:id])
+        check_in = task.check_ins.build(params.require(:check_in).permit(:status, :note).merge(author: current_user))
+        if check_in.save
+          render json: TaskCheckInBlueprint.render(check_in), status: :created
+        else
+          render json: { errors: check_in.errors.full_messages }, status: :unprocessable_entity
+        end
+      end
+
       def destroy
         @task.destroy
         head :no_content
@@ -75,7 +91,7 @@ module Api
       end
 
       def task_params
-        params.require(:task).permit(:title, :description, :status, :kind, :start_date, :due_date, :position, :assignee_id, :epic_id, :sprint_id, :milestone_id, :folder_id, :parent_id, :priority, :estimate_hours, :story_points, :actual_story_points, :recurrence, :recurrence_from, assignee_ids: [], watcher_ids: [])
+        params.require(:task).permit(:title, :description, :status, :kind, :start_date, :due_date, :position, :assignee_id, :epic_id, :sprint_id, :milestone_id, :folder_id, :parent_id, :priority, :estimate_hours, :story_points, :actual_story_points, :recurrence, :recurrence_from, :ongoing, :check_in_recurrence, assignee_ids: [], watcher_ids: [])
       end
     end
   end

@@ -1,4 +1,6 @@
 ---
+branch: backlog/ongoing-tasks-with-check-ins
+status: incomplete
 priority: p2
 depends_on: []
 ---
@@ -40,3 +42,21 @@ Requested by Alex on 2026-10-18: write product requirement documents that turn i
 - Anything stated in Requirements / notes (including any named default) is implemented or deliberately changed with the reason recorded.
 - Failed API calls show an error to the user.
 - Tests cover the new behaviour; a feature doc in `docs/features/` is written (or the existing one updated) and this file is removed.
+
+## Unverified
+
+Built on the branch, to Alex's 2026-11-09 groom (feature doc: `docs/features/ongoing_tasks.md`): an ongoing task never completes and asks its assignees to check in; a check-in is a status (on track, at risk, blocked) plus an optional note, saved in the task's check-in log (`task_check_ins`), with the latest status on the task (`tasks.check_in_status`, shown as a pill on the card); the schedule is the recurring-task picker (`RecurrencePicker`, stored as `tasks.check_in_recurrence` in the same RRULE format and parsed by `Recurrence`), so it replaces the earlier "every N days"; the request arrives as an inbox notification; a check-in whose due day has passed shows on the task as "Check-in overdue" (stale).
+
+**Missing, a decision for Alex:** nothing schedules the request. The app has no cron, job runner or clock process, and "no new infrastructure without asking" applies. The request is a job (`TaskCheckInRequestJob`, in-process queue like `AiWorkerRunJob`) that the inbox poll enqueues for the signed-in person, so a person is asked within a minute of opening the app; people who are away are not asked. To ask them, schedule `bin/rails check_ins:request` daily or hourly, for example as a Coolify Scheduled Task on the `api` service. Not set up. Acceptance is otherwise met; this file stays for that call and the checks below.
+
+Ran: `ruby -c` on every changed Ruby file, the offline runner (`JEST_STUB_NET=1 /tmp/runner/all.sh`: babel parse, SCSS compile, pure data tests), and the Jest stand-in for the `TaskCheckInDialog`, `RecurrencePicker`, `TaskDetail`, `checkIn` and `recurrence` tests (all pass).
+Not run (no network, `node_modules`, database or Docker): the migrations and the `schema.rb` diff (edited by hand to version 2026_11_08_180002), `rails test`, `npm run lint`, `tsc -b`, the real Jest run, `TasksScreen.test.tsx` (the stand-in lacks `@dnd-kit/core`, so it was only read through), and a browser look.
+
+To verify:
+
+```
+cd backend && rails db:migrate && git diff db/schema.rb && rails test
+cd frontend && npm install && npm run lint && npx tsc -b && npm test
+```
+
+Then in a browser at 375px and desktop, light and dark: on `/tasks` add a task with a schedule under "Ongoing: check in on a schedule" and see "Ongoing · weekly"; open its speech-bubble button, pick "At risk", add a note, and see the pill on the card; set `last_check_in_at` ten days back with `rails runner` and reload to see "Check-in overdue"; run `bin/rails check_ins:request` (or open the inbox) to see "Check in on “…”" in the inbox; edit the task and choose "Not ongoing".

@@ -17,6 +17,11 @@ class TaskBlueprint < Blueprinter::Base
   field :actual_story_points
   field :recurrence
   field :recurrence_from
+  field :ongoing
+  field :check_in_recurrence
+  field :check_in_status
+  field(:check_in_due_on) { |task| task.check_in_due_on }
+  field(:check_in_stale) { |task| task.check_in_stale? }
 
   # Finished time from everyone, in minutes.
   field :logged_minutes do |task|

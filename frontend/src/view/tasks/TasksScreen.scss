@@ -368,6 +368,12 @@
     @at-root .tasks-meta {
       color: color(muted-foreground);
       @include text('xs');
+
+      // An ongoing task whose update is late.
+      &--stale {
+        color: palette('red-500');
+        font-weight: 600;
+      }
     }
 
     @at-root .tasks-repeat {

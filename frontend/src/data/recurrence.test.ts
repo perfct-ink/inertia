@@ -1,4 +1,12 @@
-import { recurrenceLabel } from './recurrence'
+import { RECURRENCE_OPTIONS, recurrenceLabel, recurrenceOptions } from './recurrence'
+
+test('the picker options keep the rules and reword only the "none" entry', () => {
+  const options = recurrenceOptions('Not ongoing')
+  expect(options).toHaveLength(RECURRENCE_OPTIONS.length)
+  expect(options[0]).toEqual({ value: '', label: 'Not ongoing' })
+  expect(options.slice(1)).toEqual(RECURRENCE_OPTIONS.slice(1))
+  expect(recurrenceOptions('Does not repeat')[0].label).toBe(RECURRENCE_OPTIONS[0].label)
+})
 
 test('labels known and custom rules', () => {
   expect(recurrenceLabel('FREQ=WEEKLY')).toBe('Weekly')

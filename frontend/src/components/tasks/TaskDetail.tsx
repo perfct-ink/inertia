@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Button, FormError, Input, Modal, Select, Textarea } from '@/components/ui'
+import { RecurrencePicker } from '@/components/tasks/RecurrencePicker'
 import { useUpdateTask } from '@/api/tasks'
 import { useEpics } from '@/api/epics'
 import { useSprints } from '@/api/sprints'
@@ -8,8 +9,8 @@ import { errorMessage } from '@/util/errorMessage'
 import { taskChanges, taskDraft, taskDraftError, TASK_STATUSES, STATUS_LABEL, type TaskDraft } from '@/data/task'
 import type { Task } from '@/types'
 
-// Edit a task after it was created: title, description, status, dates, epic,
-// sprint and milestone. Only changed fields are sent.
+// Edit a task after it was created: title, description, status, ongoing check-ins,
+// dates, epic, sprint and milestone. Only changed fields are sent.
 export function TaskDetail({ task, onClose }: { task: Task; onClose: () => void }) {
   const update = useUpdateTask()
   const { data: epics = [] } = useEpics()
@@ -35,6 +36,14 @@ export function TaskDetail({ task, onClose }: { task: Task; onClose: () => void 
         <Select aria-label="Task status" value={draft.status} onChange={(e) => set('status', e.target.value as Task['status'])}>
           {TASK_STATUSES.map((s) => <option key={s} value={s}>{STATUS_LABEL[s]}</option>)}
         </Select>
+      </label>
+      <label>Ongoing check-ins
+        <RecurrencePicker
+          emptyLabel="Not ongoing"
+          aria-label="Check-in schedule"
+          value={draft.check_in_recurrence}
+          onChange={(e) => set('check_in_recurrence', e.target.value)}
+        />
       </label>
       <label>Start date<Input type="date" aria-label="Start date" value={draft.start_date} onChange={(e) => set('start_date', e.target.value)} /></label>
       <label>Due date<Input type="date" aria-label="Due date" value={draft.due_date} onChange={(e) => set('due_date', e.target.value)} /></label>

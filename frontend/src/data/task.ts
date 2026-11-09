@@ -193,11 +193,18 @@ export function statusChangeLabel(change: { from_status: Task['status'] | null; 
   return change.from_status ? `${STATUS_NAME[change.from_status]} → ${STATUS_NAME[change.to_status]}` : `Created as ${STATUS_NAME[change.to_status]}`
 }
 
+// An ongoing task never completes (the server answers 422), so it can't move to Done.
+export function canMoveTo(task: Pick<Task, 'ongoing'>, status: Task['status']): boolean {
+  return !(task.ongoing && status === 'done')
+}
+
 // A task's editable fields as form strings ('' = none).
 export interface TaskDraft {
   title: string
   description: string
   status: Task['status']
+  // The check-in schedule of an ongoing task, a repeat rule; '' = not ongoing.
+  check_in_recurrence: string
   start_date: string
   due_date: string
   epic_id: string
@@ -210,6 +217,7 @@ export function taskDraft(task: Task): TaskDraft {
     title: task.title,
     description: task.description ?? '',
     status: task.status,
+    check_in_recurrence: task.ongoing ? (task.check_in_recurrence ?? '') : '',
     start_date: task.start_date ?? '',
     due_date: task.due_date ?? '',
     epic_id: task.epic_id != null ? String(task.epic_id) : '',
@@ -222,6 +230,7 @@ export function taskDraft(task: Task): TaskDraft {
 export function taskDraftError(draft: TaskDraft): string | null {
   if (!draft.title.trim()) return 'A task needs a title.'
   if (draft.start_date && draft.due_date && draft.due_date < draft.start_date) return 'The due date is before the start date.'
+  if (!canMoveTo({ ongoing: draft.check_in_recurrence !== '' }, draft.status)) return "An ongoing task can't be Done. Set its check-ins to Not ongoing first."
   return null
 }
 
@@ -237,6 +246,10 @@ export function taskChanges(task: Task, draft: TaskDraft): Partial<Task> {
   text('title'); text('description'); text('status')
   for (const key of ['start_date', 'due_date'] as const) {
     if (draft[key] !== before[key]) changes[key] = draft[key] || null
+  }
+  if (draft.check_in_recurrence !== before.check_in_recurrence) {
+    changes.ongoing = draft.check_in_recurrence !== ''
+    if (draft.check_in_recurrence) changes.check_in_recurrence = draft.check_in_recurrence
   }
   for (const key of ['epic_id', 'sprint_id', 'milestone_id'] as const) {
     if (draft[key] !== before[key]) changes[key] = draft[key] ? Number(draft[key]) : null

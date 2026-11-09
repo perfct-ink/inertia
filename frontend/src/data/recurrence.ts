@@ -1,5 +1,6 @@
 // Repeat rules a task can have: the RRULE subset the server accepts
-// (Recurrence in backend/app/models/recurrence.rb).
+// (Recurrence in backend/app/models/recurrence.rb). The repeat picker and the
+// check-in schedule of an ongoing task offer these same rules.
 export const RECURRENCE_OPTIONS = [
   { value: '', label: 'Does not repeat' },
   { value: 'FREQ=DAILY', label: 'Daily' },
@@ -8,6 +9,11 @@ export const RECURRENCE_OPTIONS = [
   { value: 'FREQ=MONTHLY', label: 'Monthly' },
   { value: 'FREQ=YEARLY', label: 'Yearly' },
 ] as const
+
+// The picker's options with the first ("none") entry worded for what is being scheduled.
+export function recurrenceOptions(emptyLabel: string): { value: string; label: string }[] {
+  return RECURRENCE_OPTIONS.map((o) => (o.value === '' ? { value: '', label: emptyLabel } : o))
+}
 
 const UNIT: Record<string, string> = { DAILY: 'day', WEEKLY: 'week', MONTHLY: 'month', YEARLY: 'year' }
 

@@ -22,6 +22,8 @@ class Task < ApplicationRecord
   has_many :field_values, class_name: "TaskFieldValue", dependent: :destroy, inverse_of: :task
   has_many :time_entries, dependent: :destroy
   has_many :status_changes, -> { order(:created_at, :id) }, class_name: "TaskStatusChange", dependent: :destroy, inverse_of: :task
+  # The answers to "what's the update?" on an ongoing task.
+  has_many :check_ins, -> { order(:created_at, :id) }, class_name: "TaskCheckIn", dependent: :destroy, inverse_of: :task
   has_many :baseline_tasks, dependent: :destroy
   # Gantt links (PM-13), removed with either end.
   has_many :successor_links, class_name: "TaskDependency", foreign_key: :predecessor_id, dependent: :destroy, inverse_of: :predecessor
@@ -39,7 +41,14 @@ class Task < ApplicationRecord
   # task list filtered to kind = bug); a story is a user-facing slice of work.
   enum :kind, { task: 0, bug: 1, story: 2 }, prefix: true, scopes: false, validate: true
 
+  # The status of the latest check-in on an ongoing task (nil until the first),
+  # kept here so the task list shows it without a query per task.
+  enum :check_in_status, TaskCheckIn::STATUSES, prefix: true, scopes: false, validate: { allow_nil: true }
+
   validates :title, presence: true
+  validates :check_in_recurrence, presence: true, if: :ongoing?
+  validate :check_in_recurrence_is_valid
+  validate :ongoing_tasks_are_not_done
   validates :estimate_hours, numericality: { greater_than_or_equal_to: 0, allow_nil: true }
   validates :story_points, :actual_story_points, numericality: { only_integer: true, greater_than_or_equal_to: 0, allow_nil: true }
   validate :recurrence_is_valid
@@ -61,12 +70,40 @@ class Task < ApplicationRecord
   attr_accessor :actor
 
   after_save :notify_new_assignee, if: :saved_change_to_assignee_id?
+  before_save :restart_check_in_clock, if: :will_save_change_to_ongoing?
 
   default_scope { order(:position) }
 
   # Case-insensitive title search. Arel's matches is ILIKE on PostgreSQL (and
   # LIKE on MySQL), and the input is escaped so % and _ match literally.
   scope :title_matching, ->(query) { where(arel_table[:title].matches("%#{sanitize_sql_like(query)}%")) }
+
+  # The schedule an ongoing task is checked in on: the same rules as the
+  # repeat picker (`recurrence`), parsed by the same Recurrence class.
+  def check_in_rule
+    Recurrence.parse(check_in_recurrence)
+  end
+
+  # The day the next check-in is due: one step of the schedule after the last
+  # one, or after the task became ongoing if there is none yet. Nil for tasks
+  # that aren't ongoing. Reads only this row, so listing tasks costs no extra query.
+  def check_in_due_on
+    rule = check_in_rule
+    return nil unless ongoing? && rule
+    rule.next_date((last_check_in_at || created_at || Time.current).to_date)
+  end
+
+  # The check-in is due: that day has come, so the owner is asked.
+  def check_in_due?(today = Date.current)
+    due = check_in_due_on
+    !due.nil? && due <= today
+  end
+
+  # An ongoing task whose check-in is overdue: its due day has passed unanswered.
+  def check_in_stale?(today = Date.current)
+    due = check_in_due_on
+    !due.nil? && due < today
+  end
 
   # How many levels below a top-level task this one sits (0 = top-level,
   # 1 = subtask, 2 = sub-subtask, ...) — what TasksPage.tsx's "hide level 2
@@ -138,6 +175,21 @@ class Task < ApplicationRecord
       end
       ancestor = ancestor.parent
     end
+  end
+
+  # Turning ongoing on starts counting from now, so an old task isn't overdue
+  # the moment it becomes ongoing; turning it on or off closes any open request.
+  def restart_check_in_clock
+    self.last_check_in_at = Time.current if ongoing?
+    self.check_in_requested_at = nil
+  end
+
+  def check_in_recurrence_is_valid
+    errors.add(:check_in_recurrence, "isn't a supported schedule") if check_in_recurrence.present? && check_in_rule.nil?
+  end
+
+  def ongoing_tasks_are_not_done
+    errors.add(:status, "of an ongoing task can't be done; it is checked in on instead. Turn off ongoing first.") if ongoing? && done?
   end
 
   def due_date_not_before_start_date

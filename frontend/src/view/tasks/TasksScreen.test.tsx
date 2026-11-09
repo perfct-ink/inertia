@@ -36,7 +36,7 @@ const mockTasks = [
   { id: 2, title: 'Old idea', status: 'backlog', epic_id: null, document_id: 1, folder_id: 2 },
 ]
 let mockTasksRenders = 0
-let mockTasksQuery: { data?: typeof mockTasks, isLoading: boolean } = { data: mockTasks, isLoading: false }
+let mockTasksQuery: { data?: Record<string, unknown>[], isLoading: boolean } = { data: mockTasks, isLoading: false }
 jest.mock('@/api/tasks', () => ({
   useTasks: () => {
     // A render loop would spin forever in jsdom; fail fast instead.
@@ -54,6 +54,7 @@ jest.mock('@/components/task-fields/TaskFieldsDialog', () => ({ TaskFieldsDialog
 jest.mock('@/components/task-fields/ManageTaskFieldsDialog', () => ({ ManageTaskFieldsDialog: () => null }))
 jest.mock('./TaskTimer', () => ({ TaskTimer: () => null }))
 jest.mock('@/components/TaskHistoryDialog', () => function HistoryMock() { return null })
+jest.mock('@/components/TaskCheckInDialog', () => function CheckInMock({ task }: { task: { title: string } | null }) { return task ? <p>Checking in on {task.title}</p> : null })
 jest.mock('@/api/workspaceMembers', () => ({ useWorkspaceMembers: () => ({ data: [] }) }))
 jest.mock('@/api/sprints', () => ({ useSprints: () => ({ data: [] }) }))
 jest.mock('@/api/milestones', () => ({ useMilestones: () => ({ data: [] }) }))
@@ -125,4 +126,48 @@ test('viewers do not get the status editor', () => {
   mockRole = 'viewer'
   renderScreen('/tasks?view=kanban')
   expect(screen.queryByRole('button', { name: 'Statuses' })).not.toBeInTheDocument()
+})
+
+describe('ongoing tasks', () => {
+  const watch = { id: 3, title: 'Keep watch', status: 'in_review', epic_id: null, document_id: 1, folder_id: 2, ongoing: true, check_in_recurrence: 'FREQ=WEEKLY', check_in_stale: false }
+
+  test('the card shows the schedule and the latest status, goes red when the check-in is overdue, and opens the check-in box', () => {
+    mockTasksQuery = { data: [...mockTasks, { ...watch, check_in_status: 'at_risk' }], isLoading: false }
+    const { unmount } = renderScreen('/tasks?view=kanban')
+    expect(screen.getByText('Ongoing · weekly')).not.toHaveClass('tasks-meta--stale')
+    expect(screen.getByText('At risk')).toBeInTheDocument()
+    unmount()
+
+    mockTasksQuery = { data: [...mockTasks, { ...watch, check_in_stale: true }], isLoading: false }
+    renderScreen('/tasks?view=kanban')
+    expect(screen.getByText('Check-in overdue')).toHaveClass('tasks-meta--stale')
+    expect(screen.queryByText('At risk')).not.toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Check in on Keep watch' }))
+    expect(screen.getByText('Checking in on Keep watch')).toBeInTheDocument()
+  })
+
+  test('an ongoing task has no arrow to Done, and other tasks in review do', () => {
+    mockTasksQuery = { data: [watch, { ...watch, id: 4, title: 'Plain', ongoing: false }], isLoading: false }
+    renderScreen('/tasks?view=kanban')
+    expect(screen.getAllByRole('button', { name: /^Move to / })).toHaveLength(1)
+  })
+
+  test('the new task row uses the repeat picker\'s schedules to make the task ongoing', () => {
+    renderScreen('/tasks?view=backlog')
+    fireEvent.click(screen.getByRole('button', { name: 'Add task' }))
+    fireEvent.change(screen.getByLabelText('Ongoing: check in on a schedule'), { target: { value: 'FREQ=WEEKLY;INTERVAL=2' } })
+    const title = screen.getByPlaceholderText('Task title…')
+    fireEvent.change(title, { target: { value: 'Keep watch' } })
+    fireEvent.keyDown(title, { key: 'Enter' })
+    expect(mockMutation.mutate).toHaveBeenCalledWith(expect.objectContaining({ title: 'Keep watch', status: 'backlog', ongoing: true, check_in_recurrence: 'FREQ=WEEKLY;INTERVAL=2' }))
+  })
+
+  test('a task added without a check-in schedule is not ongoing', () => {
+    renderScreen('/tasks?view=backlog')
+    fireEvent.click(screen.getByRole('button', { name: 'Add task' }))
+    const title = screen.getByPlaceholderText('Task title…')
+    fireEvent.change(title, { target: { value: 'Plain' } })
+    fireEvent.keyDown(title, { key: 'Enter' })
+    expect(mockMutation.mutate).toHaveBeenCalledWith(expect.not.objectContaining({ ongoing: true }))
+  })
 })

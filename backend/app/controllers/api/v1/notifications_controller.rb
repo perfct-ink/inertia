@@ -4,6 +4,10 @@ module Api
     # active Space), newest first.
     class NotificationsController < ApplicationController
       def index
+        # Nothing schedules check-in requests yet, so opening the inbox (the app
+        # polls it every minute) also asks this person, in the background, for
+        # any check-in that is due on their ongoing tasks.
+        TaskCheckInRequestJob.perform_later(current_user.id)
         scope = current_user.notifications
         render json: {
           unread_count: scope.unread.count,

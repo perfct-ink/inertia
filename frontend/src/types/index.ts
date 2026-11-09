@@ -155,6 +155,15 @@ export interface Task {
   actual_story_points?: number | null
   recurrence?: string | null
   recurrence_from?: 'schedule' | 'completion'
+  // An ongoing task never completes; it asks its assignees for a check-in on a
+  // schedule (the same rule format as `recurrence`).
+  ongoing?: boolean
+  check_in_recurrence?: string | null
+  // The status of the latest check-in; null until the first.
+  check_in_status?: CheckInStatus | null
+  // The day the next check-in is due, and whether that day has passed unanswered.
+  check_in_due_on?: string | null
+  check_in_stale?: boolean
   document?: Document
   // Values of the Space's custom task fields, keyed by field id; fields with
   // no value are absent. Only the task list endpoint includes them.
@@ -398,6 +407,18 @@ export interface IoNode {
   objective_id: number | null
   initiative_id: number | null
   progress: number | null
+}
+
+// How an ongoing task is going, as its owner answers a check-in.
+export type CheckInStatus = 'on_track' | 'at_risk' | 'blocked'
+
+// One check-in on an ongoing task: a status and an optional note.
+export interface TaskCheckIn {
+  id: number
+  status: CheckInStatus
+  note: string | null
+  author_name: string | null
+  created_at: string
 }
 
 // One status transition of a task; from_status is null for the creation row.

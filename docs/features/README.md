@@ -64,3 +64,4 @@ One file per implemented feature, written from the code (see `docs/rules/feature
 | Data files: filtering, sorting and API enums live in src/data | [data_files.md](data_files.md) |
 | Portfolio: all projects with owner, status, dates, progress, health | [portfolio.md](portfolio.md) |
 | Notifications inbox: per-person inbox, unread badge, task assignment | [notifications_inbox.md](notifications_inbox.md) |
+| Ongoing tasks: never done, asks its assignees to check in (status and note) on the repeat schedule via the inbox | [ongoing_tasks.md](ongoing_tasks.md) |
