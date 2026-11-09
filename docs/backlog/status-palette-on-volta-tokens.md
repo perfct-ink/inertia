@@ -10,7 +10,9 @@ Move the fixed status palette (blue/green/red/purple in `_tokens.scss`) onto Vol
 
 ## Requirements / notes
 
-Volta has `--v-color-danger` and `--v-color-success` only; add the rest to Volta first.
+Volta has `--v-color-danger` and `--v-color-success` only.
+
+**Decision (Alex, 2026-11-09 groom): Inertia sits on top of what Volta has.** Use Volta's tokens where they exist (red statuses use `--v-color-danger`, green use `--v-color-success`), and Inertia defines its own tokens for the rest (blue, purple and any others) in its own theme layer (`_theme.scss`). Don't add status colours to Volta.
 
 ## Context
 
