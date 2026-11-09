@@ -53,8 +53,17 @@ class TaskBlueprint < Blueprinter::Base
     end
   end
 
+  # Ids of the uploaded files (file items) attached to the task. Preload
+  # `task_files` when rendering a list.
+  view :with_files do
+    field :file_ids do |task, _options|
+      task.task_files.map(&:file_id)
+    end
+  end
+
   view :with_document_and_field_values do
     include_view :with_document
     include_view :with_field_values
+    include_view :with_files
   end
 end

@@ -35,11 +35,13 @@ type AttachmentCardProps = {
   selected?: boolean
   // Shows a Remove button; leave unset when the viewer can't edit.
   onRemove?: () => void
+  // What the button is called when it does something other than remove (a task's file is detached).
+  removeLabel?: string
 }
 
 // A file in a document or on a task: icon, name, type and size, a player for
 // audio, Preview for what the browser can show (images, PDFs) and Download.
-export function AttachmentCard({ name, url, type, size, player, selected, onRemove }: AttachmentCardProps) {
+export function AttachmentCard({ name, url, type, size, player, selected, onRemove, removeLabel = 'Remove' }: AttachmentCardProps) {
   const [previewing, setPreviewing] = useState(false)
   const safeUrl = safeAttachmentUrl(url)
   const Icon = ICONS[fileIconKind(type, name)]
@@ -71,7 +73,7 @@ export function AttachmentCard({ name, url, type, size, player, selected, onRemo
             </ButtonLink>
           )}
           {onRemove && (
-            <Button type="button" variant="ghost" className="ui-attachment-action ui-attachment-action--icon" aria-label={`Remove ${name}`} title="Remove" onClick={onRemove}>
+            <Button type="button" variant="ghost" className="ui-attachment-action ui-attachment-action--icon" aria-label={`${removeLabel} ${name}`} title={removeLabel} onClick={onRemove}>
               <X className="ui-attachment-action_icon" aria-hidden="true" />
             </Button>
           )}

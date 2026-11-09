@@ -6,7 +6,7 @@ module Api
       before_action :set_task, only: [ :update, :destroy ]
 
       def index
-        tasks = current_workspace.tasks.includes(:document, :participants, :time_entries, :field_values)
+        tasks = current_workspace.tasks.includes(:document, :participants, :time_entries, :field_values, :task_files)
         tasks = tasks.where(document_id: params[:document_id]) if params[:document_id]
         tasks = tasks.where(status: params[:status]) if params[:status]
         tasks = tasks.where(kind: params[:kind]) if params[:kind].present? && Task.kinds.key?(params[:kind])

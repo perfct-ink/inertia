@@ -17,6 +17,8 @@ class Document < ApplicationRecord
   belongs_to :epic, optional: true
   belongs_to :milestone, optional: true
   has_many :tasks, dependent: :destroy
+  # Tasks an uploaded file is attached to; deleting the file detaches it.
+  has_many :task_files, foreign_key: :file_id, dependent: :destroy, inverse_of: :file
   has_many :shares, as: :shareable, dependent: :destroy
 
   has_many :table_fields, dependent: :destroy

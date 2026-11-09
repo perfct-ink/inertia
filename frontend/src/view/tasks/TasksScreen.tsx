@@ -1,7 +1,7 @@
 import { Button, Input, Select, StatusDot, classNames, DatePicker } from '@/components/ui'
 import { useState, useRef, useEffect, useMemo } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { Plus, X, ArrowRight, Play, Loader2, Search, Filter, Target, SlidersHorizontal, Palette, Repeat, History, Pencil } from 'lucide-react'
+import { Plus, X, ArrowRight, Play, Loader2, Search, Filter, Target, SlidersHorizontal, Palette, Repeat, History, Pencil, Paperclip } from 'lucide-react'
 import {
   DndContext,
   DragOverlay,
@@ -29,6 +29,7 @@ import { TASK_PRIORITIES, estimateLabel, pointsLabel, priorityLabel, TASK_KINDS,
 import { RECURRENCE_OPTIONS, recurrenceLabel } from '@/data/recurrence'
 import TaskHistoryDialog from '@/components/TaskHistoryDialog'
 import { TaskDetail } from '@/components/tasks/TaskDetail'
+import { TaskFiles } from '@/components/tasks/TaskFiles'
 import { useTasks, useCreateTask, useUpdateTask, useDeleteTask, type TaskFilters } from '@/api/tasks'
 import { useWorkspace } from '@/api/workspace'
 import { canWriteWorkspace } from '@/api/workspaces'
@@ -77,9 +78,11 @@ interface CardProps {
   fields?: TaskField[]
   onEditFields?: () => void
   onHistory?: () => void
+  // Opens the task's attached files.
+  onFiles?: () => void
 }
 
-function TaskCard({ task, onNext, nextLabel, onNavigate, onEdit, epicTitle, assignees = [], progress, overlay, onHistory, fields = [], onEditFields }: Omit<CardProps, 'onDelete'>) {
+function TaskCard({ task, onNext, nextLabel, onNavigate, onEdit, epicTitle, assignees = [], progress, overlay, onHistory, fields = [], onEditFields, onFiles }: Omit<CardProps, 'onDelete'>) {
   return (
     <div className={classNames('tasks-card', overlay && 'tasks-card--overlay')}>
       <div className="tasks-card_title_row">
@@ -141,6 +144,12 @@ function TaskCard({ task, onNext, nextLabel, onNavigate, onEdit, epicTitle, assi
               aria-label={`Edit fields of ${task.title}`}
             >
               <SlidersHorizontal className="tasks-icon" />
+            </Button>
+          )}
+          {onFiles && !overlay && (
+            <Button onClick={onFiles} className="tasks-files" title="Attached files" aria-label={`Files of ${task.title}`}>
+              <Paperclip className="tasks-icon" />
+              {!!task.file_ids?.length && <span className="tasks-meta">{task.file_ids.length}</span>}
             </Button>
           )}
           {onHistory && !overlay && (
@@ -469,6 +478,8 @@ export default function TasksScreen() {
   const [fieldsTaskId, setFieldsTaskId] = useState<number | null>(null)
   const fieldsTask = tasks.find((t) => t.id === fieldsTaskId) ?? null
   const [historyTask, setHistoryTask] = useState<Task | null>(null)
+  const [filesTaskId, setFilesTaskId] = useState<number | null>(null)
+  const filesTask = tasks.find((t) => t.id === filesTaskId) ?? null
   const [editing, setEditing] = useState<Task | null>(null)
 
   useEffect(() => {
@@ -747,6 +758,7 @@ export default function TasksScreen() {
                           progress={progressByTask.get(task.id)}
                           assignees={assigneesOf(task)}
                           onHistory={() => setHistoryTask(task)}
+                          onFiles={() => setFilesTaskId(task.id)}
                         />
                       ))}
                       {addingTo === key ? (
@@ -849,6 +861,10 @@ export default function TasksScreen() {
                           <SlidersHorizontal className="tasks-icon" />
                         </Button>
                       )}
+                      <Button onClick={() => setFilesTaskId(task.id)} title="Attached files" aria-label={`Files of ${task.title}`} className="tasks-row_action tasks-row_action--files">
+                        <Paperclip className="tasks-icon" />
+                        {!!task.file_ids?.length && <span className="tasks-meta">{task.file_ids.length}</span>}
+                      </Button>
                       <Button onClick={() => setHistoryTask(task)} title="Status history" aria-label={`Status history of ${task.title}`} className="tasks-row_action">
                         <History className="tasks-icon" />
                       </Button>
@@ -890,6 +906,7 @@ export default function TasksScreen() {
         />
       </div>
       <TaskHistoryDialog task={historyTask} onClose={() => setHistoryTask(null)} />
+      {filesTask && <TaskFiles key={filesTask.id} task={filesTask} onClose={() => setFilesTaskId(null)} />}
       {editing && <TaskDetail key={editing.id} task={editing} onClose={() => setEditing(null)} />}
     </WorkspaceLayout>
   )

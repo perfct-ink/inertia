@@ -21,6 +21,9 @@ class Task < ApplicationRecord
   # Values of the Space's custom task fields (tags, dropdown, ...).
   has_many :field_values, class_name: "TaskFieldValue", dependent: :destroy, inverse_of: :task
   has_many :time_entries, dependent: :destroy
+  # Uploaded files attached to the task (the files themselves stay where they are).
+  has_many :task_files, -> { order(:id) }, dependent: :destroy, inverse_of: :task
+  has_many :files, through: :task_files, source: :file
   has_many :status_changes, -> { order(:created_at, :id) }, class_name: "TaskStatusChange", dependent: :destroy, inverse_of: :task
   has_many :baseline_tasks, dependent: :destroy
   # Gantt links (PM-13), removed with either end.

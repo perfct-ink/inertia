@@ -11,6 +11,11 @@ export function documentsIn(folder: Folder): Document[] {
   return [...(folder.documents ?? []), ...(folder.children ?? []).flatMap(documentsIn)]
 }
 
+// Every uploaded file (doc_type file) in the folder tree, in tree order.
+export function uploadedFiles(folders: Folder[]): Document[] {
+  return flattenFolders(folders).flatMap((folder) => folder.documents ?? []).filter((d) => d.doc_type === 'file')
+}
+
 // The Space's active projects, wherever they sit in the tree, by name.
 export function projectsOf(folders: Folder[]): Folder[] {
   return flattenFolders(folders)

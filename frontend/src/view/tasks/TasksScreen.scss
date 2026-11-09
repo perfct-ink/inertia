@@ -411,6 +411,14 @@
       @include muted-link;
     }
 
+    // The paperclip that opens a task's files, with how many are attached.
+    @at-root .tasks-files {
+      display: flex;
+      align-items: center;
+      gap: space(1);
+      @include muted-link;
+    }
+
     @at-root .tasks-add_card {
       padding: space(2);
       border-width: 1px;
@@ -534,6 +542,16 @@
 
     @at-root .tasks-row_action {
       color: color(muted-foreground);
+
+      &--files {
+        display: flex;
+        align-items: center;
+        gap: space(1);
+
+        &:hover {
+          color: color(foreground);
+        }
+      }
 
       &--fields:hover {
         color: color(foreground);

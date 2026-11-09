@@ -100,6 +100,8 @@ POST   /api/v1/documents/:document_id/tasks
 GET    /api/v1/tasks           # all tasks across workspace
 PATCH  /api/v1/tasks/:id         # moving dates obeys the task folder's dependency mode (422 when strict refuses)
 DELETE /api/v1/tasks/:id
+POST   /api/v1/tasks/:task_id/files          # attach an uploaded file ({ file_id }); the task list carries file_ids
+DELETE /api/v1/tasks/:task_id/files/:file_id # detach it (the file stays)
 
 POST   /api/v1/shares
 GET    /api/v1/shares/:id

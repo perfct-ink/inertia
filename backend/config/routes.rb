@@ -84,6 +84,7 @@ Rails.application.routes.draw do
       put "tasks/:task_id/field_values/:task_field_id/vote", to: "task_field_values#vote"
       resources :tasks, only: [ :index, :create, :update, :destroy ] do
         resources :time_entries, only: [ :index, :create ]
+        resources :files, only: [ :create, :destroy ], controller: "task_files"
         get :status_changes, on: :member
       end
       resources :time_entries, only: [ :destroy ] do

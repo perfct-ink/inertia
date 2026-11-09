@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import api from '@/lib/api'
 import type { Task, TaskKind, TaskStatusChange } from '@/types'
-import { ApiResource, useResourceCreate, useResourceDelete, useResourceList, useResourceUpdate } from './base'
+import { ApiResource, useApiMutation, useResourceCreate, useResourceDelete, useResourceList, useResourceUpdate } from './base'
 
 export interface TaskFilters {
   q?: string
@@ -50,6 +50,16 @@ export class TaskApi extends ApiResource<Task, NewTask> {
   statusChanges(id: number) {
     return api.get<TaskStatusChange[]>(`${this.path}/${id}/status_changes`).then((r) => r.data)
   }
+
+  // Attaches an uploaded file (a file item) to the task, or detaches it; the
+  // file itself stays where it is. Both answer with the task and its file_ids.
+  attachFile(taskId: number, fileId: number) {
+    return api.post<Task>(`${this.url(taskId)}/files`, { file_id: fileId }).then((r) => r.data)
+  }
+
+  detachFile(taskId: number, fileId: number) {
+    return api.delete<Task>(`${this.url(taskId)}/files/${fileId}`).then((r) => r.data)
+  }
 }
 
 export const taskApi = new TaskApi()
@@ -59,6 +69,10 @@ export const useCreateTask = () => useResourceCreate(taskApi)
 export const useUpdateTask = () => useResourceUpdate(taskApi)
 // The server drops a deleted task's Gantt links with it.
 export const useDeleteTask = () => useResourceDelete(taskApi, ['task_dependencies'])
+
+interface TaskFileRef { taskId: number; fileId: number }
+export const useAttachTaskFile = () => useApiMutation(({ taskId, fileId }: TaskFileRef) => taskApi.attachFile(taskId, fileId), [taskApi.queryKey])
+export const useDetachTaskFile = () => useApiMutation(({ taskId, fileId }: TaskFileRef) => taskApi.detachFile(taskId, fileId), [taskApi.queryKey])
 
 export const useTaskStatusChanges = (taskId: number, enabled: boolean) =>
   useQuery({ queryKey: ['task_status_changes', taskId], queryFn: () => taskApi.statusChanges(taskId), enabled })

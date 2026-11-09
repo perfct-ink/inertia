@@ -1,4 +1,4 @@
-import type { Task, TaskKind, TaskPriority } from '@/types'
+import type { Document, Task, TaskKind, TaskPriority } from '@/types'
 
 // The task statuses the API accepts, in board order (mirrors Task.statuses in the backend).
 export const TASK_STATUSES: Task['status'][] = ['backlog', 'todo', 'in_progress', 'in_review', 'done']
@@ -36,6 +36,24 @@ export interface TaskNode extends Task { children: TaskNode[] }
 // folder's board decides how the task's status is named and colored.
 export function taskFolderId(task: Pick<Task, 'folder_id' | 'document'>): number | null {
   return task.folder_id ?? task.document?.folder_id ?? null
+}
+
+// The uploaded files attached to a task (in the order they were attached) and
+// the rest of the Space's files, which could still be attached (by name).
+// Ids of files that are not in `files` (deleted, or not loaded yet) are skipped.
+export function taskFileSplit(task: Pick<Task, 'file_ids'>, files: Document[]): { attached: Document[]; available: Document[] } {
+  const ids = task.file_ids ?? []
+  const byId = new Map(files.map((f) => [f.id, f]))
+  return {
+    attached: ids.flatMap((id) => byId.get(id) ?? []),
+    available: files.filter((f) => !ids.includes(f.id)).sort((a, b) => a.title.localeCompare(b.title)),
+  }
+}
+
+// Where a file uploaded from a task goes: the task's folder (or its document's),
+// else the Space's Root.
+export function taskUploadFolderId(task: Pick<Task, 'folder_id' | 'document'>, rootFolderId: number | undefined): number | null {
+  return taskFolderId(task) ?? rootFolderId ?? null
 }
 
 // Nests tasks under their parent task to any depth. A task whose parent is

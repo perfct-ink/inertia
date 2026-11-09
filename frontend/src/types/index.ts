@@ -156,6 +156,9 @@ export interface Task {
   recurrence?: string | null
   recurrence_from?: 'schedule' | 'completion'
   document?: Document
+  // Ids of the uploaded files (file items) attached to the task, in the order
+  // they were attached. Only the task list and the attach calls include them.
+  file_ids?: number[]
   // Values of the Space's custom task fields, keyed by field id; fields with
   // no value are absent. Only the task list endpoint includes them.
   field_values?: TaskFieldValues
