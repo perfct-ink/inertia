@@ -2,6 +2,8 @@
 priority: p1
 depends_on: []
 components: [frontend]
+branch: backlog/adopt-volta-components-in-react
+status: incomplete
 ---
 # Adopt Volta for React frontend components
 
@@ -31,3 +33,11 @@ Alex asked (2026-10-17, reiterated 2026-10-18) to use [Volta](https://github.com
 - Anything stated in Requirements / notes (including any named default) is implemented or deliberately changed with the reason recorded.
 - Failed API calls show an error to the user.
 - Tests cover the new behaviour; a feature doc in `docs/features/` is written (or the existing one updated) and this file is removed.
+
+## Blocked
+
+Deliberately not built yet: importing Volta's components is blocked by how Volta is packaged, not by Inertia's code. `backlog/volta-component-mapping-and-parity` investigated it (`docs/volta_parity.md` on that branch, "Why Volta's components are not imported" and "What importing would take"): Volta is private and unpublished, its `main` is a build output that is not committed and has no `prepare` script, its build injects unlayered CSS from JavaScript (which beats Inertia's cascade layers), it ships one big untyped UMD bundle, only about 15 of its components follow the theme, its `Modal`, `Dialog`, `Dropdown` and `DatePicker` lack keyboard handling that Inertia's wrappers already have, and 42 of its files rely on `defaultProps`, which React 19 ignores.
+
+The conservative path, which is the present one, is tokens only, with wrappers in `components/ui` that borrow Volta's look, migrating one fully themed Volta component at a time once it is installable. Nothing in the repository changes for this task until the packaging is settled (a built package with layered CSS and fixed `defaultProps`; that parity branch files `volta-packaging-for-inertia` for it).
+
+Decision for Alex: keep Volta as tokens plus look-alike wrappers, or invest in packaging Volta so its components can be imported. The migration steps (declare a pinned dependency, build it, load its CSS in a layer, wrap each component in `@/components/ui`, CI and Docker changes) are in that doc.
