@@ -1,7 +1,7 @@
 // Schema-only mirror of frontend/src/pages/workspace/DocumentPage.tsx's editor
 // `extensions` array, plus frontend/src/extensions/{WorkspaceTaskList,
-// WorkspaceTaskItem,Video,Attachment,DashedList}. y-prosemirror's JSON<->Yjs conversion only cares
-// about node/mark SHAPE (name, group, content, attrs) — NodeView renderers,
+// WorkspaceTaskItem,Video,Attachment,DashedList,DocumentLink}. y-prosemirror's JSON<->Yjs
+// conversion only cares about node/mark SHAPE (name, group, content, attrs) — NodeView renderers,
 // parseHTML/renderHTML, keyboard shortcuts, and toolbar commands are UI
 // concerns and are deliberately omitted here. That's why this list is
 // shorter than the frontend's: standard nodes are the exact same versioned
@@ -122,11 +122,23 @@ const FileAttachment = Node.create({
   },
 });
 
+// Matches frontend/src/extensions/DocumentLink.ts exactly (shape only): an
+// inline link to another document, stored as the target's id.
+const DocumentLink = Node.create({
+  name: "documentLink",
+  group: "inline",
+  inline: true,
+  atom: true,
+  addAttributes() {
+    return { documentId: { default: null } };
+  },
+});
+
 export const schemaExtensions = [
   CustomDocument, Paragraph, Text, HardBreak,
   Bold, Italic, Underline, Strike, Code,
   Heading, BulletList, OrderedList, ListItem,
-  WorkspaceTaskList, WorkspaceTaskItem,
+  WorkspaceTaskList, WorkspaceTaskItem, DocumentLink,
   CodeBlock, HorizontalRule, Image, Link, Video, AudioAttachment, FileAttachment,
   Table, TableRow, TableCell, TableHeader,
 ];

@@ -1,0 +1,35 @@
+@use 'tokens' as *;
+
+// The link takes the editor's link colour (ProseMirror.scss); this adds the
+// type icon and a hover / selected tint.
+@layer app.components {
+  .document_link {
+    &-anchor {
+      display: inline-flex;
+      align-items: center;
+      gap: space(1);
+      border-radius: radius('default');
+      @include transition(background-color);
+
+      &:hover {
+        background: color(accent);
+      }
+    }
+
+    &.ProseMirror-selectednode &-anchor {
+      background: color(accent);
+    }
+
+    &-icon {
+      flex-shrink: 0;
+      width: space(3.5);
+      height: space(3.5);
+    }
+
+    &-missing {
+      color: color(muted-foreground);
+      font-style: italic;
+      user-select: none;
+    }
+  }
+}

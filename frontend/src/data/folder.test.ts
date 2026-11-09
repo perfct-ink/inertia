@@ -1,5 +1,5 @@
 import type { Document, Folder, SpaceFolder } from '@/types'
-import { documentsIn, filterSpaceFiles, flattenFolders, folderChoices, projectLastModified, projectsOf, searchSpaceFiles, spaceFiles, folderTrail, featureFoldersOf, homeDocumentToOpen, sortFileRows, uploadedFiles } from './folder'
+import { documentsIn, filterSpaceFiles, flattenFolders, folderChoices, projectLastModified, projectsOf, searchSpaceFiles, spaceFiles, folderTrail, featureFoldersOf, homeDocumentToOpen, sortFileRows, uploadedFiles, findDocument } from './folder'
 import type { FileRow } from './folder'
 
 const folder = (id: number, children: Folder[] = []) => ({ id, name: `F${id}`, children }) as unknown as Folder
@@ -133,4 +133,10 @@ test('uploadedFiles lists the uploaded files of the whole tree and skips other d
   nested[0].documents = [file(10), doc(1, 'Readme')]
   nested[0].children![0].children![0].documents = [file(11)]
   expect(uploadedFiles(nested).map((d) => d.id)).toEqual([10, 11])
+})
+
+test('findDocument finds a document anywhere in the Space, or nothing', () => {
+  expect(findDocument(tree(), 3)?.title).toBe('Mockups')
+  expect(findDocument(tree(), 1)?.title).toBe('Readme')
+  expect(findDocument(tree(), 99)).toBeUndefined()
 })

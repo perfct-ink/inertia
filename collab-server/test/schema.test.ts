@@ -8,8 +8,8 @@ import { schema } from "../src/schema.js";
 describe("schema", () => {
   it("has exactly the node types DocumentPage.tsx's editor extensions produce", () => {
     expect(Object.keys(schema.nodes).sort()).toEqual([
-      "audio", "bulletList", "codeBlock", "doc", "fileAttachment", "hardBreak", "heading",
-      "horizontalRule", "image", "listItem", "orderedList", "paragraph", "table", "tableCell",
+      "audio", "bulletList", "codeBlock", "doc", "documentLink", "fileAttachment", "hardBreak",
+      "heading", "horizontalRule", "image", "listItem", "orderedList", "paragraph", "table", "tableCell",
       "tableHeader", "tableRow", "text", "video", "workspaceTaskItem", "workspaceTaskList",
     ]);
   });
@@ -39,5 +39,14 @@ describe("schema", () => {
     const dashed = schema.nodeFromJSON({ type: "bulletList", attrs: { listStyle: "dashed" }, content: [item] });
     expect(dashed.attrs).toEqual({ listStyle: "dashed" });
     expect(schema.nodeFromJSON({ type: "bulletList", content: [item] }).attrs).toEqual({ listStyle: "bullet" });
+  });
+
+  it("keeps the target of a document link inside a paragraph", () => {
+    const paragraph = schema.nodeFromJSON({
+      type: "paragraph",
+      content: [{ type: "documentLink", attrs: { documentId: 12 } }],
+    });
+    expect(paragraph.firstChild?.type.name).toBe("documentLink");
+    expect(paragraph.firstChild?.attrs).toEqual({ documentId: 12 });
   });
 });

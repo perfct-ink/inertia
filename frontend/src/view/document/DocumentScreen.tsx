@@ -56,6 +56,7 @@ import {
   Loader2,
   FileX,
   Paperclip,
+  FileSymlink,
 } from 'lucide-react'
 import WorkspaceLayout from '@/components/WorkspaceLayout'
 import { useDocument, useUpdateDocument } from '@/api/documents'
@@ -75,6 +76,7 @@ import ParagraphStylePicker from '@/components/ParagraphStylePicker'
 import DashedListButton from '@/components/DashedListButton'
 import ToolbarBtn from '@/components/DocumentToolbarButton'
 import DocumentBacklinks from '@/components/DocumentBacklinks'
+import DocumentLinkPicker from '@/components/DocumentLinkPicker'
 import TableEditor from '@/components/editors/TableEditor'
 import SpreadsheetEditor from '@/components/editors/SpreadsheetEditor'
 import HeadingLinkPicker from '@/components/HeadingLinkPicker'
@@ -85,6 +87,7 @@ import Video from '@/extensions/Video'
 import { AudioAttachment, FileAttachment } from '@/extensions/Attachment'
 import { DashedList, StyledListItem } from '@/extensions/DashedList'
 import { WorkspaceTaskList } from '@/extensions/WorkspaceTaskList'
+import { DocumentLink } from '@/extensions/DocumentLink'
 import { WorkspaceTaskItem } from '@/extensions/WorkspaceTaskItem'
 import { EditorShortcuts } from '@/extensions/EditorShortcuts'
 import { withoutShortcuts } from '@/extensions/withoutShortcuts'
@@ -137,6 +140,9 @@ export default function DocumentScreen({ id }: { id?: number }) {
   const { data: workspace } = useWorkspace()
   const user = useAuthStore((s) => s.user)
   const [linkDialogOpen, setLinkDialogOpen] = useState(false)
+  // The "Link to a document" picker: null while closed, '' when opened from the toolbar,
+  // otherwise the trigger the user typed ("[[" or "@"), which is put back if they cancel.
+  const [docLinkTrigger, setDocLinkTrigger] = useState<string | null>(null)
   const [tasksOnly, setTasksOnly] = useState(false)
   // The document's content while the "Link to a heading" dialog is open (null when closed).
   const [headingLinkContent, setHeadingLinkContent] = useState<Record<string, unknown> | null>(null)
@@ -226,6 +232,7 @@ export default function DocumentScreen({ id }: { id?: number }) {
       StyledListItem,
       WorkspaceTaskList,
       WorkspaceTaskItem,
+      DocumentLink.configure({ onTrigger: setDocLinkTrigger }),
       ShortcutCodeBlock,
       EditorShortcuts.configure({ openLinkDialog: () => setLinkDialogOpen(true) }),
       HorizontalRule.extend({
@@ -719,6 +726,11 @@ export default function DocumentScreen({ id }: { id?: number }) {
             title="Link to a heading"
           />
           <ToolbarBtn
+            icon={<FileSymlink className="document-toolbar_icon" />}
+            onClick={() => setDocLinkTrigger('')}
+            title="Link to a document ([[ or @)"
+          />
+          <ToolbarBtn
             icon={<Paperclip className="document-toolbar_icon" />}
             onClick={() => fileInputRef.current?.click()}
             title="Insert image, video, audio or file"
@@ -808,6 +820,12 @@ export default function DocumentScreen({ id }: { id?: number }) {
           setBrokenLink(null)
           setHeadingLinkContent(editor.getJSON() as Record<string, unknown>)
         }}
+      />
+      <DocumentLinkPicker
+        open={docLinkTrigger !== null}
+        excludeId={docId}
+        onClose={() => { setDocLinkTrigger(null); editor.chain().focus().restoreDocumentLinkTrigger(docLinkTrigger ?? '').run() }}
+        onPick={(id) => { setDocLinkTrigger(null); editor.chain().focus().insertDocumentLink(id).run() }}
       />
       <PromptDialog
         open={linkDialogOpen}
