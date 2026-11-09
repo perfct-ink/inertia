@@ -20,7 +20,6 @@ Tailwind has been removed; the frontend uses SCSS (`frontend/src/styles/` for ap
 
 ## Acceptance criteria
 
-- Clear ESLint warnings deliberately works as described in the Objective, for a signed-in member of the Space, in the web app.
-- Anything stated in Requirements / notes (including any named default) is implemented or deliberately changed with the reason recorded.
-- Failed API calls show an error to the user.
-- Tests cover the new behaviour; a feature doc in `docs/features/` is written (or the existing one updated) and this file is removed.
+- `npm run lint` reports no warnings from the React Compiler rules (`react-hooks` `refs`, `set-state-in-effect`, `static-components`) or `exhaustive-deps`, and those rules are raised from warnings to errors so new code can't add them back.
+- Each fixed component keeps its behaviour: its tests pass, and components without tests get one before the fix.
+- `make test` and `make typecheck` pass.
