@@ -74,7 +74,8 @@ class TableFieldTypesTest < ActiveSupport::TestCase
     assert write(record, multi, "Bug, Feature").save
     assert_equal %w[Bug Feature], record.table_cells.find_by(table_field: multi).value
     assert_not write(record, multi, %w[Bug Nope]).save
-    assert_not write(record, multi, %w[Bug Bug]).save
+    assert write(record, multi, %w[Bug Bug]).save
+    assert_equal %w[Bug], record.table_cells.find_by(table_field: multi).reload.value
   end
 
   test "a select needs between one and thirty short choices, and other fields keep none" do

@@ -41,6 +41,8 @@ services:
     volumes:
       - ./backend:/rails
       - backend_bundle:/usr/local/bundle
+      # field_type_test.rb runs the same cases as the web app's fieldType.ts.
+      - ./frontend/src/data:/frontend/src/data:ro
 
   # Same major version as the shared PostgreSQL that production uses.
   postgres:
