@@ -96,3 +96,14 @@ test('says when a document has no headings, is loading, or could not be loaded',
   fireEvent.click(screen.getByRole('button', { name: /Song A/ }))
   expect(screen.getByRole('alert')).toHaveTextContent('Could not load this document.')
 })
+
+test('the dialog is titled "Link to a heading" unless told otherwise', () => {
+  renderPicker()
+  expect(screen.getByText('Link to a heading')).toBeInTheDocument()
+})
+
+test('fixing a broken link gives the dialog its own title', () => {
+  renderPicker({ title: 'Pick a new target' })
+  expect(screen.getByText('Pick a new target')).toBeInTheDocument()
+  expect(screen.queryByText('Link to a heading')).not.toBeInTheDocument()
+})

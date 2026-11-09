@@ -20,6 +20,14 @@ export interface Document {
   content?: Record<string, unknown> | null
 }
 
+// A document a link points at, as GET /api/v1/documents/link_targets answers: it
+// exists, and these are its headings (docs/features/heading_links.md).
+export interface DocumentLinkTarget {
+  id: number
+  doc_type: Document['doc_type']
+  headings: { id: string | null; text: string; level: number }[]
+}
+
 export type FolderKind = 'folder' | 'project' | 'feature'
 export type FeatureStatus = 'planned' | 'active' | 'done'
 export type ProjectStatus = 'planned' | 'active' | 'on_hold' | 'done'

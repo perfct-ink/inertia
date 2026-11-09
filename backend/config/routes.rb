@@ -49,6 +49,10 @@ Rails.application.routes.draw do
         end
       end
 
+      # Which linked documents still exist, with their headings. Before the
+      # documents routes below, which would read "link_targets" as an id.
+      get "documents/link_targets", to: "document_link_targets#index"
+
       resources :folders do
         resources :documents, shallow: true do
           member do

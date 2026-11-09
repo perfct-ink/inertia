@@ -65,8 +65,10 @@ function HeadingList({ documentId, title, isCurrent, currentContent, onBack, onP
 
 // Two steps in one dialog: search the Space's documents, then pick one of that
 // document's headings. Enter in the search picks the first match.
-export default function HeadingLinkPicker({ open, currentDocumentId, currentContent, onPick, onClose }: {
+export default function HeadingLinkPicker({ open, title = 'Link to a heading', currentDocumentId, currentContent, onPick, onClose }: {
   open: boolean
+  // The dialog's title ("Pick a new target" when fixing a broken link).
+  title?: string
   currentDocumentId: number
   // The content of the document being edited, as the editor holds it now.
   currentContent: Record<string, unknown> | null
@@ -92,7 +94,7 @@ export default function HeadingLinkPicker({ open, currentDocumentId, currentCont
   return (
     <Modal
       open={open}
-      title="Link to a heading"
+      title={title}
       description={chosen ? 'Choose the heading to link to.' : 'Choose the document the heading is in.'}
       onClose={onClose}
     >

@@ -32,7 +32,7 @@ One file per implemented feature, written from the code (see `docs/rules/feature
 | Move or copy documents and folders between Spaces | [space_transfer.md](space_transfer.md) |
 | Collection map view: records with coordinates as pins on a map | [collection_map_view.md](collection_map_view.md) |
 | Project intake: request a project, an admin approves or declines | [project_intake.md](project_intake.md) |
-| Links to headings: stable heading ids, a toolbar picker and in-app jumps | [heading_links.md](heading_links.md) |
+| Links to headings: stable heading ids, a toolbar picker, in-app jumps, and broken links shown struck through with a fix dialog | [heading_links.md](heading_links.md) |
 | Configurable statuses: rename and recolor the task statuses per Space or folder | [configurable_statuses.md](configurable_statuses.md) |
 | Uploaded files: any file type as a folder item, with preview and download | [uploaded_files.md](uploaded_files.md) |
 | Appearance: light/dark/system and Slack-style colour themes | [appearance.md](appearance.md) |
