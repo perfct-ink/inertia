@@ -81,6 +81,10 @@ import Video from '@/extensions/Video'
 import { AudioAttachment, FileAttachment } from '@/extensions/Attachment'
 import { WorkspaceTaskList } from '@/extensions/WorkspaceTaskList'
 import { WorkspaceTaskItem } from '@/extensions/WorkspaceTaskItem'
+import { EditorShortcuts } from '@/extensions/EditorShortcuts'
+import { withoutShortcuts } from '@/extensions/withoutShortcuts'
+import { replacedKeys, titleWithShortcut } from '@/data/editorShortcut'
+import { insertTaskList } from '@/util/editorCommand'
 import './ProseMirror.scss'
 import './DocumentScreen.scss'
 import { useTabsStore } from '@/store/tabs'
@@ -91,6 +95,13 @@ import { useFollowDocumentLinks, useScrollToHeading } from '@/hooks/useHeadingLi
 import { extractTitle, buildInitialContent, selectionTaskTitle, taskListContent } from '@/data/document'
 import { attachmentContent, pastedFiles, uploadProblem } from '@/data/attachment'
 import { colorForUserId } from '@/util/color'
+
+// These four lose the default keys the editor's shortcut table replaces
+// (data/editorShortcut.ts), so one keystroke never does two things.
+const ShortcutStrike = withoutShortcuts(Strike, replacedKeys('strike'))
+const ShortcutBulletList = withoutShortcuts(BulletList, replacedKeys('bulletList'))
+const ShortcutOrderedList = withoutShortcuts(OrderedList, replacedKeys('orderedList'))
+const ShortcutCodeBlock = withoutShortcuts(CodeBlock, replacedKeys('codeBlock'))
 
 // Enforce: document always starts with a heading followed by body content
 const CustomDocument = TiptapDocument.extend({ content: 'heading block*' })
@@ -207,15 +218,16 @@ export default function DocumentScreen() {
       Bold,
       Italic,
       Underline,
-      Strike,
+      ShortcutStrike,
       Code,
       HeadingAnchor.configure({ levels: [1, 2, 3, 4, 5] as (1 | 2 | 3 | 4 | 5 | 6)[] }),
-      BulletList,
-      OrderedList,
+      ShortcutBulletList,
+      ShortcutOrderedList,
       ListItem,
       WorkspaceTaskList,
       WorkspaceTaskItem,
-      CodeBlock,
+      ShortcutCodeBlock,
+      EditorShortcuts,
       HorizontalRule.extend({
         addCommands() {
           return {
@@ -622,7 +634,7 @@ export default function DocumentScreen() {
             icon={<Strikethrough className="document-toolbar_icon" />}
             onClick={() => editor.chain().focus().toggleStrike().run()}
             active={editor.isActive('strike')}
-            title="Strikethrough"
+            title={titleWithShortcut('Strikethrough', 'strike')}
           />
           <ToolbarBtn
             icon={<CodeIcon className="document-toolbar_icon" />}
@@ -635,28 +647,19 @@ export default function DocumentScreen() {
             icon={<List className="document-toolbar_icon" />}
             onClick={() => editor.chain().focus().toggleBulletList().run()}
             active={editor.isActive('bulletList')}
-            title="Bullet list"
+            title={titleWithShortcut('Bullet list', 'bulletList')}
           />
           <ToolbarBtn
             icon={<ListOrdered className="document-toolbar_icon" />}
             onClick={() => editor.chain().focus().toggleOrderedList().run()}
             active={editor.isActive('orderedList')}
-            title="Numbered list"
+            title={titleWithShortcut('Numbered list', 'orderedList')}
           />
           <ToolbarBtn
             icon={<ListChecks className="document-toolbar_icon" />}
-            onClick={() => {
-              const { state, dispatch } = editor.view
-              const { workspaceTaskList, workspaceTaskItem, paragraph } = state.schema.nodes
-              const node = workspaceTaskList.create(null, [
-                workspaceTaskItem.create(null, paragraph.create()),
-              ])
-              const tr = state.tr.replaceSelectionWith(node)
-              dispatch(tr)
-              editor.commands.focus()
-            }}
+            onClick={() => insertTaskList(editor)}
             active={editor.isActive('workspaceTaskList')}
-            title="Task list"
+            title={titleWithShortcut('Task list', 'taskList')}
           />
           <ToolbarBtn
             icon={<ListPlus className="document-toolbar_icon" />}
@@ -679,7 +682,7 @@ export default function DocumentScreen() {
             icon={<Code2 className="document-toolbar_icon" />}
             onClick={() => editor.chain().focus().toggleCodeBlock().run()}
             active={editor.isActive('codeBlock')}
-            title="Code block"
+            title={titleWithShortcut('Code block', 'codeBlock')}
           />
           <ToolbarBtn
             icon={<Minus className="document-toolbar_icon" />}

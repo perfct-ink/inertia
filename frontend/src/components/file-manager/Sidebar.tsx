@@ -34,6 +34,7 @@ import logoMark from '@/assets/logo-mark.svg'
 import { todayISO } from '@/util/date'
 import { isElectron } from '@/util/platform'
 import { isShortcut, shortcutAvailable, shortcutKey, shortcutLabel } from '@/util/shortcuts'
+import { documentShortcutRows } from '@/data/editorShortcut'
 
 // Kept in sync by hand with the onKey handler below — there's only one
 // place global shortcuts are bound, so this is just their display copy.
@@ -460,6 +461,14 @@ export default function Sidebar() {
                 <div key={keys} className="sidebar-shortcut">
                   <span>{label}</span>
                   <kbd className="sidebar-kbd">{shortcutLabel(keys)}</kbd>
+                </div>
+              ))}
+              {/* The editor's own keys (data/editorShortcut.ts); the browser ⌥ rules above don't apply to them. */}
+              <h3 className="sidebar-shortcuts_group">In a document</h3>
+              {documentShortcutRows().map(({ keys, label }) => (
+                <div key={label} className="sidebar-shortcut">
+                  <span>{label}</span>
+                  <kbd className="sidebar-kbd">{keys}</kbd>
                 </div>
               ))}
             </div>
