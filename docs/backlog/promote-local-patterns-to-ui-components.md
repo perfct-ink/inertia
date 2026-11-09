@@ -13,6 +13,8 @@ Promote repeated local patterns into `components/ui`
 
 Underline-only input/select, muted-text link, icon-size helper, danger-hover icon button, tab/segmented control, sortable table header, save-status indicator.
 
+**Go ahead now** (Alex, 2026-11-09 groom): build these as Inertia's own `components/ui` components; don't wait for the Volta release. They can move onto Volta's components later.
+
 ## Context
 
 Section "Frontend conventions follow-up" of the retired shared backlog.
