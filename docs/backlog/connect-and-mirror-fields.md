@@ -1,8 +1,9 @@
 ---
 priority: p1
-depends_on: []
+depends_on: [collection-field-types]
 components: [frontend, backend]
 branch: backlog/connect-and-mirror-fields
+status: incomplete
 ---
 # Connect / Mirror: link items across boards and show a field from the linked item
 
@@ -38,3 +39,6 @@ Checks that did not run: `npm run lint`, `tsc`, the full `npm test`, `rails test
 Checks that ran: the `data/mirror` tests through the offline shim; `MirrorFieldForm.test.tsx` with a sibling checkout's Jest; `TableEditor.test.tsx` and `TableEditor.mirror.test.tsx` with stand-ins for react-query, axios and the API base class (16 tests passed); Ruby syntax checks; the `TableMirrors` logic with plain stand-in objects; `/tmp/runner/all.sh`.
 
 To verify and merge: `cd frontend && npm install && npm run lint && npm test`; `cd backend && rails db:migrate` (diff `db/schema.rb`), `rails test` (new: `table_mirror_test.rb`, `table_mirrors_controller_test.rb`, `space_transfer_mirror_test.rb`); then open a Collection at 375px and desktop, light and dark, add a relation field and a Mirror field through it, link a record and see the value appear. Merge hazards: `TableField`, `TableCell`, `tables_controller.rb`, `schema.rb`, `api/tables.ts`, `TableEditor.tsx` and its SCSS are shared with the open collection-field-types and one-to-many branches; the migration version is `20261101170001`. Remove this file when merged.
+
+## Waiting on collection-field-types (2026-11-08)
+The built Mirror field edits `TableField`, `TableCell`, `tables_controller.rb`, `api/tables.ts`, `TableEditor.tsx`/`.scss` and `schema.rb`, the same lines the p0 `collection-field-types` branch rewrites (field types moved to `field_type.rb` / `data/fieldType.ts`). `depends_on` now names it so this branch is picked up again, rebased on main, after that one merges; rebasing it now would only redo the work twice. Migration `20261101170001` is already allocated.
