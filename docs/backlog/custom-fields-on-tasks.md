@@ -1,6 +1,6 @@
 ---
 priority: p1
-depends_on: []
+depends_on: [collection-field-types]
 components: [backend]
 ---
 # Custom fields on tasks
@@ -12,6 +12,8 @@ components: [backend]
 ## Requirements / notes
 
 Today (checked 2026-11-09): Spaces can already define task fields of five kinds (tags, dropdown, checkbox, rating, vote) in their own `task_fields` / `task_field_values` tables (`docs/features/task_fields.md`), not the Collection `table_fields` type system. What's missing is the other common kinds: text, number, date, person, URL and so on.
+
+**Decision (Alex, 2026-11-09 groom): reuse Collection types.** Task fields can use every Collection field type (text, number, date, person, email, money and the rest from `collection-field-types.md`), sharing their validation and formats, so each new type works in both places. Keep the five existing task kinds working.
 
 ## Context
 
