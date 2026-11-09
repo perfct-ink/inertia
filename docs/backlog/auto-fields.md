@@ -8,6 +8,11 @@ depends_on: []
 
 Auto fields: item ID, creation log, last updated, created by
 
+## Requirements / notes
+
+- Applies to **tasks** (Collections get created/updated time and auto-number in `collection-field-types.md`).
+- **Detail panel only** (Alex, 2026-11-09 groom): item ID, created by, created at and last updated show in the task's detail panel. The task table doesn't get new columns for them.
+
 ## Context
 
 Section "Item fields (Monday "column types")" of the retired shared backlog.
