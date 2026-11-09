@@ -33,7 +33,7 @@ class PathsControllerTest < ActionDispatch::IntegrationTest
   test "a document path resolves to the document" do
     lookup "product/feature-folders/requirements"
     assert_response :success
-    assert_equal({ "type" => "document", "id" => @spec.id, "path" => "/product/feature-folders/requirements", "moved" => false }, response.parsed_body)
+    assert_equal({ "type" => "document", "id" => @spec.id, "path" => "/product/feature-folders/requirements", "moved" => false }, response.parsed_body.except("workspace"))
   end
 
   test "a folder path resolves to the folder, whatever the case or slashes" do
@@ -105,5 +105,114 @@ class PathsControllerTest < ActionDispatch::IntegrationTest
   test "signing in is required" do
     lookup "product", headers: {}
     assert_response :unauthorized
+  end
+
+  # The address does not name a Space: these cover finding the item in another
+  # Space the person belongs to, and never beyond.
+
+  def shared_space(name, folder: "Handbook", document: "Onboarding", role: :viewer, owner_email: nil)
+    owner = User.create!(name: "#{name} owner", email: owner_email || "paths-#{name.parameterize}@example.com", password: "password123")
+    space = Workspace.create!(name: name, user: owner)
+    space.memberships.create!(user: @user, role: role) if role
+    handbook = space.folders.create!(name: folder)
+    handbook.documents.create!(title: document, created_by: owner)
+    space
+  end
+
+  test "a path in another Space the person belongs to opens there, and says which Space" do
+    team = shared_space("Studio")
+
+    lookup "handbook/onboarding"
+
+    assert_response :success
+    body = response.parsed_body
+    assert_equal "document", body["type"]
+    assert_equal "/handbook/onboarding", body["path"]
+    assert_not body["moved"]
+    assert_equal({ "id" => team.id, "name" => "Studio", "personal" => false, "role" => "viewer", "root_folder_id" => team.reload.root_folder_id }, body["workspace"])
+    assert_equal team.folders.find_by(slug: "handbook").documents.first.id, body["id"]
+  end
+
+  test "the Space in the answer is the Space the item is in, also for the current one" do
+    lookup "product"
+    assert_response :success
+    assert_equal @workspace.id, response.parsed_body.dig("workspace", "id")
+    assert_equal true, response.parsed_body.dig("workspace", "personal")
+  end
+
+  test "a Space reached only through a team counts" do
+    space = shared_space("Agency", role: nil)
+    space.teams.create!(name: "Design", role: :member).memberships.create!(user: @user)
+
+    lookup "handbook/onboarding"
+
+    assert_response :success
+    assert_equal space.id, response.parsed_body.dig("workspace", "id")
+    assert_equal "member", response.parsed_body.dig("workspace", "role")
+  end
+
+  test "an old path in another Space redirects there" do
+    space = shared_space("Studio")
+    space.folders.find_by(slug: "handbook").update!(name: "Guide")
+
+    lookup "handbook/onboarding"
+
+    assert_response :success
+    assert_equal "/guide/onboarding", response.parsed_body["path"]
+    assert response.parsed_body["moved"]
+    assert_equal space.id, response.parsed_body.dig("workspace", "id")
+  end
+
+  test "when two Spaces hold the same path the current Space wins" do
+    other = shared_space("Studio", folder: "Product", document: "Roadmap")
+
+    lookup "product"
+    assert_equal @workspace.id, response.parsed_body.dig("workspace", "id")
+
+    lookup "product", headers: @headers.merge("X-Workspace-Id" => other.id.to_s)
+    assert_response :success
+    assert_equal other.id, response.parsed_body.dig("workspace", "id")
+    assert_equal other.folders.find_by(slug: "product").id, response.parsed_body["id"]
+  end
+
+  test "when the current Space does not hold the path, the lowest Space id among the others wins" do
+    first = shared_space("First")
+    second = shared_space("Second")
+    assert_operator first.id, :<, second.id
+
+    lookup "handbook/onboarding"
+    assert_equal first.id, response.parsed_body.dig("workspace", "id")
+
+    lookup "handbook/onboarding", headers: @headers.merge("X-Workspace-Id" => second.id.to_s)
+    assert_equal second.id, response.parsed_body.dig("workspace", "id")
+  end
+
+  test "a path in a Space the person does not belong to is the same 404 as a path that names nothing" do
+    stranger = shared_space("Private", folder: "Secret", document: "Plan", role: nil)
+
+    lookup "secret/plan"
+    secret_status = response.status
+    secret_body = response.body
+    lookup "nothing/plan"
+
+    assert_response :not_found
+    assert_equal 404, secret_status
+    assert_equal response.body, secret_body
+
+    # Naming that Space in the header gives the same answer too.
+    lookup "secret/plan", headers: @headers.merge("X-Workspace-Id" => stranger.id.to_s)
+    assert_response :not_found
+    assert_equal response.body, secret_body
+  end
+
+  test "a Space the person left no longer answers" do
+    space = shared_space("Studio")
+    lookup "handbook/onboarding"
+    assert_response :success
+
+    space.memberships.find_by(user: @user).destroy!
+
+    lookup "handbook/onboarding"
+    assert_response :not_found
   end
 end
