@@ -52,7 +52,7 @@ class DocumentLinkTest < ActiveSupport::TestCase
 
     @a.update!(content: doc_with(paragraph(document_link(@c.id))))
     assert_equal [ @c.id ], @a.reload.outgoing_links.pluck(:target_document_id)
-    assert_empty @b.linking_documents
+    assert_empty @b.reload.linking_documents
   end
 
   test "a heading link counts as a link, and a link repeated in the text is recorded once" do
