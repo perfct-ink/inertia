@@ -207,6 +207,6 @@ test('each style that has a key shows it beside its name in the list, and Captio
   expect(hints('Title')).toBe('⌘⌥7')
   expect(hints('Heading 1')).toBe('⌘⌥1')
   expect(hints('Body')).toBe('⌘⌥0')
-  expect(hints('Monospace')).toBe('⌘⇧M')
+  expect(hints('Monospace')).toBeUndefined()
   expect(hints('Caption')).toBeUndefined()
 })

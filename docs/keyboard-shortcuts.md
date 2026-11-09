@@ -85,7 +85,7 @@ Keys the editor never binds on Windows and Linux, because the browser or the des
 
 ### Paragraph styles
 
-The built-in paragraph styles (see `docs/features/paragraph_styles.md`) have `⌘⌥` plus a digit, like Google Docs' headings, except Monospace, which has `⌘⇧M` as in Apple Notes. The table is `PARAGRAPH_STYLE_SHORTCUTS` in `frontend/src/data/paragraphStyleShortcut.ts`; `extensions/ParagraphStyleShortcuts.ts` binds it, the Style menu shows each key beside its style, the `⌘/` sheet lists them, and a test fails if this table stops listing one. Digits are used because browsers keep `⌘N`, `⌘T` and `⌘W`, and `⌃⌘1`–`⌃⌘9` stay free for keys people assign to a style themselves (`paragraph-style-keystrokes`).
+The built-in paragraph styles (see `docs/features/paragraph_styles.md`) have `⌘⌥` plus a digit, like Google Docs' headings (`Ctrl+Alt` on Windows and Linux). The table is `PARAGRAPH_STYLE_SHORTCUTS` in `frontend/src/data/paragraphStyleShortcut.ts`; `extensions/ParagraphStyleShortcuts.ts` binds it, the Style menu shows each key beside its style, the `⌘/` sheet lists them, and a test fails if this table stops listing one. Digits are used because browsers keep `⌘N`, `⌘T` and `⌘W`, and `⌃⌘1`–`⌃⌘9` stay free for keys people assign to a style themselves (`paragraph-style-keystrokes`). `⌘⌥7`, `⌘⌥8` and `⌘⌥9` are the reserved keys above.
 
 | Keys | Style | Bound by |
 |------|-------|----------|
@@ -94,20 +94,11 @@ The built-in paragraph styles (see `docs/features/paragraph_styles.md`) have `�
 | `⌘⌥1` | Heading 1 | TipTap's Heading (toggles it) |
 | `⌘⌥2` | Heading 2 | TipTap's Heading |
 | `⌘⌥3` | Heading 3 | TipTap's Heading |
-| `⌘⌥0` | Body | the style table (TipTap's Paragraph has the same key) |
+| `⌘⌥0` | Body | the style table (the same plain paragraph as Normal text above) |
 | `⌘⌥9` | Quote | the style table |
-| `⌘⇧M` | Monospace | the style table |
-| `⌘⌥4`, `⌘⌥5`, `⌘⌥6` | Heading 4, 5, 6 | TipTap's Heading (these have no entry in the Style menu) |
+| `⌘⌥4`, `⌘⌥5` | Heading 4, 5 | TipTap's Heading (these have no entry in the Style menu) |
 
-Heading 1 to 6 are `⌘⌥1` to `⌘⌥6` (Alex's call). Caption has no default key yet: neither Apple Notes nor Google Docs has one, and Alex hasn't chosen one.
-
-`⌘⇧M` is Monospace by Alex's decision (2026-11-06). In Chrome on a Mac that key is the browser's own profile menu, so it may not reach the page there; Safari and the Mac app pass it on.
-
-Clashes, checked against the Apple Notes map below and the branch that builds it (`backlog/rebind-editor-shortcuts-to-apple-notes-map`, `data/shortcuts.ts`):
-
-- Keys: `⌘⌥0` is shared: that branch binds it as "Normal text" to the same plain-paragraph command. Harmless when both merge, but drop one of the two. `⌘⇧M` is shared too, and not harmless (code block there, Monospace here). `⌘⌥7`, `⌘⌥8` and `⌘⌥9` are not used there.
-- Meaning: its Title / Heading / Subheading keys `⌘⇧T` / `⌘⇧H` / `⌘⇧J` make Heading 1 / 2 / 3, while here Title is a style of its own (`⌘⌥7`). Its `⌘⇧M` makes a code block, but `⌘⇧M` is Monospace here, so that branch has to give the code block another key.
-- macOS Zoom, if switched on in System Settings, takes `⌥⌘8` before the page does.
+Caption and Monospace have no key. `⌘⇧M` stays the code block: Alex decided on 2026-11-09 that Monospace and the code block are one thing, and making them one is `code-blocks-with-language-and-syntax-highlighting`; until then the Monospace style is chosen from the menu. The editor allows headings 1 to 5. macOS Zoom, if switched on in System Settings, takes `⌥⌘8` before the page does.
 
 Task items (`frontend/src/extensions/WorkspaceTaskItem.tsx`):
 
@@ -154,22 +145,6 @@ The rest of the work is split into tasks in `docs/backlog/`: `editor-vs-global-s
 | Insert link | `⌘K` | `⌘K` | `⌘K` inside the editor | `editor-vs-global-shortcut-clashes` (`⌘K` is the global quick-add) |
 | Table | `⌥⌘T` | (none) | `⌥⌘T` | `editor-vs-global-shortcut-clashes`: in a browser `⌥⌘T` is the global New task, so it can't be bound until that is settled |
 | Align left / center / right / justify | (none) | `⌘⇧L` / `⌘⇧E` / `⌘⇧R` / `⌘⇧J` | center/right/justify from Docs; left can't use `⌘⇧L` (checklist), so left is menu-only | not built: needs a text-align extension, a stored attribute and the collab schema; `⌘⇧E` and `⌘⇧J` would also fire the global New event and New idea, which ignore Shift |
-| Bold / italic / underline | `⌘B` `⌘I` `⌘U` | same | same | matches |
-| Strikethrough | `⌘⇧X` | `⌘⇧X` | `⌘⇧X` | `⌘⇧S` |
-| Title / Heading / Subheading / Body | `⌘⇧T` / `⌘⇧H` / `⌘⇧J` / `⌘⇧B` | (none) | Notes keys → H1 / H2 / H3 / paragraph | not bound |
-| Heading 1–6, normal text | (none) | `⌘⌥1`–`6`, `⌘⌥0` | Docs keys | `⌘⌥1`–`5` match; `⌘⌥0` is the Body style (see Paragraph styles) |
-| Monospaced / code block | `⌘⇧M` | (none) | `⌘⇧M` | `⌘⌥C` |
-| Bulleted list | `⌘⇧7` | `⌘⇧8` | **`⌘⇧7`** (Notes wins) | `⌘⇧8` |
-| Dashed list | `⌘⇧8` | (bullets) | **`⌘⇧8`** dashed list (Notes wins) | bulleted list |
-| Numbered list | `⌘⇧9` | `⌘⇧7` | **`⌘⇧9`** (Notes wins) | `⌘⇧7` |
-| Checklist (task item) | `⌘⇧L` | `⌘⇧9` | **`⌘⇧L`** (Notes wins) | not bound |
-| Mark checklist item done | `⌘⇧U` | (none) | `⌘⇧U` | not bound |
-| Insert link | `⌘K` | `⌘K` | `⌘K` inside the editor | `⌘K` is the global quick-add |
-| Indent / outdent | `⌘]` / `⌘[` | `⌘]` / `⌘[` | same, plus Tab / Shift+Tab in lists | Tab only in task lists |
-| Move list item up / down | `⌃⌘↑` / `⌃⌘↓` | (none) | Notes keys | not bound |
-| Table | `⌥⌘T` | (none) | `⌥⌘T` | not bound |
-| Align left / center / right / justify | (none) | `⌘⇧L` / `⌘⇧E` / `⌘⇧R` / `⌘⇧J` | center/right/justify from Docs; left can't use `⌘⇧L` (checklist) or `⌘⇧J` (Subheading), so left is menu-only | not present |
-| Clear formatting | (none) | `⌘\` | `⌘\` | not bound |
 | Comment | (none) | `⌘⌥M` | `⌘⌥M` (with `comments-on-documents.md`) | n/a |
 | Superscript / subscript | (none) | `⌘.` / `⌘,` | Docs keys | not built: needs the marks and the collab schema |
 | Markdown-style typing (`- `, `1. `, `# `, `[] `) | partial | partial | keep TipTap's input rules | works |
