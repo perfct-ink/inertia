@@ -2,15 +2,15 @@
 priority: p1
 depends_on: []
 ---
-# Attach uploaded files to tasks and features
+# Attach uploaded files to tasks
 
 ## Objective
 
-Attach uploaded files to tasks and features
+Attach uploaded files to tasks
 
 ## Requirements / notes
 
-A feature is an epic with a requirements document (`features-with-requirements-docs.md`); `feature-folder-type.md` was retired.
+Tasks only (Alex, 2026-11-09 groom). Features are left out: a feature's requirements document (`features-with-requirements-docs.md`) can already hold embedded files.
 
 ## Context
 
@@ -24,7 +24,7 @@ Today (checked 2026-11-09): any file type can be uploaded as a folder item (`doc
 
 ## Acceptance criteria
 
-- Attach uploaded files to tasks and features works as described in the Objective, for a signed-in member of the Space, in the web app.
+- Attach uploaded files to tasks works as described in the Objective, for a signed-in member of the Space, in the web app.
 - Anything stated in Requirements / notes (including any named default) is implemented or deliberately changed with the reason recorded.
 - Failed API calls show an error to the user.
 - Tests cover the new behaviour; a feature doc in `docs/features/` is written (or the existing one updated) and this file is removed.
