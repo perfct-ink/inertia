@@ -1,7 +1,8 @@
 ---
 priority: p0
-depends_on: []
+depends_on: [collection-field-types]
 branch: backlog/collection-one-to-many-relationships
+status: incomplete
 components: [frontend, backend]
 ---
 # One-to-many relationships
@@ -37,3 +38,6 @@ Requested by Alex on 2026-10-18: tables should be called **Collections**; collec
 
 ## Blocked
 Implemented on `backlog/collection-one-to-many-relationships` (see `docs/features/collection_relationships.md`). Lookup and rollup fields are not built. Not run (no gems, DB or node_modules offline): `rails test`, `rails db:migrate` (then diff `db/schema.rb`, edited by hand; migration 20261019000028), `npm run lint`, type-check, Jest.
+
+## Waiting on collection-field-types (2026-11-08)
+This 2026-10-19 branch adds a many-record relation field type to `TableField` / `TableCell` / `TableEditor.tsx` / `api/tables.ts`, the same code the p0 `collection-field-types` branch rewrites (`FieldType`, `data/fieldType.ts`, `FieldCell.tsx`). It is about 350 commits behind `main` and its migration `20261019000028` predates the newest ones, so it is rebased and finished after `collection-field-types` merges: the many-record relation becomes a `LINKED` entry in `FieldType` and `FIELD_TYPES`, with its own vector rows. `depends_on` now names it so the order is picked up. `import-yaml-or-json-into-collection` depends on this task (nested lists become related Collections).
