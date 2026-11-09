@@ -1,6 +1,6 @@
 ---
 priority: p1
-depends_on: [link-to-another-document]
+depends_on: []
 ---
 # Broken-link handling when a target doc or heading is deleted
 
@@ -18,7 +18,7 @@ Section "Document linking, navigation and URLs" of the retired shared backlog.
 
 Requested by Alex on 2026-10-13.
 
-Today: the editor has a plain Link extension (any URL) but no picker for internal documents or headings, and headings have no stable anchors. Routes are flat ids (`/documents/:id`, `/folders/:id`, see `frontend/src/App.tsx`); there are no slugs. Opening a folder shows its contents (`FolderDetailPage.tsx`); a folder has no home document.
+Today (checked 2026-11-09): document and heading links exist through the heading link picker (`docs/features/heading_links.md`). Following a link to a deleted heading opens the document and shows "That heading is no longer in this document" after 6 s; nothing marks the link itself as broken beforehand, and a link to a deleted document isn't handled.
 
 ## Acceptance criteria
 
