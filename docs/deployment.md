@@ -44,6 +44,7 @@ Set these in the resource's **Environment Variables** tab in Coolify. Only `RAIL
 | `COLLAB_URL` | web (build) | Public WebSocket URL, `wss://inertia.it.com/collab`. |
 | `CORS_ORIGINS` | api | Defaults to the public origin plus `capacitor://localhost` (iOS app). |
 | `OAUTH_CALLBACK_BASE_URL`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `APPLE_CLIENT_ID`, `APPLE_TEAM_ID`, `APPLE_KEY_ID`, `APPLE_PRIVATE_KEY` | api | Social sign-in; each provider stays off while its values are empty. |
+| `ANTHROPIC_API_KEY` | api | Anthropic API key for AI workers. Mark it as a secret. Empty (the default) keeps workers off: queued runs fail with "No AI client is configured". With a key, task text is sent to Anthropic's API when a worker runs. Read once at boot, so changing it needs a restart. |
 
 `APP_URL` and `COLLAB_URL` are build arguments: changing them needs a redeploy, not a restart. Never put a secret in them, since they ship to every browser.
 

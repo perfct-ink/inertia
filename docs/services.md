@@ -9,7 +9,7 @@ Every internal and external service Inertia uses, why it is used, and the config
 | Rails API | `backend/` (port 3000) | JSON API for workspaces, folders, documents, tasks, epics, events, shares and imports. Authenticates with Devise + JWT. |
 | React frontend | `frontend/` (port 5174 in dev) | The workspace UI for the browser, Electron, the Capacitor iOS shell and the Mac app's WKWebView. Built with webpack and SCSS. |
 | Collab server | `collab-server/` (port 1234) | Real-time collaborative document editing (Yjs/Hocuspocus). Holds no secrets: it asks Rails (`GET /api/v1/documents/:id`) to authenticate and authorize each connection. |
-| AI workers | `backend/app/services/ai_workers/`, `AiWorkerRunJob` | Runs a task through a language model and stores the reply on an `ai_runs` row (see `docs/features/ai_workers.md`). The model call goes through `AiWorkers.client`, which is unset by default, so runs fail with "No AI client is configured" until the Anthropic adapter is added. A run only stores text; it cannot edit tasks or documents. Jobs use the in-process queue, like the Quip import. |
+| AI workers | `backend/app/services/ai_workers/`, `AiWorkerRunJob` | Runs a task through a language model and stores the reply on an `ai_runs` row (see `docs/features/ai_workers.md`). The model call goes through `AiWorkers.client`: the Anthropic client when `ANTHROPIC_API_KEY` is set, otherwise unset, so runs fail with "No AI client is configured". A run only stores text; it cannot edit tasks or documents. Jobs use the in-process queue, like the Quip import. |
 | Native Mac app | `macos/` | SwiftUI shell for native sign-in and local `.inertia-tasks` files; loads the React workspace in WKWebView. |
 
 ## Data stores
@@ -28,7 +28,7 @@ The Docker frontend starts through `frontend/scripts/start-dev.sh`. It compares 
 | --- | --- | --- |
 | Google OAuth | "Continue with Google" sign-in. | `backend/app/services/auth/social_sign_in.rb` |
 | Sign in with Apple | "Continue with Apple" sign-in. | `backend/app/services/auth/social_sign_in.rb` |
-| Anthropic API (planned) | The AI worker's language model calls, once the adapter exists. Needs the official `anthropic` Ruby gem and `ANTHROPIC_API_KEY`; neither is wired up yet. Default model `claude-opus-5-5`. Task text is sent to Anthropic, so say so wherever workers are shown to users. | `backend/app/services/ai_workers.rb` (the client seam) |
+| Anthropic API | The AI worker's language model calls (Messages API, streamed). Active only when `ANTHROPIC_API_KEY` is set. Default model `claude-opus-5-5`. Called with plain `Net::HTTP`, not the official `anthropic` gem (adding it needs a networked `bundle add` and Alex's go-ahead; see the task file). The task's title, description and the worker's instructions are sent to Anthropic, so say so wherever workers are shown to users. Per-Space token counts are stored on each run (`ai_runs.input_tokens`, `output_tokens`). | `backend/app/services/ai_workers/anthropic_client.rb`, `backend/config/initializers/ai_workers.rb` |
 | Quip API | Importing a user's Quip folders and documents. The user supplies their own Quip token per import; it is not stored as app config. | `backend/app/services/quip/` |
 | Map tile server (optional, none chosen) | Base-map imagery under the pins of a Collection's Map view. Off unless `MAP_TILE_URL` is set at build time; without it the map is a plain latitude/longitude grid and the browser makes no request to any map server. When set, every visitor's browser requests tiles from that server (it sees their IP address and the area viewed, not the page URL: tiles are fetched with `referrerpolicy="no-referrer"`). Which provider to use, its terms, attribution and cost are undecided. OpenStreetMap's public tile servers are not meant for heavy use; a hosted provider with a key would also need the key handled (a key in `MAP_TILE_URL` ships to every browser). | `frontend/src/components/editors/CollectionMap.tsx` |
 | openstreetmap.org (link only) | The "Open in OpenStreetMap" link on a map pin opens the record's coordinates on openstreetmap.org in a new tab. Nothing is called by the app; coordinates leave only when a person clicks. | `frontend/src/util/geo.ts` (`openStreetMapUrl`) |
@@ -59,7 +59,7 @@ See [Mac social sign-in](mac-social-sign-in.md) for provider setup steps.
 | `OAUTH_CALLBACK_BASE_URL` | Public origin that receives OAuth provider callbacks. | Required for social sign-in. |
 | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | Google OAuth web client. | Optional; provider is disabled when unset. |
 | `APPLE_CLIENT_ID`, `APPLE_TEAM_ID`, `APPLE_KEY_ID`, `APPLE_PRIVATE_KEY` | Sign in with Apple (Services ID, team, key ID, `.p8` contents). | Optional; provider is disabled when unset. |
-| `ANTHROPIC_API_KEY` | Anthropic API key for AI workers. | Not read yet: the adapter that uses it is not built. Optional; workers stay off without it. |
+| `ANTHROPIC_API_KEY` | Anthropic API key for AI workers. Read once, in `backend/config/initializers/ai_workers.rb`; it is never logged, put in a response or sent to the browser. | Optional; workers stay off without it (runs fail with "No AI client is configured"). Production: set in Coolify as a secret (`docker-compose.coolify.yml`). Not passed by the dev compose, so local development never reaches Anthropic; export it before `rails server` to try it. The initializer is skipped in tests. |
 | `REDIS_URL` | Redis connection (development container). | Not used in production. |
 
 ### Frontend (`frontend/`, read at build time by webpack `DefinePlugin`)
@@ -93,7 +93,7 @@ See [Mac social sign-in](mac-social-sign-in.md) for provider setup steps.
 | --- | --- |
 | `COOLIFY_WEBHOOK`, `COOLIFY_TOKEN` | CI's deploy job: the resource's deploy URL and a Coolify API token with deploy permission. Coolify still pulls the repo through its GitHub App. |
 
-Production runtime variables on Coolify (`RAILS_MASTER_KEY`, `APP_URL`, `COLLAB_URL`, `CORS_ORIGINS`, social sign-in) are listed in [deployment.md](deployment.md#configuration).
+Production runtime variables on Coolify (`RAILS_MASTER_KEY`, `APP_URL`, `COLLAB_URL`, `CORS_ORIGINS`, social sign-in, `ANTHROPIC_API_KEY`) are listed in [deployment.md](deployment.md#configuration).
 
 
 ## Dependency integration (2026-10-29)
