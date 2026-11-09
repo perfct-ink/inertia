@@ -25,7 +25,7 @@ export default function StyleguideScreen() {
           <p className="styleguide-intro">
             The shared controls in their states, in a light and a dark panel. Hover a control to see its hover state;
             the focus rows are drawn with the same focus ring a keyboard user sees. Dialogs, select lists, calendars
-            and toasts open over the page, so they use the page's own theme (Account, then Appearance).
+            and toasts open over the page, so they use the page&apos;s own theme (Account, then Appearance).
           </p>
         </div>
         <label className="styleguide-width">

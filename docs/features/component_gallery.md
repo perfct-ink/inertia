@@ -37,3 +37,7 @@ Anyone who can run the development build. There is no data and no permission.
 - Implemented 2026-11-03 on branch `backlog/volta-component-mapping-and-parity` (not merged, not deployed).
 - Not implemented: component usage snippets or prop tables, a screenshot test, a gallery for components outside `components/ui/` (the sidebar, editors), and the audit follow-ups, which are separate backlog files listed in [../volta_parity.md](../volta_parity.md).
 - Not verified: `npm run lint`, `tsc -b`, the real Jest suite and a production build were not run (no `node_modules`), and the gallery was not looked at in a browser, at 375px or in either theme. The new tests ran in an offline stand-in (the sibling Volta checkout's Jest, React and Testing Library with stubs for Radix Dialog/Popover, `lucide-react` and `zustand`) and passed; the `_theme.scss` change was compiled with Sass and its `:root` output compared with the old one.
+
+## Known limit (2026-11-09 merge)
+
+The light and dark panels carry `data-theme`, but the theme file does not yet pin a theme for a subtree: the branch's change moved the tokens into mixins, which broke the status-colour contrast test and the Mac app's palette test (both read the `:root` blocks of `styles/_theme.scss`). Both panels therefore show the page's theme until the theme file and those two tests are changed together (`dark-mixin-follows-explicit-theme`).
