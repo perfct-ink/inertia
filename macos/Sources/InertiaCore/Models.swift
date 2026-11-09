@@ -46,6 +46,11 @@ public enum Requests {
         if let token { request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization") }
         return request
     }
+    /// The token in an `Authorization: Bearer <token>` response header, if there is one.
+    public static func bearerToken(_ authorization: String?) -> String? {
+        guard let authorization, authorization.hasPrefix("Bearer ") else { return nil }
+        return String(authorization.dropFirst(7))
+    }
     public static func workspaceURL(base: URL) -> URL {
         var parts = URLComponents(url: base, resolvingAgainstBaseURL: false)!
         // Use the SPA entry explicitly: the site root serves marketing HTML.

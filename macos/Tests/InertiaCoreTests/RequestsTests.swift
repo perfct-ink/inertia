@@ -29,4 +29,9 @@ final class RequestsTests: XCTestCase {
         let task = try JSONDecoder().decode(WorkTask.self, from: Data(#"{"id":1,"title":"Task","status":"todo","due_date":null}"#.utf8))
         XCTAssertNil(task.due_date)
     }
+    func testBearerTokenReadsTheAuthorizationHeader() {
+        XCTAssertEqual(Requests.bearerToken("Bearer abc.def"), "abc.def")
+        XCTAssertNil(Requests.bearerToken("Basic abc"))
+        XCTAssertNil(Requests.bearerToken(nil))
+    }
 }
