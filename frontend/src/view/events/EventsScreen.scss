@@ -34,11 +34,11 @@
       }
 
       &--deadline {
-        color: palette('red-500');
+        color: color(status-red);
       }
 
       &--milestone {
-        color: palette('purple-500');
+        color: color(status-purple);
       }
 
       &--spin {
@@ -49,11 +49,11 @@
 
     @at-root .events-date {
       &--overdue {
-        color: palette('red-500');
+        color: color(status-red-text);
       }
 
       &--today {
-        color: palette('orange-500');
+        color: color(status-orange-text);
       }
 
       &--upcoming {
@@ -297,19 +297,11 @@
       width: 100%;
       padding-top: space(1.5);
       padding-bottom: space(1.5);
-      border-color: palette('red-200');
-      color: palette('red-500');
-
-      @include dark {
-        border-color: palette('red-900');
-      }
+      border-color: color(status-red, 0.3);
+      color: color(status-red-text);
 
       &:hover:not(:disabled) {
-        background: palette('red-50');
-
-        @include dark {
-          background: palette('red-950');
-        }
+        background: color(status-red, 0.1);
       }
     }
 
@@ -340,7 +332,7 @@
 
 
       &:hover {
-        color: palette('red-500');
+        color: color(status-red-text);
       }
     }
 
@@ -576,38 +568,20 @@
       text-align: left;
 
       &--deadline {
-        background: palette('red-100');
-        color: palette('red-700');
+        background: color(status-red, 0.15);
+        color: color(status-red-text);
 
         &:hover {
-          background: palette('red-200');
-        }
-
-        @include dark {
-          background: palette('red-950');
-          color: palette('red-300');
-
-          &:hover {
-            background: palette('red-900');
-          }
+          background: color(status-red, 0.2);
         }
       }
 
       &--milestone {
-        background: palette('purple-100');
-        color: palette('purple-700');
+        background: color(status-purple, 0.15);
+        color: color(status-purple-text);
 
         &:hover {
-          background: palette('purple-200');
-        }
-
-        @include dark {
-          background: palette('purple-950');
-          color: palette('purple-300');
-
-          &:hover {
-            background: palette('purple-900');
-          }
+          background: color(status-purple, 0.2);
         }
       }
     }

@@ -20,7 +20,7 @@ Each person for themselves, per device.
 - Not synced between devices or the Mac app (the Mac shell has its own localStorage); a server-stored preference would follow the person.
 - Only preset themes, no custom colour picker (Slack has one). Accent text on tinted backgrounds (`--accent-foreground`) keeps the default blue value, so contrast with other accents was not checked.
 - The first paint uses the default theme until the app mounts (a brief flash is possible for a saved Dark choice with a light OS).
-- Components with their own hard-coded colours (for example the status palette, `docs/backlog/status-palette-on-volta-tokens.md`) do not follow the accent.
+- Status colours (`docs/features/status_colors.md`) follow light and dark but deliberately not the accent: a red status stays red in every colour theme.
 
 ## History
 - 2026-11-03: the default accent (Inertia and Midnight) changed from teal (hue 174) to blue (hue 217). The theme id stays `teal`.

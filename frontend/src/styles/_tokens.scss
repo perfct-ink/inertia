@@ -15,32 +15,19 @@
   @return var(--#{$name});
 }
 
-// Fixed palette for status/semantic colors that don't change with the theme.
+// Status colors (red, green, yellow, orange, blue, purple, gray) are theme tokens
+// in _theme.scss, so they switch with light/dark: color(status-red) for fills,
+// color(status-red-text) for text, color(status-red, 0.15) for a tint. Use
+// tint() where the tint must be opaque (a toast over other content).
+@function tint($name, $amount) {
+  @return color-mix(in srgb, var(--#{$name}) #{$amount * 100%}, var(--background));
+}
+
+// Fixed colors that never change with the theme: scrims and text on a solid
+// fill. Status colors are not here (see above).
 $palette: (
   'white': #fff,
   'black': #000,
-  'red-50': #fef2f2,
-  'red-100': #fee2e2,
-  'red-200': #fecaca,
-  'red-300': #fca5a5,
-  'red-500': #ef4444,
-  'red-600': #dc2626,
-  'red-700': #b91c1c,
-  'red-900': #7f1d1d,
-  'red-950': #450a0a,
-  'orange-500': #f97316,
-  'yellow-500': #eab308,
-  'green-500': #22c55e,
-  'blue-500': #3b82f6,
-  'purple-100': #f3e8ff,
-  'purple-200': #e9d5ff,
-  'purple-300': #d8b4fe,
-  'purple-500': #a855f7,
-  'purple-700': #7e22ce,
-  'purple-900': #581c87,
-  'purple-950': #3b0764,
-  'zinc-400': #a1a1aa,
-  'zinc-500': #71717a,
 );
 
 @function palette($name, $alpha: null) {

@@ -192,7 +192,7 @@
       @include reveal-on-hover;
 
       &:hover {
-        color: palette('red-500');
+        color: color(status-red-text);
       }
     }
 

@@ -255,7 +255,7 @@
 
       &--bug {
         background: color(danger, 0.15);
-        color: color(danger);
+        color: color(status-red-text);
       }
 
       &--story {
@@ -357,11 +357,11 @@
       @include text('xs');
 
       &--high {
-        background: palette('yellow-500', 0.25);
+        background: color(status-yellow, 0.25);
       }
 
       &--urgent {
-        background: palette('red-500', 0.25);
+        background: color(status-red, 0.25);
       }
     }
 
@@ -540,11 +540,11 @@
       }
 
       &--start:hover {
-        color: palette('blue-500');
+        color: color(status-blue-text);
       }
 
       &--delete:hover {
-        color: palette('red-500');
+        color: color(status-red-text);
       }
     }
 

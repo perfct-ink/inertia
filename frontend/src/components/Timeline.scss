@@ -219,25 +219,25 @@
 
       // Roadmap colors bars by health; on track keeps the default primary.
       &--at_risk {
-        border-color: palette('yellow-500');
-        background: palette('yellow-500', 0.2);
+        border-color: color(status-yellow);
+        background: color(status-yellow, 0.2);
 
         .timeline-bar-fill {
-          background: palette('yellow-500', 0.5);
+          background: color(status-yellow, 0.5);
         }
       }
 
       &--critical {
         border-width: 2px;
-        border-color: palette('red-500');
+        border-color: color(status-red);
       }
 
       &--off_track {
-        border-color: palette('red-500');
-        background: palette('red-500', 0.2);
+        border-color: color(status-red);
+        background: color(status-red, 0.2);
 
         .timeline-bar-fill {
-          background: palette('red-500', 0.5);
+          background: color(status-red, 0.5);
         }
       }
     }
@@ -300,7 +300,7 @@
       top: 0;
       bottom: 0;
       width: 2px;
-      background: palette('red-500');
+      background: color(status-red);
       transform: translateX(-50%);
     }
 

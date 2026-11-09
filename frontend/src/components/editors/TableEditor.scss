@@ -9,7 +9,7 @@
   color: color(muted-foreground);
 
   &:hover {
-    color: palette('red-500');
+    color: color(status-red-text);
   }
 }
 
@@ -281,7 +281,7 @@
       font-variant-numeric: tabular-nums;
 
       &--error {
-        color: palette('red-500');
+        color: color(status-red-text);
       }
     }
 

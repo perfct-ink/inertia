@@ -2,7 +2,7 @@
 
 @layer app.ui {
   .ui-form_error {
-    color: palette('red-500');
+    color: color(status-red-text);
     @include text('sm');
   }
 }

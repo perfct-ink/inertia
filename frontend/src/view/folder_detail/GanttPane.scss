@@ -69,7 +69,7 @@
       color: color(muted-foreground);
 
       &:hover {
-        color: palette('red-500');
+        color: color(status-red-text);
       }
     }
 

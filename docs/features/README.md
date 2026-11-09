@@ -64,3 +64,4 @@ One file per implemented feature, written from the code (see `docs/rules/feature
 | Data files: filtering, sorting and API enums live in src/data | [data_files.md](data_files.md) |
 | Portfolio: all projects with owner, status, dates, progress, health | [portfolio.md](portfolio.md) |
 | Notifications inbox: per-person inbox, unread badge, task assignment | [notifications_inbox.md](notifications_inbox.md) |
+| Status colors: red/green from Volta, the rest Inertia's own theme tokens, AA-checked text in light and dark | [status_colors.md](status_colors.md) |
