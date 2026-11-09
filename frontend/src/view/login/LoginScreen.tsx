@@ -1,14 +1,17 @@
 import { Button, Input, FormError } from '@/components/ui'
 import { useState } from 'react'
-import { useNavigate, Link } from 'react-router-dom'
+import { useNavigate, useLocation, Link } from 'react-router-dom'
 import { useLogin } from '@/api/auth'
 import { useAuthStore } from '@/store/auth'
 import AuthLayout from '@/components/auth/AuthLayout'
 import { usePageTitle } from '@/hooks/usePageTitle'
+import { returnPath } from '@/util/router'
 
 export default function LoginScreen() {
   usePageTitle('Log in')
   const navigate = useNavigate()
+  // Where the route guard sent this person from, if it did.
+  const { state } = useLocation()
   const setAuth = useAuthStore((s) => s.setAuth)
   const [form, setForm] = useState({ email: '', password: '' })
   const [error, setError] = useState('')
@@ -16,7 +19,7 @@ export default function LoginScreen() {
   const login = useLogin({
     onSuccess: ({ token, user }) => {
       setAuth(token, user)
-      navigate('/space')
+      navigate(returnPath(state))
     },
     onError: () => setError('Invalid email or password'),
   })

@@ -201,7 +201,8 @@ export default function Sidebar() {
   function handleLogout() {
     authApi.logout().finally(() => {
       logout()
-      navigate('/login')
+      // "/" is the marketing home on the web and the sign-in page in the native shells (RootRoute in App.tsx).
+      navigate('/')
     })
   }
 

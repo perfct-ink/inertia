@@ -2,6 +2,8 @@
 priority: p1
 depends_on: []
 components: [frontend, backend, deploy]
+branch: backlog/logged-out-visitors-see-marketing-pages
+status: incomplete
 ---
 # Logged-out visitors see the marketing pages
 
@@ -27,3 +29,11 @@ Rails renders the marketing pages (`backend/app/controllers/marketing_controller
 - After logout the user sees the marketing home.
 - `robots.txt` and `sitemap.xml` are unchanged for crawlers.
 - Tests cover the redirect rules; the nginx or Rails change is documented in `docs/`.
+
+## Unverified
+
+Most of this task was already on `main` (the marketing root for signed-out visitors, the sign-in redirect on `/` through a script in the page's head, `robots.txt` and `sitemap.xml`). This branch adds what was missing: the decision on how the server learns the session is written down (it doesn't: the token is in the browser, so the check is a script before first paint; see `docs/features/clean_urls.md`), the home now redirects to `/space` (it used the old `/workspace` path and, in development, the wrong origin), every marketing page offers "Open app" to a signed-in visitor, signing in returns the visitor to the page the route guard sent them from, and signing out lands on the marketing home (the sign-in page in the native shells). Tests: `util/router.test.ts` (return path), `LoginScreen.test.tsx`, `marketing_controller_test.rb`.
+
+Ran: the static checker, the pure router tests and the login screen test in a Jest stand-in, `ruby -c`. Not run: `rails test`, `npm run lint`, `tsc -b`, the real Jest suite, and a browser.
+
+To verify: `cd backend && rails test test/controllers/marketing_controller_test.rb && rails test`; `cd frontend && npm install && npm run lint && npx tsc -b && npm test`. Then in a browser: signed out, open `/`, `/pricing`, `/documents/1` (it should go to login and return to the document after signing in); signed in, open `/` (goes to the app) and `/pricing` (shows Open app); sign out (lands on the marketing home); in dev check the `WEB_URL` links; check the Electron, iOS and Mac shells still open at login.

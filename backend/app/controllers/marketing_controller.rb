@@ -16,7 +16,7 @@ class MarketingController < ActionController::Base
       path: "/",
       title: "Inertia — Docs, tasks, and files in one space",
       description: "Inertia brings docs, spreadsheets, files and tasks together with roadmaps, Gantt charts and OKRs, for teams who'd rather have one space than five separate apps.",
-      redirect_authenticated_to: "/workspace"
+      redirect_authenticated_to: "/space"
     },
     features: {
       path: "/features",
