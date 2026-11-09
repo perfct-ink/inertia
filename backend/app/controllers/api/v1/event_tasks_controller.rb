@@ -20,7 +20,7 @@ module Api
       private
 
       def set_event
-        @event = current_workspace.events.includes(tasks: :document).find(params[:event_id])
+        @event = current_workspace.events.includes(tasks: [ :document, :created_by ]).find(params[:event_id])
       end
     end
   end

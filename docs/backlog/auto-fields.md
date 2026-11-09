@@ -27,5 +27,20 @@ Today a task has a fixed field set: title, description, status, due date, assign
 - Failed API calls show an error to the user.
 - Tests cover the new behaviour; a feature doc in `docs/features/` is written (or the existing one updated) and this file is removed.
 
-## Cut off (2026-11-09)
-The agent working this task was stopped by the daily API cost limit before it finished, and its last uncommitted edits were committed here as they were. Treat the branch as unfinished: the code may not build or pass tests, no checks were run on the last edits, and the Unverified section (what was run, what to run) is not written yet. Resume by reading `git log` and the diff against `origin/main`, finish the requirements above, then write the Unverified section.
+## Unverified
+
+Built on branch `backlog/auto-fields` (2026-11-09), following Alex's 2026-11-09 groom: item ID, created by, created at and last updated show in the task detail dialog only; the task table, its filters and sorting have nothing for them (the table columns of the earlier version of the branch are gone). Done: `tasks.created_by_id` migration `20261108140001` with `schema.rb` hand-edited, `Task belongs_to :created_by`, set from the signed-in user on create and never from params, `created_by_name` in `TaskBlueprint` with `created_by` preloaded in the task, folder and event payloads, `autoFields` in `data/task.ts`, `components/tasks/TaskAutoFields.tsx` shown in `TaskDetail`, the Minitest file and Jest tests, `docs/features/task_auto_fields.md` and its README row.
+
+Ran (offline): `/tmp/runner/all.sh` static checks (babel parse, sass compile, `ruby -c` on the changed Ruby files), the pure `data/task.test.ts` tests (19 passed), and the stand-in Jest for `TaskAutoFields.test.tsx` and `TaskDetail.test.tsx` (passed). The stand-in cannot run one older dynamic-import test in `data/task.test.ts` (it fails the same way on main).
+
+Not run (no network, node_modules, database or browser): `rails db:migrate` and `rails test`, ESLint, Stylelint, `tsc -b`, the real Jest run, a browser look.
+
+To verify:
+
+```sh
+cd backend && rails db:migrate && git diff db/schema.rb   # expect no diff
+rails test test/controllers/tasks_auto_fields_controller_test.rb && rails test
+cd ../frontend && npm install && npm run lint && npx tsc -b && npm test
+```
+
+Then open the Tasks board, click the pencil on a card, and check the muted block at 375px and desktop width in light and dark: Item ID, Created by, Created, Last updated (exact time on hover). Check the task table has no new columns. When all of that passes, delete this file as part of the merge.
