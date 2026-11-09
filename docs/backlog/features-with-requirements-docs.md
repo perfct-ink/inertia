@@ -30,6 +30,7 @@ This replaces the folder-flag design in `feature-folder-type.md` and the `parent
 
 - **A feature is within a project.** It is created from a project, and its requirements doc lives in that project.
 - **A feature must have a requirements doc.**
+- **Existing epics become features** (Alex, 2026-11-09): the migration gives each current epic a blank requirements doc from the template, so there is one kind.
 - **A feature with tasks in it shows as an epic.** A feature with no tasks yet is just a feature (its doc); once its doc has tasks, it appears as an epic in the planning views (roadmap, Gantt, epic planning, rollups).
 
 ## Current state (checked 2026-10-22)
