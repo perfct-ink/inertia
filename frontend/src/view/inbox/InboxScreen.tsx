@@ -8,7 +8,7 @@ import { usePageTitle } from '@/hooks/usePageTitle'
 import type { AppNotification } from '@/types'
 import '../planning/PlanningScreen.scss'
 
-// Your inbox: things that need you (so far, tasks assigned to you), newest
+// Your inbox: things that need you (tasks assigned to you, comments that mention you), newest
 // first. Opening one marks it read and goes to what it is about.
 export default function InboxScreen() {
   usePageTitle('Inbox')
@@ -38,7 +38,7 @@ export default function InboxScreen() {
             {!isLoading && notifications.length === 0 && (
               <div className="planning-empty">
                 <Bell className="planning-empty_icon" aria-hidden="true" />
-                <p>Nothing here yet. You&rsquo;ll see things that need you, like tasks assigned to you.</p>
+                <p>Nothing here yet. You&rsquo;ll see things that need you, like tasks assigned to you and comments that mention you.</p>
               </div>
             )}
             {notifications.map((notification) => (

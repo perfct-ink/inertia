@@ -2,6 +2,7 @@ class Epic < ApplicationRecord
   include SameWorkspace
   include BelongsToMilestone
   include RoadmapHorizon
+  include Commentable
   include Positioned
 
   belongs_to :workspace

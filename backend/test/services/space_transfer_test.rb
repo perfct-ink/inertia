@@ -163,6 +163,8 @@ class SpaceTransferTest < ActiveSupport::TestCase
     event.event_tasks.create!(task: first)
     worker = @source.ai_workers.create!(name: "Writer")
     @source.ai_runs.create!(ai_worker: worker, task: first)
+    reply_target = @source.comments.create!(commentable: first, author: @user, body: "Looks good")
+    @source.comments.create!(commentable: first, author: @user, body: "Thanks", parent: reply_target)
     share = document.shares.create!(created_by: @user)
 
     moved = transfer_into(@team_root).move_document(document)
@@ -179,6 +181,7 @@ class SpaceTransferTest < ActiveSupport::TestCase
     assert_not TaskDependency.exists?(predecessor_id: first.id)
     assert_not EventTask.exists?(task_id: first.id)
     assert_not AiRun.exists?(task_id: first.id)
+    assert_not Comment.exists?(commentable_type: "Task", commentable_id: first.id)
     assert_equal document, share.reload.shareable
   end
 

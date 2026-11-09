@@ -3,6 +3,7 @@ import { useState, useRef } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { Plus, X, Target, Loader2, ListChecks } from 'lucide-react'
 import WorkspaceLayout from '@/components/WorkspaceLayout'
+import { CommentsButton } from '@/components/comments/CommentsButton'
 import { useEpics, useCreateEpic, useUpdateEpic, useDeleteEpic } from '@/api/epics'
 import { useInitiatives } from '@/api/initiatives'
 import { useMilestones } from '@/api/milestones'
@@ -128,6 +129,7 @@ export default function EpicsScreen() {
                   <span className="planning-card-count">
                     {epic.done_tasks_count}/{epic.tasks_count} done
                   </span>
+                  <CommentsButton type="Epic" id={epic.id} title={epic.title} />
                   <Button
                     variant="ghost"
                     onClick={(e) => { e.stopPropagation(); navigate(`/plan?epic_id=${epic.id}`) }}

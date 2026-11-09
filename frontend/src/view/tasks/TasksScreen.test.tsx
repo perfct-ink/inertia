@@ -126,3 +126,13 @@ test('viewers do not get the status editor', () => {
   renderScreen('/tasks?view=kanban')
   expect(screen.queryByRole('button', { name: 'Statuses' })).not.toBeInTheDocument()
 })
+
+test('every workboard card has a comments button', () => {
+  renderScreen('/tasks?view=kanban')
+  expect(screen.getByRole('button', { name: 'Comments on Write copy' })).toBeInTheDocument()
+})
+
+test('every backlog row has a comments button', () => {
+  renderScreen('/tasks?view=backlog')
+  expect(screen.getByRole('button', { name: 'Comments on Old idea' })).toBeInTheDocument()
+})

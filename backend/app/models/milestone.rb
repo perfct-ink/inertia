@@ -1,6 +1,7 @@
 class Milestone < ApplicationRecord
   include PlanningItem
   include PlanningHealth
+  include Commentable
 
   belongs_to :workspace
   belongs_to :folder, optional: true

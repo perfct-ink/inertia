@@ -7,7 +7,7 @@ What goes with a **document**, sheet or Collection:
 - Its content, title and type. Collection fields, records and values are copied or moved with it.
 - The Space tasks made from its checklist lines (and any other task with that `document_id`), with subtask nesting.
   - **Copy:** the tasks are duplicated (title, description, status, dates, order) and the copied checklist lines point at the copies. An assignee is kept only if they are a member of the destination Space. Epic, sprint, milestone, folder, dependencies, event links and AI runs are not copied. A checklist line whose task no longer exists loses its link, so the editor makes a fresh task for it the next time the copy is edited and saved (see `docs/features/document_task_lines.md`).
-  - **Move:** the same task rows move to the destination Space. Their epic, sprint, milestone, folder, Gantt dependencies, event links and AI runs are removed, as is an assignee who is not a member of the destination. A subtask left behind in the old Space loses its parent, and a moved task whose parent stays behind loses its parent.
+  - **Move:** the same task rows move to the destination Space. Their epic, sprint, milestone, folder, Gantt dependencies, event links, AI runs and comments (with their @mentions) are removed, as is an assignee who is not a member of the destination. A subtask left behind in the old Space loses its parent, and a moved task whose parent stays behind loses its parent.
 - Public share links to a moved document keep working (the document is the same record). A copy has no share links. A copy is unpinned and its creator is the person who copied it; a moved document keeps its creator and pin.
 
 What goes with a **folder** (a project is a folder): the folder, every subfolder (archived ones too) and every document in them, handled as above. A copy keeps each folder's name, kind (folder or project), dependency mode, position and archived state. A move changes the workspace of the whole subtree and puts the folder under the chosen folder.
@@ -44,7 +44,7 @@ The user needs the `member` role or above in the Space the item leaves or is cop
 
 ## Known limits
 - A folder with tasks, events, epics or milestones attached to it directly (not through a document) cannot be moved; it can be copied, but those items are not copied (`docs/backlog/move-folder-attached-records-between-spaces.md`).
-- AI runs of a moved task are deleted; dependencies and event links of moved tasks are removed. Copies start without them.
+- AI runs and comments of a moved task are deleted; dependencies and event links of moved tasks are removed. Copies start without them.
 - Copying a very large Collection runs in one request and creates its values one at a time.
 - Uploaded images and videos inside a document are referenced by URL, so a copy and its original share the same files.
 - Offered only from the sidebar tree, not from the document page, All files, Projects or by drag and drop (`docs/backlog/transfer-from-the-document-page-and-file-lists.md`).

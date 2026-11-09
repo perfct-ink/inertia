@@ -347,6 +347,29 @@ export interface FolderContents {
   epics: Epic[]
 }
 
+// Items that carry comments ("Updates"); the same names as the API's commentable_type.
+export type CommentableType = 'Task' | 'Epic' | 'Initiative' | 'Milestone'
+
+export interface CommentPerson {
+  id: number
+  name: string
+}
+
+// A comment on a planning item (named ItemComment so it doesn't shadow the DOM's Comment).
+// parent_id is set on a reply; author is null once the author's account is gone.
+export interface ItemComment {
+  id: number
+  commentable_type: CommentableType
+  commentable_id: number
+  parent_id: number | null
+  body: string
+  author_id: number | null
+  author: CommentPerson | null
+  mentioned_users: CommentPerson[]
+  edited_at: string | null
+  created_at: string
+}
+
 // Project intake: a member asks for a project; an admin or owner approves it
 // (which creates the project folder, project_id) or declines it with a reason.
 export type ProjectRequestStatus = 'pending' | 'approved' | 'declined'

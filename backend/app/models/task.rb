@@ -2,6 +2,7 @@ class Task < ApplicationRecord
   include SameWorkspace
   include BelongsToMilestone
   include HasParticipants
+  include Commentable
 
   belongs_to :workspace
   belongs_to :document, optional: true

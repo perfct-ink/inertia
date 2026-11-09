@@ -216,6 +216,10 @@ class SpaceTransfer
     TaskDependency.where(predecessor_id: task_ids).or(TaskDependency.where(successor_id: task_ids)).delete_all
     EventTask.where(task_id: task_ids).delete_all
     AiRun.where(task_id: task_ids).delete_all
+    # A conversation names people and replies of the old Space, so it stays behind (and is deleted).
+    old_comments = Comment.where(commentable_type: "Task", commentable_id: task_ids)
+    CommentMention.where(comment_id: old_comments.select(:id)).delete_all
+    old_comments.delete_all
     # Subtasks that stay behind lose their parent; moved tasks whose parent stays behind lose theirs.
     Task.unscoped.where(parent_id: task_ids).where.not(id: task_ids).update_all(parent_id: nil)
     Task.unscoped.where(id: task_ids).where.not(parent_id: task_ids).update_all(parent_id: nil)

@@ -3,6 +3,7 @@ class Initiative < ApplicationRecord
   include PlanningHealth
   include BelongsToMilestone
   include RoadmapHorizon
+  include Commentable
   include Positioned
 
   include ProjectItem

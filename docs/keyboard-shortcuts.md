@@ -33,6 +33,8 @@ Notes:
 |------|-------|--------|
 | `Enter` | New folder, new epic/initiative, new task, table title, quick-add | Confirm |
 | `Esc` | Same inputs (not the table title) | Cancel |
+| `⌘Enter` | Comment box (`components/comments/CommentComposer.tsx`) | Post the comment or reply |
+| `↑` / `↓`, `Enter` or `Tab` | Comment box while @mention suggestions show | Move through the members, insert the chosen `@Name` |
 
 ## Document editor
 

@@ -10,6 +10,7 @@ class Workspace < ApplicationRecord
   has_many :task_status_settings, dependent: :delete_all
   has_many :folders, dependent: :destroy
   has_many :documents, through: :folders
+  has_many :comments, dependent: :destroy
   has_many :task_dependencies, dependent: :delete_all
   has_many :tasks, dependent: :destroy
   has_many :task_fields, dependent: :destroy
