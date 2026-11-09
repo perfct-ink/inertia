@@ -17,4 +17,12 @@ class DocumentBlueprint < Blueprinter::Base
   view :with_content do
     field :content
   end
+
+  # Content plus whether the signed-in user may edit it (pass `can_edit:`).
+  view :with_access do
+    include_view :with_content
+    field :can_edit do |_document, options|
+      options[:can_edit]
+    end
+  end
 end

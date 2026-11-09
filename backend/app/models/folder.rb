@@ -21,6 +21,7 @@ class Folder < ApplicationRecord
   has_many :io_nodes, dependent: :nullify
   has_many :objectives, dependent: :nullify
   has_many :baselines, dependent: :destroy
+  has_many :folder_memberships, dependent: :destroy
 
   # A project is a folder of docs shown on the Projects screen; a feature
   # folder holds feature requirement docs. Same table, so nesting, sharing
@@ -88,6 +89,18 @@ class Folder < ApplicationRecord
   def self_and_descendant_ids
     ids = [ id ]
     children.find_each { |child| ids.concat(child.self_and_descendant_ids) }
+    ids
+  end
+
+  # This folder's id followed by its parents', up to the Root. Folder access
+  # granted to a person on any of these applies here.
+  def self_and_ancestor_ids
+    ids = []
+    folder = self
+    while folder && ids.exclude?(folder.id)
+      ids << folder.id
+      folder = folder.parent
+    end
     ids
   end
 

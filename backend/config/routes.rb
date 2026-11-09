@@ -63,8 +63,12 @@ Rails.application.routes.draw do
           get :features
         end
         resources :baselines, only: [ :index, :create ]
+        # Who is invited to the folder (and so to everything inside it).
+        resources :members, controller: "folder_members", only: [ :index, :create, :update, :destroy ]
       end
       resources :baselines, only: [ :destroy ]
+      # Folders other people invited the signed-in user to.
+      resources :shared_folders, only: [ :index ]
 
       resources :documents, only: [] do
         resource :file, only: [ :update ], controller: "files"

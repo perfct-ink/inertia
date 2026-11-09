@@ -16,6 +16,7 @@ class WorkspaceMembership < ApplicationRecord
   validate :personal_workspace_is_not_shared, on: :create
   before_destroy :keep_an_owner, unless: :destroyed_by_association
   before_update :keep_an_owner_on_demotion
+  after_create :replace_folder_invitations
   after_destroy :remove_resource_allocations
 
   private
@@ -23,6 +24,12 @@ class WorkspaceMembership < ApplicationRecord
   def personal_workspace_is_not_shared
     return unless workspace&.personal?
     errors.add(:base, "A personal space cannot be shared") unless user_id == workspace.user_id
+  end
+
+  # A person invited to folders of this space is now a member: the space role
+  # replaces those invitations (see FolderMembership.drop_for_space).
+  def replace_folder_invitations
+    FolderMembership.drop_for_space(user_id: user_id, workspace_id: workspace_id)
   end
 
   # Someone who leaves a space is no longer planned onto its projects.

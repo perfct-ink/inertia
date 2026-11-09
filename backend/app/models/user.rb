@@ -8,6 +8,7 @@ class User < ApplicationRecord
   has_one :workspace, -> { where(personal: true) }, dependent: :destroy
   has_many :workspace_memberships, dependent: :destroy
   has_many :team_memberships, dependent: :destroy
+  has_many :folder_memberships, dependent: :destroy
   has_many :teams, through: :team_memberships
   has_many :created_workspaces, -> { where(personal: false) }, class_name: "Workspace", dependent: :restrict_with_error
   has_many :time_entries, dependent: :destroy

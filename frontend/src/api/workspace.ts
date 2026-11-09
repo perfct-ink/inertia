@@ -48,6 +48,7 @@ export function useUploadFiles() {
     onSettled: () => {
       qc.invalidateQueries({ queryKey: ['workspace'] })
       qc.invalidateQueries({ queryKey: ['folder-contents'] })
+      qc.invalidateQueries({ queryKey: ['shared-folders'] })
     },
   })
 }

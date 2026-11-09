@@ -42,6 +42,7 @@ export function useUpdateDocument() {
       qc.invalidateQueries({ queryKey: ['initiatives'] })
       qc.setQueryData(['document', doc.id], doc)
       qc.invalidateQueries({ queryKey: ['workspace'] })
+      qc.invalidateQueries({ queryKey: ['shared-folders'] })
       // A rename from anywhere (the sidebar, an editor's title) renames its open tab.
       markTouched(doc.id)
       useTabsStore.getState().updateTitle(String(doc.id), doc.title)
@@ -50,8 +51,8 @@ export function useUpdateDocument() {
 }
 
 export const useCreateDocument = () =>
-  useApiMutation(({ folderId, ...data }: { folderId: number; title: string; doc_type?: Document['doc_type']; content?: Record<string, unknown> }) => documentApi.createIn(folderId, data), ['workspace', 'folder-contents'])
-export const useDeleteDocument = () => useApiMutation((id: number) => documentApi.destroy(id), ['workspace'])
+  useApiMutation(({ folderId, ...data }: { folderId: number; title: string; doc_type?: Document['doc_type']; content?: Record<string, unknown> }) => documentApi.createIn(folderId, data), ['workspace', 'folder-contents', 'shared-folders'])
+export const useDeleteDocument = () => useApiMutation((id: number) => documentApi.destroy(id), ['workspace', 'folder-contents', 'shared-folders'])
 export const usePinDocument = () =>
   useApiMutation(({ id, pinned }: { id: number; pinned: boolean }) => documentApi.update(id, { pinned }), ['workspace'])
 export const useMoveDocument = () =>
