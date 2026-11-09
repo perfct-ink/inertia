@@ -272,4 +272,58 @@ class SpaceTransferTest < ActiveSupport::TestCase
     assert_equal @source.id, task.reload.workspace_id
     assert_equal @source_folder, document.reload.folder
   end
+
+  def file_in(folder, name)
+    document = Document.new(title: name, doc_type: :file, folder: folder, created_by: @user)
+    document.file.attach(io: StringIO.new("data"), filename: name, content_type: "application/pdf")
+    document.save!
+    document
+  end
+
+  test "moving a document cuts the attached files that stay behind" do
+    document = @source_folder.documents.create!(title: "Plan", created_by: @user)
+    task = @source.tasks.create!(title: "Ship", document: document)
+    staying = file_in(@source.root_folder, "stays.pdf")
+    task.task_files.create!(file: staying)
+
+    transfer_into(@team_root).move_document(document)
+
+    assert_equal @team.id, task.reload.workspace_id
+    assert_empty task.task_files
+    assert staying.reload.persisted?
+  end
+
+  test "moving a file cuts its links to tasks that stay behind" do
+    task = @source.tasks.create!(title: "Stays")
+    file = file_in(@source_folder, "moves.pdf")
+    task.task_files.create!(file: file)
+
+    transfer_into(@team_root).move_document(file)
+
+    assert_equal @team, file.reload.folder.workspace
+    assert_empty task.reload.task_files
+  end
+
+  test "moving a folder keeps a file attached to a task that moves with it" do
+    document = @source_folder.documents.create!(title: "Plan", created_by: @user)
+    task = @source.tasks.create!(title: "Ship", document: document)
+    file = file_in(@source_folder, "with.pdf")
+    task.task_files.create!(file: file)
+
+    transfer_into(@team_root).move_folder(@source_folder)
+
+    assert_equal [ file ], task.reload.files.to_a
+    assert_equal @team.id, task.workspace_id
+  end
+
+  test "a copied task does not take attached files along" do
+    document = @source_folder.documents.create!(title: "Plan", created_by: @user)
+    task = @source.tasks.create!(title: "Ship", document: document)
+    task.task_files.create!(file: file_in(@source_folder, "orig.pdf"))
+
+    copy = transfer_into(@team_root).copy_document(document)
+
+    assert_equal 1, task.reload.task_files.count
+    assert_empty @team.tasks.where(document: copy).flat_map(&:task_files)
+  end
 end

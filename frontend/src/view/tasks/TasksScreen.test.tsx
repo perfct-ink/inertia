@@ -37,9 +37,9 @@ const mockWorkspace = {
   get role() { return mockRole },
   folders: [{ id: 1, name: 'Root', root: true, parent_id: null, documents: [], children: [{ id: 2, name: 'Messages', root: false, parent_id: 1, documents: [], children: [] }] }],
 }
-interface MockTask { id: number; title: string; status: string; epic_id: number | null; document_id: number; folder_id: number }
+interface MockTask { id: number; title: string; status: string; epic_id: number | null; document_id: number; folder_id: number; file_ids?: number[] }
 const mockTasks: MockTask[] = [
-  { id: 1, title: 'Write copy', status: 'todo', epic_id: null, document_id: 1, folder_id: 2 },
+  { id: 1, title: 'Write copy', status: 'todo', epic_id: null, document_id: 1, folder_id: 2, file_ids: [11, 12] },
   { id: 2, title: 'Old idea', status: 'backlog', epic_id: null, document_id: 1, folder_id: 2 },
 ]
 let mockTasksRenders = 0
@@ -73,6 +73,7 @@ jest.mock('@/components/task-fields/TaskFieldsDialog', () => ({ TaskFieldsDialog
 jest.mock('@/components/task-fields/ManageTaskFieldsDialog', () => ({ ManageTaskFieldsDialog: () => null }))
 jest.mock('./TaskTimer', () => ({ TaskTimer: () => null }))
 jest.mock('@/components/TaskHistoryDialog', () => function HistoryMock() { return null })
+jest.mock('@/components/tasks/TaskFiles', () => ({ TaskFiles: ({ task }: { task: { title: string } }) => <div role="dialog" aria-label={`Files dialog for ${task.title}`} /> }))
 jest.mock('@/api/workspaceMembers', () => ({ useWorkspaceMembers: () => ({ data: [] }) }))
 jest.mock('@/api/sprints', () => ({ useSprints: () => ({ data: [] }) }))
 jest.mock('@/api/milestones', () => ({ useMilestones: () => ({ data: [] }) }))
@@ -274,4 +275,20 @@ describe('organize by epic', () => {
     dropCardOn('done')
     expect(mockMutation.mutate).toHaveBeenCalledWith({ id: 1, status: 'done' })
   })
+})
+
+test('a card shows how many files are attached and the paperclip opens that task\'s files', () => {
+  renderScreen('/tasks?view=kanban')
+  const files = screen.getByRole('button', { name: 'Files of Write copy' })
+  expect(files).toHaveTextContent('2')
+  fireEvent.click(files)
+  expect(screen.getByRole('dialog', { name: 'Files dialog for Write copy' })).toBeInTheDocument()
+})
+
+test('a backlog row has the same paperclip, with no count when nothing is attached', () => {
+  renderScreen('/tasks?view=backlog')
+  const files = screen.getByRole('button', { name: 'Files of Old idea' })
+  expect(files).not.toHaveTextContent(/\d/)
+  fireEvent.click(files)
+  expect(screen.getByRole('dialog', { name: 'Files dialog for Old idea' })).toBeInTheDocument()
 })

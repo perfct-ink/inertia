@@ -1,5 +1,5 @@
-import type { Task } from '@/types'
-import { autoFields, buildTaskTree, TASK_LIST_DEPTHS, taskFolderId, dueBucket, myWork, taskCards, estimateLabel, pointsLabel, priorityLabel, filterByKind, kindOf, elapsedClock, formatMinutes, progressById, subtaskProgress, statusChangeLabel, taskChanges, taskDraft, taskDraftError, parseTaskBoardConfig, epicLanes, epicLaneKey, laneEpicId, boardCellId, parseBoardCell } from './task'
+import type { Task, Document } from '@/types'
+import { autoFields, buildTaskTree, TASK_LIST_DEPTHS, taskFolderId, dueBucket, myWork, taskCards, estimateLabel, pointsLabel, priorityLabel, filterByKind, kindOf, elapsedClock, formatMinutes, progressById, subtaskProgress, statusChangeLabel, taskChanges, taskDraft, taskDraftError, parseTaskBoardConfig, epicLanes, epicLaneKey, laneEpicId, boardCellId, parseBoardCell, taskFileSplit, taskUploadFolderId } from './task'
 
 const task =(id: number, parent_id: number | null = null) => ({ id, title: `T${id}`, parent_id }) as unknown as Task
 
@@ -17,6 +17,30 @@ test('taskFolderId is the task\'s own folder, else its document\'s', () => {
   expect(taskFolderId({ folder_id: 3, document: { folder_id: 9 } } as unknown as Task)).toBe(3)
   expect(taskFolderId({ folder_id: null, document: { folder_id: 9 } } as unknown as Task)).toBe(9)
   expect(taskFolderId({ folder_id: null } as unknown as Task)).toBeNull()
+})
+
+describe('files attached to a task', () => {
+  const file = (id: number, title: string) => ({ id, title, doc_type: 'file' }) as unknown as Document
+  const files = [file(1, 'zebra.png'), file(2, 'apple.pdf'), file(3, 'Mango.zip')]
+
+  test('taskFileSplit lists attached files in the order they were attached and the rest by name', () => {
+    const { attached, available } = taskFileSplit({ file_ids: [3, 1] }, files)
+    expect(attached.map((f) => f.id)).toEqual([3, 1])
+    expect(available.map((f) => f.id)).toEqual([2])
+    expect(taskFileSplit({ file_ids: [] }, files).available.map((f) => f.title)).toEqual(['apple.pdf', 'Mango.zip', 'zebra.png'])
+  })
+
+  test('taskFileSplit tolerates a task without file ids and ids of files that are gone', () => {
+    expect(taskFileSplit({}, files).attached).toEqual([])
+    expect(taskFileSplit({ file_ids: [99, 2] }, files).attached.map((f) => f.id)).toEqual([2])
+  })
+
+  test('a file uploaded from a task goes to the task\'s folder, else its document\'s, else Root', () => {
+    expect(taskUploadFolderId({ folder_id: 4, document: { folder_id: 9 } } as unknown as Task, 1)).toBe(4)
+    expect(taskUploadFolderId({ folder_id: null, document: { folder_id: 9 } } as unknown as Task, 1)).toBe(9)
+    expect(taskUploadFolderId({ folder_id: null } as unknown as Task, 1)).toBe(1)
+    expect(taskUploadFolderId({ folder_id: null } as unknown as Task, undefined)).toBeNull()
+  })
 })
 
 test('dueBucket sorts dates against today, with the week being the next six days', () => {

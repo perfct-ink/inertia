@@ -5,9 +5,9 @@
 # What goes with a document: its content, its Collection fields/records/cells,
 # and the Space tasks its checklist lines made. A task belongs to one Space, so
 # a move keeps the task but drops what only makes sense in the old Space (epic,
-# sprint, milestone, Gantt links, event links, AI runs, and an assignee who is
-# not a member of the new Space). A copy duplicates the tasks and points the
-# copied checklist lines at them.
+# sprint, milestone, Gantt links, event links, AI runs, attached files that do
+# not move with it, and an assignee who is not a member of the new Space). A
+# copy duplicates the tasks and points the copied checklist lines at them.
 #
 # Everything runs in one transaction: a transfer either completes or leaves
 # both Spaces untouched. Problems the user can fix raise SpaceTransfer::Error.
@@ -203,6 +203,16 @@ class SpaceTransfer
   def move_documents(documents)
     reject_outside_links!(documents)
     rehome_tasks(documents.map(&:id))
+    drop_split_task_files(documents.map(&:id))
+  end
+
+  # A file is attached to a task only inside one Space. A link survives when
+  # the task and the file move together (both are under the moved documents);
+  # a link with only one end moving is removed. The file stays an item.
+  def drop_split_task_files(document_ids)
+    task_ids = Task.unscoped.where(document_id: document_ids).select(:id)
+    TaskFile.where(task_id: task_ids).where.not(file_id: document_ids).delete_all
+    TaskFile.where(file_id: document_ids).where.not(task_id: task_ids).delete_all
   end
 
   # A Collection can only change Space with every Collection it links to or is

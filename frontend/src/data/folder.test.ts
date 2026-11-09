@@ -1,5 +1,5 @@
 import type { Document, Folder, SpaceFolder } from '@/types'
-import { documentsIn, filterSpaceFiles, flattenFolders, folderChoices, projectLastModified, projectsOf, searchSpaceFiles, spaceFiles, folderTrail, featureFoldersOf, homeDocumentToOpen, sortFileRows } from './folder'
+import { documentsIn, filterSpaceFiles, flattenFolders, folderChoices, projectLastModified, projectsOf, searchSpaceFiles, spaceFiles, folderTrail, featureFoldersOf, homeDocumentToOpen, sortFileRows, uploadedFiles } from './folder'
 import type { FileRow } from './folder'
 
 const folder = (id: number, children: Folder[] = []) => ({ id, name: `F${id}`, children }) as unknown as Folder
@@ -125,4 +125,12 @@ test('sortFileRows sorts by name, location or last modified in either direction 
   expect(sortFileRows(rows, 'location', 'asc').map((r) => r.id)).toEqual([3, 2, 1])
   expect(sortFileRows(rows, 'modified', 'desc').map((r) => r.id)).toEqual([2, 1, 3])
   expect(rows.map((r) => r.id)).toEqual([1, 2, 3])
+})
+
+test('uploadedFiles lists the uploaded files of the whole tree and skips other documents', () => {
+  const file = (id: number) => ({ ...doc(id, `f${id}.pdf`), doc_type: 'file' }) as unknown as Document
+  const nested = tree()
+  nested[0].documents = [file(10), doc(1, 'Readme')]
+  nested[0].children![0].children![0].documents = [file(11)]
+  expect(uploadedFiles(nested).map((d) => d.id)).toEqual([10, 11])
 })

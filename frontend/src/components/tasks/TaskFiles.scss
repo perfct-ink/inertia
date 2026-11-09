@@ -1,0 +1,28 @@
+@use 'tokens' as *;
+
+@layer app.components {
+  .task_files {
+    display: flex;
+    flex-direction: column;
+    gap: space(3);
+    min-width: 0;
+
+    @at-root .task_files-empty {
+      color: color(muted-foreground);
+      @include text('sm');
+    }
+
+    @at-root .task_files-add {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: space(2);
+    }
+
+    @at-root .task_files-spinner {
+      width: space(4);
+      height: space(4);
+      @include spin;
+    }
+  }
+}

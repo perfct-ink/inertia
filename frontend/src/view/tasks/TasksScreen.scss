@@ -424,6 +424,14 @@
       margin-left: auto;
     }
 
+    // The paperclip that opens a task's files, with how many are attached.
+    @at-root .tasks-files {
+      display: flex;
+      align-items: center;
+      gap: space(1);
+      @include muted-link;
+    }
+
     @at-root .tasks-add_card {
       padding: space(2);
       border-width: 1px;
@@ -544,6 +552,12 @@
     // starting a task is the one that turns blue.
     @at-root .tasks-row_action--start:hover {
       color: color(status-blue-text);
+    }
+
+    @at-root .tasks-row_action--files {
+      display: flex;
+      align-items: center;
+      gap: space(1);
     }
 
     @at-root .tasks-empty {

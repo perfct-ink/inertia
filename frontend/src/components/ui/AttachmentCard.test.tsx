@@ -51,6 +51,14 @@ test('Remove appears only when the document can be edited', () => {
   expect(screen.queryByRole('button', { name: 'Remove Plan.pdf' })).not.toBeInTheDocument()
 })
 
+test('the Remove button can be named for what it does', () => {
+  const detach = jest.fn()
+  render(<AttachmentCard name="Plan.pdf" url={PDF} type="application/pdf" onRemove={detach} removeLabel="Detach" />)
+  fireEvent.click(screen.getByRole('button', { name: 'Detach Plan.pdf' }))
+  expect(detach).toHaveBeenCalledTimes(1)
+  expect(screen.queryByRole('button', { name: 'Remove Plan.pdf' })).not.toBeInTheDocument()
+})
+
 test('a source that could run script gets no link, player or preview', () => {
   const { container } = render(<AttachmentCard name="evil.pdf" url="javascript:alert(1)" type="application/pdf" player />)
   expect(screen.queryByRole('link')).not.toBeInTheDocument()
