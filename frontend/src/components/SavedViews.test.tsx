@@ -111,12 +111,20 @@ test('only a Space admin can manage a view someone else shared', () => {
   expect(screen.getByRole('button', { name: 'Manage view Team view' })).toBeInTheDocument()
 })
 
-test('a viewer can apply views but not save or manage them', () => {
+// Alex decided 2026-11-09 that viewers may save views and change their own.
+test('a viewer can save a shared view, apply views and manage their own, but not someone else\'s shared view', () => {
   mockRole = 'viewer'
   const onApply = jest.fn()
   show(current, onApply)
-  expect(screen.queryByRole('button', { name: 'Save view…' })).not.toBeInTheDocument()
   pick('1')
   expect(onApply).toHaveBeenCalledWith({ ...DEFAULT_TASK_TABLE_CONFIG, groupBy: 'epic', sortKey: 'title' })
+  expect(screen.getByRole('button', { name: 'Manage view By epic' })).toBeInTheDocument()
+  pick('2')
   expect(screen.queryByRole('button', { name: /Manage view/ })).not.toBeInTheDocument()
+
+  fireEvent.click(screen.getByRole('button', { name: 'Save view…' }))
+  fireEvent.change(screen.getByLabelText('View name'), { target: { value: 'Viewer shared' } })
+  fireEvent.click(screen.getByRole('checkbox', { name: 'Share with the Space' }))
+  fireEvent.click(screen.getByRole('button', { name: 'Save' }))
+  expect(mockCreate.mutate).toHaveBeenCalledWith({ name: 'Viewer shared', shared: true, config: current }, expect.anything())
 })

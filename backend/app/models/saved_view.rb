@@ -1,7 +1,8 @@
 # A saved set of choices for one page (which page, and the page's own settings:
 # sort, grouping, filter, zoom, ...). Private to its owner unless shared with
-# the Space. Anyone who can see a view can apply it; only its owner changes it,
-# or a Space admin when it is shared (see Api::V1::SavedViewsController).
+# the Space. Anyone who can see a view can apply it, and any member of the Space
+# (viewers too, Alex's decision of 2026-11-09) can save one; only its owner
+# changes it, or a Space admin when it is shared (see Api::V1::SavedViewsController).
 class SavedView < ApplicationRecord
   # The pages that keep views. Keep in step with SAVED_VIEW_PAGES in
   # frontend/src/data/savedView.ts.
@@ -20,7 +21,8 @@ class SavedView < ApplicationRecord
   scope :visible_to, ->(user) { where(shared: true).or(where(user_id: user.id)) }
 
   # Whether `membership` (a WorkspaceAccess or WorkspaceMembership) may edit or
-  # delete this view: its owner always, and an admin when it is shared.
+  # delete this view: its owner always (whatever their role), and an admin when
+  # it is shared.
   def changeable_by?(user, membership)
     user_id == user.id || (shared? && membership.can_manage?)
   end

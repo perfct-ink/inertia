@@ -105,14 +105,75 @@ class SavedViewsControllerTest < ActionDispatch::IntegrationTest
     assert_response :no_content
   end
 
-  test "viewers can apply shared views but not save, change or delete any" do
-    shared_id = create_view(@member, shared: true, name: "Shared")["id"]
-    post "/api/v1/saved_views", params: { saved_view: { page: "task_table", name: "Mine", config: {} } }, headers: headers_for(@viewer), as: :json
-    assert_response :forbidden
-    patch "/api/v1/saved_views/#{shared_id}", params: { saved_view: { name: "x" } }, headers: headers_for(@viewer), as: :json
-    assert_response :forbidden
+  # Alex decided 2026-11-09 that viewers may save views (private or shared) and
+  # change their own; they still cannot change anyone else's.
+  test "a viewer saves a private view and a shared view, and both are listed" do
+    private_view = create_view(@viewer, name: "Viewer private")
+    assert_response :created
+    assert_equal @viewer.id, private_view["user_id"]
+    assert_equal false, private_view["shared"]
+    shared_view = create_view(@viewer, shared: true, name: "Viewer shared")
+    assert_response :created
+    assert_equal true, shared_view["shared"]
+
+    get "/api/v1/saved_views", headers: headers_for(@viewer)
+    assert_equal [ "Viewer private", "Viewer shared" ], response.parsed_body.map { |v| v["name"] }
+    [ @owner, @admin, @member, @other_member ].each do |user|
+      get "/api/v1/saved_views", headers: headers_for(user)
+      assert_equal [ "Viewer shared" ], response.parsed_body.map { |v| v["name"] }, user.name
+    end
+  end
+
+  test "a viewer changes and deletes their own views" do
+    private_id = create_view(@viewer, name: "Viewer private")["id"]
+    shared_id = create_view(@viewer, shared: true, name: "Viewer shared")["id"]
+
+    patch "/api/v1/saved_views/#{private_id}", params: { saved_view: { name: "Renamed", shared: true, config: { groupBy: "epic" } } }, headers: headers_for(@viewer), as: :json
+    assert_response :success
+    assert_equal "Renamed", response.parsed_body["name"]
+    assert_equal true, response.parsed_body["shared"]
+
     delete "/api/v1/saved_views/#{shared_id}", headers: headers_for(@viewer)
+    assert_response :no_content
+    assert_not SavedView.exists?(shared_id)
+    delete "/api/v1/saved_views/#{private_id}", headers: headers_for(@viewer)
+    assert_response :no_content
+  end
+
+  test "a viewer cannot change or delete someone else's shared view, but an admin can change a viewer's" do
+    shared_id = create_view(@viewer, shared: true, name: "Viewer shared")["id"]
+    member_shared_id = create_view(@member, shared: true, name: "Member shared")["id"]
+
+    patch "/api/v1/saved_views/#{member_shared_id}", params: { saved_view: { name: "x" } }, headers: headers_for(@viewer), as: :json
     assert_response :forbidden
+    delete "/api/v1/saved_views/#{member_shared_id}", headers: headers_for(@viewer)
+    assert_response :forbidden
+    assert_equal "Member shared", SavedView.find(member_shared_id).name
+
+    # Another member cannot change the viewer's shared view; an admin and the owner can.
+    patch "/api/v1/saved_views/#{shared_id}", params: { saved_view: { name: "x" } }, headers: headers_for(@other_member), as: :json
+    assert_response :forbidden
+    patch "/api/v1/saved_views/#{shared_id}", params: { saved_view: { name: "Admin renamed" } }, headers: headers_for(@admin), as: :json
+    assert_response :success
+    assert_equal @viewer.id, response.parsed_body["user_id"]
+    delete "/api/v1/saved_views/#{shared_id}", headers: headers_for(@owner)
+    assert_response :no_content
+  end
+
+  test "a viewer cannot see or change someone else's private view" do
+    private_id = create_view(@member, name: "Member private")["id"]
+    patch "/api/v1/saved_views/#{private_id}", params: { saved_view: { name: "Hijack" } }, headers: headers_for(@viewer), as: :json
+    assert_response :not_found
+    delete "/api/v1/saved_views/#{private_id}", headers: headers_for(@viewer)
+    assert_response :not_found
+    assert_equal "Member private", SavedView.find(private_id).name
+  end
+
+  test "a person outside the Space cannot save a view in it" do
+    stranger = User.create!(name: "Out", email: "out-views-api@example.com", password: "password123")
+    post "/api/v1/saved_views", params: { saved_view: { page: "task_table", name: "Sneaky", config: {} } }, headers: headers_for(stranger), as: :json
+    assert_response :not_found
+    assert_not SavedView.exists?(name: "Sneaky")
   end
 
   test "the page and the owner cannot be changed by an update" do

@@ -109,12 +109,12 @@ test('saves the board\'s current filters and search as a view', () => {
   expect(mockCreateView.mutate).toHaveBeenCalledWith({ name: 'Copy in epic 3', shared: false, config: { epic_id: 3, q: 'copy' } }, expect.anything())
 })
 
-test('viewers can use saved views but not save one', () => {
+test('viewers can use and save views too (Alex, 2026-11-09)', () => {
   mockRole = 'viewer'
   renderScreen('/tasks?view=kanban')
   fireEvent.click(screen.getByRole('button', { name: 'Filter' }))
   expect(screen.getByLabelText('Saved view')).toBeInTheDocument()
-  expect(screen.queryByRole('button', { name: 'Save view…' })).not.toBeInTheDocument()
+  expect(screen.getByRole('button', { name: 'Save view…' })).toBeInTheDocument()
 })
 
 test('re-rendering while the tasks query is still pending does not loop', () => {

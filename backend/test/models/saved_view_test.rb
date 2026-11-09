@@ -68,6 +68,19 @@ class SavedViewTest < ActiveSupport::TestCase
     assert_not shared_view.changeable_by?(other_member, access(other_member))
   end
 
+  test "a viewer changes their own views, shared or private, but not other people's" do
+    viewer = User.create!(name: "Vi", email: "vi-views@example.com", password: "password123")
+    @workspace.memberships.create!(user: viewer, role: :viewer)
+    own_private = view(viewer, "Own private")
+    own_shared = view(viewer, "Own shared", shared: true)
+    sam_shared = view(@sam, "Sam shared", shared: true)
+
+    assert own_private.changeable_by?(viewer, access(viewer))
+    assert own_shared.changeable_by?(viewer, access(viewer))
+    assert_not sam_shared.changeable_by?(viewer, access(viewer))
+    assert own_shared.changeable_by?(@ada, access(@ada))
+  end
+
   test "deleting a user removes their views" do
     view(@sam, "Sam private")
     view(@sam, "Sam shared", shared: true)

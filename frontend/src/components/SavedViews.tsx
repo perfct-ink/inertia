@@ -4,7 +4,6 @@ import { Button, ConfirmDialog, Input, Menu, Modal, Select, type MenuItem } from
 import { useCreateSavedView, useDeleteSavedView, useSavedViews, useUpdateSavedView } from '@/api/savedViews'
 import { useWorkspace } from '@/api/workspace'
 import { SAVED_VIEW_NAME_MAX, canChangeSavedView, groupSavedViews, sameConfig, savedViewLabel, type SavedView, type SavedViewPage } from '@/data/savedView'
-import { canWriteWorkspace } from '@/data/workspace'
 import { useAuthStore } from '@/store/auth'
 import './SavedViews.scss'
 
@@ -33,8 +32,8 @@ export default function SavedViews<Config extends object>({ page, config, parse,
   const groups = groupSavedViews(views, userId)
   // A view someone else deleted since it was picked is no longer selected.
   const current = views.find((v) => String(v.id) === selectedId)
-  const canSave = canWriteWorkspace(role)
-  const canChange = !!current && canSave && canChangeSavedView(current, userId, role)
+  // Every member of the Space can save views, viewers included (Alex, 2026-11-09).
+  const canChange = !!current && canChangeSavedView(current, userId, role)
   const modified = !!current && !sameConfig(config, parse(current.config))
 
   function pick(id: string) {
@@ -65,7 +64,7 @@ export default function SavedViews<Config extends object>({ page, config, parse,
         )}
       </Select>
       {modified && <span className="saved_views-modified">Changed</span>}
-      {canSave && <Button variant="secondary" onClick={() => setDialog('save')}>Save view…</Button>}
+      <Button variant="secondary" onClick={() => setDialog('save')}>Save view…</Button>
       {canChange && (
         <Menu label={`Manage view ${current.name}`} triggerClassName="saved_views-trigger" items={items}>
           Manage <ChevronDown className="saved_views-chevron" aria-hidden="true" />

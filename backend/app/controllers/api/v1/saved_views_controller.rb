@@ -3,10 +3,14 @@ module Api
     # Saved views for a page. Everyone in the Space sees their own views and the
     # Space's shared ones. Changing or deleting a view needs ownership, or admin
     # rights when the view is shared; a private view of someone else is never
-    # visible, so it is "not found". Like every write in a Space, saving a view
-    # needs the member role or above (WorkspaceScoped): viewers can apply views.
+    # visible, so it is "not found". Alex decided 2026-11-09 that every member
+    # of the Space, viewers included, may save a view (private or shared) and
+    # change their own, so this controller skips WorkspaceScoped's member-role
+    # check for writes: the Space comes from the header, which only reaches
+    # Spaces the person belongs to, and set_view checks ownership.
     class SavedViewsController < ApplicationController
       include WorkspaceScoped
+      skip_before_action :require_current_workspace_write!
       before_action :set_view, only: [ :update, :destroy ]
 
       def index
