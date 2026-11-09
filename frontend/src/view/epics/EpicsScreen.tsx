@@ -3,6 +3,7 @@ import { useState, useRef } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { Plus, X, Target, Loader2, ListChecks } from 'lucide-react'
 import WorkspaceLayout from '@/components/WorkspaceLayout'
+import { ActivityButton } from '@/components/activity/ActivityButton'
 import { useEpics, useCreateEpic, useUpdateEpic, useDeleteEpic } from '@/api/epics'
 import { useInitiatives } from '@/api/initiatives'
 import { useMilestones } from '@/api/milestones'
@@ -137,6 +138,7 @@ export default function EpicsScreen() {
                     <ListChecks className="planning-delete_icon" aria-hidden="true" />
                     Plan
                   </Button>
+                  <ActivityButton subjectType="Epic" subjectId={epic.id} title={epic.title} />
                   <Button
                     onClick={(e) => { e.stopPropagation(); deleteEpic.mutate(epic.id) }}
                     aria-label="Delete epic"

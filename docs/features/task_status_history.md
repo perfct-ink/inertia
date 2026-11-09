@@ -13,7 +13,7 @@ Anyone in the Space who can see the task can read its history; rows are only wri
 `backend/test/models/task_status_change_test.rb`, `backend/test/controllers/task_status_changes_controller_test.rb`, `frontend/src/data/task.test.ts`, `frontend/src/components/TaskHistoryDialog.test.tsx`.
 
 ## Known limits
-- Only status is audited, not the other fields; a full per-item activity log is `docs/backlog/activity-log-per-item.md`.
+- Only status is audited, not the other fields. The per-item activity log (`activity_log.md`, once merged) records every field including status and has its own button next to this one, so a status change is kept in both places.
 - Changes made without callbacks (bulk `update_all`, direct SQL, the macOS local file) are not recorded. No backfill for existing tasks.
 - Document task lines, the AI worker and other server paths that change status through normal saves are recorded, but without a user when no signed-in user is set (shown without a name).
 

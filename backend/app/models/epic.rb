@@ -3,6 +3,9 @@ class Epic < ApplicationRecord
   include BelongsToMilestone
   include RoadmapHorizon
   include Positioned
+  include Auditable
+
+  audited :title, :start_date, :target_date, :horizon, :initiative, :milestone, :folder
 
   belongs_to :workspace
   belongs_to :folder, optional: true

@@ -24,6 +24,7 @@ import {
 } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import WorkspaceLayout from '@/components/WorkspaceLayout'
+import { ActivityButton } from '@/components/activity/ActivityButton'
 import SprintHeader from '@/components/SprintHeader'
 import { TASK_PRIORITIES, estimateLabel, pointsLabel, priorityLabel, TASK_KINDS, KIND_LABEL, kindOf } from '@/data/task'
 import { RECURRENCE_OPTIONS, recurrenceLabel } from '@/data/recurrence'
@@ -133,6 +134,7 @@ function TaskCard({ task, onNext, nextLabel, onNavigate, onEdit, epicTitle, assi
           </Button>
         )}
         <div className="tasks-card_actions">
+          {!overlay && <ActivityButton subjectType="Task" subjectId={task.id} title={task.title} className="tasks-card_fields" />}
           {onEditFields && fields.length > 0 && !overlay && (
             <Button
               onClick={onEditFields}
@@ -839,6 +841,7 @@ export default function TasksScreen() {
                       </Button>
                     )}
                     <div className="tasks-row_actions">
+                      <ActivityButton subjectType="Task" subjectId={task.id} title={task.title} className="tasks-row_action" />
                       {taskFields.length > 0 && (
                         <Button
                           onClick={() => setFieldsTaskId(task.id)}

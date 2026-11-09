@@ -16,6 +16,7 @@ jest.mock('@/api/milestones', () => ({
   useUpdateMilestone: () => mockMutation,
   useDeleteMilestone: () => mockMutation,
 }))
+jest.mock('@/api/activities', () => ({ useActivities: () => ({ data: [], isLoading: false, isError: false }) }))
 
 test('shows each milestone with its health and rollup counts', () => {
   render(<MilestonesScreen />)
@@ -23,4 +24,5 @@ test('shows each milestone with its health and rollup counts', () => {
   expect(screen.getByText('At risk')).toBeInTheDocument()
   expect(screen.getByText(/1\/4 tasks done · 2 epics · 1 initiatives/)).toBeInTheDocument()
   expect(screen.getByRole('button', { name: 'Delete Beta' })).toBeInTheDocument()
+  expect(screen.getByRole('button', { name: 'Activity of Beta' })).toBeInTheDocument()
 })

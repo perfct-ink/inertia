@@ -4,6 +4,9 @@ class Initiative < ApplicationRecord
   include BelongsToMilestone
   include RoadmapHorizon
   include Positioned
+  include Auditable
+
+  audited :title, :status, :start_date, :target_date, :horizon, :owner, :milestone, :folder, valueless: :description
 
   include ProjectItem
 

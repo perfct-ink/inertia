@@ -1,0 +1,24 @@
+@use 'tokens' as *;
+
+// The icon button that opens an item's activity log (ActivityButton.tsx).
+@layer app.components {
+  .activity_button {
+    // The wrapper only exists to stop clicks; it must not affect the layout of the row it sits in.
+    display: contents;
+
+    &-trigger {
+      @include muted-link;
+
+      // A finger needs more than the icon's size to hit.
+      @media (pointer: coarse) {
+        min-width: space(10);
+        min-height: space(10);
+      }
+    }
+
+    &-icon {
+      width: space(4);
+      height: space(4);
+    }
+  }
+}

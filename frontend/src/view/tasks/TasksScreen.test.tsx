@@ -57,6 +57,7 @@ jest.mock('@/components/TaskHistoryDialog', () => function HistoryMock() { retur
 jest.mock('@/api/workspaceMembers', () => ({ useWorkspaceMembers: () => ({ data: [] }) }))
 jest.mock('@/api/sprints', () => ({ useSprints: () => ({ data: [] }) }))
 jest.mock('@/api/milestones', () => ({ useMilestones: () => ({ data: [] }) }))
+jest.mock('@/api/activities', () => ({ useActivities: () => ({ data: [], isLoading: false, isError: false }) }))
 
 let mockSettings: TaskStatusSetting[] = []
 jest.mock('@/api/taskStatusSettings', () => ({
@@ -125,4 +126,14 @@ test('viewers do not get the status editor', () => {
   mockRole = 'viewer'
   renderScreen('/tasks?view=kanban')
   expect(screen.queryByRole('button', { name: 'Statuses' })).not.toBeInTheDocument()
+})
+
+test('each workboard card and backlog row has a button for the task\'s activity log', () => {
+  const { unmount } = renderScreen('/tasks?view=kanban')
+  fireEvent.click(screen.getByRole('button', { name: 'Activity of Write copy' }))
+  expect(screen.getAllByText('Activity: Write copy').length).toBeGreaterThan(0)
+  unmount()
+
+  renderScreen('/tasks?view=backlog')
+  expect(screen.getByRole('button', { name: 'Activity of Old idea' })).toBeInTheDocument()
 })

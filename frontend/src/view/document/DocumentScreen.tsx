@@ -59,6 +59,7 @@ import {
   Paperclip,
 } from 'lucide-react'
 import WorkspaceLayout from '@/components/WorkspaceLayout'
+import { ActivityButton } from '@/components/activity/ActivityButton'
 import { useDocument, useUpdateDocument } from '@/api/documents'
 import { markTouched } from '@/store/untouchedDocuments'
 import { useCreateTask, useDeleteTask, useTasks, useUpdateTask } from '@/api/tasks'
@@ -718,6 +719,8 @@ export default function DocumentScreen() {
             hidden
             onChange={handleFileInputChange}
           />
+          <Divider />
+          <ActivityButton subjectType="Document" subjectId={doc.id} title={doc.title || 'Untitled'} className="document-toolbar_button" />
           <div className="document-status">
             {saveStatus === 'saving' && <Loader2 className="document-status_spinner" />}
             {saveStatus === 'unsaved' && <div className="document-status_dot" />}

@@ -2,6 +2,13 @@ class Task < ApplicationRecord
   include SameWorkspace
   include BelongsToMilestone
   include HasParticipants
+  include Auditable
+
+  # `assignee` is the first assignee; the rest and the watchers are not logged
+  # yet (docs/backlog/activity-log-task-assignees-and-watchers.md).
+  audited :title, :kind, :status, :priority, :start_date, :due_date, :recurrence, :story_points,
+    :actual_story_points, :estimate_hours, :assignee, :epic, :sprint, :milestone, :folder, :document, :parent,
+    valueless: :description
 
   belongs_to :workspace
   belongs_to :document, optional: true

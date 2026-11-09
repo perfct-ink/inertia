@@ -1,0 +1,61 @@
+@use 'tokens' as *;
+
+// An item's activity log inside a modal (ActivityDialog.tsx). Colors come from
+// theme tokens, so it follows light and dark mode.
+@layer app.components {
+  .activity_log {
+    display: flex;
+    flex-direction: column;
+    gap: space(3);
+    max-height: 60vh;
+    margin-top: space(3);
+    overflow-y: auto;
+
+    &-spinner {
+      align-self: center;
+      width: space(5);
+      height: space(5);
+      color: color(muted-foreground);
+      @include spin;
+    }
+
+    &-list {
+      display: flex;
+      flex-direction: column;
+    }
+
+    &-entry {
+      padding: space(2) 0;
+      border-bottom: 1px solid color(border);
+
+      &:last-child {
+        border-bottom: 0;
+      }
+    }
+
+    &-meta {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: baseline;
+      gap: 0 space(2);
+      color: color(muted-foreground);
+      @include text('xs');
+    }
+
+    &-actor {
+      color: color(foreground);
+      font-weight: 600;
+    }
+
+    &-lines {
+      margin-top: space(1);
+      overflow-wrap: anywhere;
+      @include text('sm');
+    }
+
+    &-hint {
+      color: color(muted-foreground);
+      @include text('xs');
+    }
+  }
+}

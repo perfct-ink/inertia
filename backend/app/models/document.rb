@@ -1,4 +1,9 @@
 class Document < ApplicationRecord
+  include Auditable
+
+  audited :title, :doc_type, :pinned, :folder, :initiative, :epic, :milestone,
+    :feature_status, :parent_feature, :feature_owner, valueless: :content
+
   # MySQL rejects a DB-level DEFAULT on JSON columns ("BLOB, TEXT, GEOMETRY
   # or JSON column can't have a default value"), so the {} default that used
   # to live on the column (fine under Postgres' jsonb) has to live here

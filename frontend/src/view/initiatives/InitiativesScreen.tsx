@@ -3,6 +3,7 @@ import { useState, useRef } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { Plus, X, Flag, Loader2 } from 'lucide-react'
 import WorkspaceLayout from '@/components/WorkspaceLayout'
+import { ActivityButton } from '@/components/activity/ActivityButton'
 import { useMilestones } from '@/api/milestones'
 import { useWorkspace } from '@/api/workspace'
 import { useWorkspaceMembers } from '@/api/workspaceMembers'
@@ -109,6 +110,7 @@ export default function InitiativesScreen() {
                   <span className="planning-card-count">
                     {initiative.done_tasks_count}/{initiative.tasks_count} done
                   </span>
+                  <ActivityButton subjectType="Initiative" subjectId={initiative.id} title={initiative.title} />
                   <Button
                     onClick={(e) => { e.stopPropagation(); deleteInitiative.mutate(initiative.id) }}
                     aria-label="Delete initiative"
