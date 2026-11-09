@@ -14,6 +14,12 @@ Rails.application.routes.draw do
   get "robots.txt", to: "marketing#robots"
   get "sitemap.xml", to: "marketing#sitemap"
 
+  # Inertia's MCP server for agents (Claude Code, ...), one JSON-RPC route that
+  # takes an agent token, not a person's sign-in; see AgentTools. nginx proxies
+  # this exact path to Rails (frontend/nginx/default.conf).
+  post "mcp", to: "mcp#handle"
+  get "mcp", to: "mcp#unsupported"
+
   devise_for :users,
     path: "api/v1/auth",
     path_names: { sign_in: "login", sign_out: "logout", registration: "signup" },
@@ -110,6 +116,12 @@ Rails.application.routes.draw do
       resources :task_dependencies, only: [ :index, :create, :destroy ]
       resources :ai_workers, only: [ :index, :create, :update, :destroy ]
       resources :ai_runs, only: [ :index, :create ]
+      # Agent access (docs/features/agent_access.md): owners manage tokens with
+      # their normal sign-in; agents use the token on /mcp and agent/tools.
+      resources :agent_tokens, only: [ :index, :create, :destroy ]
+      resources :agent_activities, only: [ :index ]
+      get "agent/tools", to: "agent_tools#index"
+      post "agent/tools/:tool_name", to: "agent_tools#create"
       resource :onboarding, only: [ :show, :update ]
       resources :ideas, only: [ :index, :create, :update, :destroy ] do
         post :promote, on: :member

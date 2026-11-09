@@ -2,6 +2,8 @@
 priority: p1
 depends_on: []
 components: [backend]
+branch: backlog/ai-worker-agent-access
+status: incomplete
 ---
 # AI worker: let Claude and other agents read and edit a Space
 
@@ -21,3 +23,6 @@ An outside agent (Claude, Claude Code, or any agent that speaks MCP or REST) nee
 - A revoked token stops working immediately.
 - Each change shows the agent as its author.
 - Tests cover token scoping and the read/write tools; `docs/features/` and `docs/services.md` are updated and this file is removed.
+
+## Cut off (2026-11-09)
+The agent working this task was stopped by the daily API cost limit before it finished, and its last uncommitted edits were committed here as they were. Treat the branch as unfinished: the code may not build or pass tests, no checks were run on the last edits, and the Unverified section (what was run, what to run) is not written yet. Resume by reading `git log` and the diff against `origin/main`, finish the requirements above, then write the Unverified section.
