@@ -19,6 +19,9 @@ class Document < ApplicationRecord
   has_many :tasks, dependent: :destroy
   # Tasks an uploaded file is attached to; deleting the file detaches it.
   has_many :task_files, foreign_key: :file_id, dependent: :destroy, inverse_of: :file
+  has_many :outgoing_links, class_name: "DocumentLink", foreign_key: :source_document_id, dependent: :delete_all, inverse_of: :source_document
+  has_many :incoming_links, class_name: "DocumentLink", foreign_key: :target_document_id, dependent: :delete_all, inverse_of: :target_document
+  has_many :linking_documents, through: :incoming_links, source: :source_document
   has_many :shares, as: :shareable, dependent: :destroy
 
   has_many :table_fields, dependent: :destroy
@@ -41,6 +44,10 @@ class Document < ApplicationRecord
   slugged_by :title, within: :folder
 
   before_save :update_content_updated_at, if: :content_changed?
+  # Which documents a document links to is worked out from its content, so it is
+  # redone when the content changes and when the document moves (links never
+  # cross Spaces). Only documents hold links; sheets and Collections do not.
+  after_save :refresh_links, if: -> { document? && (saved_change_to_content? || saved_change_to_id? || saved_change_to_folder_id?) }
   # A deleted file leaves any collection file fields that held it.
   before_destroy :remove_from_collection_cells, if: -> { doc_type == "file" }
 
@@ -56,10 +63,20 @@ class Document < ApplicationRecord
     doc_type == "document" ? DocumentHeadings.of(content) : []
   end
 
+  # The documents in this document's Space that link to it, by title. A link
+  # row that outlived a move to another Space is left out.
+  def backlinks
+    linking_documents.joins(:folder).where(folders: { workspace_id: workspace_id }).order(:title, :id)
+  end
+
   # Moving a document out of a folder ends its time as that folder's home page.
   after_update { Folder.where(home_document_id: id).where.not(id: folder_id).update_all(home_document_id: nil) if saved_change_to_folder_id? }
 
   private
+
+  def refresh_links
+    DocumentLink.refresh!(self)
+  end
 
   def remove_from_collection_cells
     TableCell.joins(:table_field).where(table_fields: { data_type: %w[file files] }).find_each do |cell|

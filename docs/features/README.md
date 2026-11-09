@@ -75,3 +75,4 @@ One file per implemented feature, written from the code (see `docs/rules/feature
 | Rules compliance: the repo audited against every shared rule, what was fixed, what is open | [rules_compliance.md](rules_compliance.md) |
 | Saved views: named sort, grouping and filters per page, private or shared with the Space | [saved_views.md](saved_views.md) |
 | Workboard swimlanes: organize by epic, with drag between lanes | [workboard_swimlanes.md](workboard_swimlanes.md) |
+| Backlinks: a document lists the documents that link to it | [document_backlinks.md](document_backlinks.md) |

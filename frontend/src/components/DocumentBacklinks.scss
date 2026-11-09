@@ -1,0 +1,68 @@
+@use 'tokens' as *;
+
+@layer app.components {
+  .document_backlinks {
+    max-width: 48rem;
+    margin: 0 auto;
+    padding: space(4) space(4) space(12);
+    color: color(muted-foreground);
+    cursor: default;
+    @include text('sm');
+
+    @include up('md') {
+      padding-right: space(8);
+      padding-left: space(8);
+    }
+
+    &-title {
+      display: flex;
+      align-items: center;
+      gap: space(1.5);
+      margin-bottom: space(2);
+      font-weight: 600;
+    }
+
+    &-icon {
+      flex-shrink: 0;
+      width: space(4);
+      height: space(4);
+    }
+
+    &-list {
+      display: flex;
+      flex-direction: column;
+      gap: space(1);
+    }
+
+    &-link {
+      display: flex;
+      align-items: center;
+      gap: space(2);
+      min-height: space(10);
+      padding: space(1) space(2);
+      border-radius: radius('md');
+      color: color(primary);
+      cursor: pointer;
+      user-select: none;
+      @include transition(background-color);
+
+      &:hover {
+        background: color(accent);
+      }
+    }
+
+    &-text {
+      min-width: 0;
+      overflow-wrap: anywhere;
+    }
+
+    &-location {
+      flex-shrink: 0;
+      max-width: 50%;
+      margin-left: auto;
+      color: color(muted-foreground);
+      @include text('xs');
+      @include truncate;
+    }
+  }
+}

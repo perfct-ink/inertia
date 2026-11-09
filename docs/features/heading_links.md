@@ -50,7 +50,7 @@ Anyone who can edit a document can add heading links to it and (through the edit
 - Ids are stored only after an edit. In a document nobody has edited, two headings with the same text are told apart by order ("-2"), so adding another one above shifts them until the next save.
 - Copying a heading copies its id. The later of two headings with the same id gets a new id on the next save; if the copy sits above the original, links to the original now reach the copy.
 - Broken links: only links to documents and headings in this app (`/documents/12#anchor` and its hash and absolute forms) are checked, not web links, Collections or sheets as heading targets. The answer is cached for 30 s, so a heading deleted in another tab can take that long to show. If the collaboration server is down, a collaborative document is never marked. "Pick a new target" can only pick a heading, not a whole document. A link is found again by its position, so if collaborators edit the text before it while the dialog is open, nothing is changed and a notice says so.
-- Headings in a Collection cell or a sheet do not exist, so only documents can be targets. Nothing lists which documents link to a heading (`docs/backlog/backlinks-each-document-lists-which-documents-link-to.md`).
+- Headings in a Collection cell or a sheet do not exist, so only documents can be targets. A document's "Linked from" list (`document_backlinks.md`) includes the documents that link to one of its headings, but does not say which heading.
 - The `Heading` change touches the editor schema (`collab-server/src/schema.ts`), which `backlog/link-to-another-document` also edits (different lines).
 
 ## History

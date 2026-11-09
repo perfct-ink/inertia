@@ -74,6 +74,7 @@ import DocumentPlanningSummary from '@/components/DocumentPlanningSummary'
 import ParagraphStylePicker from '@/components/ParagraphStylePicker'
 import DashedListButton from '@/components/DashedListButton'
 import ToolbarBtn from '@/components/DocumentToolbarButton'
+import DocumentBacklinks from '@/components/DocumentBacklinks'
 import TableEditor from '@/components/editors/TableEditor'
 import SpreadsheetEditor from '@/components/editors/SpreadsheetEditor'
 import HeadingLinkPicker from '@/components/HeadingLinkPicker'
@@ -759,6 +760,7 @@ export default function DocumentScreen({ id }: { id?: number }) {
           <div className={`document-page ${tasksOnly ? 'document-page--tasks_only' : ''}`}>
             <EditorContent editor={editor} />
           </div>
+          <DocumentBacklinks documentId={docId} />
         </div>
       </div>
       <Modal

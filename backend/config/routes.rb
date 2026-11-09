@@ -78,6 +78,7 @@ Rails.application.routes.draw do
 
       resources :documents, only: [] do
         resource :file, only: [ :update ], controller: "files"
+        get :backlinks, on: :member
         resources :tasks, only: [ :index, :create ], shallow: true
       end
 

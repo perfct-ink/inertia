@@ -3,13 +3,13 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import type { ReactNode } from 'react'
 import { useTabsStore } from '@/store/tabs'
 import api from '@/lib/api'
-import { documentApi, useDocumentLinkTargets, useUpdateDocument } from './documents'
+import { documentApi, useBacklinks, useDocumentLinkTargets, useUpdateDocument } from './documents'
 
 jest.mock('@/lib/api', () => ({
   __esModule: true,
   default: {
     patch: jest.fn((_url: string, body: { document: { title: string } }) => Promise.resolve({ data: { id: 5, title: body.document.title } })),
-    get: jest.fn(() => Promise.resolve({ data: [{ id: 2, doc_type: 'document', headings: [] }] })),
+    get: jest.fn((url: string) => Promise.resolve({ data: url.endsWith('/backlinks') ? [{ id: 9, title: 'Plan' }] : [{ id: 2, doc_type: 'document', headings: [] }] })),
   },
 }))
 
@@ -45,4 +45,14 @@ describe('link targets', () => {
     renderHook(() => useDocumentLinkTargets([]), { wrapper })
     expect(api.get).not.toHaveBeenCalled()
   })
+})
+
+test('backlinks are read from the document\'s backlinks endpoint', async () => {
+  await expect(documentApi.backlinks(7)).resolves.toEqual([{ id: 9, title: 'Plan' }])
+  expect(api.get).toHaveBeenCalledWith('/api/v1/documents/7/backlinks')
+
+  const qc = new QueryClient()
+  const wrapper = ({ children }: { children: ReactNode }) => <QueryClientProvider client={qc}>{children}</QueryClientProvider>
+  const { result } = renderHook(() => useBacklinks(7), { wrapper })
+  await waitFor(() => expect(result.current.data).toEqual([{ id: 9, title: 'Plan' }]))
 })
