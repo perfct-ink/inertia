@@ -16,6 +16,11 @@ Not present
 
 The check-in arrives as a notification (needs `notifications-inbox.md`, the notifications inbox; email/push later). The answer is saved as an update on the task, so its history reads like a log. Overdue check-ins show on the task as stale.
 
+### Decisions (Alex, 2026-11-09 groom)
+
+- **A check-in asks for a status and a note.** The owner picks a status (on track, at risk, blocked) and can add an optional note. Both are saved on the task's check-in log, and the latest status shows on the task.
+- The notifications inbox and recurring tasks are built (`docs/features/notifications_inbox.md`, `docs/features/recurring_tasks.md`); reuse the recurring schedule picker for the check-in schedule.
+
 ## Context
 
 Section "Requirement docs, project types, releases and recurring work" of the retired shared backlog.
