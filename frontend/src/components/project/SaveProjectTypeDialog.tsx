@@ -4,9 +4,11 @@ import { useSaveProjectType } from '@/api/projectTypes'
 import { errorMessage } from '@/util/errorMessage'
 import type { Folder } from '@/types'
 
-// Saves a project as a type of the Space: new projects of the type start with the
-// documents, sheets, Collection fields and tasks that are in it now. Mount it to
-// open it; it closes itself once the type is saved.
+// Saves a project as a type of the Space, which is how a project becomes a
+// reusable template: new projects of the type start with the folders, documents,
+// sheets, Collection fields and task titles that are in it now (never people,
+// files, records or dates; see ProjectTemplate in the backend). Mount it to open
+// it; it closes itself once the type is saved.
 export default function SaveProjectTypeDialog({ project, onClose }: { project: Folder; onClose: () => void }) {
   const save = useSaveProjectType()
   const [name, setName] = useState(project.name)
@@ -24,7 +26,7 @@ export default function SaveProjectTypeDialog({ project, onClose }: { project: F
     <Modal
       open
       title="Save as project type"
-      description={`New projects of this type start with the documents, sheets, Collection fields and tasks that are in ${project.name} now (not files or records).`}
+      description={`Makes ${project.name} a reusable template. New projects of this type start with the folders, documents, sheets, Collection fields and tasks that are in it now. People, files, records and dates are not copied.`}
       onClose={onClose}
     >
       <form onSubmit={submit} className="ui-modal-form">

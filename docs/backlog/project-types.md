@@ -43,18 +43,25 @@ Requested by Alex on 2026-10-18: write product requirement documents that turn i
 - Tests cover the new behaviour; a feature doc in `docs/features/` is written (or the existing one updated) and this file is removed.
 
 ## Unverified
-Built on this branch (see `docs/features/project_types.md`): the eight types with starting documents, Collections and tasks, a New project dialog with a type picker, saving a project as a type, deleting a saved type, a Type select on the project card, and the project type through copy and move between Spaces. The decisions made for Alex are in the feature doc ("Decisions"): the type is a string key on `folders.project_type`, built-in templates live in the web app, the "features a type turns on" part is deferred until the per-project and per-Space features settings exist (so it does not collide with their columns), and a type does not create Space-wide task fields.
 
-Ran here: `ruby -c` on every changed Ruby file, the pure `ProjectTemplate.clean` cases with `ruby -e`, the data tests (`projectType`, `documentTemplate`), and the component tests in the Jest stand-in.
+Status after Alex's 2026-11-09 groom (project templates merged in): a saved project type is a project template, and both halves work on this branch.
+- **Save a project as a type** ("Save as type..." in the project dropdown and on each project card) makes a reusable template: `POST /api/v1/project_types` snapshots the project with `ProjectTemplate.snapshot`. **Creating a project from a type** works for the eight built-in types (the web app sends the template) and for saved types (the server uses the stored template), in one transaction through `POST /api/v1/folders`.
+- **The rule for what a template copies** (feature doc "What a saved type carries", and the header of `backend/app/services/project_template.rb`): the project's structure and starting text, never the people or the work done in it. Carried: subfolders and where items sit, documents and sheets with their text, Collection names and fields, and the titles of top-level tasks. Never carried: people (owner, members, assignees, watchers, document authors), dates, statuses, Collection records, uploaded files, files and images embedded in documents (each becomes a paragraph), comments, subtasks and planning records. This groom added subfolders and the file stripping.
+- **Features** (the type sets the starting features of the project) are still deferred, by design: the per-project features setting is not on `main`, and features are per project only now. Filed as `project-types-set-features.md`, which now depends only on `choose-which-features-a-project-uses.md`. Roadmap and sprint templates are not covered (the groom said so). A saved type has no rename or edit yet: `project-types-edit-saved.md`.
 
-Not run (no network, node_modules, database or browser here). To verify:
+Decision for Alex: a template now keeps the folder structure (it used to flatten subfolders into the project). If a template should start flat, change `ProjectTemplate.snapshot`.
+
+Ran here: `ruby -c` on every changed Ruby file; the pure `ProjectTemplate.clean` cases (folders, placement, limits, files replaced) with `ruby`; the static checks, the pure data tests and the component tests in the Jest stand-in (`projectType`, `documentTemplate`, `projectTypes` api, `NewProjectDialog`, `SaveProjectTypeDialog`, `ProjectDetails`, `ProjectNav`, `ProjectsScreen`, `useNewDocument`).
+
+Not run (no network, node_modules, database or browser here): `ProjectTemplate.snapshot` and `apply` against a database, every Minitest file, the migrations and the `schema.rb` diff, `npm run lint`, `tsc -b`, the project's own Jest run, and the dialogs in a browser. To verify:
 
 ```bash
 cd backend && rails db:migrate && git diff db/schema.rb   # only the project_type column and the project_types table should differ
-cd backend && rails test
+cd backend && rails test test/services/project_template_test.rb test/controllers/project_types_controller_test.rb test/controllers/folder_project_types_test.rb test/models/project_type_test.rb test/models/folder_test.rb test/services/space_transfer_test.rb
+cd backend && rails test && make lint-backend
 cd frontend && npm install && npm run lint && npx tsc -b && npm test
 ```
 
-Then look at the Projects page and the sidebar in a browser at 375px and desktop, light and dark: the New project dialog (type cards, saved types, delete), Save as type, and the card's Type select.
+Then in a browser at 375px and desktop, light and dark: on a project with a subfolder, a spreadsheet, a Collection and a few tasks, press Save as type (the dialog says it makes a reusable template), open New project, pick the saved type (its card reads "1 folder, ...") and create. The new project has the subfolder, documents, Collection fields (no records) and tasks in the backlog, with no owner and no assignees. Also check the built-in types, deleting a saved type, and the card's Type select.
 
-Left for later, filed as their own tasks: `project-types-set-features.md` (apply a type's features once the per-project and per-Space features settings land) and `project-types-edit-saved.md` (rename and update a saved type). Not filed: a type column or filter on the Portfolio. Delete this file when the branch is merged.
+Delete this file when the branch is merged.

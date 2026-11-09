@@ -47,7 +47,7 @@ One file per implemented feature, written from the code (see `docs/rules/feature
 | Feature folders: a folder flagged as holding features | [feature_folders.md](feature_folders.md) |
 | Cards view of a folder's tasks | [cards_view.md](cards_view.md) |
 | Task priority, effort estimate and story points | [task_estimates.md](task_estimates.md) |
-| Project types: software, music release, video, event, marketing campaign, writing, personal; each starts a project with documents, Collections and tasks; save your own | [project_types.md](project_types.md) |
+| Project types and project templates: software, music release, video, event, marketing campaign, writing, personal; each starts a project with folders, documents, Collections and tasks; save your own project as a type to make a template | [project_types.md](project_types.md) |
 | Clean URLs: real paths on the web (`/login`, `/space`), hashes only in the native apps | [clean_urls.md](clean_urls.md) |
 | Recurring tasks: repeat on a schedule or after completion | [recurring_tasks.md](recurring_tasks.md) |
 | Workload: estimated hours per person per week, over-allocation | [workload.md](workload.md) |

@@ -26,6 +26,13 @@ test('starts with the project name and saves the project as a type under the nam
   expect(onClose).toHaveBeenCalled()
 })
 
+test('says what a saved type carries and what it leaves out', () => {
+  render(<SaveProjectTypeDialog project={project} onClose={onClose} />)
+  const about = screen.getByText(/reusable template/)
+  expect(about).toHaveTextContent('folders, documents, sheets, Collection fields and tasks')
+  expect(about).toHaveTextContent('People, files, records and dates are not copied')
+})
+
 test('needs a name', () => {
   render(<SaveProjectTypeDialog project={project} onClose={onClose} />)
   fireEvent.change(screen.getByRole('textbox', { name: 'Type name' }), { target: { value: ' ' } })

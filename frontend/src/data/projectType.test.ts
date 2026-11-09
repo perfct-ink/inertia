@@ -31,6 +31,16 @@ test('every type has a label, a description, and a template within the server li
   }
 })
 
+test('a template places folders and what is in them by position, like the server stores it', () => {
+  for (const { template } of PROJECT_TYPES) {
+    const folders = template.folders ?? []
+    folders.forEach((folder, position) => expect(folder.parent == null || (folder.parent >= 0 && folder.parent < position)).toBe(true))
+    for (const item of [...template.documents, ...template.collections, ...template.tasks]) {
+      expect(item.folder == null || (item.folder >= 0 && item.folder < folders.length)).toBe(true)
+    }
+  }
+})
+
 test('blank starts empty and the other types start with something', () => {
   expect(describeStart(countsOf(PROJECT_TYPES[0].template))).toBe('')
   for (const type of PROJECT_TYPES.slice(1)) expect(describeStart(countsOf(type.template))).not.toBe('')
@@ -68,6 +78,16 @@ test('describes what a project starts with', () => {
   expect(describeStart({ documents: 2, collections: 0, tasks: 1 })).toBe('2 documents, 1 task')
   expect(describeStart(saved.starts_with)).toBe('1 document, 3 tasks')
   expect(describeStart({ documents: 0, collections: 0, tasks: 0 })).toBe('')
+  expect(describeStart({ folders: 2, documents: 3, collections: 0, tasks: 1 })).toBe('2 folders, 3 documents, 1 task')
+  expect(describeStart({ folders: 1, documents: 0, collections: 0, tasks: 0 })).toBe('1 folder')
+  expect(describeStart({ folders: 0, documents: 0, collections: 0, tasks: 0 })).toBe('')
+})
+
+test('counts the folders of a template, none for a template without any', () => {
+  const template = { folders: [{ name: 'Artwork' }, { name: 'Drafts', parent: 0 }], documents: [{ title: 'Brief', content: {}, folder: 1 }], collections: [], tasks: [] }
+  expect(countsOf(template)).toEqual({ folders: 2, documents: 1, collections: 0, tasks: 0 })
+  expect(countsOf({ documents: [], collections: [], tasks: [] }).folders).toBe(0)
+  expect(projectStart('custom_7').template).toBeUndefined()
 })
 
 test('a built-in type starts a project with its icon and template; blank and saved types send only the key', () => {

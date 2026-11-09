@@ -1,6 +1,6 @@
 ---
 priority: p1
-depends_on: [choose-which-features-a-project-uses.md, choose-which-features-a-space-uses.md]
+depends_on: [choose-which-features-a-project-uses.md]
 components: [frontend, backend]
 ---
 # Project types set the features a project uses
@@ -11,12 +11,12 @@ A project type also says which features (pages) a new project of that type uses,
 
 ## Current state
 
-`docs/features/project_types.md`: a type starts a project with documents, Collections and tasks and labels it. It does not set features, because the per-project and per-Space features settings are separate backlog tasks (`choose-which-features-a-project-uses.md`, `choose-which-features-a-space-uses.md`) and a second column here would collide with them.
+`docs/features/project_types.md`: a type starts a project with documents, Collections and tasks and labels it. It does not set features, because the per-project features setting is a separate backlog task (`choose-which-features-a-project-uses.md`; Alex's 2026-11-09 groom made features per project only and dropped the per-Space task) and a second column here would collide with it.
 
 ## Requirements / notes
 
-- Add a `features` list to the project template (`ProjectTemplate` in `backend/app/services/project_template.rb`, `ProjectTemplate` in `frontend/src/data/projectType.ts`) using the same feature keys as the project features setting.
-- Creating a project from a type sets the project's features to the type's list (a type with none leaves every feature on). A project can only turn on what its Space uses.
+- Add a `features` list to the project template (`ProjectTemplate` in `backend/app/services/project_template.rb`, `ProjectTemplate` in `frontend/src/data/projectType.ts`) using the same feature keys as the project features setting (`Folder::PROJECT_FEATURES` once it lands).
+- Creating a project from a type sets the project's features to the type's list (a type with none leaves every feature on). `POST /api/v1/folders` applies the template's `features` the same way it applies its folders and documents (`ProjectTemplate.apply`).
 - Choose each built-in type's starting features and record them in the feature doc.
 - "Save as type" copies the project's current features into the saved type.
 
