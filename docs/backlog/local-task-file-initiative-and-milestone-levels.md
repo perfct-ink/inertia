@@ -1,5 +1,5 @@
 ---
-priority: p0
+priority: p1
 depends_on: []
 ---
 # Local `.inertia-tasks` file format gains Initiative + Milestone levels
@@ -15,6 +15,8 @@ File format has Epics, Sprints, Milestones (via Events)
 ## Requirements / notes
 
 Open question carried over from `project-management-features.md`. Default: hosted first, file format follows.
+
+Priority p1 (Alex, 2026-11-09 groom): the web app comes first; local files catch up after.
 
 ## Context
 
