@@ -1,6 +1,6 @@
 import type { Editor } from '@tiptap/core'
-import { EDITOR_SHORTCUTS } from '@/data/editorShortcut'
-import { editorKeymap } from './editorKeymap'
+import { boundShortcuts, formatMenuItems, tiptapFor } from '@/data/editorShortcut'
+import { editorCommands, editorKeymap } from './editorKeymap'
 
 // An editor that records the commands run on it. `sinkListItem` and `liftListItem`
 // succeed only for the node types in `works`. It has the cursor in no list, so the
@@ -9,7 +9,8 @@ function fakeEditor(works: string[] = []) {
   const calls: string[] = []
   const record = (name: string, result = true) => (...args: unknown[]) => { calls.push([name, ...args].join(':')); return result }
   const chain: Record<string, () => unknown> = {}
-  for (const name of ['focus', 'unsetAllMarks', 'clearNodes']) chain[name] = () => { calls.push(`chain.${name}`); return chain }
+  const chainStep = (name: string) => (...args: unknown[]) => { calls.push(['chain.' + name, ...args.map((a) => JSON.stringify(a))].join(':')); return chain }
+  for (const name of ['focus', 'unsetAllMarks', 'clearNodes', 'toggleBold', 'toggleItalic', 'toggleUnderline', 'toggleCode', 'setParagraph', 'toggleHeading', 'insertTable']) chain[name] = chainStep(name)
   chain.run = () => { calls.push('chain.run'); return true }
   const doc = { type: { name: 'doc' } }
   const editor = {
@@ -28,9 +29,66 @@ function fakeEditor(works: string[] = []) {
   return { editor, calls }
 }
 
-test('every key of the table gets a handler', () => {
+test('every bound key of the table gets a handler, and the pending dashed list gets none', () => {
   const keymap = editorKeymap(fakeEditor().editor)
-  expect(Object.keys(keymap).sort()).toEqual(EDITOR_SHORTCUTS.map((s) => s.tiptap).sort())
+  expect(Object.keys(keymap).sort()).toEqual(boundShortcuts().map((s) => s.tiptap).sort())
+  expect(keymap['Mod-Shift-8']).toBeUndefined()
+})
+
+test('Windows and Linux get Ctrl+Shift+Up and Down for moving, and no table key', () => {
+  const keymap = editorKeymap(fakeEditor().editor, undefined, false)
+  expect(Object.keys(keymap).sort()).toEqual(boundShortcuts().flatMap((s) => tiptapFor(s, false) ?? []).sort())
+  expect(keymap['Mod-Shift-ArrowUp']).toBeDefined()
+  expect(keymap['Mod-Shift-ArrowDown']).toBeDefined()
+  expect(keymap['Ctrl-Meta-ArrowUp']).toBeUndefined()
+  expect(keymap['Mod-Alt-t']).toBeUndefined()
+  expect(keymap['Mod-k']).toBeDefined()
+})
+
+test('⌘K opens the screen\'s link dialog, and does nothing without one', () => {
+  let opened = 0
+  const keymap = editorKeymap(fakeEditor().editor, undefined, true, { openLinkDialog: () => { opened++ } })
+  expect(keymap['Mod-k']()).toBe(true)
+  expect(opened).toBe(1)
+  expect(editorKeymap(fakeEditor().editor)['Mod-k']()).toBe(false)
+})
+
+test('⌥⌘T puts a 3 by 3 table with a header row at the cursor', () => {
+  const { editor, calls } = fakeEditor()
+  expect(editorKeymap(editor)['Mod-Alt-t']()).toBe(true)
+  expect(calls).toEqual(['chain.focus', 'chain.insertTable:{"rows":3,"cols":3,"withHeaderRow":true}', 'chain.run'])
+})
+
+test('the Format menu runs a command for every one of its items', () => {
+  for (const { action } of formatMenuItems()) {
+    const { editor } = fakeEditor()
+    expect(typeof editorCommands(editor)[action]).toBe('function')
+  }
+})
+
+test('the menu\'s formatting commands run on the editor', () => {
+  const { editor, calls } = fakeEditor()
+  const run = editorCommands(editor)
+  run.bold()
+  run.italic()
+  run.underline()
+  run.inlineCode()
+  run.normalText()
+  run.heading2()
+  expect(calls).toEqual([
+    'chain.focus', 'chain.toggleBold', 'chain.run',
+    'chain.focus', 'chain.toggleItalic', 'chain.run',
+    'chain.focus', 'chain.toggleUnderline', 'chain.run',
+    'chain.focus', 'chain.toggleCode', 'chain.run',
+    'chain.focus', 'chain.setParagraph', 'chain.run',
+    'chain.focus', 'chain.toggleHeading:{"level":2}', 'chain.run',
+  ])
+})
+
+test('the dashed list does nothing until its block exists', () => {
+  const { editor, calls } = fakeEditor()
+  expect(editorCommands(editor).dashedList()).toBe(false)
+  expect(calls).toEqual([])
 })
 
 test('each key runs its command', () => {

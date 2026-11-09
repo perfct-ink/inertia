@@ -1,20 +1,27 @@
 import { Editor } from '@tiptap/core'
 import TiptapDocument from '@tiptap/extension-document'
+import Bold from '@tiptap/extension-bold'
 import BulletList from '@tiptap/extension-bullet-list'
 import CodeBlock from '@tiptap/extension-code-block'
 import ListItem from '@tiptap/extension-list-item'
 import OrderedList from '@tiptap/extension-ordered-list'
 import Paragraph from '@tiptap/extension-paragraph'
 import Strike from '@tiptap/extension-strike'
+import Table from '@tiptap/extension-table'
+import TableCell from '@tiptap/extension-table-cell'
+import TableHeader from '@tiptap/extension-table-header'
+import TableRow from '@tiptap/extension-table-row'
 import Text from '@tiptap/extension-text'
-import { replacedKeys } from '@/data/editorShortcut'
+import { EDITOR_COMMAND_EVENT, replacedKeys } from '@/data/editorShortcut'
 import { EditorShortcuts } from './EditorShortcuts'
 import { withoutShortcuts } from './withoutShortcuts'
 
 // The same extensions DocumentScreen wires up for these keys: the four whose
-// defaults the shortcut table replaces, and the table itself.
+// defaults the shortcut table replaces, tables, and the table itself.
 let editor: Editor
+let linkDialogs = 0
 function createEditor(content: string) {
+  linkDialogs = 0
   editor = new Editor({
     extensions: [
       TiptapDocument,
@@ -25,7 +32,12 @@ function createEditor(content: string) {
       withoutShortcuts(OrderedList, replacedKeys('orderedList')),
       ListItem,
       withoutShortcuts(CodeBlock, replacedKeys('codeBlock')),
-      EditorShortcuts,
+      Bold,
+      Table.configure({ resizable: false }),
+      TableRow,
+      TableCell,
+      TableHeader,
+      EditorShortcuts.configure({ openLinkDialog: () => { linkDialogs++ } }),
     ],
     content,
   })
@@ -102,9 +114,9 @@ test('⌘] nests a list item under the one above and ⌘[ lifts it back', () => 
   expect(editor.getHTML()).toBe('<ul><li><p>a</p></li><li><p>b</p></li></ul>')
 })
 
-test('⌃⌘↑ and ⌃⌘↓ move the list item, and the cursor goes with it', () => {
+test('⌃⌘↑ and ⌃⌘↓ (Ctrl+Shift+↑ and ↓ on Windows and Linux) move the list item, and the cursor goes with it', () => {
   createEditor('<ul><li><p>a</p></li><li><p>b</p></li></ul>')
-  const keys = { ctrlKey: true, metaKey: true }
+  const keys = MAC ? { ctrlKey: true, metaKey: true } : { ctrlKey: true, shiftKey: true }
   expect(press({ key: 'ArrowUp', code: 'ArrowUp', keyCode: 38, ...keys })).toBe(true)
   expect(editor.getHTML()).toBe('<ul><li><p>b</p></li><li><p>a</p></li></ul>')
   expect(editor.state.selection.$from.parent.textContent).toBe('b')
@@ -120,4 +132,46 @@ test('⌘\\ clears formatting', () => {
   expect(editor.isActive('strike')).toBe(true)
   expect(press({ key: '\\', code: 'Backslash', keyCode: 220, ...MOD })).toBe(true)
   expect(editor.isActive('strike')).toBe(false)
+})
+
+test('⌘K opens the link dialog', () => {
+  createEditor('<p>one</p>')
+  expect(press({ ...letter('k'), ...MOD })).toBe(true)
+  expect(linkDialogs).toBe(1)
+})
+
+// The table key is Mac only: Windows and Linux have the toolbar button.
+const onMac = MAC ? test : test.skip
+onMac('⌥⌘T inserts a table', () => {
+  createEditor('<p>one</p>')
+  expect(press({ ...letter('t'), ...MOD, altKey: true })).toBe(true)
+  expect(editor.isActive('table')).toBe(true)
+})
+
+// TipTap sets isFocused from the DOM's focus events, which fire later than these tests run,
+// so the tests say where the cursor is.
+test('a Format menu command runs on the editor that has the cursor', () => {
+  createEditor('<p>one</p>')
+  editor.commands.selectAll()
+  editor.isFocused = true
+  window.dispatchEvent(new CustomEvent(EDITOR_COMMAND_EVENT, { detail: 'bold' }))
+  expect(editor.isActive('bold')).toBe(true)
+})
+
+test('a Format menu command leaves an editor without the cursor alone, and ignores an unknown one', () => {
+  createEditor('<p>one</p>')
+  editor.commands.selectAll()
+  editor.isFocused = false
+  window.dispatchEvent(new CustomEvent(EDITOR_COMMAND_EVENT, { detail: 'bold' }))
+  expect(editor.isActive('bold')).toBe(false)
+  editor.isFocused = true
+  window.dispatchEvent(new CustomEvent(EDITOR_COMMAND_EVENT, { detail: 'constructor' }))
+  expect(editor.isActive('bold')).toBe(false)
+})
+
+test('a destroyed editor stops listening', () => {
+  createEditor('<p>one</p>')
+  editor.isFocused = true
+  editor.destroy()
+  expect(() => window.dispatchEvent(new CustomEvent(EDITOR_COMMAND_EVENT, { detail: 'bold' }))).not.toThrow()
 })

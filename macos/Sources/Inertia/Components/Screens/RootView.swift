@@ -8,6 +8,7 @@ struct RootView: View {
             LoginView()
         } else {
             WorkspaceWebView(session: session).id(session.token)
+                .focusedSceneValue(\.workspaceActive, true)
         }
     }
 }

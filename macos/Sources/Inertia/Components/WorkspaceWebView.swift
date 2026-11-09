@@ -49,6 +49,7 @@ struct WorkspaceWebView: NSViewRepresentable {
         context.coordinator.webView = view
         context.coordinator.observeRefresh()
         context.coordinator.observeShortcuts()
+        context.coordinator.observeFormat()
         view.load(URLRequest(url: Requests.workspaceURL(base: session.web)))
         return view
     }
@@ -62,10 +63,26 @@ struct WorkspaceWebView: NSViewRepresentable {
         weak var webView: WKWebView?
         private var refreshObserver: NSObjectProtocol?
         private var shortcutObserver: NSObjectProtocol?
+        private var formatObserver: NSObjectProtocol?
         init(session: Session) { self.session = session }
         deinit {
             if let refreshObserver { NotificationCenter.default.removeObserver(refreshObserver) }
             if let shortcutObserver { NotificationCenter.default.removeObserver(shortcutObserver) }
+            if let formatObserver { NotificationCenter.default.removeObserver(formatObserver) }
+        }
+
+        /// Sends a Format menu command to the page as the window event the web editor listens for
+        /// (EDITOR_COMMAND_EVENT in frontend/src/data/editorShortcut.ts). The menu owns the key
+        /// equivalent, so the page never sees the keystroke itself. Only letters and digits are
+        /// sent, so an action id cannot break out of the script string.
+        func observeFormat() {
+            formatObserver = NotificationCenter.default.addObserver(forName: .formatCommand, object: nil, queue: .main) { [weak self] note in
+                Task { @MainActor in
+                    guard let action = note.object as? String, action.allSatisfy({ $0.isASCII && ($0.isLetter || $0.isNumber) }),
+                          let webView = self?.webView else { return }
+                    _ = try? await webView.evaluateJavaScript("window.dispatchEvent(new CustomEvent('inertia:editor-command',{detail:'\(action)'}))")
+                }
+            }
         }
 
         /// Replays a menu-owned Command shortcut into the page as a keydown the web app already handles.

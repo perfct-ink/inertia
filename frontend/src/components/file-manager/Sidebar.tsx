@@ -33,17 +33,20 @@ import api from '@/lib/api'
 import logoMark from '@/assets/logo-mark.svg'
 import { todayISO } from '@/util/date'
 import { isElectron } from '@/util/platform'
-import { isShortcut, shortcutAvailable, shortcutKey, shortcutLabel } from '@/util/shortcuts'
-import { documentShortcutRows } from '@/data/editorShortcut'
+import { isShortcut, shortcutAvailable, shortcutKey, shortcutLabel, editorKeepsKey, inDocumentEditor } from '@/util/shortcuts'
+import { platformKeys } from '@/util/keyLabel'
+import { isMac } from '@/util/platform'
+import { clashForAction, documentShortcutRows, EDITOR_COMMAND_EVENT } from '@/data/editorShortcut'
 
 // Kept in sync by hand with the onKey handler below — there's only one
 // place global shortcuts are bound, so this is just their display copy.
+// ⌘K and ⌘E are also the editor's link and inline code: in a document the editor wins.
 const KEYBOARD_SHORTCUTS: { keys: string; label: string }[] = [
-  { keys: '⌘K', label: 'Quick-add a task or event' },
+  { keys: '⌘K', label: 'Quick-add a task or event (outside a document)' },
   { keys: '⌘N', label: 'New document in this folder' },
   { keys: '⌘⇧N', label: 'New sheet in this folder' },
   { keys: '⌘T', label: 'New task in this folder' },
-  { keys: '⌘E', label: 'New event' },
+  { keys: '⌘E', label: 'New event (outside a document)' },
   { keys: '⌘J', label: 'New idea' },
   { keys: '⌘W', label: 'Close the active tab' },
   { keys: '⌘/', label: 'Show or hide this list' },
@@ -154,6 +157,9 @@ export default function Sidebar() {
         else if (drawerOpenRef.current) closeDrawer()
         return
       }
+      // In the document editor ⌘K is Insert link, ⌘E inline code and ⌥⌘T Insert table:
+      // the formatting wins there (data/editorShortcut.ts, GLOBAL_CLASHES).
+      if (editorKeepsKey(e)) return
       if (isShortcut(e, 'n')) {
         e.preventDefault()
         if (e.shiftKey) createNewSpreadsheetRef.current()
@@ -187,7 +193,19 @@ export default function Sidebar() {
       }
     }
     window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
+    // The Mac app's Format menu owns ⌘K, ⌘E and ⌥⌘T and sends them to the page as editor
+    // commands. With no document editor holding the cursor they mean what they do outside
+    // a document, so replay the keystroke for the handler above.
+    function onFormatCommand(event: Event) {
+      const clash = clashForAction(String((event as CustomEvent).detail))
+      if (!clash || inDocumentEditor({ target: document.activeElement })) return
+      window.dispatchEvent(new KeyboardEvent('keydown', { key: clash.globalKey, metaKey: true, altKey: clash.globalAlt, bubbles: true }))
+    }
+    window.addEventListener(EDITOR_COMMAND_EVENT, onFormatCommand)
+    return () => {
+      window.removeEventListener('keydown', onKey)
+      window.removeEventListener(EDITOR_COMMAND_EVENT, onFormatCommand)
+    }
   }, [])
 
   function handleLogout() {
@@ -326,8 +344,8 @@ export default function Sidebar() {
             label={`Account: ${user?.name ?? 'not signed in'}`}
             triggerClassName="sidebar-user"
             items={[
-              { key: 'quick-add', label: 'Quick add', hint: '⌘K', icon: <Plus className="sidebar-icon--sm" />, onSelect: openQuickAdd },
-              { key: 'shortcuts', label: 'Keyboard shortcuts', hint: '⌘/', icon: <Keyboard className="sidebar-icon--sm" />, onSelect: () => setShortcutsOpen(true) },
+              { key: 'quick-add', label: 'Quick add', hint: platformKeys('⌘K', isMac), icon: <Plus className="sidebar-icon--sm" />, onSelect: openQuickAdd },
+              { key: 'shortcuts', label: 'Keyboard shortcuts', hint: platformKeys('⌘/', isMac), icon: <Keyboard className="sidebar-icon--sm" />, onSelect: () => setShortcutsOpen(true) },
               { key: 'appearance', label: 'Appearance', icon: <Palette className="sidebar-icon--sm" />, onSelect: () => setAppearanceOpen(true), separatorBefore: true },
               { key: 'quip', label: 'Import from Quip', icon: <Download className="sidebar-icon--sm" />, onSelect: () => setQuipImportOpen(true) },
               ...(user && !onboardingVisible ? [{ key: 'onboarding', label: 'Show getting started', icon: <Sparkles className="sidebar-icon--sm" />, onSelect: () => { useOnboardingStore.getState().reopen(user.id); navigate('/space') } }] : []),
@@ -460,12 +478,12 @@ export default function Sidebar() {
               {KEYBOARD_SHORTCUTS.filter(({ keys }) => shortcutAvailable(keys)).map(({ keys, label }) => (
                 <div key={keys} className="sidebar-shortcut">
                   <span>{label}</span>
-                  <kbd className="sidebar-kbd">{shortcutLabel(keys)}</kbd>
+                  <kbd className="sidebar-kbd">{platformKeys(shortcutLabel(keys), isMac)}</kbd>
                 </div>
               ))}
               {/* The editor's own keys (data/editorShortcut.ts); the browser ⌥ rules above don't apply to them. */}
               <h3 className="sidebar-shortcuts_group">In a document</h3>
-              {documentShortcutRows().map(({ keys, label }) => (
+              {documentShortcutRows(isMac).map(({ keys, label }) => (
                 <div key={label} className="sidebar-shortcut">
                   <span>{label}</span>
                   <kbd className="sidebar-kbd">{keys}</kbd>

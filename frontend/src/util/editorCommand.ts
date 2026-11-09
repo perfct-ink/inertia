@@ -13,6 +13,12 @@ export function insertTaskList(editor: ViewEditor): boolean {
   return true
 }
 
+// Puts a 3 by 3 table with a header row at the cursor. The toolbar button and the table
+// shortcut both call it.
+export function insertTable(editor: Pick<Editor, 'chain'>): boolean {
+  return editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()
+}
+
 // The depth of the nearest ancestor of the cursor whose node type is one of `names`
 // (a bulleted or numbered item, a checklist line), or null when it is in none.
 function ancestorDepth(editor: Pick<Editor, 'state'>, names: string[]): number | null {
