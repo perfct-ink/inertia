@@ -1,5 +1,5 @@
 import type { Task } from '@/types'
-import { buildTaskTree, taskFolderId, dueBucket, myWork, taskCards, estimateLabel, pointsLabel, priorityLabel, filterByKind, kindOf, elapsedClock, formatMinutes, progressById, subtaskProgress, statusChangeLabel, taskChanges, taskDraft, taskDraftError } from './task'
+import { buildTaskTree, taskFolderId, dueBucket, myWork, taskCards, estimateLabel, pointsLabel, priorityLabel, filterByKind, kindOf, elapsedClock, formatMinutes, progressById, subtaskProgress, statusChangeLabel, taskChanges, taskDraft, taskDraftError, epicLanes, epicLaneKey, laneEpicId, boardCellId, parseBoardCell } from './task'
 
 const task = (id: number, parent_id: number | null = null) => ({ id, title: `T${id}`, parent_id }) as unknown as Task
 
@@ -131,5 +131,43 @@ describe('task detail drafts', () => {
     expect(taskDraftError({ ...taskDraft(base), title: '  ' })).toBe('A task needs a title.')
     expect(taskDraftError({ ...taskDraft(base), start_date: '2026-10-25' })).toBe('The due date is before the start date.')
     expect(taskDraftError(taskDraft(base))).toBeNull()
+  })
+})
+
+describe('workboard swimlanes', () => {
+  const t = (id: number, epic_id: number | null) => ({ id, epic_id }) as unknown as Task
+  const epics = [{ id: 1, title: 'Onboarding' }, { id: 2, title: 'Billing' }, { id: 3, title: 'Empty' }]
+
+  test('epicLanes makes a lane per epic with tasks, in the epics\' order, plus No epic', () => {
+    const lanes = epicLanes([t(1, 2), t(2, null), t(3, 1), t(4, 99), t(5, 2)], epics)
+    expect(lanes.map((l) => [l.key, l.title, l.epicId, l.tasks.map((x) => x.id)])).toEqual([
+      ['epic-1', 'Onboarding', 1, [3]],
+      ['epic-2', 'Billing', 2, [1, 5]],
+      ['no-epic', 'No epic', null, [2, 4]],
+    ])
+  })
+
+  test('No epic is always a lane, so cards can leave an epic and an empty Space can add a task', () => {
+    expect(epicLanes([t(1, 1)], epics).map((l) => [l.key, l.tasks.length])).toEqual([['epic-1', 1], ['no-epic', 0]])
+    expect(epicLanes([], epics).map((l) => l.key)).toEqual(['no-epic'])
+    expect(epicLanes([t(1, null)], []).map((l) => l.key)).toEqual(['no-epic'])
+  })
+
+  test('a lane key and its epic round-trip, and unknown epics fall in No epic', () => {
+    const known = new Set([4])
+    expect(epicLaneKey(4, known)).toBe('epic-4')
+    expect(epicLaneKey(5, known)).toBe('no-epic')
+    expect(epicLaneKey(null, known)).toBe('no-epic')
+    expect(laneEpicId('epic-4')).toBe(4)
+    expect(laneEpicId('no-epic')).toBeNull()
+  })
+
+  test('board cell ids are the status on the plain board and lane plus status in a swimlane', () => {
+    expect(boardCellId('todo')).toBe('todo')
+    expect(boardCellId('in_review', 'epic-3')).toBe('epic-3|in_review')
+    expect(parseBoardCell('done')).toEqual({ status: 'done', laneKey: null })
+    expect(parseBoardCell('no-epic|todo')).toEqual({ status: 'todo', laneKey: 'no-epic' })
+    expect(parseBoardCell(12)).toBeNull()
+    expect(parseBoardCell('epic-3|bogus')).toBeNull()
   })
 })
