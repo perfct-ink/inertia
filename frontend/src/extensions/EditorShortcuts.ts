@@ -19,7 +19,9 @@ export const EditorShortcuts = Extension.create<EditorHandlers>({
 
   // The Format menu command is for the editor that has the cursor. With no editor focused
   // the page leaves it alone (Sidebar.tsx gives ⌘K, ⌘E and ⌥⌘T their global meaning back).
-  onCreate() {
+  // Listening starts in onBeforeCreate: TipTap fires onCreate a tick later, and a menu
+  // command sent in between would be lost.
+  onBeforeCreate() {
     const editor = this.editor
     const handlers = this.options
     const onCommand = (event: Event) => {

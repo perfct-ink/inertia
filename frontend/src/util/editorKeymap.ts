@@ -4,6 +4,12 @@ import { insertTable, insertTaskList, moveListItem, toggleTaskDone } from './edi
 
 type KeymapEditor = Pick<Editor, 'state' | 'view' | 'commands' | 'chain'>
 
+// An editor without checklists (a test's, say) has no task item to lift.
+function hasNode(editor: KeymapEditor, name: string): boolean {
+  const schema = editor.state?.schema
+  return !schema || Boolean(schema.nodes[name])
+}
+
 // What the editor cannot do by itself: the screen owns the link dialog.
 export interface EditorHandlers {
   openLinkDialog?: () => void
@@ -27,7 +33,7 @@ export function editorCommands(editor: KeymapEditor, handlers: EditorHandlers = 
     link: () => { handlers.openLinkDialog?.(); return Boolean(handlers.openLinkDialog) },
     table: () => insertTable(editor),
     indent: () => editor.commands.sinkListItem('listItem'),
-    outdent: () => editor.commands.liftListItem('workspaceTaskItem') || editor.commands.liftListItem('listItem'),
+    outdent: () => (hasNode(editor, 'workspaceTaskItem') && editor.commands.liftListItem('workspaceTaskItem')) || editor.commands.liftListItem('listItem'),
     moveUp: () => moveListItem(editor, -1),
     moveDown: () => moveListItem(editor, 1),
     clearFormatting: () => editor.chain().focus().unsetAllMarks().clearNodes().run(),
