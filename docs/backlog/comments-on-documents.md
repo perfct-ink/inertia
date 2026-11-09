@@ -13,6 +13,8 @@ components: [backend]
 
 No Comment model in the backend. Default: one polymorphic `comments` table shared with `comments-on-items.md`, with an optional anchor (text range in the doc) for inline comments. Needs commenter role from `collaborate-on-entire-folders.md`.
 
+**First version: inline and whole-document** (Alex, 2026-11-09 groom). Both ship together: comments on a highlighted passage and on the document as a whole, with replies, @mentions, resolve/reopen and notifications in the inbox. Share the comments table and thread UI with `comments-on-items.md` (built on its branch).
+
 ## Context
 
 Section "Collaboration" of the retired shared backlog.
