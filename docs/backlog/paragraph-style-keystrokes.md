@@ -1,6 +1,6 @@
 ---
 priority: p1
-depends_on: [custom-styles-are-per-user-and-global]
+depends_on: [custom-paragraph-styles]
 components: [frontend, backend]
 ---
 # Assign a paragraph style to a keystroke

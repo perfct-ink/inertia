@@ -13,7 +13,7 @@ Anyone who can edit the document. Styles are shared with everyone who opens it (
 `frontend/src/data/paragraphStyle.test.ts`, `frontend/src/components/ParagraphStylePicker.test.tsx` (with a fake editor).
 
 ## Known limits
-- No custom styles, per-user style lists or editing a style (`docs/backlog/create-a-custom-style.md` and the tasks after it), and no keyboard shortcuts for the new styles (`paragraph-style-shortcuts`).
+- No custom styles, per-user style lists or editing a style (`docs/backlog/custom-paragraph-styles.md`), and no keyboard shortcuts for the new styles (`paragraph-style-shortcuts`).
 - Heading buttons H1 to H5 remain beside the menu; H4 and H5 have no menu entry.
 - Applying a style to several blocks at once, and styles inside list items or table cells, were not tried. Existing documents are unaffected (no `style` means body).
 - The collab server must be deployed with the schema change before styled paragraphs sync.
