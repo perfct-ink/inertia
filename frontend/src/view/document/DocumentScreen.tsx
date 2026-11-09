@@ -85,6 +85,12 @@ import { AudioAttachment, FileAttachment } from '@/extensions/Attachment'
 import { DashedList, StyledListItem } from '@/extensions/DashedList'
 import { WorkspaceTaskList } from '@/extensions/WorkspaceTaskList'
 import { WorkspaceTaskItem } from '@/extensions/WorkspaceTaskItem'
+import { EditorShortcuts } from '@/extensions/EditorShortcuts'
+import { withoutShortcuts } from '@/extensions/withoutShortcuts'
+import { replacedKeys, titleWithShortcut } from '@/data/editorShortcut'
+import { insertTable, insertTaskList } from '@/util/editorCommand'
+import { platformKeys } from '@/util/keyLabel'
+import { isMac } from '@/util/platform'
 import './ProseMirror.scss'
 import './DocumentScreen.scss'
 import { useTabsStore } from '@/store/tabs'
@@ -97,6 +103,15 @@ import { relinkBrokenLink, removeBrokenLink, useBrokenLinks, type BrokenLink } f
 import { extractTitle, buildInitialContent, selectionTaskTitle, taskListContent } from '@/data/document'
 import { attachmentContent, pastedFiles, uploadProblem } from '@/data/attachment'
 import { colorForUserId } from '@/util/color'
+
+// These four lose the default keys the editor's shortcut table replaces
+// (data/editorShortcut.ts), so one keystroke never does two things.
+const ShortcutStrike = withoutShortcuts(Strike, replacedKeys('strike'))
+// DashedList is the editor's bullet list (it adds the dashed style); TipTap's ⌘⇧8 is
+// dropped from it, so the key stays free for the dashed list (data/editorShortcut.ts).
+const ShortcutBulletList = withoutShortcuts(DashedList, replacedKeys('bulletList'))
+const ShortcutOrderedList = withoutShortcuts(OrderedList, replacedKeys('orderedList'))
+const ShortcutCodeBlock = withoutShortcuts(CodeBlock, replacedKeys('codeBlock'))
 
 // Enforce: document always starts with a heading followed by body content
 const CustomDocument = TiptapDocument.extend({ content: 'heading block*' })
@@ -201,16 +216,17 @@ export default function DocumentScreen({ id }: { id?: number }) {
       Bold,
       Italic,
       Underline,
-      Strike,
+      ShortcutStrike,
       Code,
       HeadingAnchor.configure({ levels: [1, 2, 3, 4, 5] as (1 | 2 | 3 | 4 | 5 | 6)[] }),
       BrokenLinks,
-      DashedList,
-      OrderedList,
+      ShortcutBulletList,
+      ShortcutOrderedList,
       StyledListItem,
       WorkspaceTaskList,
       WorkspaceTaskItem,
-      CodeBlock,
+      ShortcutCodeBlock,
+      EditorShortcuts.configure({ openLinkDialog: () => setLinkDialogOpen(true) }),
       HorizontalRule.extend({
         addCommands() {
           return {
@@ -578,31 +594,31 @@ export default function DocumentScreen({ id }: { id?: number }) {
             icon={<Heading1 className="document-toolbar_icon" />}
             onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
             active={editor.isActive('heading', { level: 1 })}
-            title="Heading 1 (⌘⌥1)"
+            title={`Heading 1 (${platformKeys('⌘⌥1', isMac)})`}
           />
           <ToolbarBtn
             icon={<Heading2 className="document-toolbar_icon" />}
             onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
             active={editor.isActive('heading', { level: 2 })}
-            title="Heading 2 (⌘⌥2)"
+            title={`Heading 2 (${platformKeys('⌘⌥2', isMac)})`}
           />
           <ToolbarBtn
             icon={<Heading3 className="document-toolbar_icon" />}
             onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
             active={editor.isActive('heading', { level: 3 })}
-            title="Heading 3 (⌘⌥3)"
+            title={`Heading 3 (${platformKeys('⌘⌥3', isMac)})`}
           />
           <ToolbarBtn
             icon={<Heading4 className="document-toolbar_icon" />}
             onClick={() => editor.chain().focus().toggleHeading({ level: 4 }).run()}
             active={editor.isActive('heading', { level: 4 })}
-            title="Heading 4 (⌘⌥4)"
+            title={`Heading 4 (${platformKeys('⌘⌥4', isMac)})`}
           />
           <ToolbarBtn
             icon={<Heading5 className="document-toolbar_icon" />}
             onClick={() => editor.chain().focus().toggleHeading({ level: 5 }).run()}
             active={editor.isActive('heading', { level: 5 })}
-            title="Heading 5 (⌘⌥5)"
+            title={`Heading 5 (${platformKeys('⌘⌥5', isMac)})`}
           />
           <Divider />
           <ToolbarBtn
@@ -627,7 +643,7 @@ export default function DocumentScreen({ id }: { id?: number }) {
             icon={<Strikethrough className="document-toolbar_icon" />}
             onClick={() => editor.chain().focus().toggleStrike().run()}
             active={editor.isActive('strike')}
-            title="Strikethrough"
+            title={titleWithShortcut('Strikethrough', 'strike', isMac)}
           />
           <ToolbarBtn
             icon={<CodeIcon className="document-toolbar_icon" />}
@@ -640,29 +656,20 @@ export default function DocumentScreen({ id }: { id?: number }) {
             icon={<List className="document-toolbar_icon" />}
             onClick={() => editor.chain().focus().toggleBulletList().run()}
             active={editor.isActive('bulletList', { listStyle: 'bullet' })}
-            title="Bullet list"
+            title={titleWithShortcut('Bullet list', 'bulletList', isMac)}
           />
           <DashedListButton editor={editor} />
           <ToolbarBtn
             icon={<ListOrdered className="document-toolbar_icon" />}
             onClick={() => editor.chain().focus().toggleOrderedList().run()}
             active={editor.isActive('orderedList')}
-            title="Numbered list"
+            title={titleWithShortcut('Numbered list', 'orderedList', isMac)}
           />
           <ToolbarBtn
             icon={<ListChecks className="document-toolbar_icon" />}
-            onClick={() => {
-              const { state, dispatch } = editor.view
-              const { workspaceTaskList, workspaceTaskItem, paragraph } = state.schema.nodes
-              const node = workspaceTaskList.create(null, [
-                workspaceTaskItem.create(null, paragraph.create()),
-              ])
-              const tr = state.tr.replaceSelectionWith(node)
-              dispatch(tr)
-              editor.commands.focus()
-            }}
+            onClick={() => insertTaskList(editor)}
             active={editor.isActive('workspaceTaskList')}
-            title="Task list"
+            title={titleWithShortcut('Task list', 'taskList', isMac)}
           />
           <ToolbarBtn
             icon={<ListPlus className="document-toolbar_icon" />}
@@ -685,7 +692,7 @@ export default function DocumentScreen({ id }: { id?: number }) {
             icon={<Code2 className="document-toolbar_icon" />}
             onClick={() => editor.chain().focus().toggleCodeBlock().run()}
             active={editor.isActive('codeBlock')}
-            title="Code block"
+            title={titleWithShortcut('Code block', 'codeBlock', isMac)}
           />
           <ToolbarBtn
             icon={<Minus className="document-toolbar_icon" />}
@@ -695,17 +702,15 @@ export default function DocumentScreen({ id }: { id?: number }) {
           <Divider />
           <ToolbarBtn
             icon={<TableIcon className="document-toolbar_icon" />}
-            onClick={() =>
-              editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()
-            }
+            onClick={() => insertTable(editor)}
             active={editor.isActive('table')}
-            title="Insert table"
+            title={titleWithShortcut('Insert table', 'table', isMac)}
           />
           <ToolbarBtn
             icon={<LinkIcon className="document-toolbar_icon" />}
             onClick={() => (brokenAtCaret ? setBrokenLink(brokenAtCaret) : setLinkDialogOpen(true))}
             active={editor.isActive('link')}
-            title={brokenAtCaret ? 'Fix broken link' : 'Link'}
+            title={brokenAtCaret ? 'Fix broken link' : titleWithShortcut('Link', 'link', isMac)}
           />
           <ToolbarBtn
             icon={<Hash className="document-toolbar_icon" />}

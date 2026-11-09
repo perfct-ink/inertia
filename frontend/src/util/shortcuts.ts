@@ -1,3 +1,4 @@
+import { GLOBAL_CLASHES } from '@/data/editorShortcut'
 import { isElectron, isMacShell } from './platform'
 
 // Browsers keep ⌘N, ⇧⌘N and ⌘T for their own windows and tabs and never hand
@@ -37,3 +38,27 @@ export function shortcutAvailable(keys: string, appGetsKeys = appGetsBrowserKeys
 export function shortcutLabel(keys: string, appGetsKeys = appGetsBrowserKeys): string {
   return !appGetsKeys && BROWSER_KEYS.has(keys.slice(-1).toLowerCase()) ? `⌥${keys}` : keys
 }
+
+// Whether `e` is the chord named like a TipTap key ("Mod-k", "Mod-Alt-t"): Mod is ⌘ or
+// Ctrl, and Shift and Alt must match exactly.
+export function matchesChord(e: Keys & Partial<Pick<KeyboardEvent, 'shiftKey'>>, tiptap: string): boolean {
+  const parts = tiptap.split('-')
+  const key = (parts.pop() ?? '').toLowerCase()
+  return parts.includes('Mod') === (e.metaKey || e.ctrlKey)
+    && parts.includes('Alt') === e.altKey
+    && parts.includes('Shift') === Boolean(e.shiftKey)
+    && shortcutKey(e) === key
+}
+
+// Whether the keystroke happened inside the document editor (the only rich text editor).
+export function inDocumentEditor(e: { target?: EventTarget | null }): boolean {
+  return e.target instanceof Element && e.target.closest('.ProseMirror') !== null
+}
+
+// Whether a global shortcut must stand aside: the keystroke is in the document editor and
+// is a chord the editor binds as well (⌘K link, ⌘E code, ⌥⌘T table). Formatting wins there;
+// everywhere else the global one runs.
+export function editorKeepsKey(e: Keys & Partial<Pick<KeyboardEvent, 'shiftKey' | 'target'>>): boolean {
+  return inDocumentEditor(e) && GLOBAL_CLASHES.some((clash) => matchesChord(e, clash.tiptap))
+}
+
