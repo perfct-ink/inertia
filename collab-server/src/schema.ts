@@ -48,10 +48,13 @@ const Heading = BaseHeading.extend({
 });
 
 // Matches frontend/src/extensions/StyledParagraph.ts exactly (shape only): a
-// paragraph with a named style.
+// paragraph with a named style. A custom style is "custom-<id>" in `style`, with
+// a copy of its name (`styleName`) and formatting (`styleProps`, a JSON string)
+// so the paragraph looks the same to everyone. DEPLOY the collab server with the
+// frontend: an older one drops styleName and styleProps from documents it saves.
 const Paragraph = TiptapParagraph.extend({
   addAttributes() {
-    return { style: { default: "body" } };
+    return { style: { default: "body" }, styleName: { default: null }, styleProps: { default: null } };
   },
 });
 

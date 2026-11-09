@@ -8,6 +8,7 @@ import Collaboration from '@tiptap/extension-collaboration'
 import CollaborationCursor from '@tiptap/extension-collaboration-cursor'
 import TiptapDocument from '@tiptap/extension-document'
 import { StyledParagraph } from '@/extensions/StyledParagraph'
+import { useCustomStyleSync } from '@/hooks/useCustomStyleSync'
 import Text from '@tiptap/extension-text'
 import Bold from '@tiptap/extension-bold'
 import Italic from '@tiptap/extension-italic'
@@ -286,6 +287,9 @@ export default function DocumentScreen() {
       },
     },
   }, [provider])
+
+  // The person's own custom styles in this document follow their edits and deletions.
+  useCustomStyleSync(editor)
 
   useEffect(() => {
     if (!editor || !doc) return

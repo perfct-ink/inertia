@@ -1,0 +1,60 @@
+@use 'tokens' as *;
+
+// The list of the person's custom paragraph styles, to edit or delete. Colors
+// come from the theme variables, so light and dark both work.
+@layer app.components {
+  // The modal itself (Modal's className): a long list scrolls on a short phone.
+  .custom_styles_dialog {
+    max-height: calc(100dvh - #{space(8)});
+    overflow-y: auto;
+
+    &-list {
+      display: flex;
+      flex-direction: column;
+      gap: space(1);
+      margin-top: space(3);
+    }
+
+    &-row {
+      display: flex;
+      align-items: center;
+      gap: space(1);
+      min-height: space(10);
+    }
+
+    &-name {
+      display: flex;
+      flex: 1;
+      flex-direction: column;
+      min-width: 0;
+      overflow-wrap: anywhere;
+      @include text('sm');
+    }
+
+    &-base {
+      color: color(muted-foreground);
+      @include text('xs');
+    }
+
+    &-empty {
+      margin-top: space(3);
+      color: color(muted-foreground);
+      @include text('sm');
+    }
+
+    // Icon buttons still get a full-size tap target.
+    &-touch {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: space(10);
+      min-height: space(10);
+    }
+
+    &-icon {
+      flex-shrink: 0;
+      width: space(4);
+      height: space(4);
+    }
+  }
+}

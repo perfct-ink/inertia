@@ -39,31 +39,38 @@
     }
 
     // Named paragraph styles (data/paragraphStyle.ts); plain paragraphs have no data-style.
-    p[data-style='title'] {
+    // A custom style (data/customParagraphStyle.ts) names the built-in look it builds on
+    // in data-style-base and adds its own formatting as inline CSS on top.
+    p[data-style='title'],
+    p[data-style-base='title'] {
       font-size: 2.25rem;
       font-weight: 700;
       line-height: 1.2;
     }
 
-    p[data-style='subtitle'] {
+    p[data-style='subtitle'],
+    p[data-style-base='subtitle'] {
       @include text('xl');
 
       color: color(muted-foreground);
     }
 
-    p[data-style='quote'] {
+    p[data-style='quote'],
+    p[data-style-base='quote'] {
       padding-left: space(4);
       border-left: 3px solid color(border);
       color: color(muted-foreground);
       font-style: italic;
     }
 
-    p[data-style='caption'] {
+    p[data-style='caption'],
+    p[data-style-base='caption'] {
       color: color(muted-foreground);
       @include text('xs');
     }
 
-    p[data-style='monospace'] {
+    p[data-style='monospace'],
+    p[data-style-base='monospace'] {
       font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
       @include text('sm');
     }
