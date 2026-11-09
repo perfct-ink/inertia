@@ -12,6 +12,8 @@ Broken-link handling when a target doc or heading is deleted
 
 Show the link as broken rather than removing it.
 
+**Decision (Alex, 2026-11-09 groom): mark broken, offer relink.** A link whose target document or heading was deleted shows struck through in the danger colour. Clicking it opens a small dialog (shared modal) saying the target is gone, with **Pick a new target** (the heading link picker) and **Remove link** (keeps the text, drops the link).
+
 ## Context
 
 Section "Document linking, navigation and URLs" of the retired shared backlog.
