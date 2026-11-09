@@ -1,6 +1,8 @@
 ---
 priority: p1
 depends_on: []
+branch: backlog/local-task-file-initiative-and-milestone-levels
+status: incomplete
 ---
 # Local `.inertia-tasks` file format gains Initiative + Milestone levels
 
@@ -42,3 +44,21 @@ Default chosen for this backlog: Milestone is the top-level container, and each 
 - Anything stated in Requirements / notes (including any named default) is implemented or deliberately changed with the reason recorded.
 - Failed API calls show an error to the user.
 - Tests cover the new behaviour; a feature doc in `docs/features/` is written (or the existing one updated) and this file is removed.
+
+## Unverified
+
+Done on `backlog/local-task-file-initiative-and-milestone-levels` (see `docs/features/local_task_file_planning.md`): the `.inertia-tasks` format and `InertiaCore` model hold Milestone > Initiative > Epic > Task (optional `milestones` and `initiatives` arrays, `milestone_id`, `initiative_id`, inheritance, progress, cascade on delete, validation), checked against the backend on 2026-11-07 and brought up to the hosted API's columns (`horizon`, `position`, `folder_id`).
+
+Decisions (Alex can change them):
+- The task is the file format and model. The acceptance lines that say "in the web app" are template text: the web app (and the Mac online mode, which is the web app in a WKWebView) already has the Initiatives and Milestones pages. Editing screens in the local editor are a separate task: `docs/backlog/local-task-file-planning-screens.md`.
+- Version stays 4 and the arrays are omitted when empty, so files that do not plan keep opening in earlier builds.
+- This file stays because the checks below could not all run.
+
+Ran: `cd macos && swift build --disable-sandbox --target InertiaCore -Xswiftc -warnings-as-errors` (passes), and all four test files (`PlanningLevelsTests`, `TaskFileTests`, `SharedEntityTests`, `RequestsTests`) against a small XCTest stand-in (all pass).
+
+Not run (XCTest and full Xcode are not installed here): `swift test`, the SwiftUI app target. To verify on a Mac with Xcode:
+
+```sh
+cd macos && swift test
+make mac-build
+```

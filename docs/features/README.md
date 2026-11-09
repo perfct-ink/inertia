@@ -82,3 +82,4 @@ One file per implemented feature, written from the code (see `docs/rules/feature
 | Native macOS Volta controls: Mac screens use the web theme, buttons, fields, selects and checkboxes | [native_mac_volta_controls.md](native_mac_volta_controls.md) |
 | Links to other documents: `[[` or `@` picker, live titles | [document_links.md](document_links.md) |
 | One lint command: ESLint, Stylelint, RuboCop, Swift warnings | [lint_entry_point.md](lint_entry_point.md) |
+| Local task file: initiatives and milestones | [local_task_file_planning.md](local_task_file_planning.md) |
