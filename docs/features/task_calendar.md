@@ -17,6 +17,7 @@ Anyone in the Space can view; nothing here changes data.
 - A busy day shows every item in the cell (no "+N more"), and chips are not links.
 - Start dates are not shown: a task is a single mark on its due date.
 - The Events page keeps its own month and list views; this page does not replace it.
+- Rows of the `milestones` table are not on the calendar. Milestone-type events are, as events; copying them into milestones (`rails milestones:from_events`, see `milestones_and_rollups.md`) leaves the events where they are.
 
 ## History
 - Implemented 2026-10-19 on branch `backlog/calendar-view-of-tasks`. Not merged or deployed.

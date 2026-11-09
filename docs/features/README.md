@@ -8,7 +8,7 @@ One file per implemented feature, written from the code (see `docs/rules/feature
 | Moving items between levels of the planning hierarchy, in order, by drag or the Move button | [hierarchy_reparenting.md](hierarchy_reparenting.md) |
 | Initiative and task planning fields | [planning_fields.md](planning_fields.md) |
 | AI workers (foundation, no model connected yet) | [ai_workers.md](ai_workers.md) |
-| Milestones and their rollups (counts, percent, health) | [milestones_and_rollups.md](milestones_and_rollups.md) |
+| Milestones and their rollups (counts, percent, health); copying milestone-type calendar events into milestones (`rails milestones:from_events`, dry run first) | [milestones_and_rollups.md](milestones_and_rollups.md) |
 | Hierarchy tree view: milestone to subtask with progress | [hierarchy_tree_view.md](hierarchy_tree_view.md) |
 | Sprints and the sprint filter on tasks | [sprints.md](sprints.md) |
 | Task dependencies, arrows on the Gantt and the critical path | [task_dependencies.md](task_dependencies.md) |
