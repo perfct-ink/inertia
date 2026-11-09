@@ -41,8 +41,11 @@ services:
     volumes:
       - ./backend:/rails
       - backend_bundle:/usr/local/bundle
-      # field_type_test.rb runs the same cases as the web app's fieldType.ts.
-      - ./frontend/src/data:/frontend/src/data:ro
+      # Backend tests that read the web app's source: field_type_test.rb runs
+      # the cases fieldType.ts runs, and slug_test.rb checks Slug::RESERVED
+      # against App.tsx's routes and nginx's locations.
+      - ./frontend/src:/frontend/src:ro
+      - ./frontend/nginx:/frontend/nginx:ro
 
   # Same major version as the shared PostgreSQL that production uses.
   postgres:

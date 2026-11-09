@@ -19,7 +19,7 @@ module Slug
   # frontend/nginx/default.conf (slug_test.rb fails when App.tsx gains a
   # route this list lacks).
   RESERVED = %w[
-    api assets cable collab up health healthz status rails index
+    api assets cable collab mcp up health healthz status rails index
     login signup logout shared invite
     space workspace documents folders
     tasks events epics initiatives milestones sprints roadmap okrs hierarchy projects
