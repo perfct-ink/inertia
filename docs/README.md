@@ -83,6 +83,7 @@ DELETE /api/v1/folders/:id
 
 GET    /api/v1/folders/:folder_id/documents
 POST   /api/v1/folders/:folder_id/documents
+GET    /api/v1/documents/link_targets?ids=12,14   # which of these exist, with their headings (broken links)
 GET    /api/v1/documents/:id
 PATCH  /api/v1/documents/:id
 DELETE /api/v1/documents/:id
