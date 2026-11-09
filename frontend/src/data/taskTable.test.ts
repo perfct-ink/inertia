@@ -1,4 +1,4 @@
-import { taskTableGroups, visibleColumns, TASK_COLUMNS, type TaskTableOptions } from './taskTable'
+import { DEFAULT_TASK_TABLE_CONFIG, parseTaskTableConfig, taskTableGroups, visibleColumns, TASK_COLUMNS, type TaskTableOptions } from './taskTable'
 import type { PivotLookups } from './pivot'
 import type { Task } from '@/types'
 
@@ -40,4 +40,21 @@ test('groups by a field, with the group labels', () => {
 test('visibleColumns drops hidden ones and keeps the order', () => {
   expect(visibleColumns(new Set())).toEqual(TASK_COLUMNS.map((c) => c.key))
   expect(visibleColumns(new Set(['status', 'epic'] as const))).toEqual(['title', 'start_date', 'due_date', 'assignee', 'sprint'])
+})
+
+test('a stored saved-view config is read back in full', () => {
+  const stored = { sortKey: 'title', sortDir: 'desc', groupBy: 'epic', query: 'bug', hidden: ['sprint', 'epic'] }
+  expect(parseTaskTableConfig(stored)).toEqual({ sortKey: 'title', sortDir: 'desc', groupBy: 'epic', query: 'bug', hidden: ['epic', 'sprint'] })
+})
+
+test('anything missing, old or malformed in a stored config falls back to the default', () => {
+  expect(parseTaskTableConfig(null)).toEqual(DEFAULT_TASK_TABLE_CONFIG)
+  expect(parseTaskTableConfig('nope')).toEqual(DEFAULT_TASK_TABLE_CONFIG)
+  expect(parseTaskTableConfig({})).toEqual(DEFAULT_TASK_TABLE_CONFIG)
+  expect(parseTaskTableConfig({ sortKey: 'nope', sortDir: 'sideways', groupBy: 'colour', query: 3, hidden: 'epic' })).toEqual(DEFAULT_TASK_TABLE_CONFIG)
+  expect(parseTaskTableConfig({ hidden: ['epic', 'nope', 7] }).hidden).toEqual(['epic'])
+})
+
+test('the Title column can never be hidden by a stored config', () => {
+  expect(parseTaskTableConfig({ hidden: ['title', 'status'] }).hidden).toEqual(['status'])
 })

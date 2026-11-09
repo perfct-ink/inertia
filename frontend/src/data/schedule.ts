@@ -262,6 +262,27 @@ export type GanttZoom = 'day' | 'week' | 'month' | 'quarter' | 'year'
 export const GANTT_ZOOMS: GanttZoom[] = ['day', 'week', 'month', 'quarter', 'year']
 export const GANTT_ZOOM_LABEL: Record<GanttZoom, string> = { day: 'Days', week: 'Weeks', month: 'Months', quarter: 'Quarters', year: 'Years' }
 
+// What a saved Gantt view stores: the zoom and the two display toggles. The
+// chart's rows, baseline and dependency editor belong to the folder, not the view.
+export interface GanttConfig {
+  zoom: GanttZoom
+  shadeWeekends: boolean
+  showCritical: boolean
+}
+
+export const DEFAULT_GANTT_CONFIG: GanttConfig = { zoom: 'month', shadeWeekends: true, showCritical: true }
+
+// A stored config that may be old or malformed, as a safe one.
+export function parseGanttConfig(raw: unknown): GanttConfig {
+  const value = (raw && typeof raw === 'object' ? raw : {}) as Record<string, unknown>
+  const d = DEFAULT_GANTT_CONFIG
+  return {
+    zoom: GANTT_ZOOMS.find((z) => z === value.zoom) ?? d.zoom,
+    shadeWeekends: typeof value.shadeWeekends === 'boolean' ? value.shadeWeekends : d.shadeWeekends,
+    showCritical: typeof value.showCritical === 'boolean' ? value.showCritical : d.showCritical,
+  }
+}
+
 // Track width in pixels for one day at each zoom. Month is the original fit-to-width axis.
 export const ZOOM_DAY_PX: Record<GanttZoom, number> = { day: 36, week: 14, month: 0, quarter: 3, year: 1 }
 

@@ -8,6 +8,16 @@ import type { Epic, Task } from '@/types'
 const mockCreate = { mutate: jest.fn(), isPending: false, isError: false, error: null }
 const mockDelete = { mutate: jest.fn() }
 const mockCreateBaseline = { mutate: jest.fn(), isPending: false }
+const mockCreateView = { mutate: jest.fn(), isPending: false }
+jest.mock('@/api/savedViews', () => ({
+  useSavedViews: () => ({
+    data: [{ id: 3, page: 'gantt', name: 'Weeks, no critical path', shared: true, user_id: 9, owner_name: 'Sam', config: { zoom: 'week', showCritical: false } }],
+  }),
+  useCreateSavedView: () => mockCreateView,
+  useUpdateSavedView: () => ({ mutate: jest.fn(), isPending: false }),
+  useDeleteSavedView: () => ({ mutate: jest.fn() }),
+}))
+jest.mock('@/api/workspace', () => ({ useWorkspace: () => ({ data: { role: 'member' } }) }))
 jest.mock('@/api/baselines', () => ({
   useBaselines: () => ({ data: [{ id: 5, name: 'Kickoff', folder_id: 1, created_at: '', tasks: [{ task_id: 2, start_date: '2026-11-01', due_date: '2026-11-10' }] }] }),
   useCreateBaseline: () => mockCreateBaseline,
@@ -116,6 +126,29 @@ test('zoom redraws the axis and weekends are shaded only when they are wide enou
 
   fireEvent.click(screen.getByLabelText('Shade weekends'))
   expect(container.querySelectorAll('.timeline-weekend')).toHaveLength(0)
+})
+
+test('a saved view sets the zoom and toggles, and the current ones can be saved', () => {
+  const { container } = render(
+    <QueryClientProvider client={new QueryClient()}>
+      <GanttPane folderId={1} dependencyMode="strict" epics={[]} tasks={tasks} milestones={[]} />
+    </QueryClientProvider>,
+  )
+  fireEvent.change(screen.getByLabelText('Saved view'), { target: { value: '3' } })
+  expect(screen.getByLabelText('Zoom')).toHaveValue('week')
+  expect(screen.getByLabelText('Highlight critical path')).not.toBeChecked()
+  expect(screen.getByLabelText('Shade weekends')).toBeChecked()
+  expect(container.querySelectorAll('.timeline-bar--critical')).toHaveLength(0)
+
+  fireEvent.change(screen.getByLabelText('Zoom'), { target: { value: 'quarter' } })
+  fireEvent.click(screen.getByLabelText('Shade weekends'))
+  fireEvent.click(screen.getByRole('button', { name: 'Save view…' }))
+  fireEvent.change(screen.getByLabelText('View name'), { target: { value: 'Quarters' } })
+  fireEvent.click(screen.getByRole('button', { name: 'Save' }))
+  expect(mockCreateView.mutate).toHaveBeenCalledWith(
+    { name: 'Quarters', shared: false, config: { zoom: 'quarter', shadeWeekends: false, showCritical: false } },
+    expect.anything(),
+  )
 })
 
 test('nests epics under their initiative and milestone; only epics and tasks can be dragged', () => {

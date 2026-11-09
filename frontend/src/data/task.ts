@@ -21,6 +21,36 @@ export const TASK_KINDS: { key: TaskKind; label: string }[] = [
 
 export const KIND_LABEL: Record<TaskKind, string> = { task: 'Task', bug: 'Bug', story: 'Story' }
 
+// What a saved Workboard view stores: the filters (each present only when set)
+// and the search text. The keys are the task list's own query parameters.
+export interface TaskBoardConfig {
+  status?: string
+  kind?: TaskKind
+  folder_id?: number
+  epic_id?: number
+  sprint_id?: number
+  assignee_id?: number
+  q?: string
+}
+
+const ID_FILTERS = ['folder_id', 'epic_id', 'sprint_id', 'assignee_id'] as const
+
+// A stored config that may be old or malformed, as a safe one: only filters it
+// understands are kept (ids must be whole numbers), and unset ones are left out.
+// A filter on something deleted since is kept: it simply matches no tasks.
+export function parseTaskBoardConfig(raw: unknown): TaskBoardConfig {
+  const value = (raw && typeof raw === 'object' ? raw : {}) as Record<string, unknown>
+  const config: TaskBoardConfig = {}
+  if (TASK_STATUSES.includes(value.status as Task['status'])) config.status = value.status as string
+  if (TASK_KINDS.some((k) => k.key === value.kind)) config.kind = value.kind as TaskKind
+  ID_FILTERS.forEach((key) => {
+    const id = value[key]
+    if (typeof id === 'number' && Number.isInteger(id) && id > 0) config[key] = id
+  })
+  if (typeof value.q === 'string' && value.q.trim()) config.q = value.q.trim()
+  return config
+}
+
 // Tasks written before item types existed come back without a kind.
 export function kindOf(task: Pick<Task, 'kind'>): TaskKind {
   return task.kind ?? 'task'

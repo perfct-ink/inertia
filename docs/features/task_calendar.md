@@ -1,7 +1,7 @@
 # Calendar of tasks and events
 
 ## What it does
-`/calendar` (sidebar rail "Calendar") is a month calendar of the Space. Tasks appear on their due date (finished ones struck through and dimmed), events on their date. Tasks and Events checkboxes hide either kind; the arrows move month to month; today is highlighted. On a phone-width screen the grid is replaced by a dated list of the month. Tasks without a due date are not shown. Items are read-only: edit them on the Workboard or the Events page.
+`/calendar` (sidebar rail "Calendar") is a month calendar of the Space. Tasks appear on their due date (finished ones struck through and dimmed), events on their date. Tasks and Events checkboxes hide either kind; the arrows move month to month; today is highlighted. On a phone-width screen the grid is replaced by a dated list of the month. Tasks without a due date are not shown. Items are read-only: edit them on the Workboard or the Events page. The **Saved view** dropdown applies a named choice of which kinds are shown, private or shared with the Space (see [saved_views.md](saved_views.md)); the month is not saved.
 
 ## API and models
 None: it reads `GET /api/v1/tasks` and `GET /api/v1/events`. `calendarItems` (`frontend/src/data/calendar.ts`) places them by date (tasks first, then events, each by title); screen `view/calendar/CalendarScreen.tsx`.

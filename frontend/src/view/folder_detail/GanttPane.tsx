@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { X } from 'lucide-react'
 import { Button, FormError, Input, Select } from '@/components/ui'
+import SavedViews from '@/components/SavedViews'
 import { Timeline, type TimelineMilestone } from '@/components/Timeline'
 import { useUpdateTask } from '@/api/tasks'
 import { useUpdateEpic } from '@/api/epics'
@@ -9,7 +10,7 @@ import { useUpdateFolder } from '@/api/folders'
 import { useBaselines, useCreateBaseline, useDeleteBaseline } from '@/api/baselines'
 import { withBaseline } from '@/data/baseline'
 import { useCreateTaskDependency, useDeleteTaskDependency, useTaskDependencies } from '@/api/taskDependencies'
-import { GANTT_ZOOMS, GANTT_ZOOM_LABEL, ganttTaskKey, groupGanttRows, type GanttGroups, type GanttZoom, type Scheduled } from '@/data/schedule'
+import { GANTT_ZOOMS, GANTT_ZOOM_LABEL, ganttTaskKey, groupGanttRows, parseGanttConfig, type GanttGroups, type GanttZoom, type Scheduled } from '@/data/schedule'
 import { DEPENDENCY_KINDS, DEPENDENCY_LABEL, DEPENDENCY_MODES, DEPENDENCY_MODE_LABEL, drivingPath, kindFromSides, planReschedule, type BarSide } from '@/data/dependency'
 import { errorMessage } from '@/util/errorMessage'
 import { exportGanttPng } from '@/util/ganttCanvas'
@@ -131,6 +132,12 @@ export default function GanttPane({ folderId, dependencyMode, epics, tasks, mile
         >
           {DEPENDENCY_MODES.map((m) => <option key={m} value={m}>{DEPENDENCY_MODE_LABEL[m]}</option>)}
         </Select>
+        <SavedViews
+          page="gantt"
+          config={{ zoom, shadeWeekends, showCritical }}
+          parse={parseGanttConfig}
+          onApply={(view) => { setZoom(view.zoom); setShadeWeekends(view.shadeWeekends); setShowCritical(view.showCritical) }}
+        />
       </div>
       <div className="gantt_pane-toolbar">
         <Button

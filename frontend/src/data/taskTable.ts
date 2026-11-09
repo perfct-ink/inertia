@@ -1,4 +1,4 @@
-import { pivotGroup, type PivotDimension, type PivotLookups } from '@/data/pivot'
+import { PIVOT_DIMENSIONS, pivotGroup, type PivotDimension, type PivotLookups } from '@/data/pivot'
 import type { Task } from '@/types'
 
 export type TaskColumn = 'title' | 'status' | 'start_date' | 'due_date' | 'assignee' | 'epic' | 'sprint'
@@ -68,4 +68,28 @@ export function taskTableGroups(tasks: Task[], options: TaskTableOptions, lookup
 // The columns to show, in canonical order.
 export function visibleColumns(hidden: Set<TaskColumn>): TaskColumn[] {
   return TASK_COLUMNS.map((c) => c.key).filter((k) => !hidden.has(k))
+}
+
+// What a saved task-table view stores: the sort, grouping, title filter and
+// hidden columns (everything the screen keeps for a visit).
+export interface TaskTableConfig extends TaskTableOptions {
+  hidden: TaskColumn[]
+}
+
+export const DEFAULT_TASK_TABLE_CONFIG: TaskTableConfig = { sortKey: 'due_date', sortDir: 'asc', groupBy: 'none', query: '', hidden: [] }
+
+// A stored config that may be old or malformed, as a safe one: anything
+// unrecognised falls back to the default, and the Title column can't be hidden.
+export function parseTaskTableConfig(raw: unknown): TaskTableConfig {
+  const value = (raw && typeof raw === 'object' ? raw : {}) as Record<string, unknown>
+  const columns = TASK_COLUMNS.map((c) => c.key)
+  const groups: GroupBy[] = ['none', ...PIVOT_DIMENSIONS.map((d) => d.value)]
+  const d = DEFAULT_TASK_TABLE_CONFIG
+  return {
+    sortKey: columns.includes(value.sortKey as TaskColumn) ? (value.sortKey as TaskColumn) : d.sortKey,
+    sortDir: value.sortDir === 'desc' ? 'desc' : 'asc',
+    groupBy: groups.includes(value.groupBy as GroupBy) ? (value.groupBy as GroupBy) : d.groupBy,
+    query: typeof value.query === 'string' ? value.query : d.query,
+    hidden: Array.isArray(value.hidden) ? columns.filter((c) => c !== 'title' && (value.hidden as unknown[]).includes(c)) : d.hidden,
+  }
 }

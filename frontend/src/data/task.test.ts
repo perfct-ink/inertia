@@ -1,7 +1,7 @@
 import type { Task } from '@/types'
-import { buildTaskTree, taskFolderId, dueBucket, myWork, taskCards, estimateLabel, pointsLabel, priorityLabel, filterByKind, kindOf, elapsedClock, formatMinutes, progressById, subtaskProgress, statusChangeLabel, taskChanges, taskDraft, taskDraftError } from './task'
+import { buildTaskTree, taskFolderId, dueBucket, myWork, taskCards, estimateLabel, pointsLabel, priorityLabel, filterByKind, kindOf, elapsedClock, formatMinutes, progressById, subtaskProgress, statusChangeLabel, taskChanges, taskDraft, taskDraftError, parseTaskBoardConfig } from './task'
 
-const task = (id: number, parent_id: number | null = null) => ({ id, title: `T${id}`, parent_id }) as unknown as Task
+const task =(id: number, parent_id: number | null = null) => ({ id, title: `T${id}`, parent_id }) as unknown as Task
 
 test('buildTaskTree nests subtasks to any depth', () => {
   const tree = buildTaskTree([task(1), task(2, 1), task(3, 2), task(4)])
@@ -132,4 +132,16 @@ describe('task detail drafts', () => {
     expect(taskDraftError({ ...taskDraft(base), start_date: '2026-10-25' })).toBe('The due date is before the start date.')
     expect(taskDraftError(taskDraft(base))).toBeNull()
   })
+})
+
+test('a stored Workboard view keeps the filters it understands, leaving unset ones out', () => {
+  const stored = { status: 'in_review', kind: 'bug', folder_id: 2, epic_id: 3, sprint_id: 4, assignee_id: 5, q: '  login ' }
+  expect(parseTaskBoardConfig(stored)).toEqual({ status: 'in_review', kind: 'bug', folder_id: 2, epic_id: 3, sprint_id: 4, assignee_id: 5, q: 'login' })
+  expect(parseTaskBoardConfig({ status: 'todo' })).toEqual({ status: 'todo' })
+})
+
+test('a malformed stored Workboard view drops what it cannot use', () => {
+  expect(parseTaskBoardConfig(null)).toEqual({})
+  expect(parseTaskBoardConfig('nope')).toEqual({})
+  expect(parseTaskBoardConfig({ status: 'finished', kind: 'epic', folder_id: '2', epic_id: 1.5, sprint_id: -1, assignee_id: 0, q: '   ', extra: true })).toEqual({})
 })

@@ -1,7 +1,7 @@
 # Pivot
 
 ## What it does
-`/pivot` (sidebar rail "Pivot") counts the Space's tasks in a table: one field down the side (Rows) and another across the top (Columns), chosen from Status, Epic, Sprint and Assignee, with row, column and grand totals. The default is epic by status. Tasks with no epic/sprint/assignee fall under "No epic", "No sprint" or "Unassigned", listed last; statuses keep board order (backlog to done). Empty cells are blank. The table is read-only.
+`/pivot` (sidebar rail "Pivot") counts the Space's tasks in a table: one field down the side (Rows) and another across the top (Columns), chosen from Status, Epic, Sprint and Assignee, with row, column and grand totals. The default is epic by status. Tasks with no epic/sprint/assignee fall under "No epic", "No sprint" or "Unassigned", listed last; statuses keep board order (backlog to done). Empty cells are blank. The table is read-only. The **Saved view** dropdown applies a named choice of rows and columns, private or shared with the Space (see [saved_views.md](saved_views.md)).
 
 ## API and models
 None: it reads tasks, epics, sprints and Space members and counts in the browser (`pivotTasks` in `frontend/src/data/pivot.ts`, screen `view/pivot/PivotScreen.tsx`).

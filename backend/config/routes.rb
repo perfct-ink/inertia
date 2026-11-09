@@ -103,6 +103,7 @@ Rails.application.routes.draw do
         end
       end
       resources :resource_allocations, only: [ :index, :create, :update, :destroy ]
+      resources :saved_views, only: [ :index, :create, :update, :destroy ]
       # How a board labels and colours task statuses; ?folder_id= picks the board (none = the Space default).
       get "task_status_settings", to: "task_status_settings#index"
       put "task_status_settings", to: "task_status_settings#update"

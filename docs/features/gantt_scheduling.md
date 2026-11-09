@@ -17,6 +17,8 @@ The Gantt tab of a folder (`/folders/:id?view=gantt`) draws the folder's epics a
 
 - **Baselines**: "Save baseline" in the Gantt toolbar snapshots the planned start and due date of every dated task in the folder (subfolders and their documents included). Picking a baseline from the "Baseline" list draws each task's planned span as a thin bar at the bottom of its track, so planned and actual can be compared; "No baseline" hides them, and the x button deletes the chosen baseline. Later date changes never alter a baseline. Epic rows have no planned bar. Code: `Baseline`/`BaselineTask`, `BaselinesController`, `api/baselines.ts`, `data/baseline.ts`.
 
+- **Saved views**: the toolbar's **Saved view** dropdown applies a named zoom, weekend shading and critical-path highlight, private or shared with the Space (see [saved_views.md](saved_views.md)). The baseline and the dependency mode belong to the folder and are not part of a view.
+
 ## API and models
 - `baselines` (`workspace_id`, `folder_id`, `created_by_id`, `name`) and `baseline_tasks` (`baseline_id`, `task_id`, `start_date`, `due_date`); `GET/POST /api/v1/folders/:id/baselines` (POST `{ baseline: { name } }`), `DELETE /api/v1/baselines/:id`. `Folder#scheduled_tasks` is the task set shared with `GET /folders/:id/contents`.
 - `folders.dependency_mode` (`none`/`strict`/`flexible`, default `none`), `Folder` enum `dependency_mode` (prefix `dependencies`), permitted in `FoldersController` and returned by `FolderBlueprint`.

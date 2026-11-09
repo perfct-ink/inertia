@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_11_07_120001) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_08_100001) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -373,6 +373,20 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_07_120001) do
     t.index ["workspace_id"], name: "index_resource_allocations_on_workspace_id"
   end
 
+  create_table "saved_views", force: :cascade do |t|
+    t.bigint "workspace_id", null: false
+    t.bigint "user_id", null: false
+    t.string "page", null: false
+    t.string "name", null: false
+    t.json "config", null: false
+    t.boolean "shared", default: false, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["user_id"], name: "index_saved_views_on_user_id"
+    t.index ["workspace_id", "page"], name: "index_saved_views_on_workspace_id_and_page"
+    t.index ["workspace_id"], name: "index_saved_views_on_workspace_id"
+  end
+
   create_table "shares", force: :cascade do |t|
     t.string "token", null: false
     t.integer "permission", default: 0, null: false
@@ -720,6 +734,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_07_120001) do
   add_foreign_key "resource_allocations", "folders"
   add_foreign_key "resource_allocations", "users"
   add_foreign_key "resource_allocations", "workspaces"
+  add_foreign_key "saved_views", "users"
+  add_foreign_key "saved_views", "workspaces"
   add_foreign_key "shares", "users", column: "created_by_id"
   add_foreign_key "social_identities", "users"
   add_foreign_key "social_login_attempts", "users"

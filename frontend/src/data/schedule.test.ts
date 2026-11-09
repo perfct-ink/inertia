@@ -1,4 +1,4 @@
-import { axisTicks, donePercent, groupGanttRows, milestoneMarkers, planningGanttRows, shiftedRange, trackWidthPx, weekendSpans, type Scheduled, flatTaskRows } from './schedule'
+import { DEFAULT_GANTT_CONFIG, axisTicks, donePercent, groupGanttRows, milestoneMarkers, parseGanttConfig, planningGanttRows, shiftedRange, trackWidthPx, weekendSpans, type Scheduled, flatTaskRows } from './schedule'
 
 const item = (tasks_count: number, done_tasks_count: number) =>
   ({ id: 1, title: 'x', start_date: null, target_date: null, tasks_count, done_tasks_count }) as Scheduled
@@ -180,4 +180,11 @@ test('flatTaskRows lists dated tasks by start date, a task without a start sitti
   expect(rows.map((r) => r.title)).toEqual(['Early', 'Milestone-ish', 'Late'])
   expect(rows[1]).toMatchObject({ start_date: '2026-11-07', target_date: '2026-11-07', key: 'task-4' })
   expect(rows[0].done_tasks_count).toBe(1)
+})
+
+test('a stored saved Gantt view is read back, with the default for anything unrecognised', () => {
+  expect(parseGanttConfig({ zoom: 'week', shadeWeekends: false, showCritical: false })).toEqual({ zoom: 'week', shadeWeekends: false, showCritical: false })
+  expect(parseGanttConfig({ zoom: 'year' })).toEqual({ zoom: 'year', shadeWeekends: true, showCritical: true })
+  expect(parseGanttConfig({ zoom: 'decade', shadeWeekends: 'yes', showCritical: 1 })).toEqual(DEFAULT_GANTT_CONFIG)
+  expect(parseGanttConfig(undefined)).toEqual(DEFAULT_GANTT_CONFIG)
 })
