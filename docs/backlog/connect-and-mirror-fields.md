@@ -3,7 +3,7 @@ priority: p1
 depends_on: []
 components: [frontend, backend]
 ---
-# Connect / Mirror: link items across boards and show a field from the linked item
+# Lookup fields: a Collection shows a field from the linked record
 
 ## Objective
 
@@ -12,6 +12,8 @@ Connect / Mirror: link items across boards and show a field from the linked item
 ## Requirements / notes
 
 `relation` data type exists for tables.
+
+**Collections only** (Alex, 2026-11-09 groom): a Collection gets a **lookup** field that shows a chosen field from the record a relation field links to (e.g. a Song shows its Album's year). Read-only, updates when the linked record changes. Tasks are left out (they have no custom fields yet).
 
 ## Context
 
