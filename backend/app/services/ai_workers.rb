@@ -1,8 +1,10 @@
 # The seam between Inertia and a language model. A client is any object with
-# `complete(model:, system:, prompt:)` that returns the reply text. None is
+# `complete(model:, system:, prompt:)` that returns the reply text, or an
+# AiWorkers::Reply (text plus token counts, for per-Space usage). None is
 # configured by default, so runs fail with a clear message instead of
-# reaching out anywhere; set `AiWorkers.client` (an initializer) once the
-# Anthropic adapter exists. See docs/services.md.
+# reaching out anywhere; config/initializers/ai_workers.rb sets
+# AiWorkers::AnthropicClient when ANTHROPIC_API_KEY is present.
+# See docs/services.md.
 module AiWorkers
   class NotConfigured < StandardError; end
 

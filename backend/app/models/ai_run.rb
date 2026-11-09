@@ -15,6 +15,14 @@ class AiRun < ApplicationRecord
 
   scope :active, -> { where(status: [ statuses[:queued], statuses[:running] ]) }
 
+  # Tokens spent by the runs in this scope, for per-Space usage:
+  # `workspace.ai_runs.token_usage`, or narrow it first, for example
+  # `workspace.ai_runs.where(created_at: month).token_usage`. Runs that never
+  # reached the model have no counts and add nothing.
+  def self.token_usage
+    { input_tokens: sum(:input_tokens), output_tokens: sum(:output_tokens) }
+  end
+
   private
 
   def worker_is_enabled
