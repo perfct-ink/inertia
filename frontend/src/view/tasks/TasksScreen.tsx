@@ -896,6 +896,10 @@ export default function TasksScreen() {
                           <SlidersHorizontal className="tasks-icon" />
                         </IconButton>
                       )}
+                      <IconButton onClick={() => setFilesTaskId(task.id)} title="Attached files" label={`Files of ${task.title}`} className="tasks-row_action--files">
+                        <Paperclip className="tasks-icon" />
+                        {!!task.file_ids?.length && <span className="tasks-meta">{task.file_ids.length}</span>}
+                      </IconButton>
                       <IconButton onClick={() => setHistoryTask(task)} title="Status history" label={`Status history of ${task.title}`}>
                         <History className="tasks-icon" />
                       </IconButton>
