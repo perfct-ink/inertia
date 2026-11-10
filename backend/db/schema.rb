@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_11_08_170001) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_10_090001) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -581,6 +581,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_08_170001) do
     t.json "options", default: [], null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "display_format"
+    t.text "formula"
     t.index ["workspace_id", "name"], name: "index_task_fields_on_workspace_id_and_name", unique: true
     t.index ["workspace_id"], name: "index_task_fields_on_workspace_id"
   end

@@ -1,3 +1,4 @@
+import type { FieldDataType } from '@/api/tables'
 export interface Document {
   id: number
   title: string
@@ -183,19 +184,25 @@ export interface Task {
   field_values?: TaskFieldValues
 }
 
-// Custom task fields (Monday-style columns), defined once per Space.
-export type TaskFieldType = 'tags' | 'dropdown' | 'checkbox' | 'rating' | 'vote'
+// Custom task fields (Monday-style columns), defined once per Space: the five
+// task kinds, or a Collection field type (see data/taskField.ts).
+export type TaskFieldKind = 'tags' | 'dropdown' | 'checkbox' | 'rating' | 'vote'
+export type TaskFieldType = TaskFieldKind | Exclude<FieldDataType, 'rating' | 'relation' | 'file' | 'files' | 'auto_number' | 'created_time' | 'updated_time'>
 
 export interface TaskField {
   id: number
   name: string
   field_type: TaskFieldType
-  // The choices of a dropdown field; empty for every other kind.
+  // The choices of a dropdown or select field; empty for every other kind.
   options: string[]
+  // How a Collection type's values are shown (null is the type's default).
+  display_format?: string | null
+  // A formula field's formula, in the Collection formula language.
+  formula?: string | null
 }
 
 // tags: labels. dropdown: the chosen label. checkbox: true. rating: 1 to 5.
-// vote: the ids of the users who voted.
+// vote: the ids of the users who voted. A Collection type: its plain value.
 export type TaskFieldValue = string | string[] | number | number[] | boolean
 export type TaskFieldValues = Record<string, TaskFieldValue>
 

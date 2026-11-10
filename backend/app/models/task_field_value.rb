@@ -32,8 +32,8 @@ class TaskFieldValue < ApplicationRecord
 
   def value_fits_the_field
     return unless task_field
-    unless TaskFieldType.valid_value?(task_field.field_type, value, options: task_field.options)
-      errors.add(:value, "is not valid for #{task_field.name} (#{task_field.field_type})")
-    end
+    valid = TaskFieldType.valid_value?(task_field.field_type, value, options: task_field.options)
+    valid &&= task.workspace.accessible_by?(value) if valid && task_field.field_type == "person"
+    errors.add(:value, "is not valid for #{task_field.name} (#{task_field.field_type})") unless valid
   end
 end

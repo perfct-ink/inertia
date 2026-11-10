@@ -15,7 +15,7 @@ export function useTaskFields() {
 export function useCreateTaskField() {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: (data: { name: string; field_type: TaskFieldType; options: string[] }) =>
+    mutationFn: (data: { name: string; field_type: TaskFieldType; options: string[]; display_format?: string | null; formula?: string | null }) =>
       api.post('/api/v1/task_fields', { task_field: data }).then((r) => r.data as TaskField),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['task_fields'] }),
   })
@@ -24,7 +24,7 @@ export function useCreateTaskField() {
 export function useUpdateTaskField() {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: ({ id, ...data }: { id: number; name?: string; options?: string[] }) =>
+    mutationFn: ({ id, ...data }: { id: number; name?: string; options?: string[]; display_format?: string | null; formula?: string | null }) =>
       api.patch(`/api/v1/task_fields/${id}`, { task_field: data }).then((r) => r.data as TaskField),
     // Changing a dropdown's choices can clear task values that used a removed one.
     onSuccess: () => {

@@ -8,7 +8,7 @@ class TaskFieldTest < ActiveSupport::TestCase
   end
 
   test "each of the five kinds can be created" do
-    TaskFieldType::TYPES.each do |type|
+    TaskFieldType::KINDS.each do |type|
       options = type == "dropdown" ? [ "High", "Low" ] : []
       field = @workspace.task_fields.create!(name: "Field #{type}", field_type: type, options: options)
       assert field.public_send(:"#{type}?")
@@ -117,5 +117,68 @@ class TaskFieldTest < ActiveSupport::TestCase
     foreign = other.task_fields.create!(name: "Stars", field_type: "rating")
     value = TaskFieldValue.write(@task, foreign, 3)
     assert_includes value.errors[:task_field], "must belong to the task's Space"
+  end
+
+  # ── Collection field types (custom-fields-on-tasks) ─────────────────────
+
+  test "a task field can be any Collection type that holds a value, a person or a formula" do
+    assert_includes TaskFieldType::TYPES, "money"
+    assert_includes TaskFieldType::TYPES, "person"
+    assert_includes TaskFieldType::TYPES, "formula"
+    assert_not_includes TaskFieldType::TYPES, "relation"
+    assert_not_includes TaskFieldType::TYPES, "auto_number"
+    assert_equal 1, TaskFieldType::TYPES.count("rating")
+  end
+
+  test "values are read and checked with the Collection rules, and stored plain" do
+    cost = @workspace.task_fields.create!(name: "Cost", field_type: "money", display_format: "eur")
+    record = TaskFieldValue.write(@task, cost, "$1,250.50")
+    assert record.persisted?
+    assert_equal 1250.5, record.reload.value
+    assert_not TaskFieldValue.write(@task, cost, "a lot").errors.empty?
+
+    email = @workspace.task_fields.create!(name: "Contact", field_type: "email")
+    assert_not TaskFieldValue.write(@task, email, "not an email").errors.empty?
+    assert TaskFieldValue.write(@task, email, " pat@example.com ").persisted?
+
+    due = @workspace.task_fields.create!(name: "Review on", field_type: "date")
+    assert TaskFieldValue.write(@task, due, "2026-12-01").persisted?
+    TaskFieldValue.write(@task, due, "")
+    assert_nil @task.field_values.find_by(task_field: due)
+  end
+
+  test "a format must be one of the type's, and a blank one means the default" do
+    assert_not @workspace.task_fields.build(name: "Cost", field_type: "money", display_format: "stars").valid?
+    field = @workspace.task_fields.create!(name: "Cost", field_type: "money", display_format: "")
+    assert_nil field.display_format
+    assert field.update(display_format: "gbp")
+  end
+
+  test "single and multi selects need choices, and removed choices leave the tasks" do
+    assert_not @workspace.task_fields.build(name: "Stage", field_type: "single_select", options: []).valid?
+    labels = @workspace.task_fields.create!(name: "Labels", field_type: "multi_select", options: %w[Bug Feature Docs])
+    TaskFieldValue.write(@task, labels, "Bug, Docs")
+    labels.update!(options: %w[Bug Feature])
+    assert_equal %w[Bug], @task.field_values.find_by(task_field: labels).value
+    labels.update!(options: %w[Feature])
+    assert_nil @task.field_values.find_by(task_field: labels)
+  end
+
+  test "a person must be able to open the Space" do
+    owner = @workspace.task_fields.create!(name: "Reviewer", field_type: "person")
+    assert TaskFieldValue.write(@task, owner, @user.id).persisted?
+    stranger = User.create!(name: "Cy", email: "cy-task-field@example.com", password: "password123")
+    assert_not TaskFieldValue.write(@task, owner, stranger.id).errors.empty?
+  end
+
+  test "a formula needs its formula, never stores values, and follows renames" do
+    assert_not @workspace.task_fields.build(name: "Late", field_type: "formula").valid?
+    assert_not @workspace.task_fields.build(name: "Late", field_type: "formula", formula: "{Late} + 1").valid?
+    estimate = @workspace.task_fields.create!(name: "Estimate", field_type: "number")
+    double = @workspace.task_fields.create!(name: "Double", field_type: "formula", formula: "{Estimate} * 2")
+    assert_not TaskFieldValue.write(@task, double, 4).errors.empty?
+    estimate.update!(name: "Hours")
+    assert_equal "{Hours} * 2", double.reload.formula
+    assert_nil @workspace.task_fields.create!(name: "Plain", field_type: "text", formula: "{Hours}").formula
   end
 end

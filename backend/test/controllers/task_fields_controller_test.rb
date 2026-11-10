@@ -147,4 +147,27 @@ class TaskFieldsControllerTest < ActionDispatch::IntegrationTest
     put "#{field_path(votes)}/vote", params: { voted: true }, headers: headers_for(@viewer), as: :json
     assert_response :forbidden
   end
+
+  test "a Collection-typed field keeps its format and formula, and its values are read plain" do
+    post "/api/v1/task_fields", params: { task_field: { name: "Cost", field_type: "money", display_format: "gbp", options: [] } }, headers: headers_for(@user), as: :json
+    assert_response :created
+    cost = response.parsed_body
+    assert_equal [ "money", "gbp" ], cost.values_at("field_type", "display_format")
+
+    post "/api/v1/task_fields", params: { task_field: { name: "Double", field_type: "formula", formula: "{Cost} * 2", options: [] } }, headers: headers_for(@user), as: :json
+    assert_response :created
+    double = @team.task_fields.find(response.parsed_body["id"])
+    assert_equal "{Cost} * 2", response.parsed_body["formula"]
+
+    put "/api/v1/tasks/#{@task.id}/field_values/#{cost['id']}", params: { value: "£1,200" }, headers: headers_for(@user), as: :json
+    assert_response :success
+    assert_equal 1200, response.parsed_body["field_values"][cost["id"].to_s]
+
+    put "/api/v1/tasks/#{@task.id}/field_values/#{double.id}", params: { value: 3 }, headers: headers_for(@user), as: :json
+    assert_response :unprocessable_entity
+
+    patch "/api/v1/task_fields/#{cost['id']}", params: { task_field: { display_format: "eur" } }, headers: headers_for(@user), as: :json
+    assert_response :success
+    assert_equal "eur", response.parsed_body["display_format"]
+  end
 end

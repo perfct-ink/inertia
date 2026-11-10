@@ -13,6 +13,18 @@
       overflow-y: auto;
     }
 
+    // A Collection-typed value (FieldCell) with its problem under it, and a formula's result.
+    &-collection {
+      display: flex;
+      flex-direction: column;
+      gap: space(1);
+    }
+
+    &-formula {
+      color: color(muted-foreground);
+      @include text('sm');
+    }
+
     &-dialog {
       display: flex;
       flex-direction: column;

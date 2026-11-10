@@ -38,6 +38,7 @@ import { useSprints } from '@/api/sprints'
 import { useMilestones } from '@/api/milestones'
 import { useTaskFields } from '@/api/taskFields'
 import { TaskFieldChips } from '@/components/task-fields/TaskFieldChips'
+import { TaskFieldPeople } from '@/components/task-fields/taskFieldPeople'
 import { TaskFieldsDialog } from '@/components/task-fields/TaskFieldsDialog'
 import { ManageTaskFieldsDialog } from '@/components/task-fields/ManageTaskFieldsDialog'
 import type { Task, TaskField, Epic, Sprint, Milestone, TaskStatus, TaskStatusColor, TaskPriority, TaskKind, WorkspaceMember } from '@/types'
@@ -653,7 +654,10 @@ export default function TasksScreen() {
     )
   }
 
+  const peopleNames = new Map(members.map((member) => [member.user_id, member.user.name] as const))
+
   return (
+    <TaskFieldPeople.Provider value={peopleNames}>
     <WorkspaceLayout>
       <div className="view-tasks">
         <div className="tasks-header">
@@ -944,5 +948,6 @@ export default function TasksScreen() {
       {filesTask && <TaskFiles key={filesTask.id} task={filesTask} onClose={() => setFilesTaskId(null)} />}
       {editing && <TaskDetail key={editing.id} task={editing} onClose={() => setEditing(null)} />}
     </WorkspaceLayout>
+    </TaskFieldPeople.Provider>
   )
 }

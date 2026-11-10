@@ -86,3 +86,36 @@ test('vote: shows that you voted', () => {
   fireEvent.click(vote)
   expect(onVote).toHaveBeenLastCalledWith(false)
 })
+
+// ── Collection field types ──
+
+test('a money field reads what is typed and saves the plain number when it loses focus', () => {
+  const { onChange } = setup({ ...field('money'), name: 'Cost', display_format: 'usd' }, task())
+  const input = screen.getByRole('textbox', { name: 'Cost' })
+  fireEvent.focus(input)
+  fireEvent.change(input, { target: { value: '$1,250' } })
+  expect(onChange).not.toHaveBeenCalled()
+  fireEvent.blur(input)
+  expect(onChange).toHaveBeenCalledWith(1250)
+})
+
+test('a value that does not fit is shown as a problem and not saved', () => {
+  const { onChange } = setup({ ...field('email'), name: 'Contact' }, task())
+  const input = screen.getByRole('textbox', { name: 'Contact' })
+  fireEvent.change(input, { target: { value: 'not an email' } })
+  fireEvent.blur(input)
+  expect(onChange).not.toHaveBeenCalled()
+  expect(screen.getByText(/Contact/, { selector: '.ui-form_error, [role="alert"]' })).toBeInTheDocument()
+})
+
+test('a single select saves the choice at once, and clearing it saves null', () => {
+  const { onChange } = setup({ ...field('single_select', ['Open', 'Done']), name: 'Stage' }, task('Open'))
+  fireEvent.change(screen.getByRole('combobox', { name: 'Stage' }), { target: { value: 'Done' } })
+  expect(onChange).toHaveBeenCalledWith('Done')
+})
+
+test('a formula field shows its result and has nothing to type into', () => {
+  render(<TaskFieldInput field={{ ...field('formula'), name: 'Double', formula: '{A} * 2' }} task={task()} userId={5} onChange={jest.fn()} onVote={jest.fn()} formula={{ value: 8 }} />)
+  expect(screen.getByRole('status', { name: 'Double' })).toHaveTextContent('8')
+  expect(screen.queryByRole('textbox')).not.toBeInTheDocument()
+})

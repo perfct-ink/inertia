@@ -40,11 +40,11 @@ module Api
       end
 
       def create_params
-        params.require(:task_field).permit(:name, :field_type, options: [])
+        params.require(:task_field).permit(:name, :field_type, :display_format, :formula, options: [])
       end
 
       def update_params
-        params.require(:task_field).permit(:name, options: [])
+        params.require(:task_field).permit(:name, :display_format, :formula, options: [])
       end
     end
   end

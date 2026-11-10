@@ -1,11 +1,14 @@
+import { useContext } from 'react'
 import { fieldSummaries } from '@/data/taskField'
+import { TaskFieldPeople } from './taskFieldPeople'
 import type { Task, TaskField } from '@/types'
 import './TaskFields.scss'
 
 // Read-only chips for the custom fields a task has a value for. Shows nothing
 // when the task has none.
 export function TaskFieldChips({ fields, task }: { fields: TaskField[]; task: Task }) {
-  const summaries = fieldSummaries(fields, task)
+  const people = useContext(TaskFieldPeople)
+  const summaries = fieldSummaries(fields, task, { people })
   if (summaries.length === 0) return null
   return (
     <ul className="task_fields-chips" aria-label="Fields">
