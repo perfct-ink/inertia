@@ -2,6 +2,8 @@
 priority: p3
 depends_on: []
 components: [macos, docs]
+branch: backlog/native-mac-make-targets
+status: incomplete
 ---
 # Native Mac make targets: close, install, uninstall, reinstall
 
@@ -25,3 +27,7 @@ Two rule files disagree about `make all`: `docs/rules/make-files.md` says it is 
 
 - The four targets work on a Mac and appear in `make help` under the Native Mac app group.
 - `docs/features/rules_compliance.md` (native.md and make-files.md rows) is updated.
+
+## Unverified
+
+Built, but only `make -n install` and `make help` were run (the Swift build and writing to `/Applications` were not). On a Mac: `make install`, open `/Applications/Inertia.app`, `make close`, `make reinstall`, `make uninstall`. Still open for Alex: what `make open` should open when both apps exist (kept: the web app; `open-mac` opens the Mac app), and the `make all` disagreement between the two rule files (not changed). Delete this file when the targets are confirmed.

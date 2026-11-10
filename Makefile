@@ -241,12 +241,35 @@ nuke: ## Remove everything including built images (full reset)
 
 # ── Native Mac app ────────────────────────────────────────────────────────────
 
-.PHONY: mac-build dev-native-mac test-native-mac
+.PHONY: mac-build dev-native-mac open-mac close install uninstall reinstall test-native-mac
 mac-build: ## Stop the running development Mac app and rebuild macos/dist/Inertia.app
 	bash scripts/build-native-mac.sh
 
 dev-native-mac: mac-build ## Open the native SwiftUI macOS app
 	open macos/dist/Inertia.app
+
+open-mac: ## Open the built native Mac app (macos/dist/Inertia.app); `make open` opens the web app
+	open macos/dist/Inertia.app
+
+close: ## Quit the running development Mac app (macos/dist/Inertia.app)
+	swift scripts/stop-native-mac.swift "$(CURDIR)/macos/dist/Inertia.app"
+
+# install, uninstall and reinstall write to and delete from /Applications on
+# purpose. No other target depends on them.
+install: mac-build ## Build the release Mac app and copy it to /Applications/Inertia.app (replaces any copy there)
+	swift scripts/stop-native-mac.swift /Applications/Inertia.app
+	rm -rf /Applications/Inertia.app
+	cp -R macos/dist/Inertia.app /Applications/Inertia.app
+	@echo "✓ Installed /Applications/Inertia.app"
+
+uninstall: ## Quit and delete /Applications/Inertia.app
+	swift scripts/stop-native-mac.swift /Applications/Inertia.app
+	rm -rf /Applications/Inertia.app
+	@echo "✓ Removed /Applications/Inertia.app"
+
+reinstall: ## Uninstall, then install the Mac app again
+	$(MAKE) uninstall
+	$(MAKE) install
 
 test-native-mac: ## Run native API/model regression tests
 	swift test --package-path macos

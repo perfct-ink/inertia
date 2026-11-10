@@ -123,7 +123,7 @@ Met. 60 files in `docs/features/`, all snake_case, all indexed in `README.md` wi
 Only `make help` and `make -n` ran; the targets that need Docker (`running`, `up`, `test-collab`) did not.
 
 ### `native.md`
-Not met. Missing `close`, `install`, `uninstall`, `reinstall`, and `make open` opens the web app. Task: `native-mac-make-targets`. The native components folder layout matches `docs/project/ui-organization.md`.
+Built, unverified. `make close`, `install`, `uninstall`, `reinstall` and `open-mac` exist (`install` and `uninstall` write to and delete from `/Applications/Inertia.app`, and nothing depends on them); `make open` still opens the web app, which is the conservative reading of the open question. Only `make -n` and `make help` were run. The native components folder layout matches `docs/project/ui-organization.md`.
 
 ### `versioning.md`
 Not applicable. There is no `VERSION` file at the root, and none was created.
