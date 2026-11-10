@@ -2,6 +2,8 @@
 priority: p3
 depends_on: []
 components: [frontend]
+branch: backlog/resync-volta-tokens-to-current-volta
+status: incomplete
 ---
 # Re-sync the Volta tokens in `_volta.scss` with current Volta
 
@@ -19,3 +21,7 @@ components: [frontend]
 
 - `_volta.scss` matches the chosen Volta commit; the doc names that commit; `npm run lint` passes and the gallery (`/styleguide`) looks unchanged in both themes.
 - Feature doc updated and this file removed.
+
+## Unverified
+
+Done: the colors from Volta `11a8494` (newer than the `fde49fa` the task names) are in `_volta.scss`, and `docs/volta_parity.md` names the commit. Left: pointing the theme's `--primary-foreground` at `--v-on-accent` (that line is changed on `backlog/primary-button-text-contrast-in-dark-mode`; do it after that merges), taking `--v-color-danger-subtle` and `--v-color-warning` into the theme where a component needs them, a diff of Volta's working tree if it matters, and a look at the gallery in both themes (the Gantt's muted labels use `--v-color-trim-less-subtle`, now darker, `#6e6e6e`). Delete this file when done.

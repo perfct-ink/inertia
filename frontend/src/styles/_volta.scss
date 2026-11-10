@@ -1,5 +1,6 @@
 // Volta design tokens, copied from Volta's styles/_colors.scss and
-// styles/_variables.scss (github.com/kriogenx0/volta @ 5b6faa1).
+// styles/_variables.scss (github.com/kriogenx0/volta @ 11a8494). Colors only: the
+// scale, shadow and focus-ring tokens Volta added since are not taken, as nothing here uses them yet.
 // Volta is the design system; _theme.scss sets Inertia's theme by overriding
 // these tokens and maps Inertia's semantic colors onto them. Keep the names and values in sync with Volta rather than
 // editing them here (see docs/ui-components.md, "Design system: Volta").
@@ -14,11 +15,16 @@
   --v-color-base-more-subtle: #f2f2f2;
   --v-color-trim: #111;
   --v-color-trim-subtle: #4d4d4d;
-  --v-color-trim-less-subtle: #808080;
+  --v-color-trim-less-subtle: #6e6e6e;
   --v-color-trim-more-subtle: #1a1a1a;
   --v-color-inactive: #a1a5a9;
   --v-color-danger: #e30000;
+  --v-color-danger-hover: #ba0000;
   --v-color-success: #03a10e;
+  --v-color-warning: #a15c00;
+  --v-color-danger-subtle: #fff2f4;
+  // Text on the accent color.
+  --v-on-accent: #fff;
   --v-anim-speed: 150ms;
   --v-anim-ease: ease-in-out;
 }
@@ -34,6 +40,7 @@
   --v-color-trim-more-subtle: #e6e6e6;
   --v-accent-subtle: #234a78;
   --v-color-inactive: #7c7f82;
+  --v-color-danger-subtle: #3a1519;
 }
 
 // Dark-scheme token values: follows the OS preference until an explicit
