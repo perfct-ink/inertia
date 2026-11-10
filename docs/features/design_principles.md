@@ -46,6 +46,8 @@ Shared mixins added to `_tokens.scss`: `page-header`, `page-padding`, `reveal-on
 - `components/ui/Controls.test.tsx` (existing): checkboxes keep native selection behaviour.
 - Checked in a browser (Chromium via Playwright against a mocked API) at 375, 768 and 1280px on every route, including each folder view: no page-level horizontal overflow, no control text selectable, no transition other than 150ms, no unstyled checkbox or select. Light and dark mode checked for checkboxes, selects and date fields.
 
+**Toasts.** A notice goes after eight seconds, but stays while the pointer is over it or focus is inside it (WCAG 2.2.1) and then goes the full eight seconds after that; Dismiss removes it at once. The region is `role="region"` named "Notifications", and each notice stays `role="alert"`.
+
 ## Known limits
 
 - The date picker's keyboard model is partial: ArrowUp/ArrowDown move a week, PageUp/PageDown a month (Shift: a year) and Enter picks, but ArrowLeft/ArrowRight keep moving the cursor in the text, so a keyboard user types the date or steps by weeks. The week starts on Sunday.
@@ -66,3 +68,4 @@ Shared mixins added to `_tokens.scss`: `page-header`, `page-padding`, `reveal-on
 
 - Merged to main 2026-11-02 after running, merged with main: `rails db:migrate` (schema diff clean), `rails test`, `npm run lint`, `tsc -b`, Jest, and the collab-server tests, all passing. Not checked in a browser.
 - Implemented 2026-11-02: `Select` is a styled dropdown instead of the browser's list (and `@radix-ui/react-popover` upgraded to 1.3.1). Lint, `tsc -b` and Jest pass; checked in Chromium against a mocked API. Not committed or deployed.
+- Toasts pause on hover and focus, 2026-11-10 (on branch `backlog/toast-pause-on-hover-and-focus`). Jest, `tsc` and eslint pass; not checked in a browser or the gallery, not deployed.

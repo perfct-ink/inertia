@@ -2,6 +2,8 @@
 priority: p3
 depends_on: []
 components: [frontend]
+branch: backlog/toast-pause-on-hover-and-focus
+status: incomplete
 ---
 # Toasts should not vanish while someone is reading them
 
@@ -20,3 +22,7 @@ components: [frontend]
 - A notice stays while hovered or focused and goes eight seconds after that.
 - Tests cover it; the gallery's toast button shows it.
 - Feature doc updated and this file removed.
+
+## Unverified
+
+Built and tested with fake timers. Not done: a look in the gallery (/styleguide, "Show an error toast") and a browser, hovering and tabbing to a notice. Delete this file when that passes.
