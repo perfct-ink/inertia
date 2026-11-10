@@ -58,6 +58,7 @@
 //                        statusColors.test.ts re-checks every pair.
 :root {
   --status-red: var(--v-color-danger);
+
   // Light mode: Volta's success nudged 5% toward the text color, to clear 3:1 on
   // the muted surface (Volta's own is 2.98 there), and a deeper yellow and
   // orange (the old #eab308 and #f97316 were 1.92 and 2.80 on white).
