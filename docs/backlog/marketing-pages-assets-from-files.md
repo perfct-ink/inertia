@@ -2,6 +2,8 @@
 priority: p3
 depends_on: []
 components: [backend, frontend]
+branch: backlog/marketing-pages-assets-from-files
+status: incomplete
 ---
 # Serve the marketing pages' CSS and JavaScript from cacheable files
 
@@ -28,3 +30,7 @@ The rules audit (see `docs/features/rules_compliance.md`) found inline code in H
 - No `<style>` block and no non-essential inline `<script>` in the marketing layout; the files are served with long-lived cache headers and fingerprinted names (or a documented cache-busting rule).
 - A request test fetches the marketing page and the stylesheet it links to.
 - `docs/features/rules_compliance.md` (frontend.md rows) is updated.
+
+## Unverified
+
+Built without Rails or nginx. Run `rails test test/controllers/marketing_controller_test.rb` and the slug test, start the stack and view `/`, `/features`, `/pricing` and `/about` at 375px and desktop in light and dark, with the theme toggle and a signed-in redirect, before and after. Left: the crash-net script in `frontend/index.html`. Delete this file when those pass and the crash net is moved or accepted.

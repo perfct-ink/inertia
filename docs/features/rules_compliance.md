@@ -97,7 +97,7 @@ Met. 60 files in `docs/features/`, all snake_case, all indexed in `README.md` wi
 | --- | --- | --- |
 | SCSS, no utility framework | Met | |
 | Inline styles | Met | 23 `style={{}}` uses, all runtime values (progress widths, depth indents, drag transforms, map pins). A fixed right padding moved out of `FolderItem.tsx` into its stylesheet. |
-| Scripts and styles from files | Not met in two places | The Rails marketing layout has a roughly 95-line `<style>` and two inline scripts; `frontend/index.html` has a crash-net script. The pre-paint theme snippets are allowed. Task: `marketing-pages-assets-from-files`. |
+| Scripts and styles from files | Partly built, unverified | The Rails marketing layout now links a fingerprinted stylesheet and script (`/marketing-<digest>.css|js`, year-long cache, `MarketingAssets`); only the pre-paint theme snippet and the structured data stay inline. `frontend/index.html`'s crash-net script is still inline. Task: `marketing-pages-assets-from-files`. |
 | Typed language | Met | No `.js` under `frontend/src`. |
 | No native dialogs; form controls through UI components | Fixed | No `alert`/`confirm`/`prompt`; both rules are now lint errors. |
 | API errors shown; central sign-out | Met | `lib/api.ts` signs out on 401 and shows the error unless a call is `silent`; no swallowed `catch` found. |

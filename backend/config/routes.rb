@@ -11,6 +11,8 @@ Rails.application.routes.draw do
   get "features", to: "marketing#features"
   get "pricing", to: "marketing#pricing"
   get "about", to: "marketing#about"
+  # The marketing stylesheet and script at a digest address (MarketingAssets).
+  get "marketing-:digest.:format", to: "marketing#asset", constraints: { digest: /\h{12}/, format: /css|js/ }
   get "robots.txt", to: "marketing#robots"
   get "sitemap.xml", to: "marketing#sitemap"
 

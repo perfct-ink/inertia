@@ -9,7 +9,7 @@
 # makes a network request for HTML, so these pages are web-only by construction.
 class MarketingController < ActionController::Base
   layout "marketing"
-  helper_method :canonical_url, :app_url
+  helper_method :canonical_url, :app_url, :marketing_asset_path
 
   PAGES = {
     home: {
@@ -51,6 +51,16 @@ class MarketingController < ActionController::Base
     @page = PAGES[:about]
   end
 
+  # The stylesheet and script, at /marketing-<digest>.css and .js (MarketingAssets).
+  # The address carries the file's digest, so it can be cached for a year.
+  def asset
+    file = MarketingAssets.file_for(params[:digest], params[:format])
+    return head :not_found unless file
+
+    response.headers["Cache-Control"] = "public, max-age=31536000, immutable"
+    send_file file, type: MarketingAssets::TYPES.fetch(params[:format]), disposition: "inline"
+  end
+
   def robots
     render plain: <<~TXT, content_type: "text/plain"
       User-agent: *
@@ -85,6 +95,10 @@ class MarketingController < ActionController::Base
   # development it runs on its own port, named by WEB_URL.
   def app_url(path)
     ENV.fetch("WEB_URL", "") + path
+  end
+
+  def marketing_asset_path(name)
+    MarketingAssets.path(File.extname(name).delete("."))
   end
 
   def canonical_url

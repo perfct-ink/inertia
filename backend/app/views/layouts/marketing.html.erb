@@ -2,29 +2,6 @@
 <html lang="en">
   <head>
     <meta charset="utf-8">
-    <script>
-      // Rails can't see client-side auth state (the JWT lives only in
-      // localStorage, under the same key frontend/src/store/auth.ts's
-      // zustand `persist` middleware uses — there's no session cookie to
-      // check server-side). So the page is always the same signed-out HTML,
-      // which keeps it cacheable and what crawlers see; this runs before it
-      // paints. A signed-in visitor gets data-signed-in on <html> (the header
-      // then offers "Open app" instead of Sign in and Sign up), and on the
-      // home page goes straight to the app. A crawler or signed-out visitor
-      // has no such entry and just sees the marketing HTML below.
-      (function () {
-        try {
-          var raw = localStorage.getItem('inertia-auth')
-          var parsed = raw && JSON.parse(raw)
-          if (parsed && parsed.state && parsed.state.token) {
-            document.documentElement.setAttribute('data-signed-in', '')
-            <% if @page[:redirect_authenticated_to] %>
-            window.location.replace('<%= app_url(@page[:redirect_authenticated_to]) %>')
-            <% end %>
-          }
-        } catch (e) {}
-      })()
-    </script>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <title><%= @page[:title] %></title>
@@ -53,147 +30,19 @@
     </script>
 
     <script>
-      // Theme: follows the system setting until the visitor picks one with the
-      // header toggle; the choice is kept in localStorage. Inline and in <head>
-      // so the stored theme applies before first paint (no light flash).
-      // Without JavaScript the page still follows the system setting through
-      // the CSS light-dark() colors, and the toggle stays hidden.
+      // Applies the stored theme before first paint (no light flash); this has to
+      // be inline. The toggle itself is in marketing.js.
       (function () {
-        var KEY = 'inertia-marketing-theme'
-        var root = document.documentElement
-        var system = window.matchMedia('(prefers-color-scheme: dark)')
         var stored = null
-        try { stored = localStorage.getItem(KEY) } catch (e) {}
-        if (stored === 'light' || stored === 'dark') root.setAttribute('data-theme', stored)
-
-        function current() {
-          return root.getAttribute('data-theme') || (system.matches ? 'dark' : 'light')
-        }
-
-        function sync(button) {
-          var dark = current() === 'dark'
-          button.setAttribute('aria-pressed', String(dark))
-          // SVG elements have no `hidden` property, so toggle the attribute.
-          button.querySelector('.theme_toggle-sun').toggleAttribute('hidden', !dark)
-          button.querySelector('.theme_toggle-moon').toggleAttribute('hidden', dark)
-        }
-
-        document.addEventListener('DOMContentLoaded', function () {
-          var button = document.querySelector('.theme_toggle')
-          if (!button) return
-          button.hidden = false
-          sync(button)
-          system.addEventListener('change', function () { sync(button) })
-          button.addEventListener('click', function () {
-            var next = current() === 'dark' ? 'light' : 'dark'
-            root.setAttribute('data-theme', next)
-            try { localStorage.setItem(KEY, next) } catch (e) {}
-            sync(button)
-          })
-        })
+        try { stored = localStorage.getItem('inertia-marketing-theme') } catch (e) {}
+        if (stored === 'light' || stored === 'dark') document.documentElement.setAttribute('data-theme', stored)
       })()
     </script>
-
-    <style>
-      /* light-dark() keeps each color in one declaration: color-scheme
-         "light dark" follows the system, and data-theme (set by the toggle)
-         pins one. */
-      :root {
-        color-scheme: light dark;
-        --fg: light-dark(#16181d, #eceef2);
-        --muted: light-dark(#5b616e, #9aa1ad);
-        --bg: light-dark(#ffffff, #111318);
-        --surface: light-dark(#f7f8fa, #181b21);
-        --accent: light-dark(#4f46e5, #818cf8);
-        --accent_fg: light-dark(#ffffff, #0d0f14);
-        --border: light-dark(#e5e7eb, #2a2e37);
-        --hover: light-dark(#f1f2f5, #20242c);
-      }
-      :root[data-theme="light"] { color-scheme: light; }
-      :root[data-theme="dark"] { color-scheme: dark; }
-
-      * { box-sizing: border-box; }
-      body {
-        margin: 0;
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-        color: var(--fg);
-        background: var(--bg);
-        line-height: 1.5;
-      }
-      a { color: inherit; text-decoration: none; }
-      a:hover { color: var(--accent); }
-      a:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-      .wrap { max-width: 1080px; margin: 0 auto; padding: 0 24px; }
-
-      .btn { display: inline-block; background: var(--accent); color: var(--accent_fg); padding: 10px 18px; border-radius: 8px; font-weight: 600; font-size: 14px; }
-      .btn:hover { color: var(--accent_fg); filter: brightness(1.08); }
-      .btn.secondary { background: transparent; color: var(--fg); border: 1px solid var(--border); }
-      /* The same HTML for everyone: the head script marks a signed-in visitor, and the header swaps its links. */
-      .signed_in_only { display: none; }
-      html[data-signed-in] .signed_in_only { display: inline-block; }
-      html[data-signed-in] .signed_out_only { display: none; }
-      .btn.secondary:hover { background: var(--hover); filter: none; }
-
-      .site-header { border-bottom: 1px solid var(--border); }
-      .site-header .wrap { display: flex; align-items: center; justify-content: space-between; height: 64px; }
-      .brand { font-weight: 700; font-size: 18px; }
-      .site-header nav { display: flex; align-items: center; gap: 20px; font-size: 14px; }
-
-      .theme_toggle {
-        display: inline-flex; align-items: center; justify-content: center;
-        width: 36px; height: 36px; padding: 0;
-        border: 1px solid var(--border); border-radius: 8px;
-        background: transparent; color: var(--fg); cursor: pointer;
-      }
-      .theme_toggle:hover { background: var(--hover); }
-      .theme_toggle[hidden], .theme_toggle svg[hidden] { display: none; }
-
-      .hero { padding: 96px 0 72px; text-align: center; }
-      .hero h1 { font-size: 44px; line-height: 1.15; margin: 0 0 16px; letter-spacing: -0.02em; }
-      .hero .lead { font-size: 19px; color: var(--muted); max-width: 600px; margin: 0 auto 32px; }
-      .cta-row { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
-
-      .features-section { padding: 8px 0 96px; }
-      .feature-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
-      .feature-grid > div { padding: 20px; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); }
-      .feature-grid h3 { font-size: 17px; margin: 0 0 8px; }
-      .feature-grid p { color: var(--muted); font-size: 14px; margin: 0; }
-
-      .page-header { padding: 72px 0 40px; text-align: center; }
-      .page-header h1 { font-size: 34px; margin: 0 0 12px; }
-      .page-header p { color: var(--muted); font-size: 17px; max-width: 600px; margin: 0 auto; }
-
-      .feature-list-section { padding: 0 0 64px; }
-      .feature-group + .feature-group { margin-top: 56px; }
-      .feature-group > h2 { font-size: 13px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--accent); margin: 0 0 8px; }
-      .feature-list { display: grid; gap: 32px; }
-      .feature-list .row { display: grid; grid-template-columns: 1fr 2fr; gap: 24px; padding-top: 32px; border-top: 1px solid var(--border); }
-      .feature-list .row h3 { margin: 0; font-size: 20px; }
-      .feature-list .row p { margin: 0; color: var(--muted); }
-
-      .cta-section { padding: 0 0 96px; text-align: center; }
-
-      .prose { max-width: 720px; }
-      .prose p { margin: 0 0 16px; }
-      .prose p:last-child { margin-bottom: 0; }
-
-      .site-footer { border-top: 1px solid var(--border); padding: 24px 0; color: var(--muted); font-size: 13px; }
-      .footer-row { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
-      .footer-row nav { display: flex; gap: 16px; }
-
-      @media (max-width: 680px) {
-        .wrap { padding: 0 16px; }
-        .site-header nav { gap: 12px; }
-        .site-header .nav_secondary { display: none; }
-        .hero { padding: 64px 0 48px; }
-        .hero h1 { font-size: 32px; }
-        .feature-grid { grid-template-columns: 1fr; }
-        .feature-list .row { grid-template-columns: 1fr; gap: 8px; }
-      }
-      @media (min-width: 681px) and (max-width: 960px) {
-        .feature-grid { grid-template-columns: repeat(2, 1fr); }
-      }
-    </style>
+    <link rel="stylesheet" href="<%= marketing_asset_path('marketing.css') %>">
+    <% if @page[:redirect_authenticated_to] %>
+    <meta name="inertia-redirect" content="<%= app_url(@page[:redirect_authenticated_to]) %>">
+    <% end %>
+    <script src="<%= marketing_asset_path('marketing.js') %>"></script>
   </head>
   <body>
     <header class="site-header">
