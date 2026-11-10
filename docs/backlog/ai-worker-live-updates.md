@@ -2,6 +2,8 @@
 priority: p1
 depends_on: [ai-worker-agent-access]
 components: [backend, collab-server, frontend]
+branch: backlog/ai-worker-live-updates
+status: incomplete
 ---
 # AI worker: the app updates live as the agent edits
 
@@ -22,3 +24,7 @@ When an agent changes a document, task or collection, everyone with it open sees
 - With a document open in the browser, an agent edit through MCP appears within a couple of seconds and survives the next save.
 - An agent ticking a task updates the open board and the document's task line without a reload.
 - Tests cover the broadcast and the no-overwrite case; feature docs are updated and this file is removed.
+
+## Blocked
+
+Nothing is built yet. Needs Alex: Action Cable needs a real production adapter (Redis), which is new infrastructure not yet in docker-compose.coolify.yml, and agent edits must go through the collab server, which needs an authenticated internal endpoint between Rails and collab-server. Once Redis is approved, add the adapter, the Rails to collab-server edit path and the frontend subscriptions, and test the no-overwrite case against a running collab server.
