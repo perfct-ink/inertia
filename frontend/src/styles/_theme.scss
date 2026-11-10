@@ -23,6 +23,10 @@
   // Inertia colors Volta has no token for.
   --accent-foreground: hsl(217deg 72% 20%);
   --card: var(--v-color-base);
+
+  // The boundary of a text field, select or text area: 3.7:1 on the page (WCAG 1.4.11
+  // asks for 3:1; Volta's own border is 1.3:1).
+  --field-border: hsl(217deg 20% 55%);
 }
 
 @include volta.dark-scheme {
@@ -39,6 +43,7 @@
   --v-color-trim-subtle: hsl(220deg 12% 68%);
   --accent-foreground: hsl(217deg 60% 75%);
   --card: hsl(222deg 28% 13%);
+  --field-border: hsl(222deg 18% 52%);
 }
 
 // Status colors: task statuses, health, deadlines, errors, overdue. Inertia sits

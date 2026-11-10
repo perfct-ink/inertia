@@ -14,7 +14,7 @@
     min-height: space(10);
     padding: space(2) $select-chevron-room space(2) space(3);
     border-width: 1px;
-    border-color: color(border);
+    border-color: color(field-border);
     border-radius: radius('md');
     background-color: color(card);
     background-image:
@@ -29,7 +29,7 @@
     @include transition(background-color, border-color, color);
 
     &:hover {
-      border-color: color(border-strong);
+      border-color: color(muted-foreground);
       background-color: color(muted);
     }
 

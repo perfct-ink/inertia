@@ -2,6 +2,8 @@
 priority: p2
 depends_on: []
 components: [frontend]
+branch: backlog/contrast-fixes-for-error-text-badges-and-field-borders
+status: incomplete
 ---
 # Fix text and control-boundary colors that miss WCAG contrast
 
@@ -24,3 +26,7 @@ Several shared colors in `components/ui` are under the WCAG 2.1 AA minimums (cal
 - The field border decision is recorded in `docs/ui-components.md`.
 - Checked in the component gallery (`/styleguide`) in both panels and in a browser.
 - Feature doc updated and this file removed.
+
+## Unverified
+
+Done: the field border (`--field-border`, a conservative firmer border pending Alex's call, recorded in `docs/ui-components.md`), with a test. FormError and HealthBadge already use AA-checked status tokens, and the secondary button hover is `foreground` on `accent`, so those two needed no change. Not done: making a bare checkbox or radio's label part of its click target (find each bare `Input type="checkbox"` use and wrap it in a label), and the gallery and browser check in both panels. Delete this file when those are done and Alex accepts the border.

@@ -118,11 +118,11 @@ $breakpoints: (
 // Volta text field states, shared by inputs, selects and text areas: a quiet
 // border that firms up on hover and takes the accent color on focus.
 @mixin field-states {
-  border-color: color(border);
+  border-color: color(field-border);
   @include transition(background-color, border-color, color);
 
   &:hover:not(:disabled) {
-    border-color: color(border-strong);
+    border-color: color(muted-foreground);
     background-color: color(muted);
   }
 

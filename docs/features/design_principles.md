@@ -46,6 +46,8 @@ Shared mixins added to `_tokens.scss`: `page-header`, `page-padding`, `reveal-on
 - `components/ui/Controls.test.tsx` (existing): checkboxes keep native selection behaviour.
 - Checked in a browser (Chromium via Playwright against a mocked API) at 375, 768 and 1280px on every route, including each folder view: no page-level horizontal overflow, no control text selectable, no transition other than 150ms, no unstyled checkbox or select. Light and dark mode checked for checkboxes, selects and date fields.
 
+**Contrast.** `FormError` and `HealthBadge` text already use the AA-checked status text tokens (`status_colors.md`). Field borders use `--field-border` (see `docs/ui-components.md`), checked at 3:1 against the page and cards in both themes by `styles/fieldBorder.test.ts`. The secondary button's hover text is `foreground` on `accent` (11.5:1), so the 4.4:1 pair in the task does not occur there.
+
 ## Known limits
 
 - The date picker's keyboard model is partial: ArrowUp/ArrowDown move a week, PageUp/PageDown a month (Shift: a year) and Enter picks, but ArrowLeft/ArrowRight keep moving the cursor in the text, so a keyboard user types the date or steps by weeks. The week starts on Sunday.
@@ -66,3 +68,4 @@ Shared mixins added to `_tokens.scss`: `page-header`, `page-padding`, `reveal-on
 
 - Merged to main 2026-11-02 after running, merged with main: `rails db:migrate` (schema diff clean), `rails test`, `npm run lint`, `tsc -b`, Jest, and the collab-server tests, all passing. Not checked in a browser.
 - Implemented 2026-11-02: `Select` is a styled dropdown instead of the browser's list (and `@radix-ui/react-popover` upgraded to 1.3.1). Lint, `tsc -b` and Jest pass; checked in Chromium against a mocked API. Not committed or deployed.
+- Field border contrast, 2026-11-10 (on branch `backlog/contrast-fixes-for-error-text-badges-and-field-borders`). Jest, `tsc` and eslint pass; not checked in a browser or the gallery, not deployed. Not done: making checkbox and radio labels part of the click target.
