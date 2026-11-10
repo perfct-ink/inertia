@@ -74,8 +74,10 @@ jest.mock('@/components/task-fields/ManageTaskFieldsDialog', () => ({ ManageTask
 jest.mock('./TaskTimer', () => ({ TaskTimer: () => null }))
 jest.mock('@/components/TaskHistoryDialog', () => function HistoryMock() { return null })
 jest.mock('@/components/tasks/TaskFiles', () => ({ TaskFiles: ({ task }: { task: { title: string } }) => <div role="dialog" aria-label={`Files dialog for ${task.title}`} /> }))
-jest.mock('@/api/workspaceMembers', () => ({ useWorkspaceMembers: () => ({ data: [] }) }))
-jest.mock('@/api/sprints', () => ({ useSprints: () => ({ data: [] }) }))
+let mockMembers: unknown[] = []
+let mockSprints: unknown[] = []
+jest.mock('@/api/workspaceMembers', () => ({ useWorkspaceMembers: () => ({ data: mockMembers }) }))
+jest.mock('@/api/sprints', () => ({ useSprints: () => ({ data: mockSprints }) }))
 jest.mock('@/api/milestones', () => ({ useMilestones: () => ({ data: [] }) }))
 
 let mockSettings: TaskStatusSetting[] = []
@@ -95,6 +97,8 @@ beforeEach(() => {
   mockRole = 'member'
   mockSettings = []
   mockEpics = []
+  mockMembers = []
+  mockSprints = []
   mockTasksQuery = { data: mockTasks, isLoading: false }
   mockTasksRenders = 0
   mockLastFilters = undefined
@@ -190,19 +194,19 @@ describe('organize by epic', () => {
 
   test('is off by default: one board, with the toggle on the workboard only', () => {
     renderScreen('/tasks?view=kanban')
-    expect(screen.getByRole('checkbox', { name: 'Organize by epic' })).not.toBeChecked()
+    expect(screen.getByRole('combobox', { name: 'Group by' })).toHaveValue('none')
     expect(screen.queryByRole('region')).not.toBeInTheDocument()
     expect(screen.getAllByText('To Do')).toHaveLength(1)
   })
 
   test('the backlog tab has no toggle', () => {
     renderScreen('/tasks?view=backlog')
-    expect(screen.queryByRole('checkbox', { name: 'Organize by epic' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('combobox', { name: 'Group by' })).not.toBeInTheDocument()
   })
 
   test('turning it on makes a lane per epic with tasks plus No epic, each with every column', () => {
     renderScreen('/tasks?view=kanban')
-    fireEvent.click(screen.getByRole('checkbox', { name: 'Organize by epic' }))
+    fireEvent.change(screen.getByRole('combobox', { name: 'Group by' }), { target: { value: 'epic' } })
     const lanes = screen.getAllByRole('region')
     expect(lanes.map((l) => l.getAttribute('aria-label'))).toEqual(['Onboarding', 'Billing', 'No epic'])
     expect(within(lanes[0]).getByText('Write copy')).toBeInTheDocument()
@@ -217,9 +221,9 @@ describe('organize by epic', () => {
 
   test('turning it off returns to the single board', () => {
     renderScreen('/tasks?view=kanban&lanes=epic')
-    expect(screen.getByRole('checkbox', { name: 'Organize by epic' })).toBeChecked()
+    expect(screen.getByRole('combobox', { name: 'Group by' })).toHaveValue('epic')
     expect(screen.getAllByRole('region')).toHaveLength(3)
-    fireEvent.click(screen.getByRole('checkbox', { name: 'Organize by epic' }))
+    fireEvent.change(screen.getByRole('combobox', { name: 'Group by' }), { target: { value: 'none' } })
     expect(screen.queryByRole('region')).not.toBeInTheDocument()
     expect(screen.getByText('Billing')).toBeInTheDocument()
   })
@@ -274,6 +278,91 @@ describe('organize by epic', () => {
     renderScreen('/tasks?view=kanban')
     dropCardOn('done')
     expect(mockMutation.mutate).toHaveBeenCalledWith({ id: 1, status: 'done' })
+  })
+})
+
+describe('group by any field', () => {
+  const tasks: MockTask[] = [
+    { id: 1, title: 'Write copy', status: 'todo', epic_id: null, assignee_id: 7, sprint_id: 4, priority: 'high', kind: 'bug', document_id: 1, folder_id: 2 },
+    { id: 2, title: 'Ship it', status: 'done', epic_id: null, assignee_id: null, sprint_id: null, priority: 'none', document_id: 1, folder_id: 2 },
+  ] as unknown as MockTask[]
+  const laneNames = () => screen.getAllByRole('region').map((l) => l.getAttribute('aria-label'))
+  const group = (field: string) => fireEvent.change(screen.getByRole('combobox', { name: 'Group by' }), { target: { value: field } })
+
+  beforeEach(() => {
+    mockTasksQuery = { data: tasks, isLoading: false }
+    mockMembers = [{ user_id: 7, user: { name: 'Sam' } }, { user_id: 8, user: { name: 'Lee' } }]
+    mockSprints = [{ id: 4, title: 'Sprint 4' }, { id: 5, title: 'Sprint 5' }]
+  })
+
+  test('offers None, Epic, Assignee, Sprint, Milestone, Priority and Type', () => {
+    renderScreen('/tasks?view=kanban')
+    const options = within(screen.getByRole('combobox', { name: 'Group by' })).getAllByRole('option').map((o) => o.textContent)
+    expect(options).toEqual(['None', 'Epic', 'Assignee', 'Sprint', 'Milestone', 'Priority', 'Type'])
+  })
+
+  test('by assignee: a lane for each person with tasks, then Unassigned', () => {
+    renderScreen('/tasks?view=kanban')
+    group('assignee')
+    expect(laneNames()).toEqual(['Sam', 'Unassigned'])
+    expect(within(screen.getByRole('region', { name: 'Unassigned' })).getByText('Ship it')).toBeInTheDocument()
+  })
+
+  test('by sprint: only sprints with tasks, then No sprint', () => {
+    renderScreen('/tasks?view=kanban')
+    group('sprint')
+    expect(laneNames()).toEqual(['Sprint 4', 'No sprint'])
+  })
+
+  test('by priority and by type every option has a lane, so a card can be dragged to an empty one', () => {
+    renderScreen('/tasks?view=kanban')
+    group('priority')
+    expect(laneNames()).toEqual(['Low', 'Medium', 'High', 'Urgent', 'No priority'])
+    group('kind')
+    expect(laneNames()).toEqual(['Task', 'Bug', 'Story'])
+  })
+
+  test('the address can open it grouped', () => {
+    renderScreen('/tasks?view=kanban&lanes=sprint')
+    expect(screen.getByRole('combobox', { name: 'Group by' })).toHaveValue('sprint')
+    expect(laneNames()).toEqual(['Sprint 4', 'No sprint'])
+  })
+
+  test('an unknown lanes value in the address is the plain board', () => {
+    renderScreen('/tasks?view=kanban&lanes=colour')
+    expect(screen.getByRole('combobox', { name: 'Group by' })).toHaveValue('none')
+  })
+
+  function drop(columnId: string) {
+    const drag = { active: { id: 1 }, over: { id: columnId } }
+    act(() => { mockDnd.handlers!.onDragStart(drag) })
+    act(() => { mockDnd.handlers!.onDragOver(drag) })
+    act(() => { mockDnd.handlers!.onDragEnd(drag) })
+  }
+
+  test('dragging between lanes saves the field the lane stands for', () => {
+    renderScreen('/tasks?view=kanban')
+    group('assignee')
+    drop('assignee-none|todo')
+    expect(mockMutation.mutate).toHaveBeenCalledWith({ id: 1, assignee_id: null })
+    mockMutation.mutate.mockClear()
+    group('sprint')
+    drop('sprint-none|todo')
+    expect(mockMutation.mutate).toHaveBeenCalledWith({ id: 1, sprint_id: null })
+  })
+
+  test('dragging to a priority or type lane saves that value, and to No priority clears it', () => {
+    renderScreen('/tasks?view=kanban')
+    group('priority')
+    drop('priority-urgent|todo')
+    expect(mockMutation.mutate).toHaveBeenCalledWith({ id: 1, priority: 'urgent' })
+    mockMutation.mutate.mockClear()
+    drop('priority-none|todo')
+    expect(mockMutation.mutate).toHaveBeenCalledWith({ id: 1, priority: 'none' })
+    mockMutation.mutate.mockClear()
+    group('kind')
+    drop('kind-story|todo')
+    expect(mockMutation.mutate).toHaveBeenCalledWith({ id: 1, kind: 'story' })
   })
 })
 

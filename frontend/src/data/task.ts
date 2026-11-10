@@ -138,6 +138,85 @@ export function epicLanes(tasks: Task[], epics: { id: number; title: string }[])
   return lanes
 }
 
+// ── Workboard swimlanes by any field ────────────────────────────────────────
+
+export type LaneField = 'epic' | 'assignee' | 'sprint' | 'milestone' | 'priority' | 'kind'
+
+// The fields a board can be grouped by, with the lane for tasks that have none
+// (null: every task has a type, so there is no such lane).
+export const LANE_FIELDS: { value: LaneField; label: string; none: string | null }[] = [
+  { value: 'epic', label: 'Epic', none: 'No epic' },
+  { value: 'assignee', label: 'Assignee', none: 'Unassigned' },
+  { value: 'sprint', label: 'Sprint', none: 'No sprint' },
+  { value: 'milestone', label: 'Milestone', none: 'No milestone' },
+  { value: 'priority', label: 'Priority', none: 'No priority' },
+  { value: 'kind', label: 'Type', none: null },
+]
+
+export type LaneValue = string | number | null
+
+export function isLaneField(value: unknown): value is LaneField {
+  return LANE_FIELDS.some((f) => f.value === value)
+}
+
+// What a task has for the field: an id, a priority or type, or null for none.
+export function laneValueOf(task: Task, field: LaneField): LaneValue {
+  switch (field) {
+    case 'epic': return task.epic_id ?? null
+    case 'assignee': return task.assignee_id ?? null
+    case 'sprint': return task.sprint_id ?? null
+    case 'milestone': return task.milestone_id ?? null
+    case 'priority': return task.priority && task.priority !== 'none' ? task.priority : null
+    case 'kind': return kindOf(task)
+  }
+}
+
+// The lane key of a value: "sprint-4", "priority-high"; "no-epic" or "sprint-none"
+// for none. A value not among the known ones (filtered out or deleted) falls in the none lane.
+export function groupLaneKey(field: LaneField, value: LaneValue, known: ReadonlySet<LaneValue>): string {
+  if (value === null || !known.has(value)) return field === 'epic' ? NO_EPIC_LANE : `${field}-none`
+  return `${field}-${value}`
+}
+
+// The value a lane key stands for; null for a none lane.
+export function laneKeyValue(field: LaneField, key: string): LaneValue {
+  if (key === NO_EPIC_LANE || key === `${field}-none`) return null
+  const raw = key.startsWith(`${field}-`) ? key.slice(field.length + 1) : ''
+  if (field === 'priority' || field === 'kind') return raw || null
+  return /^\d+$/.test(raw) ? Number(raw) : null
+}
+
+// The task fields a drop into the lane saves.
+export function lanePatch(field: LaneField, key: string): Partial<Task> {
+  const value = laneKeyValue(field, key)
+  switch (field) {
+    case 'epic': return { epic_id: value as number | null }
+    case 'assignee': return { assignee_id: value as number | null }
+    case 'sprint': return { sprint_id: value as number | null }
+    case 'milestone': return { milestone_id: value as number | null }
+    case 'priority': return { priority: (value ?? 'none') as TaskPriority }
+    case 'kind': return { kind: (value ?? 'task') as TaskKind }
+  }
+}
+
+export interface LaneOption { value: string | number; title: string }
+export interface BoardLane { key: string; title: string; value: LaneValue; tasks: Task[] }
+
+// The lanes of a board grouped by a field: one per option that has tasks, in the
+// options' order (priority and type always show every option, so a card can be
+// dragged to an empty one), then the none lane when the field has one. The none
+// lane is always there, even empty: it is where a card is dragged to clear the field.
+export function groupLanes(field: LaneField, tasks: Task[], options: LaneOption[]): BoardLane[] {
+  const known = new Set<LaneValue>(options.map((o) => o.value))
+  const fixedSet = field === 'priority' || field === 'kind'
+  const lanes: BoardLane[] = options
+    .map((o) => ({ key: groupLaneKey(field, o.value, known), title: o.title, value: o.value as LaneValue, tasks: tasks.filter((t) => laneValueOf(t, field) === o.value) }))
+    .filter((lane) => fixedSet || lane.tasks.length > 0)
+  const none = LANE_FIELDS.find((f) => f.value === field)?.none
+  if (none) lanes.push({ key: groupLaneKey(field, null, known), title: none, value: null, tasks: tasks.filter((t) => !known.has(laneValueOf(t, field))) })
+  return lanes
+}
+
 // A board column's drop target id: the status on the plain board, the lane
 // plus the status ("epic-3|todo") in a swimlane.
 export function boardCellId(status: TaskStatus, laneKey?: string | null): string {

@@ -2,6 +2,8 @@
 priority: p2
 depends_on: [kanban-organize-by-epic]
 components: [frontend]
+branch: backlog/kanban-group-by-field-and-wip-limits
+status: incomplete
 ---
 # Kanban: group by any field and WIP limits
 
@@ -21,3 +23,7 @@ Only "Organize by epic" exists, as a checkbox. Lane building lives in `epicLanes
 - A Group by select offers None, Epic, Assignee, Sprint, Milestone, Priority and Type; each lane is one value plus a lane for tasks with none; dragging between lanes saves that field.
 - A WIP limit can be set per column by a member of the Space and shows on the column header; going over it is shown, not blocked.
 - Failed API calls show an error. Tests and the feature doc cover it; this file is removed.
+
+## Progress
+
+Done on this branch: the **Group by** select (None, Epic, Assignee, Sprint, Milestone, Priority, Type) with lanes, drag-to-save and tests; see `docs/features/workboard_swimlanes.md`. **Left: WIP limits** (a limit per status column, set per board like the status names, shown on the column header, over-limit shown but never blocking; needs a backend column on the board status settings and a member-writable endpoint). Also left: a task added in a non-epic lane does not start with the lane's value, and grouping by a custom task field. Not checked in a browser. Keep this file until WIP limits are done.

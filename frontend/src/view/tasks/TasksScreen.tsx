@@ -26,7 +26,7 @@ import { CSS } from '@dnd-kit/utilities'
 import WorkspaceLayout from '@/components/WorkspaceLayout'
 import SprintHeader from '@/components/SprintHeader'
 import SavedViews from '@/components/SavedViews'
-import { TASK_PRIORITIES, estimateLabel, pointsLabel, priorityLabel, TASK_KINDS, KIND_LABEL, kindOf, parseTaskBoardConfig, type TaskBoardConfig, epicLanes, epicLaneKey, laneEpicId, boardCellId, parseBoardCell, type EpicLane } from '@/data/task'
+import { TASK_PRIORITIES, estimateLabel, pointsLabel, priorityLabel, TASK_KINDS, KIND_LABEL, kindOf, parseTaskBoardConfig, type TaskBoardConfig, groupLanes, groupLaneKey, laneValueOf, lanePatch, isLaneField, LANE_FIELDS, boardCellId, parseBoardCell, type BoardLane, type LaneField, type LaneOption, type LaneValue } from '@/data/task'
 import { RECURRENCE_OPTIONS, recurrenceLabel } from '@/data/recurrence'
 import TaskHistoryDialog from '@/components/TaskHistoryDialog'
 import { TaskDetail } from '@/components/tasks/TaskDetail'
@@ -483,14 +483,30 @@ export default function TasksScreen() {
   const deleteTask = useDeleteTask()
 
   const [addingTo, setAddingTo] = useState<string | null>(null)
-  // Workboard layout: a swimlane per epic (plus No epic) instead of one board.
-  // Off by default; /tasks?view=kanban&lanes=epic opens it on, and the checkbox
-  // changes it for the visit.
-  const [byEpic, setByEpic] = useState(() => searchParams.get('lanes') === 'epic')
-  const knownEpicIds = useMemo(() => new Set(epics.map((e) => e.id)), [epics])
+  // Workboard layout: a swimlane per value of a field (epic, assignee, sprint,
+  // milestone, priority or type, plus a lane for none) instead of one board. Off by
+  // default; /tasks?view=kanban&lanes=epic (or assignee, sprint, ...) opens it on, and
+  // the Group by select changes it for the visit.
+  const [groupBy, setGroupBy] = useState<LaneField | 'none'>(() => {
+    const param = searchParams.get('lanes')
+    return isLaneField(param) ? param : 'none'
+  })
+  // The values a field's lanes can stand for, in lane order.
+  const laneOptions = useMemo((): LaneOption[] => {
+    switch (groupBy) {
+      case 'epic': return epics.map((e) => ({ value: e.id, title: e.title }))
+      case 'assignee': return members.map((m) => ({ value: m.user_id, title: m.user.name }))
+      case 'sprint': return sprints.map((s) => ({ value: s.id, title: s.title }))
+      case 'milestone': return milestones.map((m) => ({ value: m.id, title: m.title }))
+      case 'priority': return TASK_PRIORITIES.filter((p) => p.value !== 'none').map((p) => ({ value: p.value, title: p.label }))
+      case 'kind': return TASK_KINDS.map((k) => ({ value: k.key, title: k.label }))
+      default: return []
+    }
+  }, [groupBy, epics, members, sprints, milestones])
+  const knownLaneValues = useMemo(() => new Set<LaneValue>(laneOptions.map((o) => o.value)), [laneOptions])
   // The lane a card sits in (null on the plain board) and the column it is in:
   // the status, or lane plus status in a swimlane.
-  const laneOf = (task: Task) => (byEpic ? epicLaneKey(task.epic_id, knownEpicIds) : null)
+  const laneOf = (task: Task) => (groupBy === 'none' ? null : groupLaneKey(groupBy, laneValueOf(task, groupBy), knownLaneValues))
   const cellOf = (task: Task) => boardCellId(task.status, laneOf(task))
   const { data: taskFields = [] } = useTaskFields()
   const [managingFields, setManagingFields] = useState(false)
@@ -552,9 +568,9 @@ export default function TasksScreen() {
 
     if (!target || (target.status === dragTask.status && target.laneKey === laneOf(dragTask))) return
 
-    // Dropped into another swimlane, the card takes that lane's epic.
+    // Dropped into another swimlane, the card takes that lane's value.
     setLocalTasks((prev) =>
-      prev.map((t) => (t.id === dragId ? { ...t, status: target.status, ...(target.laneKey ? { epic_id: laneEpicId(target.laneKey) } : {}) } : t))
+      prev.map((t) => (t.id === dragId ? { ...t, status: target.status, ...(target.laneKey && groupBy !== 'none' ? lanePatch(groupBy, target.laneKey) : {}) } : t))
     )
   }
 
@@ -582,13 +598,13 @@ export default function TasksScreen() {
       }
     }
 
-    // Persist what a drop changed: the status, and in a swimlane the epic.
+    // Persist what a drop changed: the status, and in a swimlane the lane's field.
     const original = tasks.find((t) => t.id === dragId)
     const updated = localRef.current.find((t) => t.id === dragId)
     if (original && updated) {
       const changes: Partial<Task> = {}
       if (original.status !== updated.status) changes.status = updated.status
-      if (byEpic && (original.epic_id ?? null) !== (updated.epic_id ?? null)) changes.epic_id = updated.epic_id ?? null
+      if (groupBy !== 'none' && laneValueOf(original, groupBy) !== laneValueOf(updated, groupBy)) Object.assign(changes, lanePatch(groupBy, laneOf(updated)!))
       if (Object.keys(changes).length > 0) updateTask.mutate({ id: dragId, ...changes })
     }
 
@@ -607,8 +623,8 @@ export default function TasksScreen() {
   }
 
   // One status column of the board, or of a swimlane. A lane's cards leave out
-  // the epic line (the lane is the epic) and a task added there starts in it.
-  function renderColumn(status: TaskStatus, lane?: EpicLane) {
+  // the epic line when the lanes are epics, and a task added in an epic lane starts in it.
+  function renderColumn(status: TaskStatus, lane?: BoardLane) {
     const id = boardCellId(status, lane?.key)
     const colTasks = localTasks.filter((t) => cellOf(t) === id)
     return (
@@ -621,7 +637,7 @@ export default function TasksScreen() {
             nextLabel={nextStatusLabel(statuses, task.status)}
             onNavigate={() => navigate(paths.document(task.document_id))}
             onEdit={() => setEditing(task)}
-            epicTitle={!lane && task.epic_id ? epicById.get(task.epic_id)?.title : undefined}
+            epicTitle={groupBy !== 'epic' && task.epic_id ? epicById.get(task.epic_id)?.title : undefined}
             fields={taskFields}
             onEditFields={() => setFieldsTaskId(task.id)}
             progress={progressByTask.get(task.id)}
@@ -639,7 +655,7 @@ export default function TasksScreen() {
               sprints={sprints}
               milestones={milestones}
               members={members}
-              defaultEpicId={lane?.epicId}
+              defaultEpicId={groupBy === 'epic' ? (lane?.value as number | null | undefined) : undefined}
             />
           </div>
         ) : (
@@ -670,9 +686,12 @@ export default function TasksScreen() {
           </Tabs>
           <div className="tasks-tools">
             {view === 'kanban' && (
-              <label className="tasks-lanes_toggle" title="One swimlane per epic, plus a No epic lane">
-                <Input type="checkbox" checked={byEpic} onChange={(e) => setByEpic(e.target.checked)} />
-                Organize by epic
+              <label className="tasks-lanes_toggle" title="One swimlane per value of the field you pick, plus a lane for tasks with none">
+                Group by
+                <Select aria-label="Group by" value={groupBy} onChange={(e) => setGroupBy(e.target.value as LaneField | 'none')}>
+                  <option value="none">None</option>
+                  {LANE_FIELDS.map((f) => <option key={f.value} value={f.value}>{f.label}</option>)}
+                </Select>
               </label>
             )}
             <div className="tasks-search">
@@ -816,9 +835,9 @@ export default function TasksScreen() {
             onDragEnd={onDragEnd}
             onDragCancel={onDragCancel}
           >
-            {byEpic ? (
+            {groupBy !== 'none' ? (
               <div className="tasks-board tasks-board--lanes">
-                {epicLanes(tasks, epics).map((lane) => (
+                {groupLanes(groupBy, tasks, laneOptions).map((lane) => (
                   <section key={lane.key} className="tasks-lane" aria-label={lane.title}>
                     <h2 className="tasks-lane_title">
                       <span className="tasks-lane_name">{lane.title}</span>

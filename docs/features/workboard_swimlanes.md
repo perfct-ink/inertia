@@ -1,7 +1,10 @@
-# Workboard: organize by epic
+# Workboard: swimlanes by any field
+
+## Group by
+The Workboard's **Group by** select (toolbar, beside the search box; None by default) replaced the **Organize by epic** checkbox. It offers None, Epic, Assignee, Sprint, Milestone, Priority and Type; each lane is one value, plus a lane for tasks with none (No epic, Unassigned, No sprint, No milestone, No priority; Type has none because every task has a type). Epic, Assignee, Sprint and Milestone show a lane only for values that have tasks; Priority and Type always show every value, so a card can be dragged to an empty one. Dragging a card to another lane saves that field (`epic_id`, `assignee_id`, `sprint_id`, `milestone_id`, `priority`, `kind`) with the status in one save; a drop in a none lane clears it (priority becomes `none`). `/tasks?view=kanban&lanes=<field>` (`epic`, `assignee`, `sprint`, `milestone`, `priority`, `kind`) opens it grouped; anything else is the plain board. A task added in a lane starts in that lane's epic only; for the other fields it starts with no value (a known limit). Assignee lanes use the task's `assignee_id`, the first assignee; a task with several assignees sits in one lane. The code is `groupLanes`, `laneValueOf`, `lanePatch` and friends in `data/task.ts`. **WIP limits are not built** (still in `docs/backlog/kanban-group-by-field-and-wip-limits.md`). The text below describes the epic lanes, which work the same for the other fields.
 
 ## What it does
-On the Workboard tab of `/tasks`, an **Organize by epic** checkbox (in the toolbar beside the search box, off by default) switches the board into swimlanes:
+On the Workboard tab of `/tasks`, **Group by Epic** switches the board into swimlanes:
 
 - One lane per epic that has tasks (in the epics' order), then a **No epic** lane. The No epic lane is always there, even empty: it is where a card is dropped to take it out of its epic, and it lets a Space with no tasks yet add one. An epic with no tasks gets no lane.
 - Each lane has the same four board columns (To Do, In Progress, In Review, Done, named and colored as the board's status settings say; see [configurable_statuses.md](configurable_statuses.md)) with only that epic's tasks, and the lane title carries the task count. The Backlog list stays on the Backlog tab, as on the plain board.
@@ -34,3 +37,4 @@ Same as the Workboard: any member of the Space sees it; changing a card needs th
 - Implemented 2026-11-08 on branch `backlog/kanban-organize-by-epic`, ported by hand onto current main from an older branch of 2026-10-19 (which had a no-drag-and-drop lane mode and a `workboard_swimlanes.md`; this doc replaces it). Not merged or deployed.
 - Decision for Alex: lanes are on a per-visit checkbox rather than a saved per-user or per-Space setting, since the app has no user preference store for board layouts; the URL parameter makes it linkable.
 - Not verified: lint, type-check, the real Jest run and a browser look at 375px and desktop in light and dark. The static checks and the board's Jest suite (with stand-ins for the packages that are not installed) ran.
+- 2026-11-10: Group by any field (assignee, sprint, milestone, priority, type) replaced the checkbox, on branch `backlog/kanban-group-by-field-and-wip-limits`. Jest, `tsc` and eslint pass; not checked in a browser (including dragging between lanes with a real pointer); not deployed. WIP limits not built.

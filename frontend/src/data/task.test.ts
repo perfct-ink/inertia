@@ -1,5 +1,5 @@
 import type { Task, Document } from '@/types'
-import { autoFields, buildTaskTree, TASK_LIST_DEPTHS, taskFolderId, dueBucket, myWork, taskCards, estimateLabel, pointsLabel, priorityLabel, filterByKind, kindOf, elapsedClock, formatMinutes, progressById, subtaskProgress, statusChangeLabel, taskChanges, taskDraft, taskDraftError, parseTaskBoardConfig, epicLanes, epicLaneKey, laneEpicId, boardCellId, parseBoardCell, taskFileSplit, taskUploadFolderId } from './task'
+import { autoFields, buildTaskTree, TASK_LIST_DEPTHS, taskFolderId, dueBucket, myWork, taskCards, estimateLabel, pointsLabel, priorityLabel, filterByKind, kindOf, elapsedClock, formatMinutes, progressById, subtaskProgress, statusChangeLabel, taskChanges, taskDraft, taskDraftError, parseTaskBoardConfig, epicLanes, epicLaneKey, laneEpicId, boardCellId, parseBoardCell, taskFileSplit, taskUploadFolderId, LANE_FIELDS, laneValueOf, groupLaneKey, laneKeyValue, lanePatch, groupLanes, TASK_PRIORITIES, TASK_KINDS, type LaneValue } from './task'
 
 const task =(id: number, parent_id: number | null = null) => ({ id, title: `T${id}`, parent_id }) as unknown as Task
 
@@ -219,5 +219,54 @@ describe('workboard swimlanes', () => {
     expect(parseBoardCell('no-epic|todo')).toEqual({ status: 'todo', laneKey: 'no-epic' })
     expect(parseBoardCell(12)).toBeNull()
     expect(parseBoardCell('epic-3|bogus')).toBeNull()
+  })
+})
+
+describe('swimlanes by any field', () => {
+  const task = (over: Partial<Task>): Task => ({ id: 1, title: 'T', status: 'todo', ...over }) as Task
+
+  test('the value a task has for each field, null for none', () => {
+    const t = task({ epic_id: 3, assignee_id: 7, sprint_id: 4, milestone_id: 2, priority: 'high', kind: 'bug' })
+    expect(LANE_FIELDS.map((f) => laneValueOf(t, f.value))).toEqual([3, 7, 4, 2, 'high', 'bug'])
+    const bare = task({ priority: 'none' })
+    expect(LANE_FIELDS.map((f) => laneValueOf(bare, f.value))).toEqual([null, null, null, null, null, 'task'])
+  })
+
+  test('lane keys and their values go both ways', () => {
+    const known = new Set<LaneValue>([4, 'high'])
+    expect(groupLaneKey('sprint', 4, known)).toBe('sprint-4')
+    expect(groupLaneKey('sprint', 9, known)).toBe('sprint-none')
+    expect(groupLaneKey('sprint', null, known)).toBe('sprint-none')
+    expect(groupLaneKey('epic', null, known)).toBe('no-epic')
+    expect(laneKeyValue('sprint', 'sprint-4')).toBe(4)
+    expect(laneKeyValue('sprint', 'sprint-none')).toBeNull()
+    expect(laneKeyValue('priority', 'priority-high')).toBe('high')
+    expect(laneKeyValue('epic', 'no-epic')).toBeNull()
+    expect(laneKeyValue('epic', 'sprint-4')).toBeNull()
+  })
+
+  test('a drop saves the field the lane stands for', () => {
+    expect(lanePatch('assignee', 'assignee-7')).toEqual({ assignee_id: 7 })
+    expect(lanePatch('assignee', 'assignee-none')).toEqual({ assignee_id: null })
+    expect(lanePatch('milestone', 'milestone-2')).toEqual({ milestone_id: 2 })
+    expect(lanePatch('priority', 'priority-urgent')).toEqual({ priority: 'urgent' })
+    expect(lanePatch('priority', 'priority-none')).toEqual({ priority: 'none' })
+    expect(lanePatch('kind', 'kind-bug')).toEqual({ kind: 'bug' })
+    expect(lanePatch('epic', 'no-epic')).toEqual({ epic_id: null })
+  })
+
+  test('lanes: options with tasks in order, then the none lane, which is always there', () => {
+    const tasks = [task({ id: 1, sprint_id: 5 }), task({ id: 2, sprint_id: 4 }), task({ id: 3, sprint_id: null }), task({ id: 4, sprint_id: 99 })]
+    const lanes = groupLanes('sprint', tasks, [{ value: 4, title: 'Sprint 4' }, { value: 5, title: 'Sprint 5' }, { value: 6, title: 'Empty' }])
+    expect(lanes.map((l) => [l.key, l.title, l.tasks.map((t) => t.id)])).toEqual([
+      ['sprint-4', 'Sprint 4', [2]], ['sprint-5', 'Sprint 5', [1]], ['sprint-none', 'No sprint', [3, 4]],
+    ])
+    expect(groupLanes('sprint', [], []).map((l) => l.title)).toEqual(['No sprint'])
+  })
+
+  test('priority and type show every option, and type has no none lane', () => {
+    const priorities = TASK_PRIORITIES.filter((p) => p.value !== 'none').map((p) => ({ value: p.value, title: p.label }))
+    expect(groupLanes('priority', [], priorities).map((l) => l.title)).toEqual(['Low', 'Medium', 'High', 'Urgent', 'No priority'])
+    expect(groupLanes('kind', [task({ kind: 'bug' })], TASK_KINDS.map((k) => ({ value: k.key, title: k.label }))).map((l) => [l.title, l.tasks.length])).toEqual([['Task', 0], ['Bug', 1], ['Story', 0]])
   })
 })
