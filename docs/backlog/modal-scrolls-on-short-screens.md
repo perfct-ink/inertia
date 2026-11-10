@@ -2,6 +2,8 @@
 priority: p2
 depends_on: []
 components: [frontend]
+branch: backlog/modal-scrolls-on-short-screens
+status: incomplete
 ---
 # A modal taller than the screen should scroll
 
@@ -20,3 +22,7 @@ components: [frontend]
 - Every `Modal` scrolls when its content is taller than the screen, and its buttons can be reached.
 - The date picker still opens fully inside a modal.
 - Feature doc updated (design_principles.md) and this file removed.
+
+## Unverified
+
+Built: the base `.ui-modal-content` has `max-height` and `overflow-y: auto` (the `--wide` copy was removed); a Jest test reads the stylesheet. Not done: the browser check at 375x500 and of the date field in the task, epic and event modals (the calendar is clipped by the dialog near the bottom and scrolls inside it, as `--wide` already did). The styleguide has no Dialogs section yet, so there is no tall example to open; use any long form modal. Delete this file when the check passes.

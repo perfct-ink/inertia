@@ -1,3 +1,5 @@
+import { readFileSync } from 'fs'
+import { join } from 'path'
 import '@testing-library/jest-dom'
 import { fireEvent, render, screen, within } from '@testing-library/react'
 import { ConfirmDialog, Modal, PromptDialog } from './Modal'
@@ -55,4 +57,11 @@ test('cancelling a prompt submits nothing and reopening shows the initial value 
   rerender(<PromptDialog open={false} title="Rename" label="Name" initialValue="Old" onSubmit={onSubmit} onClose={jest.fn()} />)
   rerender(<PromptDialog open title="Rename" label="Name" initialValue="Old" onSubmit={onSubmit} onClose={jest.fn()} />)
   expect(screen.getByRole('textbox', { name: 'Name' })).toHaveValue('Old')
+})
+
+test('every modal, not just a wide one, scrolls inside the screen when its content is taller', () => {
+  const css = readFileSync(join(__dirname, 'Modal.scss'), 'utf8')
+  const base = css.slice(css.indexOf('&-content {'), css.indexOf('&-content--wide'))
+  expect(base).toMatch(/max-height:\s*calc\(100dvh - /)
+  expect(base).toMatch(/overflow-y:\s*auto/)
 })
