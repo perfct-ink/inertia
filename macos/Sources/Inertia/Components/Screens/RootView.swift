@@ -6,7 +6,11 @@ struct RootView: View {
     @State private var creatingAccount = true
 
     var body: some View {
-        if session.token == nil {
+        if session.storage == nil {
+            StorageChoiceView()
+        } else if session.storage == .local {
+            LocalStorageView()
+        } else if session.token == nil {
             if creatingAccount { SignupView(showLogin: { creatingAccount = false }) }
             else { LoginView(showSignup: { creatingAccount = true }) }
         } else {

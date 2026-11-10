@@ -86,3 +86,4 @@ One file per implemented feature, written from the code (see `docs/rules/feature
 | Component gallery: every shared control in its states, in a light and a dark panel, at `/styleguide` in development (Volta parity audit in [../volta_parity.md](../volta_parity.md)) | [component_gallery.md](component_gallery.md) |
 | Lookup (mirror) fields: a Collection shows a field of the record a relation links to | [connect_and_mirror_fields.md](connect_and_mirror_fields.md) |
 | Project features: each project chooses which pages it shows | [project_features.md](project_features.md) |
+| Mac app first launch: choose Cloud Storage or Local Storage (iCloud Drive folder) | [storage_choice.md](storage_choice.md) |

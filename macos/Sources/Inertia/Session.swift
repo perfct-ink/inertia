@@ -7,10 +7,43 @@ import AuthenticationServices
     let api = URL(string: ProcessInfo.processInfo.environment["INERTIA_API_URL"] ?? "https://inertia.it.com")!
     let web = URL(string: ProcessInfo.processInfo.environment["INERTIA_WEB_URL"] ?? "https://inertia.it.com")!
     @Published var token: String?
+    /// Cloud (the API) or Local (an iCloud Drive folder), asked once on the first launch; nil until chosen.
+    @Published private(set) var storage: StorageChoice?
+    /// The Local Storage folder once it exists.
+    @Published private(set) var localFolder: URL?
+    private let preference = StoragePreference()
     @Published var user: Login.User?
     @Published var error: String?
     @Published var busy = false
     private let socialSignIn = SocialSignIn()
+
+    init() {
+        storage = preference.choice
+        // A returning Local person finds their folder again; if it has gone, they are asked again.
+        if storage == .local {
+            do { localFolder = try LocalStorage.prepare(home: FileManager.default.homeDirectoryForCurrentUser) }
+            catch { storage = nil; preference.choice = nil; self.error = error.localizedDescription }
+        }
+    }
+
+    /// Remembers the choice. Local needs the iCloud Drive folder, so a failure to make it leaves the
+    /// person on the choice screen with the reason in `error`.
+    func choose(_ choice: StorageChoice) {
+        error = nil
+        if choice == .local {
+            do { localFolder = try LocalStorage.prepare(home: FileManager.default.homeDirectoryForCurrentUser) }
+            catch { self.error = error.localizedDescription; return }
+        }
+        preference.choice = choice
+        storage = choice
+    }
+
+    /// Back to the two cards, to pick the other kind of storage.
+    func changeStorage() {
+        preference.choice = nil
+        storage = nil
+        localFolder = nil
+    }
 
     func login(email: String, password: String) async {
         guard !busy else { return }
