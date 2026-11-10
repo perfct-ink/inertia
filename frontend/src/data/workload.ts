@@ -3,6 +3,18 @@ import type { Task } from '@/types'
 
 export const DEFAULT_WEEKLY_CAPACITY = 40
 
+// The Workload page's saved view: the weekly capacity it compares against.
+export interface WorkloadConfig { capacity: number }
+export const MAX_WEEKLY_CAPACITY = 168
+
+// A stored config that may be old or malformed, as a safe one: a whole number of
+// hours from 1 to the hours in a week.
+export function parseWorkloadConfig(raw: unknown): WorkloadConfig {
+  const value = (raw && typeof raw === 'object' ? raw : {}) as Record<string, unknown>
+  const hours = typeof value.capacity === 'number' && Number.isInteger(value.capacity) ? value.capacity : DEFAULT_WEEKLY_CAPACITY
+  return { capacity: hours >= 1 && hours <= MAX_WEEKLY_CAPACITY ? hours : DEFAULT_WEEKLY_CAPACITY }
+}
+
 // The Monday (yyyy-MM-dd) of the week a date falls in.
 export function weekStart(date: string): string {
   const d = parseISO(date)

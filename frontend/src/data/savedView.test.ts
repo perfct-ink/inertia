@@ -4,7 +4,7 @@ const view = (id: number, name: string, extra: Partial<SavedView> = {}): SavedVi
   ({ id, page: 'task_table', name, config: {}, shared: false, user_id: 5, owner_name: 'Pat', created_at: '', updated_at: '', ...extra })
 
 test('the pages that keep views', () => {
-  expect([...SAVED_VIEW_PAGES]).toEqual(['task_table', 'pivot', 'calendar', 'gantt', 'tasks'])
+  expect([...SAVED_VIEW_PAGES]).toEqual(['task_table', 'pivot', 'calendar', 'gantt', 'tasks', 'timeline', 'workload'])
 })
 
 test('a view is yours to change, or an admin\'s or owner\'s when it is shared', () => {

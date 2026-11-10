@@ -9,7 +9,7 @@ import type { WorkspaceRole } from '@/types'
 // parseTaskBoardConfig for the Workboard's filters).
 
 // The pages that keep views; the server accepts the same list (SavedView::PAGES).
-export const SAVED_VIEW_PAGES = ['task_table', 'pivot', 'calendar', 'gantt', 'tasks'] as const
+export const SAVED_VIEW_PAGES = ['task_table', 'pivot', 'calendar', 'gantt', 'tasks', 'timeline', 'workload'] as const
 export type SavedViewPage = (typeof SAVED_VIEW_PAGES)[number]
 
 export const SAVED_VIEW_NAME_MAX = 80

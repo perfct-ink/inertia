@@ -2,6 +2,8 @@
 priority: p3
 depends_on: [saved-views-per-user-and-shared-views-saved-filters]
 components: [frontend]
+branch: backlog/saved-views-for-more-pages
+status: incomplete
 ---
 # Saved views for more pages
 
@@ -20,3 +22,7 @@ Saved views (see `docs/features/saved_views.md`) cover the Task table, Pivot, Ca
 - A signed-in member can save, apply, update and delete a view on each page above; shared views follow the permission rule in `saved_views.md` (only the owner, or an admin for a shared view, can change one).
 - Old or malformed stored configs fall back to defaults.
 - Tests cover the parsers and each screen; the feature doc lists the new pages; this file is removed.
+
+## Progress
+
+Done on this branch: the Task timeline (grouping) and Workload (weekly capacity) pages, with parsers, screen tests and the backend page list. Left: the Cards tab (first add sort, grouping and filter), My work, Roadmap and the Hierarchy tree (each: list what it keeps, add a parser and `<SavedViews />`). Not run: `rails test` (the model test lists the new pages), a browser check. Keep this file until the remaining pages are done.

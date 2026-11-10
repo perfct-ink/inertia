@@ -1,15 +1,14 @@
 import { useState } from 'react'
 import { GanttChart, Loader2 } from 'lucide-react'
 import { Select } from '@/components/ui'
+import SavedViews from '@/components/SavedViews'
 import WorkspaceLayout from '@/components/WorkspaceLayout'
 import { Timeline } from '@/components/Timeline'
 import { useEpics } from '@/api/epics'
 import { useTasks } from '@/api/tasks'
-import { flatTaskRows, groupGanttRows } from '@/data/schedule'
+import { flatTaskRows, groupGanttRows, parseTimelineConfig, type TimelineGrouping } from '@/data/schedule'
 import { usePageTitle } from '@/hooks/usePageTitle'
 import '../planning/PlanningScreen.scss'
-
-type Grouping = 'none' | 'epic'
 
 // A simple timeline of the Space's tasks: a bar from start to due date for each,
 // with no dependency arrows and no dragging (the folder Gantt has those).
@@ -17,7 +16,7 @@ export default function TimelineScreen() {
   usePageTitle('Timeline')
   const { data: tasks = [], isLoading } = useTasks()
   const { data: epics = [] } = useEpics()
-  const [grouping, setGrouping] = useState<Grouping>('none')
+  const [grouping, setGrouping] = useState<TimelineGrouping>('none')
   const rows = grouping === 'epic' ? groupGanttRows(epics, tasks) : flatTaskRows(tasks)
   const undated = tasks.filter((t) => !t.due_date).length
 
@@ -26,10 +25,11 @@ export default function TimelineScreen() {
       <div className="view-planning view-timeline_tasks">
         <div className="planning-header">
           <h1 className="planning-title">Timeline</h1>
-          <Select aria-label="Group by" value={grouping} onChange={(e) => setGrouping(e.target.value as Grouping)}>
+          <Select aria-label="Group by" value={grouping} onChange={(e) => setGrouping(e.target.value as TimelineGrouping)}>
             <option value="none">No grouping</option>
             <option value="epic">Group by epic</option>
           </Select>
+          <SavedViews page="timeline" config={{ grouping }} parse={parseTimelineConfig} onApply={(view) => setGrouping(view.grouping)} />
         </div>
         <div className="planning-body">
           {isLoading && <Loader2 className="planning-spinner" aria-label="Loading" />}

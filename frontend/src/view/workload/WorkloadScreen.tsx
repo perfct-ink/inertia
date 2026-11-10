@@ -2,10 +2,11 @@ import { useState } from 'react'
 import { format, parseISO } from 'date-fns'
 import { AlertTriangle, Gauge, Loader2 } from 'lucide-react'
 import { Input } from '@/components/ui'
+import SavedViews from '@/components/SavedViews'
 import WorkspaceLayout from '@/components/WorkspaceLayout'
 import { useTasks } from '@/api/tasks'
 import { useWorkspaceMembers } from '@/api/workspaceMembers'
-import { DEFAULT_WEEKLY_CAPACITY, weekRange, workload } from '@/data/workload'
+import { DEFAULT_WEEKLY_CAPACITY, parseWorkloadConfig, weekRange, workload } from '@/data/workload'
 import { usePageTitle } from '@/hooks/usePageTitle'
 import { useWorkspaceStore } from '@/store/workspaces'
 import '../planning/PlanningScreen.scss'
@@ -35,6 +36,7 @@ export default function WorkloadScreen() {
             Hours per week
             <Input type="number" min={1} aria-label="Weekly capacity in hours" value={capacity} onChange={(e) => setCapacity(Math.max(1, Number(e.target.value) || DEFAULT_WEEKLY_CAPACITY))} />
           </label>
+          <SavedViews page="workload" config={{ capacity }} parse={parseWorkloadConfig} onApply={(view) => setCapacity(view.capacity)} />
         </div>
         <div className="planning-body">
           {isLoading && <Loader2 className="planning-spinner" aria-label="Loading" />}

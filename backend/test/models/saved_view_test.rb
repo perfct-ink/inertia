@@ -35,7 +35,7 @@ class SavedViewTest < ActiveSupport::TestCase
   end
 
   test "every page that keeps views is accepted" do
-    assert_equal %w[calendar gantt pivot task_table tasks], SavedView::PAGES.sort
+    assert_equal %w[calendar gantt pivot task_table tasks timeline workload], SavedView::PAGES.sort
     SavedView::PAGES.each do |page|
       assert @workspace.saved_views.build(user: @pat, page: page, name: page, config: {}).valid?, page
     end

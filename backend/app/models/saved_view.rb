@@ -6,7 +6,7 @@
 class SavedView < ApplicationRecord
   # The pages that keep views. Keep in step with SAVED_VIEW_PAGES in
   # frontend/src/data/savedView.ts.
-  PAGES = %w[task_table pivot calendar gantt tasks].freeze
+  PAGES = %w[task_table pivot calendar gantt tasks timeline workload].freeze
   MAX_CONFIG_BYTES = 10_000
 
   belongs_to :workspace

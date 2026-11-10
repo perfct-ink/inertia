@@ -283,6 +283,17 @@ export function parseGanttConfig(raw: unknown): GanttConfig {
   }
 }
 
+// The Task timeline page's saved view: how its rows are grouped.
+export type TimelineGrouping = 'none' | 'epic'
+export interface TimelineConfig { grouping: TimelineGrouping }
+export const DEFAULT_TIMELINE_CONFIG: TimelineConfig = { grouping: 'none' }
+
+// A stored config that may be old or malformed, as a safe one.
+export function parseTimelineConfig(raw: unknown): TimelineConfig {
+  const value = (raw && typeof raw === 'object' ? raw : {}) as Record<string, unknown>
+  return { grouping: value.grouping === 'epic' ? 'epic' : DEFAULT_TIMELINE_CONFIG.grouping }
+}
+
 // Track width in pixels for one day at each zoom. Month is the original fit-to-width axis.
 export const ZOOM_DAY_PX: Record<GanttZoom, number> = { day: 36, week: 14, month: 0, quarter: 3, year: 1 }
 

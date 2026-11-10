@@ -1,4 +1,4 @@
-import { DEFAULT_GANTT_CONFIG, axisTicks, donePercent, groupGanttRows, milestoneMarkers, parseGanttConfig, planningGanttRows, shiftedRange, trackWidthPx, weekendSpans, type Scheduled, flatTaskRows } from './schedule'
+import { DEFAULT_GANTT_CONFIG, DEFAULT_TIMELINE_CONFIG, axisTicks, donePercent, groupGanttRows, milestoneMarkers, parseGanttConfig, parseTimelineConfig, planningGanttRows, shiftedRange, trackWidthPx, weekendSpans, type Scheduled, flatTaskRows } from './schedule'
 
 const item = (tasks_count: number, done_tasks_count: number) =>
   ({ id: 1, title: 'x', start_date: null, target_date: null, tasks_count, done_tasks_count }) as Scheduled
@@ -187,4 +187,17 @@ test('a stored saved Gantt view is read back, with the default for anything unre
   expect(parseGanttConfig({ zoom: 'year' })).toEqual({ zoom: 'year', shadeWeekends: true, showCritical: true })
   expect(parseGanttConfig({ zoom: 'decade', shadeWeekends: 'yes', showCritical: 1 })).toEqual(DEFAULT_GANTT_CONFIG)
   expect(parseGanttConfig(undefined)).toEqual(DEFAULT_GANTT_CONFIG)
+})
+
+describe('parseTimelineConfig', () => {
+  test('keeps a known grouping', () => {
+    expect(parseTimelineConfig({ grouping: 'epic' })).toEqual({ grouping: 'epic' })
+    expect(parseTimelineConfig({ grouping: 'none' })).toEqual({ grouping: 'none' })
+  })
+
+  test('falls back to no grouping for anything else', () => {
+    for (const raw of [null, undefined, 'epic', 5, [], {}, { grouping: 'sprint' }, { grouping: 3 }]) {
+      expect(parseTimelineConfig(raw)).toEqual(DEFAULT_TIMELINE_CONFIG)
+    }
+  })
 })

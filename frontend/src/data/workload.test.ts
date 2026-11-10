@@ -1,4 +1,4 @@
-import { hoursByWeek, weekRange, weekStart, workload } from './workload'
+import { DEFAULT_WEEKLY_CAPACITY, hoursByWeek, parseWorkloadConfig, weekRange, weekStart, workload } from './workload'
 import type { Task } from '@/types'
 
 const task = (extra: Partial<Task>) => ({ id: 1, status: 'todo', assignee_id: 7, estimate_hours: null, start_date: null, due_date: null, ...extra }) as unknown as Task
@@ -42,4 +42,18 @@ test('workload sums per person per week, flags over-allocation, skips done tasks
   expect(result.rows.map((r) => r.assigneeId)).toEqual([7, null])
   expect(result.rows[0]).toEqual({ assigneeId: 7, hours: [50, 0], total: 50, over: [10, 0] })
   expect(result.rows[1]).toEqual({ assigneeId: null, hours: [0, 8], total: 8, over: [0, 0] })
+})
+
+describe('parseWorkloadConfig', () => {
+  test('keeps a whole number of hours from 1 to 168', () => {
+    expect(parseWorkloadConfig({ capacity: 32 })).toEqual({ capacity: 32 })
+    expect(parseWorkloadConfig({ capacity: 1 })).toEqual({ capacity: 1 })
+    expect(parseWorkloadConfig({ capacity: 168 })).toEqual({ capacity: 168 })
+  })
+
+  test('falls back to the default for anything else', () => {
+    for (const raw of [null, undefined, 40, [], {}, { capacity: 0 }, { capacity: -5 }, { capacity: 169 }, { capacity: 7.5 }, { capacity: '40' }, { capacity: NaN }]) {
+      expect(parseWorkloadConfig(raw)).toEqual({ capacity: DEFAULT_WEEKLY_CAPACITY })
+    }
+  })
 })
