@@ -2,6 +2,8 @@
 priority: p1
 depends_on: []
 components: [backend, deployment]
+branch: backlog/store-uploads-in-digitalocean-spaces
+status: incomplete
 ---
 # Store uploaded files in DigitalOcean Spaces, cached locally
 
@@ -29,3 +31,7 @@ Uploaded files (file items, images and video embedded in documents, task attachm
 - A second download of the same file is served from the local cache.
 - The migration task copies every existing file and reports any it could not.
 - Tests cover the service configuration and the copy task; `docs/features/uploaded_files.md`, `docs/deployment.md` and `docs/services.md` are updated and this file is removed.
+
+## Blocked
+
+Nothing is built yet. Needs Alex: the Spaces region and bucket, whether the bucket is private (signed URLs through the app) or on the Spaces CDN, the per-Space quota default, and the access key and secret in Coolify or the Rails credentials. It also adds the aws-sdk-s3 gem and an nginx or Active Storage proxy cache (new infrastructure). Once those are answered, build the storage.yml service, the cache and the copy rake task, then run rails test and the copy task against a staging bucket.
