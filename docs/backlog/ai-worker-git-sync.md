@@ -2,6 +2,8 @@
 priority: p1
 depends_on: [ai-worker-agent-access]
 components: [backend]
+branch: backlog/ai-worker-git-sync
+status: incomplete
 ---
 # AI worker: sync a folder with a Git repo as Markdown
 
@@ -18,3 +20,7 @@ Agents like Claude Code work best on files in a repository. Mirror an Inertia fo
 - An agent edits a synced `.md` file and pushes; the document updates in the app.
 - An edit in the app shows up as a commit in the repo.
 - Tests cover both directions and a conflict; feature docs are updated and this file is removed.
+
+## Blocked
+
+Nothing is built yet. Needs Alex: a GitHub integration (a GitHub App or a deploy key per folder, with its private key stored as a secret), which is an external service and new credentials. It also builds on ai-worker-live-updates, which is itself blocked on Redis. Decide the auth model first, then build the link, the two-way sync and the conflict screen.
