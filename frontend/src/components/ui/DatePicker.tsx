@@ -103,6 +103,9 @@ export const DatePicker = forwardRef<HTMLInputElement, DatePickerProps>(function
 
   function handleKeyDown(e: KeyboardEvent<HTMLInputElement>) {
     onKeyDown?.(e)
+    // A modal around the field keeps itself open for this Esc by preventing its default
+    // (ui/Modal.tsx), so Esc is not skipped with the other prevented keys.
+    if (open && interactive && e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); return close() }
     if (e.defaultPrevented || !interactive) return
     if (!open) {
       if (e.key === 'ArrowDown') { e.preventDefault(); show() }
@@ -115,7 +118,6 @@ export const DatePicker = forwardRef<HTMLInputElement, DatePickerProps>(function
       // ArrowLeft and ArrowRight keep moving the cursor in the text.
       case 'PageDown': return move(addMonths(activeDay, e.shiftKey ? 12 : 1))
       case 'PageUp': return move(addMonths(activeDay, e.shiftKey ? -12 : -1))
-      case 'Escape': e.preventDefault(); e.stopPropagation(); return close()
       case 'Enter':
         if (navigatedRef.current && !outOfRange(activeDay, String(min ?? ''), String(max ?? ''))) { e.preventDefault(); commit(activeDay) }
         else close()

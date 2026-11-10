@@ -12,20 +12,35 @@ type ModalProps = {
   // A roomy dialog for content such as a file preview (default: a small form-sized one).
   wide?: boolean
   onClose: () => void
+  // Called before Esc closes the modal; call `event.preventDefault()` to keep it open
+  // (a field that uses Esc to cancel what it is doing, such as recording a keystroke).
+  onEscapeKeyDown?: (event: KeyboardEvent) => void
   // Contextual overrides, e.g. a wider dialog for a form with many fields.
   className?: string
   children?: ReactNode
 }
 
+// Where focus is while a popup of its own is open inside the modal: a date field with
+// its calendar showing or a menu trigger (`aria-expanded`), or an item in an open menu.
+const OPEN_POPUP = '[aria-expanded="true"], [role="menu"]'
+
+// Radix closes the dialog on Esc in the capture phase on the document, before the
+// calendar's or menu's own handler (which closes just that popup) can run. Leaving
+// the dialog open for that keypress lets the popup close first; the next Esc closes the modal.
+function keepOpenForPopup(event: KeyboardEvent) {
+  if (document.activeElement?.closest(OPEN_POPUP)) event.preventDefault()
+}
+
 // Accessible modal (focus trap, Esc to close, aria labelling from Radix).
 // Replaces native window.alert/confirm/prompt dialogs.
-export function Modal({ open, title, description, wide, onClose, className, children }: ModalProps) {
+export function Modal({ open, title, description, wide, onClose, onEscapeKeyDown, className, children }: ModalProps) {
   return (
     <Dialog.Root open={open} onOpenChange={(next) => { if (!next) onClose() }}>
       <Dialog.Portal>
         <Dialog.Overlay className="ui-modal-overlay" />
         <Dialog.Content
           className={classNames('ui-modal-content', wide && 'ui-modal-content--wide', className)}
+          onEscapeKeyDown={(event) => { onEscapeKeyDown?.(event); if (!event.defaultPrevented) keepOpenForPopup(event) }}
         >
           <Dialog.Title className="ui-modal-title">{title}</Dialog.Title>
           {description

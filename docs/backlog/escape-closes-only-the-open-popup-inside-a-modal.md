@@ -2,6 +2,8 @@
 priority: p2
 depends_on: []
 components: [frontend]
+branch: backlog/escape-closes-only-the-open-popup-inside-a-modal
+status: incomplete
 ---
 # Escape should close only the open calendar or menu inside a modal
 
@@ -19,3 +21,7 @@ components: [frontend]
 
 - Escape closes the open calendar or menu first and the modal on the next press, tested.
 - Feature doc updated (design_principles.md) and this file removed.
+
+## Unverified
+
+Built and tested with the real Radix dialog (Jest): the fix in `ui/Modal.tsx`, and `DatePicker` handling Esc before it ignores prevented keys (without that the calendar stayed open, because the Modal's `preventDefault` made it skip the key). Jest (all suites), `tsc` and eslint passed. Not done: the browser reproduction and check in a task or event form, in Safari and Chrome. `make up`, open a task with a date field, open the calendar, press Esc: the calendar closes and the modal stays; Esc again closes it. Delete this file when that passes.

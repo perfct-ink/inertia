@@ -46,6 +46,8 @@ Shared mixins added to `_tokens.scss`: `page-header`, `page-padding`, `reveal-on
 - `components/ui/Controls.test.tsx` (existing): checkboxes keep native selection behaviour.
 - Checked in a browser (Chromium via Playwright against a mocked API) at 375, 768 and 1280px on every route, including each folder view: no page-level horizontal overflow, no control text selectable, no transition other than 150ms, no unstyled checkbox or select. Light and dark mode checked for checkboxes, selects and date fields.
 
+**Esc inside a modal.** Radix closes a `Modal` on Esc on the document before a calendar's or menu's own handler runs, so `Modal` keeps itself open for that keypress when focus is in an open popup (an element inside `[aria-expanded="true"]` or `[role="menu"]`: a date field with its calendar showing, a menu trigger or an item in its open menu). The popup closes first; the next Esc closes the modal. `DatePicker` handles Esc before its "ignore prevented keys" check for this reason. `Modal` also takes an `onEscapeKeyDown` to keep itself open for its own reasons. Covered by `ui/Modal.test.tsx` with the real Radix dialog.
+
 ## Known limits
 
 - The date picker's keyboard model is partial: ArrowUp/ArrowDown move a week, PageUp/PageDown a month (Shift: a year) and Enter picks, but ArrowLeft/ArrowRight keep moving the cursor in the text, so a keyboard user types the date or steps by weeks. The week starts on Sunday.
@@ -66,3 +68,4 @@ Shared mixins added to `_tokens.scss`: `page-header`, `page-padding`, `reveal-on
 
 - Merged to main 2026-11-02 after running, merged with main: `rails db:migrate` (schema diff clean), `rails test`, `npm run lint`, `tsc -b`, Jest, and the collab-server tests, all passing. Not checked in a browser.
 - Implemented 2026-11-02: `Select` is a styled dropdown instead of the browser's list (and `@radix-ui/react-popover` upgraded to 1.3.1). Lint, `tsc -b` and Jest pass; checked in Chromium against a mocked API. Not committed or deployed.
+- Esc closes only the open calendar or menu inside a modal, 2026-11-10 (on branch `backlog/escape-closes-only-the-open-popup-inside-a-modal`). Jest, `tsc` and eslint pass; not checked in a browser, not deployed.
