@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_11_10_110001) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_10_120001) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -240,6 +240,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_10_110001) do
     t.string "icon"
     t.string "image_url"
     t.string "slug"
+    t.json "features"
     t.index ["home_document_id"], name: "index_folders_on_home_document_id"
     t.index ["owner_id"], name: "index_folders_on_owner_id"
     t.index ["parent_id", "slug"], name: "index_folders_on_parent_id_and_slug", unique: true

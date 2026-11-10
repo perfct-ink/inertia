@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import {
   Archive, ArchiveRestore, Database, FilePlus, FolderPlus, Table as SheetIcon, ChevronsUpDown, Folder as FolderIcon, FolderKanban, FileText,
-  LayoutDashboard, Plus, Smile,
+  LayoutDashboard, Plus, SlidersHorizontal, Smile,
 } from 'lucide-react'
 import { Button, FormError, IconButton, Input, Menu, PromptDialog, classNames } from '@/components/ui'
 import ProjectIcon from '@/components/project/ProjectIcon'
@@ -15,6 +15,9 @@ import { itemAtPath } from '@/data/path'
 import { usePaths } from '@/hooks/usePaths'
 import { useSelectProject } from '@/hooks/useSelectProject'
 import { useOpenProject } from '@/hooks/useOpenProject'
+import { projectFeatureOn } from '@/data/projectFeature'
+import ProjectFeaturesDialog from '@/components/project/ProjectFeaturesDialog'
+import { canWriteWorkspace } from '@/api/workspaces'
 import { TASKS_HEADING, TASK_SECTIONS } from './projectSections'
 import { isActivePath } from '@/data/project'
 import { useNewDocument } from '@/hooks/useNewDocument'
@@ -46,6 +49,9 @@ export function ProjectNav() {
   const [addingFolder, setAddingFolder] = useState(false)
   const [error, setError] = useState('')
   const [iconFor, setIconFor] = useState<Folder | null>(null)
+  const [featuresFor, setFeaturesFor] = useState<Folder | null>(null)
+  const canWrite = canWriteWorkspace(workspace?.role)
+  const taskSections = TASK_SECTIONS.filter((section) => !section.feature || projectFeatureOn(openProject, section.feature))
   const folders = workspace?.folders ?? []
   const projects = projectsOf(folders)
 
@@ -123,6 +129,7 @@ export function ProjectNav() {
                 { key: 'overview', label: 'Overview', icon: <LayoutDashboard className="project_nav-icon" />, separatorBefore: true, onSelect: () => navigate(paths.folder(openProject.id)) },
                 { key: 'new', label: 'New project...', icon: <Plus className="project_nav-icon" />, onSelect: () => setNaming(true) },
                 { key: 'icon', label: 'Change icon...', icon: <Smile className="project_nav-icon" />, onSelect: () => setIconFor(openProject) },
+                ...(canWrite ? [{ key: 'features', label: 'Choose pages...', icon: <SlidersHorizontal className="project_nav-icon" />, onSelect: () => setFeaturesFor(openProject) }] : []),
                 { key: 'all', label: 'All projects', icon: <FolderKanban className="project_nav-icon" />, onSelect: () => navigate('/space') },
               ]}
             >
@@ -133,10 +140,10 @@ export function ProjectNav() {
               <ChevronsUpDown className="workspace_switcher-icon" aria-hidden="true" />
             </Menu>
           </div>
-          {/* The task pages, only inside a project. */}
-          <nav aria-label="Tasks" className="project_nav-tasks">
+          {/* The task pages the project shows, only inside a project. */}
+          {taskSections.length > 0 && <nav aria-label="Tasks" className="project_nav-tasks">
             <span className="project_nav-label">{TASKS_HEADING}</span>
-            {TASK_SECTIONS.map(({ label, path, icon: Icon }) => {
+            {taskSections.map(({ label, path, icon: Icon }) => {
               const active = isActivePath(location.pathname, path)
               return (
                 <Link key={path} to={path} aria-current={active ? 'page' : undefined} className={classNames('project_nav-row', 'project_nav-open', active && 'project_nav-row--active')}>
@@ -145,7 +152,7 @@ export function ProjectNav() {
                 </Link>
               )
             })}
-          </nav>
+          </nav>}
           {/* The project's documents, sheets, Collections and files, subfolders included. */}
           <div className="project_nav-files">
             <div className="project_nav-bar">
@@ -268,6 +275,10 @@ export function ProjectNav() {
       <ProjectIconDialog
         project={iconFor && (projects.find((p) => p.id === iconFor.id) ?? null)}
         onClose={() => setIconFor(null)}
+      />
+      <ProjectFeaturesDialog
+        project={featuresFor && (projects.find((p) => p.id === featuresFor.id) ?? null)}
+        onClose={() => setFeaturesFor(null)}
       />
     </div>
   )

@@ -7,7 +7,9 @@ import { SECTION_GROUPS } from './projectSections'
 let mockShared = true
 jest.mock('@/api/notifications', () => ({ useNotifications: () => ({ data: { unread_count: 0, notifications: [] } }) }))
 jest.mock('@/api/workspace', () => ({ useWorkspace: () => ({ data: { shared: mockShared } }) }))
-beforeEach(() => { mockShared = true })
+let mockProject: { features?: string[] | null } | null = null
+jest.mock('@/hooks/useOpenProject', () => ({ useOpenProject: () => mockProject }))
+beforeEach(() => { mockShared = true; mockProject = null })
 
 function renderAt(path: string, handlers = { onQuickAdd: jest.fn(), onShortcuts: jest.fn() }) {
   render(
@@ -78,4 +80,12 @@ test('every button names itself for people who cannot see the icon', () => {
   renderAt('/space')
   const nav = screen.getByRole('navigation', { name: 'Pages' })
   for (const el of within(nav).getAllByRole('link')) expect(el).toHaveAttribute('title', el.getAttribute('aria-label'))
+})
+
+test('the open project\'s turned-off pages are left out, and a project that never chose shows them all', () => {
+  mockProject = { features: ['tasks', 'roadmap'] }
+  renderAt('/tasks')
+  const nav = screen.getByRole('navigation', { name: 'Pages' })
+  const labels = within(nav).getAllByRole('link').map((a) => a.getAttribute('aria-label'))
+  expect(labels).toEqual(['Projects', 'Tasks', 'Roadmap', 'Inbox'])
 })

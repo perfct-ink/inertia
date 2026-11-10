@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 import api from '@/lib/api'
 import type { DependencyMode, Folder, FolderContents, FolderKind, ProjectStatus } from '@/types'
 import { ApiResource, useApiMutation } from './base'
+import type { ProjectFeature } from '@/data/projectFeature'
 
 export interface FolderFields {
   name?: string
@@ -18,6 +19,8 @@ export interface FolderFields {
   start_date?: string | null
   target_date?: string | null
   description?: string | null
+  // A project's pages; the whole list sets it.
+  features?: ProjectFeature[]
 }
 
 export class FolderApi extends ApiResource<Folder, { name: string; parent_id?: number; kind?: FolderKind }, FolderFields> {

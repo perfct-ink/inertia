@@ -1,4 +1,6 @@
 import { flattenFolders } from '@/data/folder'
+import { quickAddTypesOf } from '@/data/projectFeature'
+import { useOpenProject } from '@/hooks/useOpenProject'
 import { itemAtPath } from '@/data/path'
 import { usePaths } from '@/hooks/usePaths'
 import { WorkspaceSwitcher } from '@/components/workspace/WorkspaceSwitcher'
@@ -52,6 +54,8 @@ export default function Sidebar() {
   const navigate = useNavigate()
   const location = useLocation()
   const paths = usePaths()
+  // What quick add can make: the open project's turned-off Tasks or Events are left out.
+  const quickAddTypes = quickAddTypesOf(useOpenProject())
   const { data: workspace } = useWorkspace()
   const newDocument = useNewDocument()
   const pinDocument = usePinDocument()
@@ -115,7 +119,8 @@ export default function Sidebar() {
   }, [ quipImport?.status ])
 
   function openQuickAdd() {
-    setQuickAddType('task')
+    if (quickAddTypes.length === 0) return
+    setQuickAddType(quickAddTypes[0])
     setQuickAddTitle('')
     setQuickAddDate('')
     setQuickAddEpicId('')
@@ -335,7 +340,9 @@ export default function Sidebar() {
             label={`Account: ${user?.name ?? 'not signed in'}`}
             triggerClassName="sidebar-user"
             items={[
-              { key: 'quick-add', label: 'Quick add', hint: platformKeys('⌘K', isMac), icon: <Plus className="sidebar-icon--sm" />, onSelect: openQuickAdd },
+              ...(quickAddTypes.length > 0
+                ? [{ key: 'quick-add', label: 'Quick add', hint: platformKeys('⌘K', isMac), icon: <Plus className="sidebar-icon--sm" />, onSelect: openQuickAdd }]
+                : []),
               { key: 'shortcuts', label: 'Keyboard shortcuts', hint: platformKeys('⌘/', isMac), icon: <Keyboard className="sidebar-icon--sm" />, onSelect: () => setShortcutsOpen(true) },
               { key: 'appearance', label: 'Appearance', icon: <Palette className="sidebar-icon--sm" />, onSelect: () => setAppearanceOpen(true), separatorBefore: true },
               { key: 'quip', label: 'Import from Quip', icon: <Download className="sidebar-icon--sm" />, onSelect: () => setQuipImportOpen(true) },
@@ -497,14 +504,18 @@ export default function Sidebar() {
         <div className="sidebar-overlay" onClick={() => setQuickAddOpen(false)}>
           <div className="sidebar-dialog" onClick={(e) => e.stopPropagation()}>
             <Tabs label="Add" variant="segmented">
-              <Tab active={quickAddType === 'task'} onClick={() => setQuickAddType('task')}>
-                <CheckSquare className="sidebar-icon--sm" />
-                Task
-              </Tab>
-              <Tab active={quickAddType === 'event'} onClick={() => setQuickAddType('event')}>
-                <CalendarDays className="sidebar-icon--sm" />
-                Event
-              </Tab>
+              {quickAddTypes.includes('task') && (
+                <Tab active={quickAddType === 'task'} onClick={() => setQuickAddType('task')}>
+                  <CheckSquare className="sidebar-icon--sm" />
+                  Task
+                </Tab>
+              )}
+              {quickAddTypes.includes('event') && (
+                <Tab active={quickAddType === 'event'} onClick={() => setQuickAddType('event')}>
+                  <CalendarDays className="sidebar-icon--sm" />
+                  Event
+                </Tab>
+              )}
             </Tabs>
 
             <Input

@@ -4,9 +4,13 @@ import {
   Milestone, Network, Rocket, Rows3, Table2, Target, UserCheck, Users,
 } from 'lucide-react'
 
+import type { ProjectFeature } from '@/data/projectFeature'
+
 export type Section = {
   label: string
   path: string
+  // The project feature that shows or hides it (data/projectFeature.ts).
+  feature?: ProjectFeature
   icon: ComponentType<{ className?: string }>
   // Only useful when other people can open the Space, so hidden until then.
   sharedOnly?: boolean
@@ -17,35 +21,35 @@ export const TASKS_HEADING = 'Tasks'
 // The pages under an open project, grouped by what they're for. Each lists
 // only that project's records (the API reads X-Project-Id, see backend
 // ProjectScoped). The first group has no heading. Shown on the icon rail
-// (SidebarRail).
+// (SidebarRail). A project can turn pages off (`feature`, docs/features/project_features.md).
 export const SECTION_GROUPS: { heading: string | null; sections: Section[] }[] = [
   { heading: null, sections: [
-    { label: 'My work', path: '/my-work', icon: UserCheck, sharedOnly: true },
+    { label: 'My work', feature: 'my_work', path: '/my-work', icon: UserCheck, sharedOnly: true },
   ] },
   { heading: TASKS_HEADING, sections: [
-    { label: 'Tasks', path: '/tasks?view=backlog', icon: CheckSquare },
-    { label: 'Task table', path: '/task-table', icon: Rows3 },
-    { label: 'Pivot', path: '/pivot', icon: Table2 },
-    { label: 'Calendar', path: '/calendar', icon: CalendarRange },
-    { label: 'Events', path: '/events?view=list', icon: CalendarDays },
+    { label: 'Tasks', feature: 'tasks', path: '/tasks?view=backlog', icon: CheckSquare },
+    { label: 'Task table', feature: 'task_table', path: '/task-table', icon: Rows3 },
+    { label: 'Pivot', feature: 'pivot', path: '/pivot', icon: Table2 },
+    { label: 'Calendar', feature: 'calendar', path: '/calendar', icon: CalendarRange },
+    { label: 'Events', feature: 'events', path: '/events?view=list', icon: CalendarDays },
   ] },
   { heading: 'Planning', sections: [
-    { label: 'Roadmap', path: '/roadmap', icon: MapIcon },
-    { label: 'Timeline', path: '/timeline', icon: GanttChart },
-    { label: 'Milestones', path: '/milestones', icon: Milestone },
-    { label: 'Initiatives', path: '/initiatives', icon: Flag },
-    { label: 'Epics', path: '/epics', icon: Target },
-    { label: 'Sprints', path: '/sprints', icon: Rocket },
-    { label: 'Hierarchy', path: '/hierarchy', icon: ListTree },
+    { label: 'Roadmap', feature: 'roadmap', path: '/roadmap', icon: MapIcon },
+    { label: 'Timeline', feature: 'timeline', path: '/timeline', icon: GanttChart },
+    { label: 'Milestones', feature: 'milestones', path: '/milestones', icon: Milestone },
+    { label: 'Initiatives', feature: 'initiatives', path: '/initiatives', icon: Flag },
+    { label: 'Epics', feature: 'epics', path: '/epics', icon: Target },
+    { label: 'Sprints', feature: 'sprints', path: '/sprints', icon: Rocket },
+    { label: 'Hierarchy', feature: 'hierarchy', path: '/hierarchy', icon: ListTree },
   ] },
   { heading: 'Goals', sections: [
-    { label: 'OKRs', path: '/okrs', icon: Goal },
-    { label: 'Objectives map', path: '/objectives-map', icon: Network },
-    { label: 'Ideas', path: '/ideas', icon: Lightbulb },
+    { label: 'OKRs', feature: 'okrs', path: '/okrs', icon: Goal },
+    { label: 'Objectives map', feature: 'objectives_map', path: '/objectives-map', icon: Network },
+    { label: 'Ideas', feature: 'ideas', path: '/ideas', icon: Lightbulb },
   ] },
   { heading: 'Delivery', sections: [
-    { label: 'Resources', path: '/resources', icon: Users },
-    { label: 'Workload', path: '/workload', icon: Gauge, sharedOnly: true },
+    { label: 'Resources', feature: 'resources', path: '/resources', icon: Users },
+    { label: 'Workload', feature: 'workload', path: '/workload', icon: Gauge, sharedOnly: true },
   ] },
 ]
 

@@ -8,6 +8,10 @@ class FolderBlueprint < Blueprinter::Base
   field :root do |folder, options|
     folder.id == (options[:root_folder_id] || folder.workspace.root_folder_id)
   end
+  # The pages a project shows (all of them until it chooses); null for a plain folder.
+  field :features do |folder|
+    folder.enabled_features if folder.project?
+  end
   field :archived_at
   field :archived?, name: :archived
 

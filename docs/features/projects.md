@@ -53,6 +53,7 @@ Scoped to the current Space; writes need the member role, like the rest of the S
 - Every page shows under every project; choosing which features a project uses is `docs/backlog/choose-which-features-a-project-uses.md`.
 - Records made before projects existed, or with no project open, have no folder and show only when no project is open. The All files icon on the projects list closes the open project; nothing else in the sidebar does.
 - Project requests is turned off (see `project_intake.md`).
+- Each project can turn pages off, and the rail, its Tasks list, quick add and its Overview then leave them out (see `project_features.md`).
 - Nested projects are listed flat, and a subfolder project's records also show in its parent project.
 - My work's capacity and Resources' people are Space-wide; only their allocations are filtered.
 - The open project is not in the URL, so a link someone shares opens in the receiver's own open project.

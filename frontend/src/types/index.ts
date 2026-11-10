@@ -1,3 +1,4 @@
+import type { ProjectFeature } from '@/data/projectFeature'
 import type { FieldDataType } from '@/api/tables'
 export interface Document {
   id: number
@@ -70,6 +71,8 @@ export interface Folder {
   // WorkspacesController#show / FolderBlueprint.
   has_tasks: boolean
   has_events: boolean
+  // A project's pages (data/projectFeature.ts); null or absent shows every page.
+  features?: ProjectFeature[] | null
 }
 
 // A folder as listed for choosing where to put something in a Space: the

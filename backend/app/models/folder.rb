@@ -29,6 +29,15 @@ class Folder < ApplicationRecord
   # and archiving work unchanged.
   enum :kind, { folder: 0, project: 1, feature: 2 }, scopes: false
 
+  # The pages a project can turn off (docs/features/project_features.md), in
+  # the rail's order. Overview, the Tasks page's files and All files are always
+  # on. Mirrors PROJECT_FEATURES in frontend/src/data/projectFeature.ts.
+  PROJECT_FEATURES = %w[
+    my_work tasks task_table pivot calendar events
+    roadmap timeline milestones initiatives epics sprints hierarchy
+    okrs objectives_map ideas resources workload
+  ].freeze
+
   # How the folder's Gantt reacts to dependency links on reschedule (PM-14).
   enum :dependency_mode, { none: 0, strict: 1, flexible: 2 }, prefix: :dependencies, scopes: false
 
@@ -42,6 +51,8 @@ class Folder < ApplicationRecord
   validate :owner_is_a_member
   validate :target_date_not_before_start_date
   before_validation :attach_to_root
+  before_validation :store_all_features_as_default
+  validate :features_are_known
   # After attach_to_root: a new folder's parent is needed to pick its slug.
   include Sluggable
   slugged_by :name, within: :parent
@@ -51,6 +62,11 @@ class Folder < ApplicationRecord
 
   def root?
     persisted? && workspace.root_folder_id == id
+  end
+
+  # The pages this project shows; a project that never chose shows all of them.
+  def enabled_features
+    features.nil? ? PROJECT_FEATURES : PROJECT_FEATURES & Array(features)
   end
 
   scope :active, -> { where(archived_at: nil) }
@@ -113,6 +129,21 @@ class Folder < ApplicationRecord
   end
 
   private
+
+  # Every page on is the default, so it is stored as NULL: a page added later
+  # then shows in projects that never turned anything off.
+  def store_all_features_as_default
+    self.features = nil if features.is_a?(Array) && features.uniq.sort == PROJECT_FEATURES.sort
+  end
+
+  def features_are_known
+    return if features.nil?
+    if !features.is_a?(Array) || (features - PROJECT_FEATURES).any?
+      errors.add(:features, "can only be #{PROJECT_FEATURES.join(', ')}")
+    elsif !project? && will_save_change_to_features?
+      errors.add(:features, "can only be set on a project")
+    end
+  end
 
   def home_document_is_in_this_folder
     return if home_document.nil? || home_document.folder_id == id

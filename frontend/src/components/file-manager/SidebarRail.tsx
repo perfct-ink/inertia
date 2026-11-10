@@ -5,6 +5,8 @@ import { isActivePath } from '@/data/project'
 import { useWorkspace } from '@/api/workspace'
 import { useNotifications } from '@/api/notifications'
 import { SECTION_GROUPS, type Section } from './projectSections'
+import { useOpenProject } from '@/hooks/useOpenProject'
+import { projectFeatureOn } from '@/data/projectFeature'
 import './SidebarRail.scss'
 
 // Pages about the Space's projects as a whole, ahead of the open project's
@@ -22,7 +24,9 @@ export function SidebarRail({ onQuickAdd, onShortcuts }: { onQuickAdd: () => voi
   const unread = useNotifications().data?.unread_count ?? 0
   const inboxActive = isActivePath(pathname, '/inbox')
   const inboxLabel = unread ? `Inbox (${unread} unread)` : 'Inbox'
-  const groups = [SPACE_SECTIONS, ...SECTION_GROUPS.map((g) => g.sections.filter((s) => shared || !s.sharedOnly))]
+  // The open project's turned-off pages are left out (a link to one still opens it).
+  const project = useOpenProject()
+  const groups = [SPACE_SECTIONS, ...SECTION_GROUPS.map((g) => g.sections.filter((s) => (shared || !s.sharedOnly) && (!s.feature || projectFeatureOn(project, s.feature))))]
     .filter((sections) => sections.length > 0)
 
   return (
