@@ -1,10 +1,11 @@
 import { useState, type ReactNode } from 'react'
-import { ChevronsUpDown, Plus, Users, UsersRound } from 'lucide-react'
+import { Bot, ChevronsUpDown, Plus, Users, UsersRound } from 'lucide-react'
 import { Menu, PromptDialog, type MenuItem } from '@/components/ui'
 import { useWorkspace } from '@/api/workspace'
 import { useCreateWorkspace, useWorkspaces } from '@/api/workspaces'
 import { useSwitchWorkspace } from '@/hooks/useSwitchWorkspace'
 import type { WorkspaceSummary } from '@/types'
+import { WorkspaceAgentAccess } from './WorkspaceAgentAccess'
 import { WorkspaceMembers } from './WorkspaceMembers'
 import { WorkspaceTeams } from './WorkspaceTeams'
 import './WorkspaceSwitcher.scss'
@@ -21,6 +22,7 @@ export function WorkspaceSwitcher({ children }: { children?: ReactNode }) {
   const [creating, setCreating] = useState(false)
   const [membersOpen, setMembersOpen] = useState(false)
   const [teamsOpen, setTeamsOpen] = useState(false)
+  const [agentsOpen, setAgentsOpen] = useState(false)
 
   function switchTo(workspace: WorkspaceSummary) {
     if (workspace.id !== current?.id) switchWorkspace(workspace)
@@ -42,6 +44,8 @@ export function WorkspaceSwitcher({ children }: { children?: ReactNode }) {
     { key: 'new', label: 'New Space...', icon: <Plus className="workspace_switcher-icon" aria-hidden="true" />, separatorBefore: true, onSelect: () => setCreating(true) },
     ...(current ? [{ key: 'members', label: 'Members...', icon: <Users className="workspace_switcher-icon" aria-hidden="true" />, onSelect: () => setMembersOpen(true) }] : []),
     ...(current && !current.personal ? [{ key: 'teams', label: 'Teams...', icon: <UsersRound className="workspace_switcher-icon" aria-hidden="true" />, onSelect: () => setTeamsOpen(true) }] : []),
+    // Only owners may make agent tokens (the API refuses everyone else).
+    ...(current?.role === 'owner' ? [{ key: 'agents', label: 'Agent access...', icon: <Bot className="workspace_switcher-icon" aria-hidden="true" />, onSelect: () => setAgentsOpen(true) }] : []),
   ]
 
   return (
@@ -56,6 +60,7 @@ export function WorkspaceSwitcher({ children }: { children?: ReactNode }) {
 
       <PromptDialog open={creating} title="New Space" label="Space name" placeholder="e.g. Website relaunch" submitLabel="Create" onSubmit={create} onClose={() => setCreating(false)} />
       {current && <WorkspaceMembers workspace={current} open={membersOpen} onClose={() => setMembersOpen(false)} />}
+      {current?.role === 'owner' && <WorkspaceAgentAccess workspace={current} open={agentsOpen} onClose={() => setAgentsOpen(false)} />}
       {current && !current.personal && <WorkspaceTeams workspace={current} open={teamsOpen} onClose={() => setTeamsOpen(false)} />}
     </>
   )

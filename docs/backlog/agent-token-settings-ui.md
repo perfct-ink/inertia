@@ -2,6 +2,8 @@
 priority: p1
 depends_on: [ai-worker-agent-access]
 components: [frontend]
+branch: backlog/agent-token-settings-ui
+status: incomplete
 ---
 # Agent tokens: a settings screen for Space owners
 
@@ -20,3 +22,9 @@ components: [frontend]
 - An owner makes a token, copies it once, uses it against `/mcp`, then revokes it from the same screen and the agent gets 401 immediately.
 - A non-owner does not see the section.
 - Jest/RTL tests cover the screen; `docs/features/agent_access.md` is updated and this file is removed.
+
+## Unverified
+
+Built: the "Agent access..." Space-menu item (owners only), the dialog with the new-token form, the show-once notice with copy buttons and the Claude Code command, the token list with revoke, and the activity list; documented in `docs/features/agent_access.md`. Frontend Jest (all 203 suites), `tsc` and eslint passed.
+
+Not run here: a browser check at 375px and desktop in light and dark against a running server, including the acceptance flow (make a token, use it against `/mcp`, revoke it, the agent gets 401). `make up`, sign in as a Space owner, open the Space menu > Agent access..., then `curl -X POST -H "Authorization: Bearer <token>" <host>/mcp` before and after Revoke. The backend is unchanged. Delete this file when that passes.

@@ -1,0 +1,100 @@
+@use 'tokens' as *;
+
+// Space owners' agent tokens and the agents' activity. Colors come from the theme
+// variables, so light and dark both work.
+@layer app.components {
+  // The modal itself (Modal's className): scrolls on a short phone.
+  .workspace_agent_access {
+    max-height: calc(100dvh - #{space(8)});
+    overflow-y: auto;
+
+    &-form,
+    &-made {
+      display: flex;
+      flex-direction: column;
+      gap: space(2);
+      margin-top: space(3);
+    }
+
+    &-copy {
+      display: flex;
+      gap: space(2);
+      align-items: flex-start;
+
+      > :first-child {
+        flex: 1;
+        min-width: 0;
+      }
+    }
+
+    &-heading {
+      margin-top: space(4);
+      font-weight: 600;
+      @include text('sm');
+    }
+
+    &-list {
+      display: flex;
+      flex-direction: column;
+      gap: space(2);
+      margin-top: space(2);
+    }
+
+    &-empty {
+      margin-top: space(2);
+      color: color(muted-foreground);
+      @include text('sm');
+    }
+
+    // A token: its facts, then Activity and Revoke, which wrap below on a phone.
+    &-token {
+      display: flex;
+      flex-wrap: wrap;
+      gap: space(2);
+      align-items: center;
+      padding: space(3);
+      border: 1px solid color(border);
+      border-radius: radius('md');
+
+      // A revoked token is greyed out, not hidden: its activity still names it.
+      &--revoked {
+        opacity: 0.6;
+      }
+    }
+
+    &-who {
+      flex: 1 1 12rem;
+      min-width: 0;
+    }
+
+    &-name {
+      font-weight: 600;
+      overflow-wrap: anywhere;
+      @include text('sm');
+    }
+
+    &-meta {
+      color: color(muted-foreground);
+      overflow-wrap: anywhere;
+      @include text('xs');
+    }
+
+    &-actions {
+      display: flex;
+      gap: space(1);
+    }
+
+    &-touch {
+      min-width: space(10);
+      min-height: space(10);
+    }
+
+    &-activity {
+      display: flex;
+      flex-direction: column;
+      gap: space(1);
+      @include text('sm');
+      overflow-wrap: anywhere;
+    }
+  }
+}
