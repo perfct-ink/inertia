@@ -19,7 +19,7 @@ browser ──https──▶ Coolify proxy (Traefik, TLS)
 | Service | Built from | Health check |
 | --- | --- | --- |
 | `web` | `frontend/Dockerfile` (webpack build served by nginx, config in `frontend/nginx/default.conf`) | `GET /healthz` |
-| `api` | `backend/Dockerfile`; `bin/docker-entrypoint` runs `db:prepare` before the server starts, so migrations run on every deploy | `GET /up` |
+| `api` | `backend/Dockerfile`; `bin/docker-entrypoint` runs `db:prepare` before the server starts, so migrations run on every deploy | `GET /up` (also `GET /health` for liveness and `GET /status` for the database, collab server and sign-in settings, public through the `web` container; a deploy smoke test can call `/status`) |
 | `collab` | `collab-server/Dockerfile` | `GET /` on port 1234 |
 
 Only `web` gets a domain. `api` and `collab` are reachable only inside the stack's network; `api` also joins Coolify's external `coolify` network to reach the shared PostgreSQL container by its name. Uploads (Active Storage, disk service) live in the `inertiaitcom_storage` Docker volume, the one the old droplet stack created; the compose file mounts it as an external volume, so it must exist before the first deploy.

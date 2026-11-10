@@ -2,6 +2,8 @@
 priority: p2
 depends_on: []
 components: [backend, frontend, docs]
+branch: backlog/health-and-status-endpoints
+status: incomplete
 ---
 # `/health` and `/status` endpoints, and health checks on every dev service
 
@@ -28,3 +30,7 @@ The app answers the health URLs the shared rules name (found by the rules audit,
 - `/health` and `/status` answer as described, publicly through nginx, with request tests.
 - Every service in `docker-compose.yml` has a health check.
 - `docs/features/rules_compliance.md` (backend.md rows) is updated.
+
+## Unverified
+
+Built, but no Rails, Docker or nginx here: run `rails test test/controllers/health_controller_test.rb` and `rails test` (the slug test reads the nginx config), `docker compose up` and check `docker compose ps` shows every service healthy, then `curl -i localhost:3847/health` and `/status` (and through nginx on a staging deploy). Delete this file when they pass.

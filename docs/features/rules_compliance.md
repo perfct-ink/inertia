@@ -32,7 +32,7 @@ Met. `docs/project/settings.md` exists in the required shape. The Capacitor iOS 
 | Rule | Result | Notes |
 | --- | --- | --- |
 | Architecture (MVCS) | Partly met | Services (`app/services`), Blueprinter serializers (`app/blueprints`) and models exist. About 66 query-builder calls (`where`, `joins`, `order`, `group`, `pluck`, `select`) remain in controllers. Not rewritten: the rule itself says not to rewrite working code solely to adopt the structure. |
-| Health checks (`/health`, `/status`) | Not met | Rails has only `/up`, nginx has `/healthz`. Task: `health-and-status-endpoints`. |
+| Health checks (`/health`, `/status`) | Built, unverified | `GET /health` (200 `OK`) and `GET /status` (database, collab server, sign-in provider settings; JSON or a page; 503 when the database or collab is down) in `HealthController`, public through nginx; dev compose has health checks on every service. Rails's `/up` and nginx's `/healthz` stay. Not yet run (see the History of `docs/features/health_endpoints.md`). |
 | ORM, no SQL outside models | Met | No raw `execute` calls in controllers or services. |
 | Migrations compatible with rollback | Not met, two files | `20260611051106_add_workspace_id_to_tasks` and `20261021000001_create_task_participants` backfill with a bare `execute` in `change`, so they cannot be rolled back. The earlier agent had edited them; those edits were reverted because shipped migrations are never edited. Recovery is documented in `docs/deployment.md` (Rollback). |
 | Initializers (env parsed at start-up only) | Not met | `ENV` is read in `application_controller.rb`, `marketing_controller.rb`, `auth/social_sign_in.rb` and `quip/importer.rb`. Task: `parse-env-in-initializers` (it also asks for `BYPASS_AUTH` to be ignored in production). |
