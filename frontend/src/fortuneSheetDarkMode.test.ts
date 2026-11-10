@@ -8,6 +8,7 @@ import { join } from 'path'
 describe('Fortune Sheet dark mode CSS', () => {
   it('applies the invert filter to the real outermost wrapper class', () => {
     const css = readFileSync(join(__dirname, 'components/editors/SpreadsheetEditor.scss'), 'utf8')
-    expect(css).toMatch(/\.fortune-container\s*\{\s*filter:\s*invert\(1\)\s*hue-rotate\(180deg\);?\s*\}/)
+    // Inside `@include dark`, so it follows the Appearance setting (styles/darkMixin.test.ts).
+    expect(css).toMatch(/\.fortune-container\s*\{\s*@include dark\s*\{\s*filter:\s*invert\(1\)\s*hue-rotate\(180deg\);?\s*\}\s*\}/)
   })
 })
