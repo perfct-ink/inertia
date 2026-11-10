@@ -23,6 +23,12 @@
       color: color(foreground);
       box-shadow: 0 8px 24px rgb(0 0 0 / 0.16);
 
+      // Moved to the trigger's right edge when it would run off the screen's right.
+      &--end {
+        right: 0;
+        left: auto;
+      }
+
       &--above {
         top: auto;
         bottom: 100%;

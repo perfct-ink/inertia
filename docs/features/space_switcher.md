@@ -33,3 +33,5 @@ The Space name is the prominent line in the sidebar header (semibold, normal siz
 - Changed from a modal to a dropdown menu 2026-10-21 on branch `backlog/space-switcher-dropdown-menu`; not merged. Jest, lint and tsc not run (no node_modules); SCSS compiled.
 
 - Merged to main 2026-11-02 after running, merged with main: `rails db:migrate` (schema diff clean), `rails test`, `npm run lint`, `tsc -b`, Jest, and the collab-server tests, all passing. Not checked in a browser.
+
+The Space menu stays on the screen: at 375px it opens from the trigger's right edge when its left edge would run off (`Menu`, see `design_principles.md`), and typing a letter jumps to a matching Space. Not checked in a browser.

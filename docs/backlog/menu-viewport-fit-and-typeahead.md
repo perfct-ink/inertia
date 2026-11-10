@@ -2,6 +2,8 @@
 priority: p3
 depends_on: []
 components: [frontend]
+branch: backlog/menu-viewport-fit-and-typeahead
+status: incomplete
 ---
 # Menu: stay inside the screen, type-ahead and a single tab stop
 
@@ -20,3 +22,7 @@ components: [frontend]
 - At 375px no menu extends past either screen edge.
 - Type-ahead and the roving tab stop are covered by tests next to `Menu.test.tsx`.
 - Feature docs (space_switcher.md, design_principles.md) updated and this file removed.
+
+## Unverified
+
+Built with the existing markup (a measured flip, not a Radix popover), tested with mocked measurements. Not done: checking the Space switcher, `ProjectNav` and the sidebar menus at 375px with the trigger at the right edge, and any menu inside an `overflow: hidden` ancestor (still clipped). Delete this file when that passes.
