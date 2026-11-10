@@ -3,6 +3,7 @@ import { Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import { useAuthStore } from '@/store/auth'
 import { usesHashRouter } from '@/util/router'
 import { ToastRegion } from '@/components/ui'
+import OfflineIndicator from '@/components/OfflineIndicator'
 import LoginScreen from '@/view/login/LoginScreen'
 import SignupScreen from '@/view/signup/SignupScreen'
 import WorkspaceScreen from '@/view/workspace/WorkspaceScreen'
@@ -312,6 +313,7 @@ export default function App() {
           <Route path="/styleguide" element={<Suspense fallback={null}><StyleguideScreen /></Suspense>} />
         )}
       </Routes>
+      <OfflineIndicator />
       <ToastRegion />
     </>
   )

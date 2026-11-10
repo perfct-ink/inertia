@@ -1,0 +1,30 @@
+@use 'tokens' as *;
+
+// Not clickable, so it has no hover state. Colors come from the theme variables.
+@layer app.components {
+  .offline_indicator_region {
+    position: fixed;
+    top: space(1);
+    left: space(1);
+    z-index: 70;
+    pointer-events: none;
+  }
+
+  .offline_indicator {
+    display: inline-flex;
+    gap: space(1);
+    align-items: center;
+    padding: space(1) space(2);
+    border: 1px solid color(border-strong);
+    border-radius: radius('md');
+    background: color(card);
+    color: color(status-orange-text);
+    font-weight: 600;
+    user-select: none;
+    @include text('xs');
+
+    &-icon {
+      @include icon-size(0.875rem);
+    }
+  }
+}
