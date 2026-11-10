@@ -17,6 +17,7 @@ require "date"
 #   AUTOMATIC  a cell holds a number the server assigns (auto_number)
 #   DERIVED    never stored: read from the record (created_time, updated_time)
 #   COMPUTED   worked out by the web app (formula)
+#   MIRRORED   shows a field of the record a relation links to (mirror); no cells
 #
 # Left out on purpose (Alex, 2026-11-07): credit card, CVV, password and VIN. A
 # Collection should not store card numbers or passwords.
@@ -30,8 +31,9 @@ module FieldType
   AUTOMATIC = %w[auto_number].freeze
   DERIVED = %w[created_time updated_time].freeze
   COMPUTED = %w[formula].freeze
+  MIRRORED = %w[mirror].freeze
   STORED = (VALUE + LINKED + AUTOMATIC).freeze
-  ALL = (STORED + DERIVED + COMPUTED).freeze
+  ALL = (STORED + DERIVED + COMPUTED + MIRRORED).freeze
 
   # Types whose choices live on the field (`options`).
   CHOICE_TYPES = %w[single_select multi_select].freeze

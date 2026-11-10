@@ -84,3 +84,4 @@ One file per implemented feature, written from the code (see `docs/rules/feature
 | One lint command: ESLint, Stylelint, RuboCop, Swift warnings | [lint_entry_point.md](lint_entry_point.md) |
 | Local task file: initiatives and milestones | [local_task_file_planning.md](local_task_file_planning.md) |
 | Component gallery: every shared control in its states, in a light and a dark panel, at `/styleguide` in development (Volta parity audit in [../volta_parity.md](../volta_parity.md)) | [component_gallery.md](component_gallery.md) |
+| Lookup (mirror) fields: a Collection shows a field of the record a relation links to | [connect_and_mirror_fields.md](connect_and_mirror_fields.md) |

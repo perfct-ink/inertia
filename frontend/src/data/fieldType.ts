@@ -15,7 +15,7 @@ import type { CellValue, FieldDataType, TableField } from '@/api/tables'
 // VALUE: a cell holds it. LINKED: a cell holds it and the server also checks it
 // against other records. AUTOMATIC: a number the server assigns. DERIVED: read
 // from the record. COMPUTED: worked out by the editor.
-export type FieldKind = 'value' | 'linked' | 'automatic' | 'derived' | 'computed'
+export type FieldKind = 'value' | 'linked' | 'automatic' | 'derived' | 'computed' | 'mirrored'
 
 // A way to show a type's values: `label` names it and `example` is how it reads.
 export interface FormatOption { key: string; label: string; example: string }
@@ -72,6 +72,7 @@ export const FIELD_TYPES: Record<FieldDataType, FieldTypeInfo> = {
   file: { label: 'File', kind: 'linked', formats: [] },
   files: { label: 'Files', kind: 'linked', formats: [] },
   formula: { label: 'Formula', kind: 'computed', formats: [] },
+  mirror: { label: 'Lookup', kind: 'mirrored', formats: [], hint: 'Shows a field of the record a relation field links to. It cannot be edited.' },
   auto_number: {
     label: 'Auto-number', kind: 'automatic', formats: formats(['plain', 'Plain', '1, 2, 3'], ['padded', 'Padded', '0001, 0002']),
     hint: 'Numbers each record 1, 2, 3 in the order made, including the records already here. A number is never used twice, and the field cannot change type.',
@@ -117,7 +118,7 @@ export const formatChoiceLabel = (option: FormatOption): string => `${option.lab
 export const hasChoices = (type: FieldDataType): boolean => type === 'single_select' || type === 'multi_select'
 
 // Nothing can be typed into these: they are worked out, read from the record, or numbered by the server.
-export const isReadOnly = (type: FieldDataType): boolean => ['computed', 'derived', 'automatic'].includes(FIELD_TYPES[type]?.kind)
+export const isReadOnly = (type: FieldDataType): boolean => ['computed', 'derived', 'automatic', 'mirrored'].includes(FIELD_TYPES[type]?.kind)
 
 // Number columns a summary row can add up.
 export const isSummarizable = (type: FieldDataType): boolean => ['integer', 'number', 'money', 'mileage', 'percent'].includes(type)

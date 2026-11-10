@@ -14,9 +14,11 @@ module Api
 
       def show
         fields = @table.table_fields.order(:id).to_a
+        records = @table.table_records.order(:id).includes(:table_cells).to_a
+        mirrors = TableMirrors.new(@table).values_for(records)
         render json: {
-          fields: fields.as_json(only: [ :id, :name, :data_type, :relation_table_id, :unit, :formula, :display_format, :options ]),
-          records: @table.table_records.order(:id).includes(:table_cells).map { |record| record.as_table_json(fields) }
+          fields: fields.as_json(only: [ :id, :name, :data_type, :relation_table_id, :unit, :formula, :display_format, :options, :mirror_relation_field_id, :mirror_field_id ]),
+          records: records.map { |record| record.as_table_json(fields).merge(mirrors: mirrors.fetch(record.id, {})) }
         }
       end
 
@@ -62,7 +64,7 @@ module Api
       end
 
       def field_params
-        params.require(:field).permit(:name, :data_type, :relation_table_id, :unit, :formula, :display_format, options: [])
+        params.require(:field).permit(:name, :data_type, :relation_table_id, :unit, :formula, :display_format, :mirror_relation_field_id, :mirror_field_id, options: [])
       end
 
       def write_values(record)
@@ -83,10 +85,14 @@ module Api
         record.touch # an "updated time" field follows any change to a cell
       end
 
-      # A formula, a created or updated time and an auto-number are not typed in, so nothing can be written to them.
+      # A formula, a created or updated time, an auto-number and a mirror are not typed in, so nothing can be written to them.
       def reject_read_only!(field)
         return unless field.read_only?
-        field.errors.add(:base, field.computed? ? "#{field.name} is calculated from its formula and cannot be edited" : "#{field.name} is filled in automatically and cannot be edited")
+        reason = if field.computed? then "is calculated from its formula"
+        elsif field.mirror? then "mirrors a field of the linked record"
+        else "is filled in automatically"
+        end
+        field.errors.add(:base, "#{field.name} #{reason} and cannot be edited")
         raise ActiveRecord::RecordInvalid, field
       end
 

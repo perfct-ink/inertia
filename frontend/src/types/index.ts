@@ -187,7 +187,7 @@ export interface Task {
 // Custom task fields (Monday-style columns), defined once per Space: the five
 // task kinds, or a Collection field type (see data/taskField.ts).
 export type TaskFieldKind = 'tags' | 'dropdown' | 'checkbox' | 'rating' | 'vote'
-export type TaskFieldType = TaskFieldKind | Exclude<FieldDataType, 'rating' | 'relation' | 'file' | 'files' | 'auto_number' | 'created_time' | 'updated_time'>
+export type TaskFieldType = TaskFieldKind | Exclude<FieldDataType, 'rating' | 'relation' | 'file' | 'files' | 'auto_number' | 'created_time' | 'updated_time' | 'mirror'>
 
 export interface TaskField {
   id: number

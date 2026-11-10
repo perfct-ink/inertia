@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_11_10_090001) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_10_100001) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -538,8 +538,12 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_10_090001) do
     t.string "display_format"
     t.json "options"
     t.integer "next_number"
+    t.bigint "mirror_relation_field_id"
+    t.bigint "mirror_field_id"
     t.index ["document_id", "name"], name: "index_table_fields_on_document_id_and_name", unique: true
     t.index ["document_id"], name: "index_table_fields_on_document_id"
+    t.index ["mirror_field_id"], name: "index_table_fields_on_mirror_field_id"
+    t.index ["mirror_relation_field_id"], name: "index_table_fields_on_mirror_relation_field_id"
     t.index ["relation_table_id"], name: "index_table_fields_on_relation_table_id"
   end
 
@@ -842,6 +846,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_10_090001) do
   add_foreign_key "table_cells", "table_records", column: "related_record_id"
   add_foreign_key "table_fields", "documents"
   add_foreign_key "table_fields", "documents", column: "relation_table_id"
+  add_foreign_key "table_fields", "table_fields", column: "mirror_field_id", on_delete: :cascade
+  add_foreign_key "table_fields", "table_fields", column: "mirror_relation_field_id", on_delete: :cascade
   add_foreign_key "table_records", "documents"
   add_foreign_key "task_dependencies", "tasks", column: "predecessor_id"
   add_foreign_key "task_dependencies", "tasks", column: "successor_id"

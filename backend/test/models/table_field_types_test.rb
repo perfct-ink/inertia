@@ -154,6 +154,6 @@ class TableFieldTypesTest < ActiveSupport::TestCase
   test "only the types in FieldType can be a field's type" do
     assert_not @table.table_fields.build(name: "Card", data_type: "credit_card").valid?
     assert_not @table.table_fields.build(name: "Secret", data_type: "password").valid?
-    assert_equal FieldType::ALL.sort, (TableField::DATA_TYPES + TableField::DERIVED_TYPES + TableField::COMPUTED_TYPES).sort
+    assert_equal FieldType::ALL.sort, (TableField::DATA_TYPES + TableField::DERIVED_TYPES + TableField::COMPUTED_TYPES + FieldType::MIRRORED).sort
   end
 end

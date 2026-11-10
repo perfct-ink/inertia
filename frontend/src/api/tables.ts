@@ -11,17 +11,20 @@ export type DataType =
   | 'person' | 'relation' | 'file' | 'files' | 'auto_number'
 // A formula is worked out by the editor and a created or updated time is read
 // from the record: none of them has a value of its own to type in.
-export type FieldDataType = DataType | 'formula' | 'created_time' | 'updated_time'
+// A mirror holds none either: it shows `mirror_field_id` of the Collection that its relation field `mirror_relation_field_id` links to.
+export type FieldDataType = DataType | 'formula' | 'created_time' | 'updated_time' | 'mirror'
 export interface TableField {
   id: number; name: string; data_type: FieldDataType; relation_table_id: number | null
   formula?: string | null; unit?: string | null
   // How the type's values are shown (a type with one way to show them has none), and a select's choices.
   display_format?: string | null; options?: string[] | null
+  mirror_relation_field_id?: number | null; mirror_field_id?: number | null
 }
 // Values are plain (a phone as its digits, money as a number); `display` has the
 // text for the ones whose format changes how they read, by field id.
 export type CellValue = string | number | boolean | number[] | string[] | null
-export interface TableRecord { id: number; values: Record<string, CellValue>; display?: Record<string, string> }
+// `mirrors` holds each mirror field's values for the record, a list per field id (empty when nothing is linked).
+export interface TableRecord { id: number; values: Record<string, CellValue>; display?: Record<string, string>; mirrors?: Record<string, Array<string | number | boolean>> }
 export interface TableData { fields: TableField[]; records: TableRecord[] }
 
 export class TableApi extends ApiResource<TableData> {

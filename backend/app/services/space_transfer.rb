@@ -166,15 +166,26 @@ class SpaceTransfer
     fields = {}
     records = {}
     numbered = {}
+    mirrors = []
     sources.each do |source|
       table = Document.find(doc_ids.fetch(source.id))
       source.table_fields.order(:id).each do |field|
+        next mirrors << [ table, field ] if field.mirror?
+
         relation_id = linked_id(field.relation_table_id, doc_ids, same_space)
         copy = table.table_fields.create!(field.slice(*COPIED_FIELD_ATTRIBUTES).merge(relation_table_id: relation_id))
         fields[field.id] = copy.id
         numbered[copy.id] = field.next_number if field.auto_number?
       end
       source.table_records.order(:id).each { |record| records[record.id] = table.table_records.create!(keep_auto_numbers: true).id }
+    end
+    # A mirror points at fields in two Collections, so it waits until every field is copied.
+    mirrors.each do |table, field|
+      table.table_fields.create!(
+        name: field.name, data_type: "mirror",
+        mirror_relation_field_id: linked_id(field.mirror_relation_field_id, fields, same_space),
+        mirror_field_id: linked_id(field.mirror_field_id, fields, same_space)
+      )
     end
     person_fields = TableField.where(id: fields.values, data_type: "person").pluck(:id)
     TableCell.where(table_record_id: records.keys).find_each do |cell|

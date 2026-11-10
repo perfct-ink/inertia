@@ -23,6 +23,13 @@ import {
 import { parseOptions } from '@/data/taskField'
 import CollectionMap from './CollectionMap'
 import { SUMMARY_LABEL, summaryText, type SummaryKind } from '@/data/tableSummary'
+import MirrorFieldForm from './MirrorFieldForm'
+import { mirrorParams, mirrorSource, mirrorSummary, mirrorText } from '@/data/mirror'
+
+// A mirror is read-only: the linked record's value, or a dash when there is none.
+function MirrorValue({ field, text }: { field: TableField; text: string }) {
+  return <output aria-label={field.name} className="table_editor-read_only">{text || <span className="field_cell-placeholder" aria-hidden="true">—</span>}</output>
+}
 
 // A formula field's value for one record: worked out live from the row's other
 // fields (including edits not saved yet), never typed in.
@@ -58,6 +65,7 @@ function RecordRow({ record, fields, relations, files, people, busy, onSave, onD
     <td className="table_editor-cell table_editor-cell--id">{record ? `#${record.id}` : 'New'}</td>
     {fields.map(field => {
       if (isFormulaField(field)) return <td key={field.id} className="table_editor-cell"><FormulaCell field={field} result={formulas.get(field.id)!} /></td>
+      if (field.data_type === 'mirror') return <td key={field.id} className="table_editor-cell"><MirrorValue field={field} text={mirrorText(record?.mirrors?.[field.id], mirrorSource(field, fields, relations), { people: new Map(people.map(person => [person.id, person.name])) })} /></td>
       const value = values[field.id]
       return <td key={field.id} className="table_editor-cell">
         <FieldCell field={field} value={value} invalid={valueProblem(field, value) !== null}
@@ -93,6 +101,8 @@ export default function TableEditor({ doc }: { doc: Document }) {
   const [format, setFormat] = useState('')
   const [choices, setChoices] = useState('')
   const [relationTable, setRelationTable] = useState('')
+  const [mirrorVia, setMirrorVia] = useState('')
+  const [mirrorShown, setMirrorShown] = useState('')
   const [formula, setFormula] = useState('')
   const [formulaTouched, setFormulaTouched] = useState(false)
   const otherFields = (data?.fields ?? []).filter(f => f.id !== editingField?.id)
@@ -126,6 +136,7 @@ export default function TableEditor({ doc }: { doc: Document }) {
     setFormat(formatKey(dataType, field?.display_format) ?? ''); setChoices((field?.options ?? []).join('\n'))
     setRelationTable(field?.relation_table_id ? String(field.relation_table_id) : ''); setUnit(field?.unit ?? ''); setShowForm(true); setFieldError('')
     setFormula(field?.formula ?? ''); setFormulaTouched(false)
+    setMirrorVia(field?.mirror_relation_field_id ? String(field.mirror_relation_field_id) : ''); setMirrorShown(field?.mirror_field_id ? String(field.mirror_field_id) : '')
   }
   function changeType(next: FieldDataType) { setType(next); setFormat(defaultFormat(next) ?? '') }
   // The default format is stored as none; a field that had another one is sent null to go back to the default.
@@ -140,7 +151,7 @@ export default function TableEditor({ doc }: { doc: Document }) {
       await action(editingField ? `fields/${editingField.id}` : 'fields', editingField ? 'patch' : 'post', {
         field: {
           name: name.trim(), data_type: type, relation_table_id: type === 'relation' ? Number(relationTable) : null,
-          ...(hasUnit(type) && { unit: unit.trim() || null }), ...(type === 'formula' && { formula: formula.trim() }), ...formatChange, ...(options && { options }),
+          ...(hasUnit(type) && { unit: unit.trim() || null }), ...(type === 'formula' && { formula: formula.trim() }), ...(type === 'mirror' && mirrorParams(mirrorVia, mirrorShown)), ...formatChange, ...(options && { options }),
         },
       })
       setShowForm(false)
@@ -167,7 +178,7 @@ export default function TableEditor({ doc }: { doc: Document }) {
       {isLoading ? <Loader2 className="table_editor-spinner" /> : data && mode === 'map' ? <CollectionMap data={data} people={peopleNames} /> : data && <div className="table_editor-grid">
         <table className="table_editor-table">
           <thead className="table_editor-table_head"><tr><th className="table_editor-column_head table_editor-column_head--id">Record ID</th>
-            {data.fields.map(field => <th key={field.id} className="table_editor-column_head"><div className="table_editor-column_head_main"><Button onClick={() => fieldForm(field)} className="table_editor-column_name_button"><span>{field.name}</span><Pencil className="table_editor-column_edit_icon" /></Button><IconButton tone="danger" label={`Delete field ${field.name}`} disabled={busy} onClick={() => remove(`fields/${field.id}`, `Delete “${field.name}” and all its values?`)} className="table_editor-icon_button table_editor-icon_button--column"><Trash2 className="table_editor-icon_button_icon table_editor-icon_button_icon--sm" /></IconButton></div><span className="table_editor-column_type">{fieldTypeText(field)}{field.unit ? ` (${field.unit})` : ''}{field.relation_table_id ? ` → ${tables.find(t => t.id === field.relation_table_id)?.title ?? 'Table'}` : ''}</span>{field.formula && <code className="table_editor-column_formula" title={field.formula}>= {field.formula}</code>}</th>)}
+            {data.fields.map(field => <th key={field.id} className="table_editor-column_head"><div className="table_editor-column_head_main"><Button onClick={() => fieldForm(field)} className="table_editor-column_name_button"><span>{field.name}</span><Pencil className="table_editor-column_edit_icon" /></Button><IconButton tone="danger" label={`Delete field ${field.name}`} disabled={busy} onClick={() => remove(`fields/${field.id}`, `Delete “${field.name}” and all its values?`)} className="table_editor-icon_button table_editor-icon_button--column"><Trash2 className="table_editor-icon_button_icon table_editor-icon_button_icon--sm" /></IconButton></div><span className="table_editor-column_type">{fieldTypeText(field)}{field.unit ? ` (${field.unit})` : ''}{field.relation_table_id ? ` → ${tables.find(t => t.id === field.relation_table_id)?.title ?? 'Table'}` : ''}{field.data_type === 'mirror' ? ` → ${mirrorSummary(field, data.fields, relations, id => tables.find(t => t.id === id)?.title)}` : ''}</span>{field.formula && <code className="table_editor-column_formula" title={field.formula}>= {field.formula}</code>}</th>)}
             <th className="table_editor-column_head table_editor-column_head--add"><IconButton fill label="New field" title="Add field" disabled={busy} onClick={() => fieldForm()} className="table_editor-icon_button table_editor-icon_button--add"><Plus className="table_editor-icon_button_icon" /></IconButton></th>
             <th className="table_editor-column_head table_editor-column_head--actions">Actions</th>
           </tr></thead>
@@ -199,11 +210,12 @@ export default function TableEditor({ doc }: { doc: Document }) {
         {hasUnit(type) && <label className="table_editor-field_form_label">Unit (optional)<Input maxLength={20} placeholder="kg, $, %…" value={unit} onChange={e => setUnit(e.target.value)} /></label>}
         {type === 'relation' && <label className="table_editor-field_form_label">Related collection<Select required value={relationTable} onChange={e => setRelationTable(e.target.value)}><option value="">Choose a collection</option>{tables.map(t => <option key={t.id} value={t.id}>{t.title}</option>)}</Select></label>}
         {type === 'formula' && <FormulaInput value={formula} onChange={setFormula} onBlur={() => setFormulaTouched(true)} fields={otherFields} problem={formulaProblem} showProblem={formulaTouched} />}
+        {type === 'mirror' && <MirrorFieldForm fields={data?.fields ?? []} linked={relations} relationFieldId={mirrorVia} sourceFieldId={mirrorShown} onRelationFieldChange={setMirrorVia} onSourceFieldChange={setMirrorShown} selectClassName="" />}
         {editingField && !isReadOnly(type) && <p className="table_editor-field_form_hint">Clear this field’s values before changing its data type or related collection.</p>}
         <FormError message={fieldError} />
         <div className="ui-modal-actions">
           <Button type="button" onClick={() => setShowForm(false)}>Cancel</Button>
-          <Button type="submit" variant="primary" disabled={busy || !name.trim()}>{editingField ? 'Save field' : 'Create field'}</Button>
+          <Button type="submit" variant="primary" disabled={busy || !name.trim() || (type === 'mirror' && !(mirrorVia && mirrorShown))}>{editingField ? 'Save field' : 'Create field'}</Button>
         </div>
       </form>
     </Modal>
