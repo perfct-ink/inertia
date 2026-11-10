@@ -35,7 +35,7 @@ Met. `docs/project/settings.md` exists in the required shape. The Capacitor iOS 
 | Health checks (`/health`, `/status`) | Not met | Rails has only `/up`, nginx has `/healthz`. Task: `health-and-status-endpoints`. |
 | ORM, no SQL outside models | Met | No raw `execute` calls in controllers or services. |
 | Migrations compatible with rollback | Not met, two files | `20260611051106_add_workspace_id_to_tasks` and `20261021000001_create_task_participants` backfill with a bare `execute` in `change`, so they cannot be rolled back. The earlier agent had edited them; those edits were reverted because shipped migrations are never edited. Recovery is documented in `docs/deployment.md` (Rollback). |
-| Initializers (env parsed at start-up only) | Not met | `ENV` is read in `application_controller.rb`, `marketing_controller.rb`, `auth/social_sign_in.rb` and `quip/importer.rb`. Task: `parse-env-in-initializers` (it also asks for `BYPASS_AUTH` to be ignored in production). |
+| Initializers (env parsed at start-up only) | Built, unverified | `ENV` is read only in `config/initializers/app_settings.rb` (`AppSettings`); controllers and services ask it (read when asked, not copied at boot, so tests can set a variable). `BYPASS_AUTH` is ignored in production. A test fails if `ENV` appears under `app/` or `lib/`. See `docs/features/app_settings.md`. |
 | Routes without file extensions | Met | |
 | API: serializers and request tests | Partly met | Blueprinter everywhere. No request test for events, event tasks, shares, Quip imports, sign-up and sign-in, team members. Task: `request-tests-for-untested-controllers`. |
 

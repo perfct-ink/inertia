@@ -18,7 +18,7 @@ class ApplicationController < ActionController::API
   end
 
   def bypass_auth?
-    ENV["BYPASS_AUTH"] == "true"
+    AppSettings.bypass_auth?
   end
 
   def bypass_auth!

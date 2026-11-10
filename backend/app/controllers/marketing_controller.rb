@@ -84,7 +84,7 @@ class MarketingController < ActionController::Base
   # Login and signup live in the SPA. In production it shares this origin; in
   # development it runs on its own port, named by WEB_URL.
   def app_url(path)
-    ENV.fetch("WEB_URL", "") + path
+    AppSettings.web_url + path
   end
 
   def canonical_url

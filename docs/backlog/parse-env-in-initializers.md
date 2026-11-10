@@ -2,6 +2,8 @@
 priority: p2
 depends_on: []
 components: [backend, docs]
+branch: backlog/parse-env-in-initializers
+status: incomplete
 ---
 # Read environment variables only in initializers
 
@@ -29,3 +31,7 @@ The rules audit (see `docs/features/rules_compliance.md`) found `ENV` read in ap
 
 - No `ENV` reads remain under `backend/app/` or `backend/lib/`.
 - `rails test` and RuboCop pass; behaviour is unchanged.
+
+## Unverified
+
+Built without Rails or RuboCop. Run `rails test` (especially `test/initializers/app_settings_test.rb`, the social sign-in and marketing controller tests) and `bundle exec rubocop`, then delete this file. The settings are read when asked rather than once at boot, to keep the tests that set `ENV` valid.

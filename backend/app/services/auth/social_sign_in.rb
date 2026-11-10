@@ -19,13 +19,13 @@ module Auth
     def initialize(provider)
       @provider = provider
       @settings = PROVIDERS.fetch(provider) { raise Error, "Unsupported sign-in provider." }
-      @client_id = ENV["#{provider.upcase}_CLIENT_ID"]
+      @credentials = AppSettings.social_credentials(provider)
+      @client_id = @credentials[:client_id]
     end
 
     def configured!
-      required = @provider == "apple" ? %w[APPLE_CLIENT_ID APPLE_TEAM_ID APPLE_KEY_ID APPLE_PRIVATE_KEY] : %w[GOOGLE_CLIENT_ID GOOGLE_CLIENT_SECRET]
-      raise NotConfigured, "#{@provider.capitalize} sign-in is not configured yet." unless required.all? { |key| ENV[key].present? }
-      uri = URI(ENV.fetch("OAUTH_CALLBACK_BASE_URL", ""))
+      raise NotConfigured, "#{@provider.capitalize} sign-in is not configured yet." unless AppSettings.missing_social_variables(@provider).empty?
+      uri = URI(AppSettings.oauth_callback_base_url)
       valid = uri.host.present? && uri.query.nil? && uri.fragment.nil? && (uri.scheme == "https" || (@provider == "google" && !Rails.env.production? && uri.scheme == "http" && uri.host == "localhost"))
       valid &&= uri.host != "localhost" && !uri.host.match?(/\A[\d.:]+\z/) if @provider == "apple"
       raise NotConfigured, "Configure a public HTTPS sign-in callback URL." unless valid
@@ -34,7 +34,7 @@ module Auth
     end
 
     def redirect_uri
-      "#{ENV.fetch('OAUTH_CALLBACK_BASE_URL').delete_suffix('/')}/api/v1/auth/social/#{@provider}/callback"
+      "#{AppSettings.oauth_callback_base_url.delete_suffix('/')}/api/v1/auth/social/#{@provider}/callback"
     end
 
     def authorization_url(attempt, state)
@@ -89,10 +89,10 @@ module Auth
     private
 
     def client_secret
-      return ENV.fetch("GOOGLE_CLIENT_SECRET") if @provider == "google"
+      return @credentials.fetch(:client_secret) if @provider == "google"
       now = Time.current.to_i
-      JWT.encode({ iss: ENV.fetch("APPLE_TEAM_ID"), iat: now, exp: now + 300, aud: "https://appleid.apple.com", sub: @client_id },
-        OpenSSL::PKey.read(ENV.fetch("APPLE_PRIVATE_KEY").gsub('\\n', "\n")), "ES256", { kid: ENV.fetch("APPLE_KEY_ID") })
+      JWT.encode({ iss: @credentials.fetch(:team_id), iat: now, exp: now + 300, aud: "https://appleid.apple.com", sub: @client_id },
+        OpenSSL::PKey.read(@credentials.fetch(:private_key).gsub('\\n', "\n")), "ES256", { kid: @credentials.fetch(:key_id) })
     rescue OpenSSL::PKey::PKeyError
       raise NotConfigured, "Apple sign-in credentials need to be configured."
     end

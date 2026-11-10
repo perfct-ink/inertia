@@ -84,7 +84,7 @@ module Quip
 
       data = @client.blob(thread_id: thread_id, blob_hash: match[1])
       blob = ActiveStorage::Blob.create_and_upload!(io: StringIO.new(data), filename: match[1], content_type: "image/png")
-      Rails.application.routes.url_helpers.rails_blob_url(blob, host: ENV.fetch("APP_URL", "http://localhost:3847"))
+      Rails.application.routes.url_helpers.rails_blob_url(blob, host: AppSettings.app_url)
     rescue => e
       Rails.logger.error("Quip import #{@quip_import.id}: failed to fetch image #{src}: #{e.message}")
       nil
