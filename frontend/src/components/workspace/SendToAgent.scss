@@ -1,0 +1,23 @@
+@use 'tokens' as *;
+
+@layer app.components {
+  .send_to_agent {
+    &-icon {
+      @include icon-size(1rem);
+    }
+
+    &-history {
+      margin-top: space(3);
+      padding-left: space(4);
+      list-style: disc;
+      color: color(muted-foreground);
+      @include text('xs');
+    }
+
+    &-sent {
+      display: flex;
+      flex-direction: column;
+      gap: space(2);
+    }
+  }
+}

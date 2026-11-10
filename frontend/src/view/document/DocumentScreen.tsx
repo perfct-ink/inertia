@@ -77,6 +77,7 @@ import ParagraphStylePicker from '@/components/ParagraphStylePicker'
 import DashedListButton from '@/components/DashedListButton'
 import ToolbarBtn from '@/components/DocumentToolbarButton'
 import DocumentBacklinks from '@/components/DocumentBacklinks'
+import { SendToAgent } from '@/components/workspace/SendToAgent'
 import DocumentLinkPicker from '@/components/DocumentLinkPicker'
 import TableEditor from '@/components/editors/TableEditor'
 import SpreadsheetEditor from '@/components/editors/SpreadsheetEditor'
@@ -744,6 +745,7 @@ export default function DocumentScreen({ id }: { id?: number }) {
             hidden
             onChange={handleFileInputChange}
           />
+          <SendToAgent subjectType="document" subjectId={docId} title={doc?.title ?? 'document'} />
           <SaveStatus state={saveStatus} className="document-status" />
         </div>
 

@@ -510,3 +510,26 @@ export interface AppNotification {
   read_at: string | null
   created_at: string
 }
+
+// Send to agent: a document, folder or task handed to an outside agent
+// (docs/features/ai_workers.md).
+export type HandoffSubject = 'document' | 'folder' | 'task'
+
+export interface AgentHandoff {
+  id: number
+  subject_type: string
+  subject_id: number
+  agent_name: string
+  instruction: string | null
+  prompt: string
+  // sent until the agent first uses its token, working after, closed once the token is revoked.
+  status: 'sent' | 'working' | 'closed'
+  sent_by_name: string | null
+  created_at: string
+}
+
+// What sending returns: the handoff plus the token (shown once) and the MCP URL.
+export interface NewAgentHandoff extends AgentHandoff {
+  token: string
+  mcp_url: string
+}

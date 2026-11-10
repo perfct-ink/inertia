@@ -1,4 +1,5 @@
 import { Button, IconButton, StatusDot, Tab, Tabs, classNames, Select } from '@/components/ui'
+import { SendToAgent } from '@/components/workspace/SendToAgent'
 import { Database } from 'lucide-react'
 import { useState, useMemo } from 'react'
 import { useParams, useNavigate, useSearchParams, useLocation, Link, Navigate } from 'react-router-dom'
@@ -479,6 +480,7 @@ export default function FolderDetailScreen({ id }: { id?: number }) {
               {folder.archived ? <ArchiveRestore className="folder_detail-icon--sm" /> : <Archive className="folder_detail-icon--sm" />}
               {folder.archived ? 'Unarchive' : 'Archive'}
             </Button>
+            <SendToAgent subjectType="folder" subjectId={folderId} title={folder.name} />
           </div>
           <Select
             aria-label="Home document"

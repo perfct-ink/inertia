@@ -13,6 +13,7 @@ class Workspace < ApplicationRecord
   has_many :path_aliases, dependent: :delete_all
   has_many :task_dependencies, dependent: :delete_all
   has_many :tasks, dependent: :destroy
+  has_many :agent_handoffs, dependent: :destroy
   has_many :task_fields, dependent: :destroy
   has_many :ai_workers, dependent: :destroy
   # Agent access (see AgentToken); a token limited to a folder also goes with the folder.

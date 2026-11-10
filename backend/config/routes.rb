@@ -129,6 +129,8 @@ Rails.application.routes.draw do
       # Agent access (docs/features/agent_access.md): owners manage tokens with
       # their normal sign-in; agents use the token on /mcp and agent/tools.
       resources :agent_tokens, only: [ :index, :create, :destroy ]
+      # Send to agent: hand a document, folder or task to an outside agent.
+      resources :agent_handoffs, only: [ :index, :create ]
       resources :agent_activities, only: [ :index ]
       get "agent/tools", to: "agent_tools#index"
       post "agent/tools/:tool_name", to: "agent_tools#create"

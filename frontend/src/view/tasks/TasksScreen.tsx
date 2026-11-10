@@ -1,4 +1,5 @@
 import { Button, IconButton, Input, Select, StatusDot, Tab, Tabs, classNames, DatePicker } from '@/components/ui'
+import { SendToAgent } from '@/components/workspace/SendToAgent'
 import { useState, useRef, useEffect, useMemo } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { Plus, X, ArrowRight, Play, Loader2, Search, Filter, Target, SlidersHorizontal, Palette, Repeat, History, Pencil, Paperclip } from 'lucide-react'
@@ -149,6 +150,7 @@ function TaskCard({ task, onNext, nextLabel, onNavigate, onEdit, epicTitle, assi
               {!!task.file_ids?.length && <span className="tasks-meta">{task.file_ids.length}</span>}
             </Button>
           )}
+          {!overlay && <SendToAgent subjectType="task" subjectId={task.id} title={task.title} className="tasks-next" />}
           {onHistory && !overlay && (
             <IconButton onClick={onHistory} className="tasks-next" title="Status history" label={`Status history of ${task.title}`}>
               <History className="tasks-icon" />

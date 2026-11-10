@@ -22,6 +22,11 @@ From a document, folder or task, press **Send to agent**, pick where it goes, an
 - Failed API calls show an error.
 - Tests cover the handoff; `docs/features/ai_workers.md` is updated and this file is removed.
 
-## Not merged (2026-11-09)
+## Built (2026-11-10)
 
-`backlog/ai-worker-send-docs-to-agent` (2026-10-19) also carries its own agent tokens and MCP server, which main now has from `ai-worker-agent-access` in a different form, and it conflicts in 24 places. Rebuild only the Send to agent part on main, using main's agent tokens and tools.
+The Claude Code / other-agent destination is on main (see `docs/features/ai_workers.md`, "Send to agent"): documents, folders and tasks, a copyable prompt with the MCP command and a folder-scoped token, and a recorded handoff with its status. Owners only, because sending makes an agent token.
+
+## Left
+
+- **Claude, run by Inertia**: start a run from the item that reads its documents. Main's AI worker runs only store a text reply about one task; reading and editing documents needs the tools in `ai-worker-tools`, and runs need `ANTHROPIC_API_KEY` set. Build this destination once those exist.
+- Webhook delivery of the handoff.

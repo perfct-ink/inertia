@@ -20,6 +20,14 @@ Rules: the worker must be enabled; worker and task must belong to the same Space
 - `config/initializers/ai_workers.rb` is the only place `ANTHROPIC_API_KEY` is read. It installs the Anthropic client only when the key is non-empty (and not in the test environment, where tests set `AiWorkers.client` themselves).
 - Usage: the token counts a call reports (cached input included) are stored on the run, also for a run that failed after reaching the model (a refusal still costs tokens). `AiRun.token_usage` sums a scope: `workspace.ai_runs.token_usage` is a Space's total, and `workspace.ai_runs.where(created_at: ...)` narrows it. `AiRunBlueprint` includes both counts. The cap that uses this is `ai-worker-limits-and-cost.md`.
 
+## Send to agent (Claude Code or another MCP agent)
+A **Send to agent** button (bot icon) sits in the document toolbar, the folder header and on each task card, for Space owners. It asks for an agent name, an instruction and read-only or read-and-write, then shows a handoff to copy once: a prompt (what to read, the open tasks or folder documents, the instruction) plus the `claude mcp add` command with a new agent token limited to the folder the item is in, or the whole Space for a task outside any folder (see [agent_access.md](agent_access.md)). The prompt never contains the token, and the token is shown only once.
+- `POST /api/v1/agent_handoffs` (`subject_type` document, folder or task; `subject_id`, `agent_name`, `instruction`, `permission`) and `GET /api/v1/agent_handoffs?subject_type=&subject_id=`. Owners only: sending makes an agent token, and only owners make tokens (403 for members and viewers; the button is hidden for them).
+- Model `AgentHandoff` (who sent it, what it covers, instruction, prompt, token; migration `20261110110001`). Its status follows the token: **sent** until the agent first uses it, **working** after, **closed** once revoked. The dialog lists earlier handoffs for the item.
+- Code: `AgentHandoffsController`, `AgentHandoffPrompt`, `frontend/src/components/workspace/SendToAgent.tsx`, `api/agentHandoffs.ts`, `data/agentHandoff.ts`.
+- Tests: `test/controllers/agent_handoffs_controller_test.rb`; frontend `SendToAgent.test.tsx`, `data/agentHandoff.test.ts`.
+- **Not built:** the "Claude, run by Inertia" destination (a run that reads the documents needs the worker tools in `ai-worker-tools`, and the Anthropic key) and delivery by webhook.
+
 ## Who can view and change
 Scoped to the current Space; I did not check role-based limits.
 
@@ -39,3 +47,4 @@ The adapter uses plain HTTPS, not the official `anthropic` gem (adding the gem n
 - Not verified: the tests were not run (no gems installed), the migration was not run, and no real model call was made.
 - Implemented 2026-11-09 (Anthropic adapter, on branch `backlog/ai-worker-anthropic-adapter`, not merged or deployed): streaming client, error mapping, initializer, token columns (migration `20261108150001`). Checked offline: Ruby syntax of every file, and the client, parser and stream tests under plain Ruby with ActiveSupport. Not run: the Rails test suite, the migration, the local-server transport test (the sandbox blocks binding a port), and any call to the real API.
 - Not implemented: the official gem, a usage cap or usage screen, retries.
+- Send to agent (the copy-and-paste destination) rebuilt on main 2026-11-10 on main's agent tokens and MCP server, from `backlog/ai-worker-send-docs-to-agent`. Owners only. Verified: `rails test`, RuboCop, Brakeman, `tsc -b`, Jest, ESLint, the migration, and the handoff in the browser.
