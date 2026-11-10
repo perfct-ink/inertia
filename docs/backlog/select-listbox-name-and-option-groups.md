@@ -2,6 +2,8 @@
 priority: p3
 depends_on: []
 components: [frontend]
+branch: backlog/select-listbox-name-and-option-groups
+status: incomplete
 ---
 # Select: name the list, show option groups, decide on `multiple`
 
@@ -21,3 +23,7 @@ components: [frontend]
 - The open list has an accessible name; grouped options show their headings in the list and in the gallery.
 - Tests cover naming and groups.
 - Feature doc updated and this file removed.
+
+## Unverified
+
+Built and tested in Jest. Not done: a look at a grouped select in the gallery and a browser (the Style menu's "My styles" now shows a heading). Delete this file when that passes.

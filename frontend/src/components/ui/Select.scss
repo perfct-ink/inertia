@@ -107,6 +107,15 @@
       user-select: none;
     }
 
+    // An <optgroup>'s label: a heading, not a choice, so no pointer or hover.
+    &-group {
+      padding: space(2) space(3) space(1);
+      color: color(muted-foreground);
+      font-weight: 600;
+      cursor: default;
+      @include text('xs');
+    }
+
     &-option {
       display: flex;
       align-items: center;

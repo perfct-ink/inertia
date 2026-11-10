@@ -71,3 +71,65 @@ test('an option can carry a hint, shown at the end of its entry in the list and 
   expect(within(list.getByRole('option', { name: 'Title' })).getByText('⌘⌥7')).toBeInTheDocument()
   expect(within(list.getByRole('option', { name: 'Body' })).queryByText('⌘⌥7')).not.toBeInTheDocument()
 })
+
+describe('naming and groups', () => {
+  const open = (container: HTMLElement) => fireEvent.click(container.querySelector('.ui-select') as HTMLElement)
+
+  test('the open list takes the select\'s aria-label', () => {
+    const { container } = render(<Select aria-label="Status" defaultValue="a"><option value="a">A</option></Select>)
+    open(container)
+    expect(screen.getByRole('listbox', { name: 'Status' })).toBeInTheDocument()
+  })
+
+  test('the open list follows aria-labelledby', () => {
+    const { container } = render(<><span id="who">Assignee</span><Select aria-labelledby="who" defaultValue="a"><option value="a">A</option></Select></>)
+    open(container)
+    expect(screen.getByRole('listbox', { name: 'Assignee' })).toBeInTheDocument()
+  })
+
+  test('otherwise it is named by the select\'s label', () => {
+    const { container } = render(<><label htmlFor="s1">Priority</label><Select id="s1" defaultValue="a"><option value="a">High</option></Select></>)
+    open(container)
+    expect(screen.getByRole('listbox', { name: 'Priority' })).toBeInTheDocument()
+  })
+
+  test('a wrapping label names it without the option texts', () => {
+    const { container } = render(<label>Team <Select defaultValue="a"><option value="a">Alpha</option><option value="b">Beta</option></Select></label>)
+    open(container)
+    expect(screen.getByRole('listbox')).toHaveAccessibleName('Team')
+  })
+
+  test('optgroup labels are headings above their options, skipped by the keyboard', () => {
+    const onChange = jest.fn()
+    const { container } = render(
+      <Select aria-label="Style" defaultValue="t" onChange={onChange}>
+        <option value="t">Title</option>
+        <optgroup label="My styles">
+          <option value="c1">Callout</option>
+          <option value="c2">Warning</option>
+        </optgroup>
+      </Select>,
+    )
+    open(container)
+    const group = within(screen.getByRole('listbox')).getByRole('group', { name: 'My styles' })
+    expect(within(group).getAllByRole('option').map((o) => o.textContent)).toEqual(['Callout', 'Warning'])
+    expect(within(screen.getByRole('listbox')).getAllByRole('option')).toHaveLength(3)
+    const select = container.querySelector('select') as HTMLSelectElement
+    fireEvent.keyDown(select, { key: 'ArrowDown' })
+    fireEvent.keyDown(select, { key: 'Enter' })
+    expect(onChange).toHaveBeenCalled()
+    expect(select.value).toBe('c1')
+  })
+
+  test('options outside a group have no heading', () => {
+    const { container } = render(<Select aria-label="Plain" defaultValue="a"><option value="a">A</option></Select>)
+    open(container)
+    expect(within(screen.getByRole('listbox')).queryByRole('group')).not.toBeInTheDocument()
+  })
+
+  test('multiple is not supported and says so', () => {
+    const quiet = jest.spyOn(console, 'error').mockImplementation(() => undefined)
+    expect(() => render(<Select aria-label="Many" multiple><option>A</option></Select>)).toThrow('does not support `multiple`')
+    quiet.mockRestore()
+  })
+})
