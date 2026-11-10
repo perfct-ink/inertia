@@ -52,6 +52,12 @@
       border-radius: radius('md');
       @include text('sm');
 
+      // A finger needs 40px each way; desktop keeps its size.
+      @media (pointer: coarse) {
+        min-width: space(10);
+        min-height: space(10);
+      }
+
       &:hover:not(:disabled) {
         background: color(accent);
       }

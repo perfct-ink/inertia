@@ -46,6 +46,10 @@
       text-align: left;
       @include text('sm');
 
+      @media (pointer: coarse) {
+        min-height: space(11);
+      }
+
       &:hover,
       &:focus-visible {
         background: color(accent);

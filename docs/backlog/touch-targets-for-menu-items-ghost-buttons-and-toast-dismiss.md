@@ -2,6 +2,8 @@
 priority: p2
 depends_on: []
 components: [frontend]
+branch: backlog/touch-targets-for-menu-items-ghost-buttons-and-toast-dismiss
+status: incomplete
 ---
 # Finger-sized targets for menu items, ghost buttons and the toast dismiss button
 
@@ -19,3 +21,7 @@ Design principle 1 (`docs/rules/product.md`): touch targets are large enough to 
 - On a coarse pointer every menu item, ghost button and toast dismiss is at least 40px in both directions; desktop sizes are unchanged.
 - Checked in the component gallery at 375px and on the pages that use ghost buttons.
 - Feature doc updated (design_principles.md) and this file removed.
+
+## Unverified
+
+Built: the coarse-pointer rules, with a stylesheet test. Not done: checking the gallery and the 18 ghost-button uses (sidebar rows, tab close buttons, document toolbar, card actions) at 375px on a touch device or emulation for wrapping or overflow. Delete this file when that passes.
