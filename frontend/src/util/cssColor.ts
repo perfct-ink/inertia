@@ -1,6 +1,7 @@
 // Just enough CSS color parsing to check contrast on the theme tokens in
-// styles/_theme.scss (see styles/statusColors.test.ts): hex, hsl(), var() and
-// color-mix(in srgb, A p%, B). Not used by the app.
+// styles/_theme.scss (see styles/statusColors.test.ts) and to pick the text
+// color on a colour theme's accent (data/appearance.ts): hex, hsl(), var() and
+// color-mix(in srgb, A p%, B).
 export type Rgb = [number, number, number]
 
 // Custom properties by name (`--v-color-base`), as written in the stylesheet.

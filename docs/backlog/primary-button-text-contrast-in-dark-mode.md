@@ -2,6 +2,8 @@
 priority: p1
 depends_on: []
 components: [frontend]
+branch: backlog/primary-button-text-contrast-in-dark-mode
+status: incomplete
 ---
 # Make text on the accent color readable in dark mode
 
@@ -22,3 +24,9 @@ Primary buttons, the selected day in the date picker, the active Files filter, t
 - The focus ring is at least 3:1 against the page in both themes.
 - Light mode looks unchanged.
 - A feature doc in `docs/features/` (appearance.md) is updated and this file is removed.
+
+## Unverified
+
+Built: `--primary-foreground` is white; per-theme text color (`onAccentColor`) and Moss's light accent (`accentLightness`) in `data/appearance.ts`; `--focus-ring` in `_theme.scss` used by the `focus-ring` mixin; tests and `docs/features/appearance.md` updated. Frontend Jest (all 200 suites), `tsc` and `npm --prefix frontend run lint` (0 errors) passed.
+
+Not run here: the browser check at 375px and desktop in light and dark with a non-default colour theme (`make up`, then Settings > Appearance), the backend tests (`bundler 2.5.22` missing on this machine: `make test-backend`) and `swift test --package-path macos` (blocked by the sandbox; the Swift palette test reads `_theme.scss` but only its `hsl()` tokens, which didn't change). To finish: run those, then delete this file.

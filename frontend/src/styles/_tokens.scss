@@ -190,7 +190,7 @@ $breakpoints: (
 
 @mixin focus-ring {
   outline: none;
-  box-shadow: 0 0 0 2px color(background), 0 0 0 4px color(primary);
+  box-shadow: 0 0 0 2px color(background), 0 0 0 4px color(focus-ring);
 }
 
 @mixin truncate {

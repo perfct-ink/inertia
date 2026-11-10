@@ -1,5 +1,7 @@
 // Appearance choices: a mode (light, dark or follow the system) and a colour
 // theme, which sets the accent and can tint the sidebar, as in Slack.
+import { contrastRatio, parseColor } from '@/util/cssColor'
+
 export type ThemeChoice = 'system' | 'light' | 'dark'
 
 export const THEME_CHOICES: { value: ThemeChoice; label: string }[] = [
@@ -50,20 +52,51 @@ export function themeAttribute(theme: ThemeChoice): 'light' | 'dark' | null {
   return theme === 'system' ? null : theme
 }
 
+// Text on the accent: white, or the dark page color for an accent white can't
+// read on (WCAG AA is 4.5:1).
+const ON_ACCENT_LIGHT = '#fff'
+const ON_ACCENT_DARK = 'hsl(222deg 32% 10%)'
+const AA_TEXT = 4.5
+
+// The accent's lightness: 32% in light and 42% in dark, with light mode
+// deepened a step at a time until white text on it reaches AA (Moss at 32% is 4.3:1).
+export function accentLightness(hue: number, dark: boolean): number {
+  if (dark) return 42
+  let lightness = 32
+  while (lightness > 20 && contrastRatio(parseColor(ON_ACCENT_LIGHT), parseColor(`hsl(${hue}deg 72% ${lightness}%)`)) < AA_TEXT) lightness--
+  return lightness
+}
+
+// The hover lightness: 27% in light and 36% in dark, never lighter than the accent.
+function accentHoverLightness(hue: number, dark: boolean): number {
+  return Math.min(dark ? 36 : 27, accentLightness(hue, dark) - 2)
+}
+
 // The accent colour itself, for a theme's swatch or preview.
 export function accentColor(hue: number, dark: boolean): string {
-  return `hsl(${hue}deg 72% ${dark ? 42 : 32}%)`
+  return `hsl(${hue}deg 72% ${accentLightness(hue, dark)}%)`
+}
+
+// The text color on a theme's accent and its hover shade: white unless the dark
+// page color reads better on both (Moss in dark mode).
+export function onAccentColor(hue: number, dark: boolean): string {
+  const shades = [accentLightness(hue, dark), accentHoverLightness(hue, dark)].map((l) => parseColor(`hsl(${hue}deg 72% ${l}%)`))
+  const worst = (text: string) => Math.min(...shades.map((shade) => contrastRatio(parseColor(text), shade)))
+  return worst(ON_ACCENT_DARK) > worst(ON_ACCENT_LIGHT) ? ON_ACCENT_DARK : ON_ACCENT_LIGHT
 }
 
 // Volta accent tokens for a theme, using the same lightness steps as _theme.scss
-// (light: 32%/27%, dark: 42%/36%). Null for a theme with Inertia's own accent:
+// (light: 32%/27%, dark: 42%/36%), and the text color that reads on them. Null for a theme with Inertia's own accent:
 // _theme.scss already sets it.
 export function accentProperties(id: ColorThemeId, dark: boolean): Record<string, string> | null {
   const hue = findTheme(id)?.hue
   if (hue === undefined || hue === DEFAULT_HUE) return null
-  return dark
-    ? { '--v-accent': accentColor(hue, true), '--v-accent-hover': `hsl(${hue}deg 72% 36%)`, '--v-accent-subtle': `hsl(${hue}deg 15% 18%)` }
-    : { '--v-accent': accentColor(hue, false), '--v-accent-hover': `hsl(${hue}deg 72% 27%)`, '--v-accent-subtle': `hsl(${hue}deg 30% 90%)` }
+  return {
+    '--v-accent': accentColor(hue, dark),
+    '--v-accent-hover': `hsl(${hue}deg 72% ${accentHoverLightness(hue, dark)}%)`,
+    '--v-accent-subtle': dark ? `hsl(${hue}deg 15% 18%)` : `hsl(${hue}deg 30% 90%)`,
+    '--primary-foreground': onAccentColor(hue, dark),
+  }
 }
 
 // The sidebar's background for a theme (a little deeper in dark mode), or null
@@ -93,7 +126,7 @@ export function sidebarProperties(id: ColorThemeId, dark: boolean): Record<strin
 }
 
 export const APPEARANCE_PROPERTY_NAMES = [
-  '--v-accent', '--v-accent-hover', '--v-accent-subtle',
+  '--v-accent', '--v-accent-hover', '--v-accent-subtle', '--primary-foreground',
   '--sidebar-background', '--sidebar-hover', '--sidebar-border', '--sidebar-field',
   '--sidebar-foreground', '--sidebar-muted-foreground',
 ] as const

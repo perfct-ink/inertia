@@ -39,6 +39,11 @@
   --v-color-trim-subtle: hsl(220deg 12% 68%);
   --accent-foreground: hsl(217deg 60% 75%);
   --card: hsl(222deg 28% 13%);
+
+  // The accent against the dark page is 2.7:1, under the 3:1 a focus indicator
+  // needs, so the ring is the accent lightened toward the text color (4.8:1 or
+  // better for every colour theme).
+  --focus-ring: color-mix(in srgb, var(--primary) 60%, var(--v-color-trim));
 }
 
 // Status colors: task statuses, health, deadlines, errors, overdue. Inertia sits
@@ -58,6 +63,7 @@
 //                        statusColors.test.ts re-checks every pair.
 :root {
   --status-red: var(--v-color-danger);
+
   // Light mode: Volta's success nudged 5% toward the text color, to clear 3:1 on
   // the muted surface (Volta's own is 2.98 there), and a deeper yellow and
   // orange (the old #eab308 and #f97316 were 1.92 and 2.80 on white).
@@ -104,7 +110,12 @@
   --input: var(--v-color-base-subtle);
   --primary: var(--v-accent);
   --primary-hover: var(--v-accent-hover);
-  --primary-foreground: var(--v-color-base);
+
+  // Text on the accent is white (9.4:1 in light, 6.6:1 in dark); the page
+  // background was near-black in dark mode, 2.7:1. A colour theme whose accent
+  // white can't read on sets its own inline (data/appearance.ts).
+  --primary-foreground: #fff;
+  --focus-ring: var(--primary);
   --accent: var(--v-accent-subtle);
   --canvas: var(--v-color-base);
   --card-foreground: var(--v-color-trim);
