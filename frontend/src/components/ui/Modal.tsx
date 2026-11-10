@@ -1,4 +1,4 @@
-import { useEffect, useState, type FormEvent, type ReactNode } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState, type FormEvent, type ReactNode } from 'react'
 import * as Dialog from '@radix-ui/react-dialog'
 import { Button } from './Button'
 import { Input } from './Input'
@@ -20,12 +20,23 @@ type ModalProps = {
 // Accessible modal (focus trap, Esc to close, aria labelling from Radix).
 // Replaces native window.alert/confirm/prompt dialogs.
 export function Modal({ open, title, description, wide, onClose, className, children }: ModalProps) {
+  // Radix returns focus only to a Dialog.Trigger, and a Modal is opened by state, so
+  // remember what had focus when it opened and give it back when it closes.
+  const opener = useRef<HTMLElement | null>(null)
+  useLayoutEffect(() => {
+    if (open) opener.current = document.activeElement instanceof HTMLElement ? document.activeElement : null
+  }, [open])
+
   return (
     <Dialog.Root open={open} onOpenChange={(next) => { if (!next) onClose() }}>
       <Dialog.Portal>
         <Dialog.Overlay className="ui-modal-overlay" />
         <Dialog.Content
           className={classNames('ui-modal-content', wide && 'ui-modal-content--wide', className)}
+          onCloseAutoFocus={(event) => {
+            event.preventDefault()
+            if (opener.current?.isConnected) opener.current.focus()
+          }}
         >
           <Dialog.Title className="ui-modal-title">{title}</Dialog.Title>
           {description

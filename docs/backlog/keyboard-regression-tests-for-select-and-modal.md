@@ -2,6 +2,8 @@
 priority: p3
 depends_on: []
 components: [frontend]
+branch: backlog/keyboard-regression-tests-for-select-and-modal
+status: incomplete
 ---
 # Tests for the keyboard paths that are not covered yet
 
@@ -18,3 +20,7 @@ components: [frontend]
 
 - Each path above has a test that fails if the behaviour is removed; `npm test` passes.
 - This file is removed.
+
+## Unverified
+
+All paths in the objective are tested except the Escape-inside-a-modal case, whose tests live on `backlog/escape-closes-only-the-open-popup-inside-a-modal`. The `Modal` focus-return fix is covered by Jest only; try it in a browser (open a modal from a button, press Esc, focus is back on the button). Delete this file when that passes.
