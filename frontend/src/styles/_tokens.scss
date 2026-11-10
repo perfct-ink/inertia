@@ -130,6 +130,14 @@ $breakpoints: (
     border-color: color(primary);
     @include focus-ring;
   }
+
+  // A field with an error (aria-invalid, set by the Field wrapper) keeps a danger
+  // border through hover and focus; the focus ring still shows.
+  &[aria-invalid='true'],
+  &[aria-invalid='true']:hover:not(:disabled),
+  &[aria-invalid='true']:focus {
+    border-color: color(danger);
+  }
 }
 
 // Checkbox and radio drawn by the app, so they look the same in every browser

@@ -1,6 +1,6 @@
 import { useId, useState, type ComponentType, type ReactNode } from 'react'
 import {
-  AttachmentCard, Button, ButtonLink, ConfirmDialog, DatePicker, FormError, HealthBadge, Input, Menu, Modal,
+  AttachmentCard, Button, ButtonLink, ConfirmDialog, DatePicker, Field, FormError, HealthBadge, Input, Menu, Modal,
   PromptDialog, Select, StatusDot, Textarea, type MenuItem,
 } from '@/components/ui'
 import { TASK_STATUS_COLORS, COLOR_LABEL } from '@/data/task_status'
@@ -62,8 +62,25 @@ function FieldExamples() {
         <Input aria-label="Focused text" defaultValue="Focused" className="styleguide-state--focus" />
       </Example>
       <Example label="Invalid, with its message">
-        <Input aria-label="Invalid email" aria-invalid defaultValue="ada@" />
-        <FormError message="Enter a full email address." />
+        <Field label="Invalid email" error="Enter a full email address.">
+          <Input defaultValue="ada@" />
+        </Field>
+      </Example>
+      <Example label="Labelled field with a hint">
+        <Field label="Nickname" hint="Shown next to your comments." optional>
+          <Input placeholder="Ada" />
+        </Field>
+      </Example>
+      <Example label="Invalid select and text area">
+        <Field label="Role" error="Choose a role.">
+          <Select defaultValue="">
+            <option value="">Choose…</option>
+            <option value="member">Member</option>
+          </Select>
+        </Field>
+        <Field label="Reason" error="Say why.">
+          <Textarea />
+        </Field>
       </Example>
       <Example label="Checkbox">
         <Input type="checkbox" aria-label="Unchecked" />

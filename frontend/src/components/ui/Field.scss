@@ -1,0 +1,25 @@
+@use 'tokens' as *;
+
+@layer app.ui {
+  .ui-field {
+    display: flex;
+    flex-direction: column;
+    gap: space(1);
+
+    &-label {
+      font-weight: 500;
+      @include text('sm');
+    }
+
+    &-optional,
+    &-hint {
+      color: color(muted-foreground);
+      font-weight: 400;
+      @include text('sm');
+    }
+
+    &-hint {
+      margin: 0;
+    }
+  }
+}

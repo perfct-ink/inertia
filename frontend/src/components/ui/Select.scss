@@ -39,6 +39,14 @@
       @include focus-ring;
     }
 
+    // A field with an error (the Field wrapper sets aria-invalid): a danger border through
+    // hover and focus.
+    &--invalid,
+    &--invalid:hover,
+    &--invalid:focus-within {
+      border-color: color(danger);
+    }
+
     &--disabled {
       cursor: not-allowed;
       opacity: 0.5;

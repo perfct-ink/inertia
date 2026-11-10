@@ -71,4 +71,7 @@ test('a wrong password shows the error and stays on the page', async () => {
   signIn()
   expect(await screen.findByText('Invalid email or password')).toBeInTheDocument()
   expect(screen.queryByTestId('where')).not.toBeInTheDocument()
+  // The refusal is tied to the password field, so a screen reader hears it on returning there.
+  expect(screen.getByLabelText('Password')).toBeInvalid()
+  expect(screen.getByLabelText('Password')).toHaveAccessibleDescription('Invalid email or password')
 })

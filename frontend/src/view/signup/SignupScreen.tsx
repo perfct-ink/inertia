@@ -1,4 +1,4 @@
-import { Button, Input, FormError } from '@/components/ui'
+import { Button, Field, FormError, Input } from '@/components/ui'
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { signupErrors, useSignup } from '@/api/auth'
@@ -6,6 +6,7 @@ import { useAuthStore } from '@/store/auth'
 import { useOnboardingStore } from '@/store/onboarding'
 import AuthLayout from '@/components/auth/AuthLayout'
 import { usePageTitle } from '@/hooks/usePageTitle'
+import { splitSignupErrors } from '@/data/signupError'
 
 export default function SignupScreen() {
   usePageTitle('Sign up')
@@ -23,33 +24,42 @@ export default function SignupScreen() {
     onError: (err) => setErrors(signupErrors(err)),
   })
 
+  // Refusals about a field show under it; the rest above the form.
+  const { fields, other } = splitSignupErrors(errors)
+
   return (
     <AuthLayout title="Create your account">
-      {errors.map((e) => <FormError key={e} message={e} />)}
+      {other.map((e) => <FormError key={e} message={e} />)}
       <form
         className="auth-form"
         onSubmit={(e) => { e.preventDefault(); signup.mutate(form) }}
       >
-        <Input
-          placeholder="Name"
-          value={form.name}
-          onChange={(e) => setForm({ ...form, name: e.target.value })}
-          required
-        />
-        <Input
-          type="email"
-          placeholder="Email"
-          value={form.email}
-          onChange={(e) => setForm({ ...form, email: e.target.value })}
-          required
-        />
-        <Input
-          type="password"
-          placeholder="Password"
-          value={form.password}
-          onChange={(e) => setForm({ ...form, password: e.target.value })}
-          required
-        />
+        <Field label="Name" error={fields.name}>
+          <Input
+            placeholder="Name"
+            value={form.name}
+            onChange={(e) => setForm({ ...form, name: e.target.value })}
+            required
+          />
+        </Field>
+        <Field label="Email" error={fields.email}>
+          <Input
+            type="email"
+            placeholder="Email"
+            value={form.email}
+            onChange={(e) => setForm({ ...form, email: e.target.value })}
+            required
+          />
+        </Field>
+        <Field label="Password" error={fields.password}>
+          <Input
+            type="password"
+            placeholder="Password"
+            value={form.password}
+            onChange={(e) => setForm({ ...form, password: e.target.value })}
+            required
+          />
+        </Field>
         <Button
           type="submit"
           disabled={signup.isPending}

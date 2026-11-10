@@ -2,6 +2,8 @@
 priority: p2
 depends_on: []
 components: [frontend]
+branch: backlog/form-field-errors-linked-to-inputs
+status: incomplete
 ---
 # Link field errors to their inputs and add a labelled field wrapper
 
@@ -20,3 +22,7 @@ components: [frontend]
 - With an error, the control has `aria-invalid` and `aria-describedby` pointing at the message; tests cover it.
 - The invalid state looks right in both themes and at 375px.
 - `docs/ui-components.md` documents the wrapper; feature doc updated and this file removed.
+
+## Unverified
+
+Built: `Field`, `FormError id`, the invalid styles, login and signup, and the gallery's Fields section, with tests. `docs/ui-components.md` was not updated (the wrapper is documented in `docs/features/design_principles.md`); add a short entry there. Not done: the browser check of the invalid state in both themes and at 375px. Delete this file when both are done.

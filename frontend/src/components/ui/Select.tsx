@@ -78,6 +78,8 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(function Select
   const [open, setOpen] = useState(false)
   const [active, setActive] = useState(-1)
   const typeahead = useRef({ text: '', at: 0 })
+  // The face shows the error border; the hidden select carries the aria-invalid itself.
+  const invalid = props['aria-invalid'] === true || props['aria-invalid'] === 'true'
 
   useEffect(() => {
     if (open) listRef.current?.querySelector(`[data-index="${active}"]`)?.scrollIntoView?.({ block: 'nearest' })
@@ -144,7 +146,7 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(function Select
       <Popover.Anchor asChild>
         <div
           ref={faceRef}
-          className={classNames('ui-select', variant && `ui-select--${variant}`, open && 'ui-select--open', disabled && 'ui-select--disabled', className)}
+          className={classNames('ui-select', variant && `ui-select--${variant}`, open && 'ui-select--open', disabled && 'ui-select--disabled', invalid && 'ui-select--invalid', className)}
           style={style}
           title={title}
           onMouseDown={(e) => e.preventDefault()}

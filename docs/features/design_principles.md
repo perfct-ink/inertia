@@ -46,6 +46,8 @@ Shared mixins added to `_tokens.scss`: `page-header`, `page-padding`, `reveal-on
 - `components/ui/Controls.test.tsx` (existing): checkboxes keep native selection behaviour.
 - Checked in a browser (Chromium via Playwright against a mocked API) at 375, 768 and 1280px on every route, including each folder view: no page-level horizontal overflow, no control text selectable, no transition other than 150ms, no unstyled checkbox or select. Light and dark mode checked for checkboxes, selects and date fields.
 
+**Field wrapper.** `components/ui/Field.tsx` wraps one control (Input, Textarea, Select, DatePicker) with a label (`htmlFor`), an optional hint and "(optional)", and its error. It gives the control an id, `aria-describedby` (any the control already had, the hint, the error) and `aria-invalid` while there is an error, and keeps the control's props and ref. `FormError` takes an `id`. An invalid control gets a danger border through hover and focus (`field-states` for inputs and text areas, `ui-select--invalid` for the select's face). The login and signup forms use it (signup shows each server refusal under its field, `data/signupError.ts`; login's refusal sits under the password); other forms still render `FormError` alone.
+
 ## Known limits
 
 - The date picker's keyboard model is partial: ArrowUp/ArrowDown move a week, PageUp/PageDown a month (Shift: a year) and Enter picks, but ArrowLeft/ArrowRight keep moving the cursor in the text, so a keyboard user types the date or steps by weeks. The week starts on Sunday.
@@ -66,3 +68,4 @@ Shared mixins added to `_tokens.scss`: `page-header`, `page-padding`, `reveal-on
 
 - Merged to main 2026-11-02 after running, merged with main: `rails db:migrate` (schema diff clean), `rails test`, `npm run lint`, `tsc -b`, Jest, and the collab-server tests, all passing. Not checked in a browser.
 - Implemented 2026-11-02: `Select` is a styled dropdown instead of the browser's list (and `@radix-ui/react-popover` upgraded to 1.3.1). Lint, `tsc -b` and Jest pass; checked in Chromium against a mocked API. Not committed or deployed.
+- Field wrapper and invalid state, 2026-11-10 (on branch `backlog/form-field-errors-linked-to-inputs`). Jest, `tsc` and eslint pass; not checked in a browser (both themes, 375px), not deployed.

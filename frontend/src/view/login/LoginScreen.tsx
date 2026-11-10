@@ -1,4 +1,4 @@
-import { Button, Input, FormError } from '@/components/ui'
+import { Button, Field, Input } from '@/components/ui'
 import { useState } from 'react'
 import { useNavigate, useLocation, Link } from 'react-router-dom'
 import { useLogin } from '@/api/auth'
@@ -26,25 +26,29 @@ export default function LoginScreen() {
 
   return (
     <AuthLayout title="Sign in to Inertia">
-      <FormError message={error} />
       <form
         className="auth-form"
         onSubmit={(e) => { e.preventDefault(); login.mutate(form) }}
       >
-        <Input
-          type={process.env.NODE_ENV === 'development' ? 'text' : 'email'}
-          placeholder="Email"
-          value={form.email}
-          onChange={(e) => setForm({ ...form, email: e.target.value })}
-          required
-        />
-        <Input
-          type="password"
-          placeholder="Password"
-          value={form.password}
-          onChange={(e) => setForm({ ...form, password: e.target.value })}
-          required
-        />
+        <Field label="Email">
+          <Input
+            type={process.env.NODE_ENV === 'development' ? 'text' : 'email'}
+            placeholder="Email"
+            value={form.email}
+            onChange={(e) => setForm({ ...form, email: e.target.value })}
+            required
+          />
+        </Field>
+        {/* The refusal doesn't say which of the two was wrong, so it sits under the password. */}
+        <Field label="Password" error={error}>
+          <Input
+            type="password"
+            placeholder="Password"
+            value={form.password}
+            onChange={(e) => setForm({ ...form, password: e.target.value })}
+            required
+          />
+        </Field>
         <Button
           type="submit"
           disabled={login.isPending}
