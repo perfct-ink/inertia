@@ -3,6 +3,7 @@ import { Workbook } from '@fortune-sheet/react'
 import './SpreadsheetEditor.scss'
 import { SaveStatus, type SaveState } from '@/components/ui'
 import WorkspaceLayout from '@/components/WorkspaceLayout'
+import DocumentBacklinks from '@/components/DocumentBacklinks'
 import { useDocument, useUpdateDocument } from '@/api/documents'
 import { useTabsStore } from '@/store/tabs'
 import { idPath } from '@/data/path'
@@ -77,6 +78,7 @@ export default function SpreadsheetEditor({ docId }: { docId: number }) {
             onChange={(sheets) => scheduleSave(sheets as Sheet[])}
           />
         </div>
+        <DocumentBacklinks documentId={docId} bar />
       </div>
     </WorkspaceLayout>
   )

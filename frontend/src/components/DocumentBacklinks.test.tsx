@@ -33,3 +33,11 @@ test('uses the singular for one and shows nothing for none', () => {
   const { container } = render(<DocumentBacklinks documentId={1} />)
   expect(container).toBeEmptyDOMElement()
 })
+
+test('on a screen that scrolls inside (a sheet, a Collection) the panel is a strip of its own', () => {
+  mockDocs = [{ id: 4, title: 'Plan', doc_type: 'document', folder_id: 2 }]
+  const { rerender } = render(<DocumentBacklinks documentId={1} />)
+  expect(screen.getByRole('region', { name: 'Linked from' })).not.toHaveClass('document_backlinks--bar')
+  rerender(<DocumentBacklinks documentId={1} bar />)
+  expect(screen.getByRole('region', { name: 'Linked from' })).toHaveClass('document_backlinks', 'document_backlinks--bar')
+})

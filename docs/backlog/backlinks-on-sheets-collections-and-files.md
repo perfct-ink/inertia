@@ -2,6 +2,8 @@
 priority: p3
 depends_on: [backlinks-each-document-lists-which-documents-link-to]
 components: [frontend]
+branch: backlog/backlinks-on-sheets-collections-and-files
+status: incomplete
 ---
 # Backlinks on sheets, Collections and uploaded files
 
@@ -20,3 +22,7 @@ Whether links written inside a sheet or a Collection should count as backlinks i
 - Opening a sheet, a Collection or an uploaded file that other documents link to shows "Linked from N documents" with working links; nothing shows when nothing links to it.
 - Responsive at 375px, light and dark.
 - Tests cover the new placement; `docs/features/document_backlinks.md` is updated and this file is removed.
+
+## Unverified
+
+Built and tested in Jest (the panel's `bar` variant, the file and Collection placements). Not done: a browser check at 375px and desktop, light and dark, of a sheet, a Collection and an uploaded file that other documents link to (the sheet strip especially: the Fortune Sheet grid fills the space above it and the strip must not squeeze it). The sheet screen has no test. Delete this file when that passes.

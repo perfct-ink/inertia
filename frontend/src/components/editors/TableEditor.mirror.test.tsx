@@ -4,6 +4,9 @@ import TableEditor from './TableEditor'
 import type { Document } from '@/types'
 import type { TableData } from '@/api/tables'
 
+// The panel has its own tests; here it only shows where the screen puts it.
+jest.mock('@/components/DocumentBacklinks', () => ({ __esModule: true, default: ({ documentId, bar }: { documentId: number; bar?: boolean }) => <div data-testid="backlinks" data-document={documentId} data-bar={String(!!bar)} /> }))
+
 let mockData: TableData
 let mockLinked: TableData | undefined
 const mockEdit = jest.fn()

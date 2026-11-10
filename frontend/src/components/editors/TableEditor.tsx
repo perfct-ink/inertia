@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { useQueries } from '@tanstack/react-query'
 import { Database, Loader2, Map as MapIcon, Pencil, Plus, Table as TableIcon, Trash2 } from 'lucide-react'
 import WorkspaceLayout from '@/components/WorkspaceLayout'
+import DocumentBacklinks from '@/components/DocumentBacklinks'
 import FormulaInput from '@/components/editors/FormulaInput'
 import { useWorkspace } from '@/api/workspace'
 import { useWorkspaceMembers } from '@/api/workspaceMembers'
@@ -198,6 +199,7 @@ export default function TableEditor({ doc }: { doc: Document }) {
           </tr></tfoot>}
         </table>
       </div>}
+      <DocumentBacklinks documentId={doc.id} bar />
     </div>
     <Modal open={showForm} title={editingField ? `Edit ${editingField.name}` : 'Add field'} onClose={() => setShowForm(false)}>
       <form onSubmit={saveField} className="ui-modal-form table_editor-field_form">

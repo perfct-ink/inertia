@@ -2,6 +2,9 @@ import '@testing-library/jest-dom'
 import { fireEvent, render, screen } from '@testing-library/react'
 import FileViewer from './FileViewer'
 
+// The panel has its own tests; here it only shows where the screen puts it.
+jest.mock('@/components/DocumentBacklinks', () => ({ __esModule: true, default: ({ documentId, bar }: { documentId: number; bar?: boolean }) => <div data-testid="backlinks" data-document={documentId} data-bar={String(!!bar)} /> }))
+
 jest.mock('@/components/WorkspaceLayout', () => function LayoutMock({ children }: { children: React.ReactNode }) { return <div>{children}</div> })
 const mockMove = { mutate: jest.fn() }
 const mockReplace = { mutate: jest.fn(), isPending: false }
@@ -44,4 +47,10 @@ test('renames on leaving the field, moves to another folder, and replaces with a
   const next = new File(['x'], 'v2.png', { type: 'image/png' })
   fireEvent.change(screen.getByLabelText('Choose the new version'), { target: { files: [next] } })
   expect(mockReplace.mutate).toHaveBeenCalledWith({ documentId: 5, file: next }, expect.anything())
+})
+
+test('shows what links to the file, in the page\'s own scroll', () => {
+  render(<FileViewer doc={file()} />)
+  expect(screen.getByTestId('backlinks')).toHaveAttribute('data-document', '5')
+  expect(screen.getByTestId('backlinks')).toHaveAttribute('data-bar', 'false')
 })

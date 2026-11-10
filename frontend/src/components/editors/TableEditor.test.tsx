@@ -4,6 +4,9 @@ import TableEditor from './TableEditor'
 import type { Document } from '@/types'
 import type { TableData } from '@/api/tables'
 
+// The panel has its own tests; here it only shows where the screen puts it.
+jest.mock('@/components/DocumentBacklinks', () => ({ __esModule: true, default: ({ documentId, bar }: { documentId: number; bar?: boolean }) => <div data-testid="backlinks" data-document={documentId} data-bar={String(!!bar)} /> }))
+
 let mockData: TableData
 const mockEdit = jest.fn()
 jest.mock('@/components/WorkspaceLayout', () => ({ __esModule: true, default: ({ children }: { children: React.ReactNode }) => <div>{children}</div> }))
@@ -336,4 +339,11 @@ test('the column header names the type and any format other than the default', (
   expect(screen.getByText('Money · Euros')).toBeInTheDocument()
   expect(screen.getByText('Money')).toBeInTheDocument()
   expect(screen.getByText('Email')).toBeInTheDocument()
+})
+
+test('shows what links to the Collection as a strip under the grid', () => {
+  mockData = { fields: [typedField(1, 'Name', 'text')], records: [] }
+  render(<TableEditor doc={doc} />)
+  expect(screen.getByTestId('backlinks')).toHaveAttribute('data-document', String(doc.id))
+  expect(screen.getByTestId('backlinks')).toHaveAttribute('data-bar', 'true')
 })

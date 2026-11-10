@@ -2,6 +2,7 @@ import { useRef, useState } from 'react'
 import { Download } from 'lucide-react'
 import { Button, FormError, Input, Select } from '@/components/ui'
 import WorkspaceLayout from '@/components/WorkspaceLayout'
+import DocumentBacklinks from '@/components/DocumentBacklinks'
 import { useMoveDocument, useUpdateDocument } from '@/api/documents'
 import { useReplaceFile, useWorkspace } from '@/api/workspace'
 import { errorMessage } from '@/util/errorMessage'
@@ -84,6 +85,7 @@ export default function FileViewer({ doc }: { doc: Document }) {
         {file && preview === 'pdf' && <iframe className="file_viewer-pdf" src={url} title={doc.title} />}
         {file && preview === 'none' && <p className="file_viewer-meta">No preview for this type of file. Download it to open it.</p>}
         <Button variant="secondary" onClick={() => window.history.back()}>Back</Button>
+        <DocumentBacklinks documentId={doc.id} />
       </div>
     </WorkspaceLayout>
   )
