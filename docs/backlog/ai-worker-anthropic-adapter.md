@@ -1,6 +1,7 @@
 ---
 priority: p1
 depends_on: []
+branch: backlog/ai-worker-anthropic-adapter
 components: [backend]
 status: incomplete
 ---
@@ -46,3 +47,7 @@ Needs Alex: the official gem, and the key.
 ## Verified (2026-11-09)
 
 Merged to main: `rails test` (599 runs, 0 failures), rubocop, brakeman, `tsc -b`, Jest, eslint and `db:migrate` (no schema diff) pass. The adapter is inert until `ANTHROPIC_API_KEY` is set, so only the Blocked items above remain: the gem decision, the key in Coolify, and a real call once the key is set.
+
+## Unverified (2026-11-10)
+
+The `anthropic` gem (~> 2.8) is added to `backend/Gemfile` and locked in `Gemfile.lock` (via `bundle add` in a `ruby:3.3.8` container). The client is NOT yet swapped: `AnthropicClient` still uses `HttpTransport`. Docker stopped accepting connections (`permission denied` on `~/.docker/run/docker.sock`) before the gem's streaming API could be read or the tests run, and the system Ruby is 2.6. To finish: restart Docker, then in `backend/` run `bundle install`, replace the body of `AnthropicClient#complete` with the gem's streaming call (returning `AiWorkers::Reply`, raising `AiWorkers::ProviderError`), delete `HttpTransport`, `SseParser` and `MessageStream`, and run `make test`, `make lint-backend` and brakeman.
