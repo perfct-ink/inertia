@@ -22,7 +22,11 @@ Each person for themselves, per device.
 - The first paint uses the default theme until the app mounts (a brief flash is possible for a saved Dark choice with a light OS).
 - Status colours (`docs/features/status_colors.md`) follow light and dark but deliberately not the accent: a red status stays red in every colour theme.
 
+## Dark styles in stylesheets
+Prefer a theme token, which follows the setting by itself. Where a rule must differ in dark, `@include dark` (in `_tokens.scss`, used inside the rule) applies it when the OS is dark and Appearance is System, or when Appearance is Dark, and never when it is Light; it adds no specificity. The spreadsheet's inverted grid (`SpreadsheetEditor.scss`) is its only use; the toast, file-manager and Events uses the task listed had already moved to tokens. `styles/darkMixin.test.ts` compiles the mixin and checks the selectors.
+
 ## History
+- 2026-11-10: `@include dark` follows the Appearance setting (it was the OS only, so the spreadsheet stayed inverted with Appearance set to Light on a dark OS). On branch `backlog/dark-mixin-follows-explicit-theme`; not checked in a browser, not deployed.
 - 2026-11-03: the default accent (Inertia and Midnight) changed from teal (hue 174) to blue (hue 217). The theme id stays `teal`.
 - Implemented 2026-10-19 on branch `backlog/appearance-settings`. Not merged or deployed.
 - Not verified: lint, type-check, tests and the browser (colours in light and dark) were not run (no node_modules).

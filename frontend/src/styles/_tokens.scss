@@ -102,8 +102,17 @@ $breakpoints: (
   }
 }
 
+// Styles for a selector when the page is dark: the OS says dark and Appearance is on
+// System, or Appearance is Dark. Use inside the rule, `.x { @include dark { ... } }`.
+// Prefer a theme token (it follows both without this); :where() adds no specificity.
 @mixin dark {
   @media (prefers-color-scheme: dark) {
+    :where(:root:not([data-theme])) & {
+      @content;
+    }
+  }
+
+  :where([data-theme='dark']) & {
     @content;
   }
 }

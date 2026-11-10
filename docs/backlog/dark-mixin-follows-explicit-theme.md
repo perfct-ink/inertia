@@ -2,6 +2,8 @@
 priority: p2
 depends_on: []
 components: [frontend]
+branch: backlog/dark-mixin-follows-explicit-theme
+status: incomplete
 ---
 # Make `@include dark` follow the Appearance setting
 
@@ -20,3 +22,7 @@ components: [frontend]
 
 - Toast, Events chips and the file-manager delete hover follow the Appearance choice in every combination of OS and setting.
 - Feature doc updated (appearance.md) and this file removed.
+
+## Unverified
+
+Built: the mixin follows `data-theme`, with a compile test; the spreadsheet (the only remaining use, and a raw `prefers-color-scheme` media query before) now uses it. The toast, file-manager and Events uses named above no longer exist. Not done: a browser check of the spreadsheet in every OS and Appearance combination. Delete this file when that passes.

@@ -30,8 +30,8 @@
      dark/light while keeping any user-set cell colors at roughly their
      original hue. */
 
-  @media (prefers-color-scheme: dark) {
-    .fortune-container {
+  .fortune-container {
+    @include dark {
       filter: invert(1) hue-rotate(180deg);
     }
   }
