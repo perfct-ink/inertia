@@ -12,7 +12,8 @@ Let a person create workers, run one on a task and read the result.
 - A Workers settings page: create, edit instructions and model, enable or disable, delete.
 - A worker picker and run button on a task, and a run history with status, output (copyable) and error.
 - Poll or refetch while a run is queued or running; show API errors.
-- Tasks have no detail view; start from the task row or Kanban card. Use shared `@/components/ui` controls.
+- Start from the task detail dialog (see `docs/features/task_detail.md`), with the run button also on the task row and Kanban card. Use shared `@/components/ui` controls.
+- Multiple named workers per Space (Alex, 2026-11-10); no single-worker presentation.
 
 ## Acceptance criteria
 - A user can create a worker, run it on a task and see the output without leaving the app.

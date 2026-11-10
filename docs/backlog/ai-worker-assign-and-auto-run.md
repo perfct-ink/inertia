@@ -10,7 +10,7 @@ Treat an AI worker as an assignee, optionally running when a task enters a statu
 
 ## Requirements
 - Add `ai_worker_id` on tasks (not a fake user); show it like an assignee.
-- Optional rule: auto-run when a task enters a chosen status.
+- Optional rule, off by default (Alex, 2026-11-10): a per-worker setting that auto-runs when a task enters a chosen status. Assigning a task alone never runs anything.
 - Respect the one-active-run rule.
 
 
@@ -18,7 +18,7 @@ Treat an AI worker as an assignee, optionally running when a task enters a statu
 
 Alex, 2026-10-19: "I want to prioritize AI worker." This is the first thing to pick up, ahead of every other P0. Alex confirmed the meaning on 2026-10-19: the AI worker is pushing Inertia's docs to Claude or another agent to start the work, with the app updating live as the agent changes the docs. The core tasks are `ai-worker-agent-access.md`, `ai-worker-send-docs-to-agent.md` and `ai-worker-live-updates.md`; this task supports the "Claude, run by Inertia" path.
 
-Foundation vs spec: the foundation in `docs/features/ai_workers.md` supports multiple named workers per Space (each with its own instructions and model). The spec's default is **one AI worker per Space, shown as an assignee with an AI badge**. Which of the two to follow is pending Alex's confirmation; until then keep the multi-worker data model and build the single-worker presentation as a default (for example, a Space's first enabled worker) rather than removing workers.
+Foundation vs spec: the foundation in `docs/features/ai_workers.md` supports multiple named workers per Space (each with its own instructions and model). The spec's default is **one AI worker per Space, shown as an assignee with an AI badge**. Alex chose multiple named workers per Space on 2026-11-10.
 
 Original row: **AI worker as an assignee**: it appears in the assignee picker and on boards like a member. Default: one AI worker per Space, shown with an AI badge. Done when a task can be assigned to it from the task row, board and document task line. (Today: not present.)
 
@@ -28,5 +28,5 @@ Original row: **AI worker as an assignee**: it appears in the assignee picker an
 - Assign from the task row, the board and the document task line.
 
 ## Acceptance criteria
-- Assigning a task to a worker queues a run when the rule is on.
+- Assigning a task to a worker queues a run only when the worker's rule is on and the task is in its chosen status; with the rule off, assigning runs nothing.
 - Unassigning stops further auto-runs.
