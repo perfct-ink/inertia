@@ -413,6 +413,13 @@ $shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
       @include text('xs');
     }
 
+    // The way into the style shortcuts dialog, a full-size tap target.
+    @at-root .sidebar-shortcuts_link {
+      justify-content: flex-start;
+      min-height: space(10);
+      margin-top: space(1);
+    }
+
     @at-root .sidebar-shortcut {
       display: flex;
       align-items: center;

@@ -2,6 +2,8 @@
 priority: p1
 depends_on: [custom-paragraph-styles]
 components: [frontend, backend]
+branch: backlog/paragraph-style-keystrokes
+status: incomplete
 ---
 # Assign a paragraph style to a keystroke
 
@@ -31,3 +33,9 @@ The full proposed keystroke map (Apple Notes vs Google Docs vs the choice for In
 - Anything stated in Requirements / notes (including any named default) is implemented or deliberately changed with the reason recorded.
 - Failed API calls show an error to the user.
 - Tests cover the new behaviour; a feature doc in `docs/features/` is written (or the existing one updated) and this file is removed.
+
+## Unverified
+
+Built: per-person keystrokes for any built-in or custom style (backend `ParagraphStyleShortcut`, migration `20261110130001`, `GET/PUT/DELETE /api/v1/paragraph_style_shortcuts`; frontend dialog, editor binding that wins over the editor's keys, clash note, Style menu hints and `⌘/` sheet rows), with tests and `docs/features/paragraph_styles.md` updated. Frontend Jest (all suites), `tsc` and eslint passed.
+
+Not run here (no Rails, Docker or Swift in this session): `rails db:migrate` and a diff of `backend/db/schema.rb` (it was edited by hand to match the migration), `rails test` (new model and controller tests), `swift test --package-path macos`, and a browser check at 375px and desktop in light and dark (record a chord in Style shortcuts…, press it in a document, check a clash with `⌘B`). To finish: run those, fix anything they find, then delete this file.

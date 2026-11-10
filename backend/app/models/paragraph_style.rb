@@ -42,6 +42,7 @@ class ParagraphStyle < ApplicationRecord
 
   normalizes :name, with: ->(name) { name.squish }
   before_validation :drop_blank_properties
+  after_destroy { ParagraphStyleShortcut.forget_custom_style(user_id, id) }
 
   validates :name, presence: true, length: { maximum: 40 }, uniqueness: { scope: :user_id, case_sensitive: false }
   validates :base, inclusion: { in: BASES }

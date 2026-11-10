@@ -3,7 +3,9 @@ import type { Editor } from '@tiptap/react'
 import { Select } from '@/components/ui'
 import CustomStyleDialog from '@/components/CustomStyleDialog'
 import CustomStylesDialog from '@/components/CustomStylesDialog'
+import StyleShortcutsDialog from '@/components/StyleShortcutsDialog'
 import { useParagraphStyles } from '@/api/paragraphStyles'
+import { useParagraphStyleShortcuts } from '@/api/paragraphStyleShortcuts'
 import { useAuthStore } from '@/store/auth'
 import { PARAGRAPH_STYLES, styleOfBlock, type ParagraphStyleId } from '@/data/paragraphStyle'
 import {
@@ -12,12 +14,14 @@ import {
 } from '@/data/customParagraphStyle'
 import { applyCustomParagraphStyle } from '@/util/customParagraphStyleCommand'
 import { applyParagraphStyle } from '@/util/paragraphStyleCommand'
-import { shortcutOfStyle } from '@/data/paragraphStyleShortcut'
+import { chordLabel, shortcutOfStyle } from '@/data/paragraphStyleShortcut'
 import { shortcutLabel } from '@/util/shortcuts'
+import { isMac } from '@/util/platform'
 
 // The options that open the style forms; they are commands, not styles.
 const NEW_STYLE = 'new-style'
 const MANAGE_STYLES = 'manage-styles'
+const STYLE_SHORTCUTS = 'style-shortcuts'
 
 type BlockAttrs = { level?: number; style?: string | null; styleName?: string | null; styleProps?: string | null }
 
@@ -52,7 +56,7 @@ const NOT_CREATING = { base: 'body' as const, properties: {} }
 // applies another to it (a heading level, a named paragraph style, or one of
 // the person's own custom styles). "New style…" makes a custom style from the
 // paragraph the cursor is in and applies it; "Manage styles…" edits or deletes
-// the person's styles. A paragraph keeps a copy of its custom style, so one made
+// the person's styles; "Style shortcuts…" gives any style a keystroke. A paragraph keeps a copy of its custom style, so one made
 // by someone else only shows here as the current style, never as a choice.
 export default function ParagraphStylePicker({ editor }: { editor: Editor }) {
   const [value, setValue] = useState<string>(() => currentStyle(editor))
@@ -60,7 +64,9 @@ export default function ParagraphStylePicker({ editor }: { editor: Editor }) {
   const [creating, setCreating] = useState<ReturnType<typeof startingPoint> | null>(null)
   const [editing, setEditing] = useState<CustomParagraphStyle | null>(null)
   const [managing, setManaging] = useState(false)
+  const [assigningKeys, setAssigningKeys] = useState(false)
   const { data: customStyles = [] } = useParagraphStyles()
+  const { data: myShortcuts = [] } = useParagraphStyleShortcuts()
   const userId = useAuthStore((s) => s.user?.id ?? null)
 
   useEffect(() => {
@@ -73,6 +79,7 @@ export default function ParagraphStylePicker({ editor }: { editor: Editor }) {
   function choose(key: string) {
     if (key === NEW_STYLE) return setCreating(startingPoint(editor))
     if (key === MANAGE_STYLES) return setManaging(true)
+    if (key === STYLE_SHORTCUTS) return setAssigningKeys(true)
     const custom = customStyles.find((style) => customStyleKey(style.id) === key)
     if (custom) applyCustomParagraphStyle(editor, custom, userId)
     else applyParagraphStyle(editor, key as ParagraphStyleId)
@@ -91,16 +98,22 @@ export default function ParagraphStylePicker({ editor }: { editor: Editor }) {
         {shown === '' && <option value="">Style</option>}
         {isTheirs && <option value={value}>{copyName || 'Custom style'}</option>}
         {PARAGRAPH_STYLES.map((style) => {
+          const mine = myShortcuts.find((s) => s.style === style.id)
           const keys = shortcutOfStyle(style.id)?.keys
-          return <option key={style.id} value={style.id} data-hint={keys && shortcutLabel(keys)}>{style.label}</option>
+          const hint = mine ? chordLabel(mine.keys, isMac) : keys && shortcutLabel(keys)
+          return <option key={style.id} value={style.id} data-hint={hint}>{style.label}</option>
         })}
         {customStyles.length > 0 && (
           <optgroup label="My styles">
-            {customStyles.map((style) => <option key={style.id} value={customStyleKey(style.id)}>{style.name}</option>)}
+            {customStyles.map((style) => {
+              const mine = myShortcuts.find((s) => s.style === customStyleKey(style.id))
+              return <option key={style.id} value={customStyleKey(style.id)} data-hint={mine && chordLabel(mine.keys, isMac)}>{style.name}</option>
+            })}
           </optgroup>
         )}
         <option value={NEW_STYLE}>New style…</option>
         {customStyles.length > 0 && <option value={MANAGE_STYLES}>Manage styles…</option>}
+        <option value={STYLE_SHORTCUTS}>Style shortcuts…</option>
       </Select>
       <CustomStyleDialog
         open={creating !== null || editing !== null}
@@ -114,6 +127,7 @@ export default function ParagraphStylePicker({ editor }: { editor: Editor }) {
         }}
         onClose={() => { setCreating(null); setEditing(null) }}
       />
+      <StyleShortcutsDialog open={assigningKeys} onClose={() => setAssigningKeys(false)} />
       <CustomStylesDialog
         open={managing}
         styles={customStyles}

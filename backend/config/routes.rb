@@ -145,6 +145,8 @@ Rails.application.routes.draw do
       end
       # The signed-in person's own custom paragraph styles (not scoped to a Space).
       resources :paragraph_styles, only: [ :index, :create, :update, :destroy ]
+      # Keystrokes the person assigned to paragraph styles, found by style id ("quote", "custom-12").
+      resources :paragraph_style_shortcuts, only: [ :index, :update, :destroy ], param: :style, constraints: { style: /[a-z0-9-]+/ }
       resources :objectives, only: [ :index, :create, :update, :destroy ]
       resources :key_results, only: [ :create, :update, :destroy ] do
         resources :check_ins, only: [ :index, :create ], controller: "key_result_check_ins"

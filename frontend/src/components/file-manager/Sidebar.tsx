@@ -44,6 +44,8 @@ import { clashForAction, documentShortcutRows, EDITOR_COMMAND_EVENT } from '@/da
 
 import { KEYBOARD_SHORTCUTS } from '@/data/shortcut'
 import { styleShortcutRows } from '@/data/paragraphStyleShortcut'
+import StyleShortcutSheetRows from '@/components/StyleShortcutSheetRows'
+import StyleShortcutsDialog from '@/components/StyleShortcutsDialog'
 
 // The extra top padding/drag-region reserve room for macOS's traffic
 // lights, which only exist in the packaged Electron app's frameless
@@ -70,6 +72,7 @@ export default function Sidebar() {
   const onboardingVisible = useActiveOnboarding(user?.id) !== null
   const [appearanceOpen, setAppearanceOpen] = useState(false)
   const [shortcutsOpen, setShortcutsOpen] = useState(false)
+  const [styleKeysOpen, setStyleKeysOpen] = useState(false)
   const [quipImportOpen, setQuipImportOpen] = useState(false)
   const [quipToken, setQuipToken] = useState('')
   const [quipDomain, setQuipDomain] = useState('quip.com')
@@ -494,10 +497,13 @@ export default function Sidebar() {
                   <kbd className="sidebar-kbd">{platformKeys(keys, isMac)}</kbd>
                 </div>
               ))}
+              <StyleShortcutSheetRows onEdit={() => { setShortcutsOpen(false); setStyleKeysOpen(true) }} />
             </div>
           </div>
         </div>
       )}
+
+      <StyleShortcutsDialog open={styleKeysOpen} onClose={() => setStyleKeysOpen(false)} />
 
       {/* Quick add modal */}
       {quickAddOpen && (

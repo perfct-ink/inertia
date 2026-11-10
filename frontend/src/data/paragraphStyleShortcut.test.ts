@@ -1,7 +1,10 @@
 import { existsSync, readFileSync } from 'fs'
 import { resolve } from 'path'
 import { PARAGRAPH_STYLES, styleById } from './paragraphStyle'
-import { OTHER_HEADING_SHORTCUTS, PARAGRAPH_STYLE_SHORTCUTS, duplicateStyleShortcuts, shortcutOfStyle, styleShortcutRows } from './paragraphStyleShortcut'
+import {
+  OTHER_HEADING_SHORTCUTS, PARAGRAPH_STYLE_SHORTCUTS, STYLE_CHORD, chordClash, chordLabel, chordOfEvent, duplicateStyleShortcuts, eventIsChord,
+  shortcutOfStyle, styleShortcutRows,
+} from './paragraphStyleShortcut'
 
 // Keys the editor gives to something else (TipTap's defaults, and the Apple Notes
 // map in docs/keyboard-shortcuts.md that the editor is being moved to), so a
@@ -80,4 +83,59 @@ test('docs/keyboard-shortcuts.md lists every style shortcut', () => {
   const doc = shortcutsDoc()
   for (const shortcut of PARAGRAPH_STYLE_SHORTCUTS) expect(doc).toContain(`\`${shortcut.keys}\``)
   for (const heading of OTHER_HEADING_SHORTCUTS) expect(doc).toContain(`\`${heading.keys}\``)
+})
+
+describe('shortcuts people assign themselves', () => {
+  // A keystroke as the browser reports it: Ctrl+Cmd+1 on a Mac, Ctrl+1 elsewhere.
+  const press = (init: Partial<KeyboardEvent>) => ({ code: '', key: '', metaKey: false, ctrlKey: false, altKey: false, shiftKey: false, ...init })
+
+  test('a chord names its modifiers in order and needs ⌘ (Ctrl elsewhere)', () => {
+    expect(chordOfEvent(press({ code: 'Digit1', key: '1', metaKey: true, ctrlKey: true }), true)).toBe('Ctrl-Mod-1')
+    expect(chordOfEvent(press({ code: 'Digit1', key: '1', ctrlKey: true }), false)).toBe('Mod-1')
+    expect(chordOfEvent(press({ code: 'KeyQ', key: 'q', metaKey: true, altKey: true, shiftKey: true }), true)).toBe('Mod-Alt-Shift-q')
+    expect(chordOfEvent(press({ code: 'Digit1', key: '1', ctrlKey: true }), true)).toBeNull()
+    expect(chordOfEvent(press({ code: 'KeyQ', key: 'q' }), true)).toBeNull()
+  })
+
+  test('the key is the physical one, whatever Option or Shift types', () => {
+    expect(chordOfEvent(press({ code: 'Digit1', key: '¡', metaKey: true, altKey: true }), true)).toBe('Mod-Alt-1')
+    expect(chordOfEvent(press({ code: 'KeyM', key: 'M', metaKey: true, shiftKey: true }), true)).toBe('Mod-Shift-m')
+  })
+
+  test('keys that are not a letter or a digit make no chord', () => {
+    expect(chordOfEvent(press({ code: 'Enter', key: 'Enter', metaKey: true }), true)).toBeNull()
+    expect(chordOfEvent(press({ code: 'ArrowUp', key: 'ArrowUp', metaKey: true }), true)).toBeNull()
+    expect(chordOfEvent(press({ code: 'Meta', key: 'Meta', metaKey: true }), true)).toBeNull()
+  })
+
+  test('a keystroke is a chord only when the modifiers match exactly', () => {
+    const ctrlCmd1 = press({ code: 'Digit1', key: '1', metaKey: true, ctrlKey: true })
+    expect(eventIsChord(ctrlCmd1, 'Ctrl-Mod-1', true)).toBe(true)
+    expect(eventIsChord(ctrlCmd1, 'Mod-1', true)).toBe(false)
+    expect(eventIsChord(press({ code: 'Digit1', key: '1', metaKey: true }), 'Ctrl-Mod-1', true)).toBe(false)
+  })
+
+  test('chords read as ⌃⌘⌥⇧ keys on a Mac and Ctrl+Alt+Shift elsewhere', () => {
+    expect(chordLabel('Ctrl-Mod-1', true)).toBe('⌃⌘1')
+    expect(chordLabel('Mod-Alt-Shift-q', true)).toBe('⌘⌥⇧Q')
+    expect(chordLabel('Ctrl-Mod-1', false)).toBe('Ctrl+1')
+    expect(chordLabel('Mod-Alt-Shift-q', false)).toBe('Ctrl+Alt+Shift+Q')
+  })
+
+  test('a chord the editor already uses names what it takes over; a free one names nothing', () => {
+    expect(chordClash('Mod-b', true)).toBe('Bold')
+    expect(chordClash('Mod-Shift-x', true)).toBe('Strikethrough')
+    expect(chordClash('Mod-Alt-7', true)).toBe('Title')
+    expect(chordClash('Mod-Alt-4', true)).toBe('Heading 1 to 5')
+    expect(chordClash('Ctrl-Mod-1', true)).toBeNull()
+  })
+
+  test('the free range ⌃⌘1 to ⌃⌘9 clashes with nothing', () => {
+    for (let n = 1; n <= 9; n++) expect(chordClash(`Ctrl-Mod-${n}`, true)).toBeNull()
+  })
+
+  test('the chord format matches what the server accepts', () => {
+    for (const ok of ['Ctrl-Mod-1', 'Mod-Alt-7', 'Mod-Shift-m', 'Ctrl-Mod-Alt-Shift-z']) expect(STYLE_CHORD.test(ok)).toBe(true)
+    for (const bad of ['1', 'Alt-1', 'Ctrl-1', 'Mod', 'Mod-Enter', 'Mod-Alt-Ctrl-1', 'Mod-A', 'Mod-12']) expect(STYLE_CHORD.test(bad)).toBe(false)
+  })
 })

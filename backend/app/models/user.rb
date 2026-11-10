@@ -15,6 +15,7 @@ class User < ApplicationRecord
   has_many :social_identities, dependent: :destroy
   has_many :notifications, dependent: :destroy
   has_many :paragraph_styles, dependent: :destroy
+  has_many :paragraph_style_shortcuts, dependent: :destroy
   has_many :saved_views, dependent: :delete_all
   has_many :social_login_attempts, dependent: :destroy
   after_create :create_default_workspace

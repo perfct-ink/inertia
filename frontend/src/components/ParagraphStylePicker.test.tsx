@@ -7,6 +7,11 @@ import ParagraphStylePicker from './ParagraphStylePicker'
 
 let mockStyles: unknown[] = []
 jest.mock('@/api/paragraphStyles', () => ({ useParagraphStyles: () => ({ data: mockStyles }) }))
+let mockShortcuts: { style: string; keys: string }[] = []
+jest.mock('@/api/paragraphStyleShortcuts', () => ({ useParagraphStyleShortcuts: () => ({ data: mockShortcuts }) }))
+jest.mock('@/components/StyleShortcutsDialog', () => function ShortcutsMock({ open, onClose }: { open: boolean; onClose: () => void }) {
+  return open ? <div role="dialog" aria-label="Style shortcuts"><button onClick={onClose}>Close keys</button></div> : null
+})
 // The forms are tested on their own; here they only show what they were opened with.
 jest.mock('@/components/CustomStyleDialog', () => function DialogMock({ open, editing, initial, onSaved, onClose }: {
   open: boolean
@@ -63,6 +68,7 @@ function fakeEditor(parent: { type: { name: string }; attrs: Record<string, unkn
 const inStyle = (style: typeof callout, owner = OWNER) => ({ type: { name: 'paragraph' }, attrs: snapshotAttrs(style, owner) as unknown as Record<string, unknown> })
 
 beforeEach(() => {
+  mockShortcuts = []
   mockStyles = []
   useAuthStore.setState({ token: 't', user: { id: OWNER, name: 'Pat', email: 'pat@example.com' } })
 })
@@ -209,4 +215,26 @@ test('each style that has a key shows it beside its name in the list, and Captio
   expect(hints('Body')).toBe('⌘⌥0')
   expect(hints('Monospace')).toBeUndefined()
   expect(hints('Caption')).toBeUndefined()
+})
+
+test('a key the person set replaces the default beside the style, in the built-in and My styles lists', () => {
+  mockShortcuts = [{ style: 'title', keys: 'Ctrl-Mod-1' }, { style: 'custom-7', keys: 'Ctrl-Mod-2' }]
+  mockStyles = [{ id: 7, name: 'Callout', base: 'quote', properties: {} }]
+  const { editor } = fakeEditor({ type: { name: 'paragraph' }, attrs: { style: 'body' } })
+  const { container } = render(<ParagraphStylePicker editor={editor} />)
+  fireEvent.click(container.querySelector('.ui-select') as HTMLElement)
+  const hints = (name: string) => within(within(screen.getByRole('listbox')).getByRole('option', { name })).queryByText(/[⌘⌥⇧⌃]|Ctrl/)?.textContent
+  expect(hints('Title')).toMatch(/^(⌃⌘1|Ctrl\+1)$/)
+  expect(hints('Callout')).toMatch(/^(⌃⌘2|Ctrl\+2)$/)
+  expect(hints('Subtitle')).toMatch(/7|8/)
+})
+
+test('Style shortcuts… opens the dialog that sets them, and changes no paragraph', () => {
+  const { editor, calls } = fakeEditor({ type: { name: 'paragraph' }, attrs: { style: 'body' } })
+  render(<ParagraphStylePicker editor={editor} />)
+  fireEvent.change(screen.getByLabelText('Paragraph style'), { target: { value: 'style-shortcuts' } })
+  expect(screen.getByRole('dialog', { name: 'Style shortcuts' })).toBeInTheDocument()
+  fireEvent.click(screen.getByRole('button', { name: 'Close keys' }))
+  expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+  expect(calls).toEqual([])
 })

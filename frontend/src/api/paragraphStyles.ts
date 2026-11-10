@@ -29,7 +29,8 @@ export const paragraphStyleApi = new ParagraphStyleApi()
 export const useParagraphStyles = () => useResourceList(paragraphStyleApi, { staleTime: 5 * 60_000 })
 export const useCreateParagraphStyle = () => useResourceCreate(paragraphStyleApi)
 export const useUpdateParagraphStyle = () => useResourceUpdate(paragraphStyleApi)
-export const useDeleteParagraphStyle = () => useResourceDelete(paragraphStyleApi)
+// Deleting a style deletes its keystroke too (the server does), so that list is refetched.
+export const useDeleteParagraphStyle = () => useResourceDelete(paragraphStyleApi, ['paragraph_style_shortcuts'])
 
 // The list straight from the server, whatever is cached, and the cache brought up
 // to date with it. Rewriting documents (deleting a style's paragraphs, say) is

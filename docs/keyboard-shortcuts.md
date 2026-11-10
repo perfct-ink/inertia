@@ -85,7 +85,7 @@ Keys the editor never binds on Windows and Linux, because the browser or the des
 
 ### Paragraph styles
 
-The built-in paragraph styles (see `docs/features/paragraph_styles.md`) have `⌘⌥` plus a digit, like Google Docs' headings (`Ctrl+Alt` on Windows and Linux). The table is `PARAGRAPH_STYLE_SHORTCUTS` in `frontend/src/data/paragraphStyleShortcut.ts`; `extensions/ParagraphStyleShortcuts.ts` binds it, the Style menu shows each key beside its style, the `⌘/` sheet lists them, and a test fails if this table stops listing one. Digits are used because browsers keep `⌘N`, `⌘T` and `⌘W`, and `⌃⌘1`–`⌃⌘9` stay free for keys people assign to a style themselves (`paragraph-style-keystrokes`). `⌘⌥7`, `⌘⌥8` and `⌘⌥9` are the reserved keys above.
+The built-in paragraph styles (see `docs/features/paragraph_styles.md`) have `⌘⌥` plus a digit, like Google Docs' headings (`Ctrl+Alt` on Windows and Linux). The table is `PARAGRAPH_STYLE_SHORTCUTS` in `frontend/src/data/paragraphStyleShortcut.ts`; `extensions/ParagraphStyleShortcuts.ts` binds it, the Style menu shows each key beside its style, the `⌘/` sheet lists them, and a test fails if this table stops listing one. Digits are used because browsers keep `⌘N`, `⌘T` and `⌘W`, and `⌃⌘1`–`⌃⌘9` stay free for keys people assign to a style themselves (Style menu > Style shortcuts…, see `docs/features/paragraph_styles.md`). `⌘⌥7`, `⌘⌥8` and `⌘⌥9` are the reserved keys above.
 
 | Keys | Style | Bound by |
 |------|-------|----------|

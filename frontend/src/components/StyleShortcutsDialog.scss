@@ -1,0 +1,54 @@
+@use 'tokens' as *;
+
+// The paragraph styles and their keystrokes. Colors come from the theme
+// variables, so light and dark both work.
+@layer app.components {
+  // The modal itself (Modal's className): a long list scrolls on a short phone.
+  .style_shortcuts_dialog {
+    max-height: calc(100dvh - #{space(8)});
+    overflow-y: auto;
+
+    &-list {
+      display: flex;
+      flex-direction: column;
+      gap: space(1);
+      margin-top: space(3);
+    }
+
+    // Name and keys on one line; the buttons and any note wrap below on a phone.
+    &-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: space(1);
+      min-height: space(10);
+    }
+
+    &-name {
+      flex: 1 1 8rem;
+      min-width: 0;
+      overflow-wrap: anywhere;
+      @include text('sm');
+    }
+
+    &-keys {
+      min-width: space(14);
+      color: color(muted-foreground);
+      font-family: inherit;
+      text-align: right;
+      @include text('sm');
+    }
+
+    // Buttons keep a full-size tap target, and the same width whether they say
+    // "Set" or "Press keys…", so recording never moves anything.
+    &-touch {
+      min-width: space(10);
+      min-height: space(10);
+    }
+
+    &-message {
+      flex-basis: 100%;
+      margin: 0;
+    }
+  }
+}
