@@ -101,4 +101,22 @@ class AgentToolsControllerTest < ActionDispatch::IntegrationTest
     get "/api/v1/agent/tools", headers: agent_headers(@plain)
     assert_response :unauthorized
   end
+
+  test "a token over its limit gets 429 with Retry-After, and another token in the Space is unaffected" do
+    AgentRateLimiter.limits = { requests: 2, writes: 2 }
+    _other, other_plain = issue_agent_token(name: "Other agent")
+    2.times do
+      run_tool("list_folders")
+      assert_response :success
+    end
+    run_tool("list_folders")
+    assert_response :too_many_requests
+    assert_match(/Rate limit reached/, response.parsed_body["error"])
+    assert_operator response.headers["Retry-After"].to_i, :>, 0
+
+    run_tool("list_folders", plain: other_plain)
+    assert_response :success
+  ensure
+    AgentRateLimiter.reset!
+  end
 end

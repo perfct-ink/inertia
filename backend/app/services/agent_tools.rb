@@ -11,6 +11,18 @@ module AgentTools
   # An error to show the agent (it can act on the message).
   class Error < StandardError; end
 
+  # A token is over its per-minute limit (AgentRateLimiter). REST answers 429 with
+  # Retry-After; MCP gets the message as a tool error.
+  class RateLimited < Error
+    attr_reader :retry_after
+
+    def initialize(kind, limit, retry_after)
+      @retry_after = retry_after
+      noun = kind == :writes ? "writes" : "requests"
+      super("Rate limit reached: this token may make #{limit} #{noun} a minute. Try again in #{retry_after} seconds.")
+    end
+  end
+
   Tool = Struct.new(:name, :description, :schema, :write, :handler, keyword_init: true)
 
   def self.tools
@@ -30,6 +42,7 @@ module AgentTools
     raise Error, "This token is read-only" if tool.write && !token.writable?
     args = arguments.respond_to?(:to_unsafe_h) ? arguments.to_unsafe_h : (arguments || {})
     raise Error, "Arguments must be an object" unless args.is_a?(Hash)
+    AgentRateLimiter.check!(token, write: tool.write)
     token.touch_used!
     ActiveRecord::Base.transaction { tool.handler.call(token, args.stringify_keys) }
   rescue ActiveRecord::RecordInvalid => e

@@ -204,4 +204,20 @@ class McpControllerTest < ActionDispatch::IntegrationTest
       assert_not_includes line, @plain
     end
   end
+
+  test "a token over its limit gets a tool error naming the wait, and other tokens carry on" do
+    AgentRateLimiter.limits = { requests: 1, writes: 1 }
+    _other, other_plain = issue_agent_token(name: "Other agent")
+    call_tool("list_folders")
+    assert_equal false, tool_result.first
+    call_tool("list_folders")
+    assert_response :success
+    is_error, text = tool_result
+    assert is_error
+    assert_match(/Rate limit reached.*Try again in \d+ seconds/, text)
+    call_tool("list_folders", plain: other_plain)
+    assert_equal false, tool_result.first
+  ensure
+    AgentRateLimiter.reset!
+  end
 end

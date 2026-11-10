@@ -19,6 +19,9 @@ module Api
         render json: { result: AgentTools.call(agent_token, params[:tool_name], arguments).as_json }
       rescue JSON::ParserError
         render json: { error: "The body is not valid JSON" }, status: :bad_request
+      rescue AgentTools::RateLimited => e
+        response.set_header("Retry-After", e.retry_after.to_s)
+        render json: { error: e.message }, status: :too_many_requests
       rescue AgentTools::Error => e
         render json: { error: e.message }, status: :unprocessable_entity
       end
