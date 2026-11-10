@@ -2,6 +2,8 @@
 priority: p2
 depends_on: [ai-worker-agent-access]
 components: [backend]
+branch: backlog/agent-access-rate-limits
+status: incomplete
 ---
 # Agent access: rate limits
 
@@ -19,3 +21,7 @@ There is no throttling layer in the app (no `rack-attack`, no Redis in productio
 ## Acceptance criteria
 - A test that makes more requests than the limit sees `429`, and a second token in the same Space is unaffected.
 - `docs/features/agent_access.md` and `docs/services.md` are updated and this file is removed.
+
+## Unverified
+
+Built without Rails: run `rails test test/services/agent_rate_limiter_test.rb test/controllers/agent_tools_controller_test.rb test/controllers/mcp_controller_test.rb`. In-process counters, as the task preferred over adding Redis (documented in `agent_access.md`). Left: showing a throttled token on the settings screen (`AgentRateLimiter.throttled?`, once `agent-token-settings-ui` merges), and Alex's call on the figures (120 calls and 30 writes a minute). Delete this file when the tests pass and the figures are accepted.

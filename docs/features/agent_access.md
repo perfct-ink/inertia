@@ -57,13 +57,17 @@ Things Markdown has no place for ride along in HTML comments, and an edit keeps 
 - Code: `McpController`, `Api::V1::AgentToolsController`, the `AgentAuthenticated` concern, `AgentTools` (`app/services/agent_tools/documents.rb`, `tasks.rb`, `collections.rb`), `DocumentMarkdown`.
 - Web: nginx proxies the exact path `/mcp` to Rails (`frontend/nginx/default.conf`); `/api/` already reaches the REST endpoints.
 
+## Rate limits
+Each token may make 120 tool calls a minute and 30 writes a minute (a write also counts as a call), in fixed one-minute windows (`AgentRateLimiter`, called from `AgentTools.call`). Over the limit, REST answers `429` with `Retry-After` (seconds to the next window) and MCP returns a tool error naming the wait; other tokens in the Space are unaffected and a refused call is not counted. `tools/list` and `GET /agent/tools` are not counted. **The counts are in each Rails process's memory** (production has no shared store; adding Redis was not done), so with several processes the effective limit is the figure times the process count and a restart resets it; this guards against a runaway loop, it is not a quota. `AgentRateLimiter.throttled?(token)` is there for the settings screen to mark a throttled token; that screen does not use it yet.
+
 ## Tests
+Rate limits: `backend/test/services/agent_rate_limiter_test.rb`, and a case each in `agent_tools_controller_test.rb` and `mcp_controller_test.rb`.
 `backend/test/models/agent_token_test.rb` (hashing, revocation, owner-only, scope, limits), `test/services/agent_tools_test.rb` (every tool, scoping, task-id trust, attribution, rollback), `test/services/document_markdown_test.rb` (round trips, unsafe links), `test/controllers/mcp_controller_test.rb`, `agent_tools_controller_test.rb`, `agent_tokens_controller_test.rb`, `agent_activities_controller_test.rb`. Shared setup in `test/support/agent_access.rb`.
 
 ## Known limits
 - **Edits to a document someone has open can be lost.** The collab server keeps the open document in memory and writes it back on a debounce, so an agent edit made through Rails while a person has the document open is overwritten by their next save. `ai-worker-live-updates.md` covers sending agent edits through the collab server. Until then pass `base_updated_at`, and prefer `replace_text`.
 - Spreadsheets and uploaded files are not exposed, and a Collection's fields are read-only for agents.
-- No settings screen yet ([agent-token-settings-ui.md](../backlog/agent-token-settings-ui.md)); no OAuth, so Claude.ai connectors cannot sign in, only clients that can send a header such as Claude Code ([mcp-oauth-for-claude-ai.md](../backlog/mcp-oauth-for-claude-ai.md)); no rate limiting ([agent-access-rate-limits.md](../backlog/agent-access-rate-limits.md)).
+- No settings screen yet ([agent-token-settings-ui.md](../backlog/agent-token-settings-ui.md)); no OAuth, so Claude.ai connectors cannot sign in, only clients that can send a header such as Claude Code ([mcp-oauth-for-claude-ai.md](../backlog/mcp-oauth-for-claude-ai.md)); the rate limits are per process (see Rate limits).
 - A document edit is limited to 300,000 characters of Markdown and 100 new task lines, a task title to 500 and its description to 20,000, a list to 200 rows.
 - Markdown fidelity: nested lists and the basic marks round-trip; other inline content (mentions, highlight, ...) makes the document `can_edit_document: false`. Link URLs containing `)` are not supported.
 - Permissions inside a Space are all-or-nothing today (every member sees every folder), so a folder token narrows access below what a member has.
