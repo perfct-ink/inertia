@@ -93,6 +93,8 @@ export interface Workspace extends WorkspaceSummary {
   root_folder_id?: number
   // More than one person can open it (members or teams), so its projects are shared.
   shared?: boolean
+  // Bytes of uploaded files in use, and the Space's limit.
+  storage?: { used: number; limit: number }
   folders: Folder[]
 }
 

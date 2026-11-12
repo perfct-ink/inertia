@@ -12,6 +12,9 @@ class WorkspaceBlueprint < Blueprinter::Base
     # the sidebar shows "My work" only then.
     field :shared?, name: :shared
 
+    # Bytes of uploaded files in use and the limit; one query, so only for the open Space, not the Space list.
+    field(:storage) { |workspace| { used: workspace.storage_used, limit: workspace.storage_limit } }
+
     association :folders, blueprint: FolderBlueprint, view: :with_children do |workspace, _options|
       workspace.folders.where(parent_id: nil).order(:position, :name)
     end

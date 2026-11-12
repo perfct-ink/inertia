@@ -1,5 +1,5 @@
 import type { Document } from '@/types'
-import { buildInitialContent, extractTitle, filePreview, galleryFiles, lastModified, selectionTaskTitle, taskListContent, DOC_TYPE_LABELS, activeHeadingIndex, GALLERY_FILTERS } from './document'
+import { buildInitialContent, extractTitle, filePreview, galleryFiles, storageLabel, storagePercent, lastModified, selectionTaskTitle, taskListContent, DOC_TYPE_LABELS, activeHeadingIndex, GALLERY_FILTERS } from './document'
 
 test('extractTitle reads the leading heading', () => {
   expect(extractTitle(buildInitialContent('Launch plan'))).toBe('Launch plan')
@@ -66,4 +66,12 @@ test('activeHeadingIndex is the last heading at or before the cursor', () => {
 
 test('the gallery filters cover every kind galleryFiles understands, All first', () => {
   expect(GALLERY_FILTERS.map((f) => f.value)).toEqual(['all', 'image', 'video', 'pdf', 'other'])
+})
+
+test('storage reads as used of limit, with a capped percentage', () => {
+  expect(storageLabel({ used: 120 * 1024 * 1024, limit: 1024 ** 3 })).toBe('120 MB of 1 GB used')
+  expect(storageLabel(undefined)).toBeNull()
+  expect(storagePercent({ used: 512, limit: 1024 })).toBe(50)
+  expect(storagePercent({ used: 2048, limit: 1024 })).toBe(100)
+  expect(storagePercent({ used: 0, limit: 0 })).toBe(100)
 })

@@ -5,7 +5,7 @@ const mockCreate = jest.fn().mockResolvedValue({ id: 9 })
 const mockUpload = jest.fn().mockResolvedValue([])
 const mockCreateEpic = jest.fn().mockResolvedValue({ id: 4, title: 'Messages', document_id: 31 })
 const mockNavigate = jest.fn()
-const mockWorkspace = {
+const mockWorkspace: { storage?: { used: number; limit: number } } & Record<string, unknown> = {
   id: 1, name: 'Workspace', root_folder_id: 101,
   folders: [{ id: 101, name: 'Root', root: true, archived: false, documents: [], children: [
     { id: 202, name: 'Project', archived: false, documents: [], children: [] },
@@ -80,4 +80,11 @@ test('a feature that cannot be made shows the error', async () => {
   fireEvent.click(screen.getByRole('button', { name: 'Create' }))
   await waitFor(() => expect(screen.getByRole('alert')).toHaveTextContent('Unable to save. Please try again.'))
   expect(mockNavigate).not.toHaveBeenCalled()
+})
+
+test('shows how much of the Space\'s storage is used', () => {
+  mockWorkspace.storage = { used: 5 * 1024 * 1024, limit: 1024 ** 3 }
+  render(<CreateItem />)
+  expect(screen.getByText('5 MB of 1 GB used')).toBeInTheDocument()
+  delete (mockWorkspace as { storage?: unknown }).storage
 })
