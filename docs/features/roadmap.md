@@ -34,6 +34,7 @@ Scoped to the current Space. I did not check for role-based limits.
 - Only a month axis. Quarter zoom on the roadmap is not built; the Gantt zoom item (`docs/backlog/gantt-zoom-and-weekends.md`) covers the shared `Timeline`.
 - Timeline rows and board cards are not editable beyond the horizon; dates change on the Initiatives and Epics pages.
 - Board ordering inside a column is not saved or controllable.
+- Every epic is also a feature with a requirements document ([feature_requirements_docs.md](feature_requirements_docs.md)). The roadmap lists features exactly as it listed epics, including one with no tasks yet; none is held back until it has tasks.
 
 ## History
 - Implemented 2026-10-17 (timeline lanes, board, health). Committed locally; not pushed or deployed.

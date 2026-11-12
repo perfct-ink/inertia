@@ -43,6 +43,10 @@ module Api
       end
 
       def destroy
+        if @document.feature_epic
+          return render json: { errors: [ "This is a feature's requirements document. Delete the feature instead." ] }, status: :unprocessable_entity
+        end
+
         if @document.destroy
           head :no_content
         else

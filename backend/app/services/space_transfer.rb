@@ -21,6 +21,8 @@ class SpaceTransfer
   # What a copied Collection field keeps besides its link to another Collection.
   COPIED_FIELD_ATTRIBUTES = %w[name data_type unit formula display_format options].freeze
 
+  FEATURE_DOCUMENT = "A feature's requirements document can't leave the feature's Space.".freeze
+
   LINKED_COLLECTION = "A Collection links to a Collection that is not part of this transfer. " \
                       "Transfer them together (for example by transferring the folder that holds both) " \
                       "or remove the link first.".freeze
@@ -212,6 +214,8 @@ class SpaceTransfer
   # ── Move ────────────────────────────────────────────────────────────────
 
   def move_documents(documents)
+    raise Error, FEATURE_DOCUMENT if Epic.where(document_id: documents.map(&:id)).exists?
+
     reject_outside_links!(documents)
     rehome_tasks(documents.map(&:id))
     drop_split_task_files(documents.map(&:id))

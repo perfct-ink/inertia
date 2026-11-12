@@ -74,11 +74,12 @@ export const useTaskSearch = (query: string) => useQuery<Task[]>({
   queryFn: () => taskApi.list({ q: query, all_projects: true }),
   enabled: query.length >= 2,
 })
-export const useCreateTask = () => useResourceCreate(taskApi)
+// An epic's counts of tasks and done tasks come with the epic, so they refresh with its tasks.
+export const useCreateTask = () => useResourceCreate(taskApi, ['epics'])
 // A link carries its tasks' dates, so a task's change refreshes them too.
-export const useUpdateTask = () => useResourceUpdate(taskApi, ['task_dependencies'])
+export const useUpdateTask = () => useResourceUpdate(taskApi, ['task_dependencies', 'epics'])
 // The server drops a deleted task's Gantt links with it.
-export const useDeleteTask = () => useResourceDelete(taskApi, ['task_dependencies'])
+export const useDeleteTask = () => useResourceDelete(taskApi, ['task_dependencies', 'epics'])
 
 interface TaskFileRef { taskId: number; fileId: number }
 export const useAttachTaskFile = () => useApiMutation(({ taskId, fileId }: TaskFileRef) => taskApi.attachFile(taskId, fileId), [taskApi.queryKey])

@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import {
   Archive, ArchiveRestore, Database, FilePlus, FolderPlus, Table as SheetIcon, ChevronsUpDown, Folder as FolderIcon, FolderKanban, FileText,
-  LayoutDashboard, Plus, SlidersHorizontal, Smile,
+  LayoutDashboard, Plus, SlidersHorizontal, Smile, Target,
 } from 'lucide-react'
 import { Button, FormError, IconButton, Input, Menu, PromptDialog, classNames } from '@/components/ui'
 import ProjectIcon from '@/components/project/ProjectIcon'
@@ -21,6 +21,7 @@ import { canWriteWorkspace } from '@/api/workspaces'
 import { TASKS_HEADING, TASK_SECTIONS } from './projectSections'
 import { isActivePath } from '@/data/project'
 import { useNewDocument } from '@/hooks/useNewDocument'
+import { useNewFeature } from '@/hooks/useNewFeature'
 import { shortcutLabel } from '@/util/shortcuts'
 import type { Document } from '@/types'
 import { useProjectStore } from '@/store/projects'
@@ -46,6 +47,8 @@ export function ProjectNav() {
   const { data: archivedFolders = [] } = useArchivedFolders()
   const updateFolder = useUpdateFolder()
   const newDocument = useNewDocument()
+  const newFeature = useNewFeature()
+  const [namingFeature, setNamingFeature] = useState(false)
   const [addingFolder, setAddingFolder] = useState(false)
   const [error, setError] = useState('')
   const [iconFor, setIconFor] = useState<Folder | null>(null)
@@ -89,6 +92,17 @@ export function ProjectNav() {
     setError('')
     try {
       await newDocument(type, project.id)
+    } catch (e) {
+      setError(errorMessage(e))
+    }
+  }
+
+  // A feature is an epic with a requirements document, made in the project; the document opens.
+  async function addFeature(project: Folder, name: string) {
+    if (!name) return
+    setError('')
+    try {
+      await newFeature(name, project.id)
     } catch (e) {
       setError(errorMessage(e))
     }
@@ -173,6 +187,9 @@ export function ProjectNav() {
                 </IconButton>
                 <IconButton fill title="New Collection" label="New Collection" onClick={() => createIn(openProject, 'table')} className="project_nav-tool">
                   <Database className="project_nav-icon" />
+                </IconButton>
+                <IconButton fill title="New feature" label="New feature" onClick={() => setNamingFeature(true)} className="project_nav-tool">
+                  <Target className="project_nav-icon" />
                 </IconButton>
                 <IconButton fill title="New folder" label="New folder" onClick={() => setAddingFolder(true)} className="project_nav-tool">
                   <FolderPlus className="project_nav-icon" />
@@ -271,6 +288,9 @@ export function ProjectNav() {
         </>
       )}
 
+      {openProject && (
+        <PromptDialog open={namingFeature} title="New feature" label="Feature name" placeholder="e.g. Background images" submitLabel="Create" onSubmit={(name) => addFeature(openProject, name)} onClose={() => setNamingFeature(false)} />
+      )}
       <PromptDialog open={naming} title="New project" label="Project name" placeholder="e.g. Website relaunch" submitLabel="Create" onSubmit={add} onClose={() => setNaming(false)} />
       <ProjectIconDialog
         project={iconFor && (projects.find((p) => p.id === iconFor.id) ?? null)}

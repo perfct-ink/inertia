@@ -38,7 +38,7 @@ export const SECTION_GROUPS: { heading: string | null; sections: Section[] }[] =
     { label: 'Timeline', feature: 'timeline', path: '/timeline', icon: GanttChart },
     { label: 'Milestones', feature: 'milestones', path: '/milestones', icon: Milestone },
     { label: 'Initiatives', feature: 'initiatives', path: '/initiatives', icon: Flag },
-    { label: 'Epics', feature: 'epics', path: '/epics', icon: Target },
+    { label: 'Features', feature: 'epics', path: '/epics', icon: Target },
     { label: 'Sprints', feature: 'sprints', path: '/sprints', icon: Rocket },
     { label: 'Hierarchy', feature: 'hierarchy', path: '/hierarchy', icon: ListTree },
   ] },

@@ -2,6 +2,8 @@
 priority: p0
 depends_on: []
 components: [backend, frontend]
+branch: backlog/features-with-requirements-docs
+status: incomplete
 ---
 # Features with requirements docs
 
@@ -46,3 +48,68 @@ This replaces the folder-flag design in `feature-folder-type.md` and the `parent
 - The collapse toggle shows only the tasks (under their headings) and restores the full doc; the choice is remembered for that feature.
 - Works in light and dark mode and at mobile width. Failed API calls show an error.
 - Tests cover the new behaviour; `docs/features/` is updated (a `features.md` doc, the epic docs that mention Features, and `document_task_lines.md` for the checkbox), and this file is removed.
+
+## Unverified
+
+Built on `backlog/features-with-requirements-docs` and reconciled (2026-11-08) with Alex's groomed text above. Nothing here could be run against Rails, a database, a linter, the type-checker or a browser, so the branch is `incomplete`. When it merges, delete this file.
+
+### What is built
+
+- `epics.document_id` (migration `20261108010001_add_document_to_epics`, nullable on purpose: the previous release keeps working, and a document deleted with its folder nulls it) and the data migration `20261108010002_give_epics_requirements_documents`, which gives every epic without a document a blank one from the requirements template. The two replace the one migration of the first attempt, which did both.
+- A feature is within a project: made from the open project (or the Personal Project) by "New feature" on the Features page, the project's Files toolbar and `CreateItem`. The server builds the document from the template in the same request, in the feature's folder or the Personal Project, and files the feature in that project too. A feature without a document is rejected; the document can't be deleted alone (422), taken off the feature or moved to another Space; deleting the feature deletes it and the tasks written in it.
+- Tasks written in the document get the feature as their epic; the document shows a progress header (hidden until a task exists).
+- Collapse: only the whole-document "Tasks only" toggle, remembered per person per feature. There is no per-heading collapse (its follow-up file was removed).
+- Features page, sidebar and rail say "feature"; the rest of the UI still says "epic" (`rename-epics-to-features-in-the-ui`).
+
+### Decisions for Alex
+
+1. **Epics with tasks vs a bare feature.** "A feature with tasks shows as an epic in the planning views." **CONFIRMED by Alex on 2026-11-09:** the planning views list every feature, including ones with no tasks. The roadmap, Gantt/timelines, epic planning, hierarchy and rollups list **every** feature exactly as they listed epics. Nothing is hidden for having no tasks. Reasons: the epic plan page is where tasks are put into an epic (its picker and backlog pane), so hiding task-less ones would make them unplannable; the migration turns every existing epic into a feature, many with tasks assigned rather than written in a document, and others empty on purpose with dates or a milestone. A feature with no tasks already shows no progress or counts, and adds no tasks to any rollup. If you want bare features out of those views, it is a `tasks_count > 0` filter in each view; say so and it becomes its own task.
+2. **Epics with no folder.** The migration files them (and their documents) in the Space's Personal Project, made if the Space has none, so the feature is within a project as you asked. The first attempt put such documents in the hidden Root instead. The cost: a Space with unfiled epics gains a "Personal Project" folder. A new feature made through the API with no project does the same.
+3. **The API still accepts a plain folder outside any project** as the feature's folder (older callers and promoted ideas send one). Only the web app always files in a project.
+4. The database column stays nullable (see above). A rerun of the data migration heals a feature whose document went with its folder.
+
+### Dry run before production
+
+The data migration writes production data (a document per epic, maybe a Personal Project per Space, and `epics.folder_id` for epics that had none). It deletes nothing, only touches epics whose `document_id` is null, and is safe to rerun. Do not try it on production first:
+
+```sh
+# 1. Preview, read-only, against a restored backup or a read replica (before the column exists):
+#    epics per Space, and how many have no folder (those get a Personal Project)
+psql "$SCRATCH_DATABASE_URL" -c "SELECT workspace_id, COUNT(*) AS epics, SUM(CASE WHEN folder_id IS NULL THEN 1 ELSE 0 END) AS without_folder FROM epics GROUP BY workspace_id ORDER BY workspace_id"
+
+# 2. Restore the latest production backup into a scratch database (never production), then:
+cd backend && DATABASE_URL="$SCRATCH_DATABASE_URL" RAILS_ENV=production rails db:migrate
+#    The data step prints: requirements documents made: N; Personal Projects made: M; epics skipped (no Space): 0
+#    N must equal the number of epics in step 1.
+
+# 3. Check the result on the scratch database
+psql "$SCRATCH_DATABASE_URL" -c "SELECT COUNT(*) FROM epics WHERE document_id IS NULL"        # expect 0
+psql "$SCRATCH_DATABASE_URL" -c "SELECT COUNT(*) - COUNT(DISTINCT document_id) FROM epics"    # expect 0 (one document each)
+psql "$SCRATCH_DATABASE_URL" -c "SELECT COUNT(*) FROM epics e JOIN documents d ON d.id = e.document_id WHERE d.folder_id <> e.folder_id"   # expect 0
+
+# 4. Rerun it: it must make nothing
+cd backend && DATABASE_URL="$SCRATCH_DATABASE_URL" RAILS_ENV=production rails db:migrate:redo VERSION=20261108010002
+#    expect: requirements documents made: 0; Personal Projects made: 0
+```
+
+Then open a few features in the scratch app's Features page and check their documents. Production gets the migration on deploy (`db:prepare` on boot); take a backup first.
+
+### Verified on 2026-11-09 (merged with main on Alex's Mac mini)
+
+Merged with main (one conflict in `space_transfer.rb`, both constants kept) and ran: `rails test` (511 runs, 0 failures), rubocop, brakeman, `tsc -b`, Jest (889 passed after fixing `useTasksOnly.test.tsx`, which counted the auth store's own persisted key), eslint (0 errors), `db:migrate` with no `schema.rb` diff, and the data migration on a local database with three epics (one with a folder, two without, in two Spaces): it made 3 documents and 2 Personal Projects, and a rerun made nothing. In the browser, "New feature" on the Features page made the feature and opened its document in the Personal Project.
+
+**Held back from main:** pushing main deploys, and Rails runs this data migration on boot against production. The production dry run below (on a restored backup) is Alex's to run or waive before this merges.
+
+### Checks
+
+Ran: `ruby -c` on the changed Ruby and tests, the static checker, the pure data tests, and in a Jest stand-in: `useNewFeature`, `useNewDocument`, `useTasksOnly`, `FeatureProgress`, `CreateItem`, `ProjectNav`, `SidebarRail`, `EpicsScreen`, `feature.test.ts`.
+
+Not run (no network, node_modules, database or browser):
+
+```sh
+cd backend && rails db:migrate && git diff db/schema.rb   # schema.rb was edited by hand (version 2026_11_08_010002 plus epics.document_id); the diff should be empty
+cd backend && rails test                                   # new: test/migrations/give_epics_requirements_documents_test.rb, models/epic_test.rb, controllers/epics_controller_test.rb
+cd frontend && npm install && npm run lint && npx tsc -b && npm test
+```
+
+Then, in a browser, light and dark, at 375px and desktop: make a feature from each entry point (Features page, project Files toolbar, `CreateItem`) with a project open and with none, and land in its document; write and tick a task and watch the header; fold to Tasks only, reload and see it remembered for that feature only; delete a feature; try to delete its document from the sidebar (it must refuse).

@@ -188,6 +188,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_10_120001) do
     t.bigint "milestone_id"
     t.integer "horizon"
     t.integer "position", default: 0, null: false
+    t.bigint "document_id"
+    t.index ["document_id"], name: "index_epics_on_document_id", unique: true
     t.index ["folder_id"], name: "index_epics_on_folder_id"
     t.index ["initiative_id"], name: "index_epics_on_initiative_id"
     t.index ["milestone_id"], name: "index_epics_on_milestone_id"
@@ -807,6 +809,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_10_120001) do
   add_foreign_key "documents", "milestones", on_delete: :nullify
   add_foreign_key "documents", "users", column: "created_by_id"
   add_foreign_key "documents", "users", column: "feature_owner_id", on_delete: :nullify
+  add_foreign_key "epics", "documents", on_delete: :nullify
   add_foreign_key "epics", "folders"
   add_foreign_key "epics", "initiatives"
   add_foreign_key "epics", "milestones"

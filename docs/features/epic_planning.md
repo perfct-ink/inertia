@@ -17,7 +17,7 @@ The plan page (`/plan?epic_id=<id>`) plans one epic at a time. Pick an epic in t
 - Frontend: `view/epic_plan/EpicPlanScreen.tsx` and `.scss` (root class `view-epic_plan`, shares the header and empty-state styles of `view/planning/PlanningScreen.scss`), route `/plan` in `App.tsx`, and the Plan button in `view/epics/EpicsScreen.tsx`.
 
 ## Features
-Alex decided (2026-10-23, `docs/backlog/features-with-requirements-docs.md`) that a feature is an epic with a required requirements document. This page therefore plans features as well once they exist; no feature-specific code was added, because the feature folder and hierarchy tasks are not merged.
+A feature is an epic with a required requirements document ([feature_requirements_docs.md](feature_requirements_docs.md)), and every epic is a feature (a migration gave the existing ones their documents). This page plans features as it planned epics: it lists every feature, including one with no tasks yet, which is how you start putting tasks into it (the picker and the backlog pane). A feature that is only its document shows no progress or counts here until it has tasks, written in the document or added from the backlog pane. Tasks written in a feature's document are the feature's tasks and appear here.
 
 ## Mobile and dark mode
 At 375px the page is one column: rollup, status sections, then the backlog. Rows wrap their controls under the title. On touch screens the handle and icon buttons are 40px square and date and status fields are at least 40px tall. Colors come from the theme tokens, so dark mode follows the app.
@@ -34,7 +34,7 @@ Scoped to the current Space (`WorkspaceScoped`): reads need membership, writes n
 - No sidebar entry; open the page from an epic's Plan button or by URL. The sidebar rail is shared with other branches.
 - All tasks are fetched and filtered in the browser, with no paging.
 - Rows are not ordered by drop position, and a task of another epic cannot be pulled in (move it from the Hierarchy page).
-- The UI says "epic"; it becomes "feature" with `features-with-requirements-docs.md`.
+- The UI still says "epic" here. An epic is also a feature with a requirements document ([feature_requirements_docs.md](feature_requirements_docs.md)); only the Features page and the sidebar say "feature" so far.
 - The page shows write controls to viewers.
 
 ## History

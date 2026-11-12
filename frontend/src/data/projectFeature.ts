@@ -35,7 +35,7 @@ export const PROJECT_FEATURE_GROUPS: ProjectFeatureGroup[] = [
     { key: 'timeline', label: 'Timeline' },
     { key: 'milestones', label: 'Milestones' },
     { key: 'initiatives', label: 'Initiatives' },
-    { key: 'epics', label: 'Epics' },
+    { key: 'epics', label: 'Features' },
     { key: 'sprints', label: 'Sprints' },
     { key: 'hierarchy', label: 'Hierarchy' },
   ] },
